@@ -1,31 +1,50 @@
-// Bundles the lakeside demo (engine + three.js + demo code) into one self-contained HTML file: dist/lakeside.html
-//   node scripts/build.mjs            build once
-//   node scripts/build.mjs --serve    rebuild on change and serve it (port 5173, or the next free one)
+// Bundles each page (engine + library + three.js + page code) into one self-contained HTML file in dist/.
+//   node scripts/build.mjs                  build every page
+//   node scripts/build.mjs lakeside         build one page
+//   node scripts/build.mjs --serve [page]   rebuild on change and serve dist/ (port 5173, or the next free one)
+// A page is a folder with main.js + index.html: scenes/<name>/ or tools/<name>/ (tools/showcase).
 import * as esbuild from 'esbuild';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const serve = process.argv.includes('--serve');
-const outFile = path.join(root, 'dist/lakeside.html');
+const args = process.argv.slice(2);
+const serve = args.includes('--serve');
+const only = args.filter((a) => !a.startsWith('--'));
 
-async function emit(js) {
-  const html = await readFile(path.join(root, 'demo/lakeside/index.html'), 'utf8');
+async function pages() {
+  const out = [];
+  for (const dir of ['scenes', 'tools']) {
+    const base = path.join(root, dir);
+    if (!existsSync(base)) continue;
+    for (const name of await readdir(base)) {
+      const p = path.join(base, name);
+      if ((await stat(p)).isDirectory() && existsSync(path.join(p, 'main.js')) && existsSync(path.join(p, 'index.html'))) out.push({ name, dir: p });
+    }
+  }
+  return only.length ? out.filter((p) => only.includes(p.name)) : out;
+}
+
+async function emit(page, js) {
+  const outFile = path.join(root, 'dist', page.name + '.html');
+  const html = await readFile(path.join(page.dir, 'index.html'), 'utf8');
   await mkdir(path.dirname(outFile), { recursive: true });
   // a function replacement keeps `$` sequences in the bundle literal
-  const page = html.replace('/*__BUNDLE__*/', () => js.replace(/<\/script/g, '<\\/script'));
-  await writeFile(outFile, page);
+  const full = html.replace('/*__BUNDLE__*/', () => js.replace(/<\/script/g, '<\\/script'));
+  await writeFile(outFile, full);
   // The same page as a fragment (no doctype / html / head / body) for hosts that wrap it in their own skeleton.
-  const head = page.slice(page.indexOf('<title>'), page.indexOf('</style>') + 8);
-  const body = page.slice(page.indexOf('<body>') + 6, page.lastIndexOf('</body>'));
+  const head = full.slice(full.indexOf('<title>'), full.indexOf('</style>') + 8);
+  const body = full.slice(full.indexOf('<body>') + 6, full.lastIndexOf('</body>'));
   const fragment = head.replace('</title>', '</title>\n<meta name="claude:viewport-fit-sides" content="cover">') + body;
   await writeFile(outFile.replace(/\.html$/, '.fragment.html'), fragment);
   console.log(`[build] ${path.relative(root, outFile)}  ${(Buffer.byteLength(js) / 1024).toFixed(0)} kB of script`);
 }
-const options = {
-  entryPoints: [path.join(root, 'demo/lakeside/main.js')],
+
+const options = (page) => ({
+  entryPoints: [path.join(page.dir, 'main.js')],
   bundle: true,
   format: 'iife',
   target: 'es2022',
@@ -39,22 +58,25 @@ const options = {
       setup(build) {
         build.onEnd(async (res) => {
           if (res.errors.length || !res.outputFiles) return;
-          await emit(res.outputFiles[0].text);
+          await emit(page, res.outputFiles[0].text);
         });
       },
     },
   ],
-};
+});
 
+const list = await pages();
+if (!list.length) throw new Error('no page matches ' + only.join(', '));
 if (serve) {
-  const ctx = await esbuild.context(options);
-  await ctx.watch();
+  for (const p of list) await (await esbuild.context(options(p))).watch();
   const server = createServer(async (req, res) => {
+    const name = decodeURIComponent((req.url || '/').split('?')[0].replace(/^\/+/, '')) || list[0].name + '.html';
     try {
+      const file = path.join(root, 'dist', path.basename(name));
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-      res.end(await readFile(outFile));
+      res.end(await readFile(file));
     } catch {
-      res.writeHead(503).end('building');
+      res.writeHead(404).end('not built: ' + name);
     }
   });
   // 5173 is often taken by another dev server: walk up until a free port is found
@@ -63,8 +85,8 @@ if (serve) {
     if (e.code === 'EADDRINUSE' && port < 5200) server.listen(++port, '127.0.0.1');
     else throw e;
   });
-  server.on('listening', () => console.log(`[serve] http://localhost:${port}/lakeside.html`));
+  server.on('listening', () => console.log(list.map((p) => `[serve] http://localhost:${port}/${p.name}.html`).join('\n')));
   server.listen(port, '127.0.0.1');
 } else {
-  await esbuild.build(options);
+  for (const p of list) await esbuild.build(options(p));
 }
