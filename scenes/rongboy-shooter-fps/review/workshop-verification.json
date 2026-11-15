@@ -1,0 +1,397 @@
+{
+  "scatter": {
+    "state": {
+      "ballStates": [
+        {
+          "age": 0.19166666666666665,
+          "bounceCount": 1,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 4,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": -0.93594838146297,
+          "y": 1.980749214023113,
+          "z": 3.786869599916898
+        },
+        {
+          "age": 0.19166666666666665,
+          "bounceCount": 1,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 5,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": -0.24834529177120773,
+          "y": 1.9891981292026104,
+          "z": 4.086033674227679
+        },
+        {
+          "age": 0.19166666666666665,
+          "bounceCount": 1,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 6,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": 0.3911091224311442,
+          "y": 1.980256418717441,
+          "z": 4.093278539726124
+        }
+      ],
+      "balls": 3,
+      "bounces": 3,
+      "charge": 0,
+      "charging": false,
+      "covers": 7,
+      "enemies": [
+        {
+          "alive": true,
+          "hopPhase": 0.8847222222222232,
+          "hp": 3,
+          "id": 1,
+          "maxHp": 6,
+          "screenX": 594.5783933590737,
+          "screenY": 453.4895850613834,
+          "type": "walker",
+          "x": -0.20697748453270295,
+          "y": 2.694222958124177e-17,
+          "z": 1.5025086101562422
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.8000000000000016,
+          "hp": 4,
+          "id": 2,
+          "maxHp": 4,
+          "screenX": 375.0252086035458,
+          "screenY": 425.03507502495114,
+          "type": "runner",
+          "x": -1.735724358321211,
+          "y": 3.91886975727153e-17,
+          "z": 0.3758839646411064
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.8931372549019615,
+          "hp": 10,
+          "id": 3,
+          "maxHp": 10,
+          "screenX": 814.062776678973,
+          "screenY": 397.0761624602479,
+          "type": "heavy",
+          "x": 2.000022933347958,
+          "y": 1.4695761589768237e-17,
+          "z": -2.4154825688200092
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 3,
+      "inputMode": "keyboard",
+      "kills": 0,
+      "lookDirection": {
+        "x": 0,
+        "y": 0,
+        "z": -1
+      },
+      "maxCombo": 0,
+      "mode": "playing",
+      "paused": true,
+      "pitch": 0,
+      "player": {
+        "aimX": 0,
+        "aimY": 0,
+        "aimZ": -1,
+        "vx": 0,
+        "vz": 0,
+        "x": 0,
+        "z": 4.077500000000002
+      },
+      "repeatHits": 0,
+      "score": 0,
+      "shots": 1,
+      "time": 0.5000000000000007,
+      "transition": 0,
+      "weapon": "scatter",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 269,
+      "frameIntervalMs": 8.608474576271187,
+      "geometries": 173,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 26,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 62,
+      "tris": 633198
+    }
+  },
+  "heavy": {
+    "state": {
+      "ballStates": [
+        {
+          "age": 0.6500000000000001,
+          "bounceCount": 2,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 4,
+          "lifetime": 16,
+          "weapon": "heavy",
+          "x": 0.1652513276256636,
+          "y": 3.213833296523284,
+          "z": 0.7406903530248969
+        }
+      ],
+      "balls": 1,
+      "bounces": 2,
+      "charge": 0,
+      "charging": false,
+      "covers": 7,
+      "enemies": [
+        {
+          "alive": true,
+          "hopPhase": 0.4287037037037027,
+          "hp": 5,
+          "id": 1,
+          "maxHp": 6,
+          "screenX": 527.8407907939519,
+          "screenY": 446.4003927279207,
+          "type": "walker",
+          "x": -0.5531337842441693,
+          "y": 0.21733235131733292,
+          "z": 1.2906703975391336
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.710852713178293,
+          "hp": 4,
+          "id": 2,
+          "maxHp": 4,
+          "screenX": 373.3599590165488,
+          "screenY": 440.71281810920226,
+          "type": "runner",
+          "x": -1.4076471953546286,
+          "y": 0.08797343045327746,
+          "z": 1.0942914123300609
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.27712418300653524,
+          "hp": 10,
+          "id": 3,
+          "maxHp": 10,
+          "screenX": 818.0660546512925,
+          "screenY": 398.5590642386268,
+          "type": "heavy",
+          "x": 1.9677304830556408,
+          "y": 0.10781093369367874,
+          "z": -2.1670284104485105
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 1,
+      "inputMode": "keyboard",
+      "kills": 0,
+      "lookDirection": {
+        "x": 0,
+        "y": 0,
+        "z": -1
+      },
+      "maxCombo": 0,
+      "mode": "playing",
+      "paused": true,
+      "pitch": 0,
+      "player": {
+        "aimX": 0,
+        "aimY": 0,
+        "aimZ": -1,
+        "vx": 0,
+        "vz": 0,
+        "x": 0,
+        "z": 4.077500000000002
+      },
+      "repeatHits": 0,
+      "score": 0,
+      "shots": 1,
+      "time": 0.8916666666666659,
+      "transition": 0,
+      "weapon": "heavy",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 270,
+      "frameIntervalMs": 8.814563106796117,
+      "geometries": 171,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 26,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 61,
+      "tris": 637018
+    }
+  },
+  "keyboardAndCycle": {
+    "state": {
+      "ballStates": [
+        {
+          "age": 0.008333333333333333,
+          "bounceCount": 0,
+          "enemyHits": 0,
+          "hitCounts": {},
+          "id": 4,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": 1.7169732883755655,
+          "y": 0.9294030701545996,
+          "z": 2.6145902645460364
+        },
+        {
+          "age": 0.008333333333333333,
+          "bounceCount": 0,
+          "enemyHits": 0,
+          "hitCounts": {},
+          "id": 5,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": 1.7282498387133562,
+          "y": 0.9294524786042764,
+          "z": 2.6238361690106307
+        },
+        {
+          "age": 0.008333333333333333,
+          "bounceCount": 0,
+          "enemyHits": 0,
+          "hitCounts": {},
+          "id": 6,
+          "lifetime": 12,
+          "weapon": "scatter",
+          "x": 1.7380634891892104,
+          "y": 0.9294030701545996,
+          "z": 2.634622252694104
+        }
+      ],
+      "balls": 3,
+      "bounces": 0,
+      "charge": 0,
+      "charging": false,
+      "covers": 7,
+      "enemies": [
+        {
+          "alive": true,
+          "hopPhase": 0.7874999999999978,
+          "hp": 6,
+          "id": 1,
+          "maxHp": 6,
+          "screenX": -14187.449693072464,
+          "screenY": 7315.750551717915,
+          "type": "walker",
+          "x": 0.13873134178878768,
+          "y": 2.694222958124177e-17,
+          "z": 2.5268635636611214
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.3116279069767405,
+          "hp": 4,
+          "id": 2,
+          "maxHp": 4,
+          "screenX": -104066.99801991628,
+          "screenY": 17227.25680665227,
+          "type": "runner",
+          "x": -1.083963979370807,
+          "y": 0.3041895465883428,
+          "z": 1.2869350181673698
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.5303921568627435,
+          "hp": 10,
+          "id": 3,
+          "maxHp": 10,
+          "screenX": 5.185860207498742,
+          "screenY": 428.2756103489175,
+          "type": "heavy",
+          "x": 1.919972962939971,
+          "y": 0.10132138220066585,
+          "z": -1.799587898538158
+        }
+      ],
+      "errors": [],
+      "health": 2,
+      "hits": 0,
+      "inputMode": "keyboard",
+      "kills": 0,
+      "lookDirection": {
+        "x": 0.7204319848986097,
+        "y": 0,
+        "z": -0.6935255980387813
+      },
+      "maxCombo": 0,
+      "mode": "playing",
+      "paused": true,
+      "pitch": 0,
+      "player": {
+        "aimX": 0.7204319848986098,
+        "aimY": 0,
+        "aimZ": -0.6935255980387814,
+        "vx": 0.17833956679171978,
+        "vz": 0.2611052809897241,
+        "x": 0.7310341040148466,
+        "z": 3.1935113129369177
+      },
+      "repeatHits": 0,
+      "score": 0,
+      "shots": 1,
+      "time": 1.1499999999999984,
+      "transition": 0,
+      "weapon": "scatter",
+      "yaw": -0.804425
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 243,
+      "frameIntervalMs": 8.27913669064745,
+      "geometries": 184,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 26,
+      "quality": "medium",
+      "res": [
+        870,
+        851
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 68,
+      "tris": 625934
+    }
+  }
+}

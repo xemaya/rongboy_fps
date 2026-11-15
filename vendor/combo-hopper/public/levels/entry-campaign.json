@@ -1,0 +1,3044 @@
+{
+  "schemaVersion": 1,
+  "levels": [
+    {
+      "id": "level-1",
+      "name": "Edge of the Path",
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "rows": 8,
+      "cols": 8,
+      "zombies": [
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-2",
+      "name": "Rustling Bushes",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 4,
+      "par": 6
+    },
+    {
+      "id": "level-3",
+      "name": "Quick Steps",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-4",
+      "name": "Stone Stumps",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 4,
+      "par": 6
+    },
+    {
+      "id": "level-5",
+      "name": "Ambush Pocket",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-6",
+      "name": "The Heavy One",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-7",
+      "name": "Chain Builder",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 2
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-8",
+      "name": "Forest Fork",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 4,
+      "par": 6
+    },
+    {
+      "id": "level-9",
+      "name": "Pre-Boss Test",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 0,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 4
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-10",
+      "name": "The Stout Warden",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 3,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-11",
+      "name": "Shielded Patrol",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-12",
+      "name": "Cross-Fire",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 4
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-13",
+      "name": "Ticking Trap",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-14",
+      "name": "Chain Reaction",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-15",
+      "name": "Locked Squares",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-16",
+      "name": "Apex Test",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 0,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 4
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-17",
+      "name": "Garden of Brood",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 6
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 4
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-18",
+      "name": "Roach Spread",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 6
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-19",
+      "name": "Pre-Warden Gauntlet",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 1
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-20",
+      "name": "The Crypt Warden",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "boss-warden",
+          "hpRemaining": 4,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 4
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-21",
+      "name": "Whispers Among Trees",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 4
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-22",
+      "name": "First Arrow",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 4
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    },
+    {
+      "id": "level-23",
+      "name": "Line of Sight",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 2
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 0,
+            "c": 5
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 5
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-24",
+      "name": "Stone Sentinels",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 1
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 4
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-25",
+      "name": "The Brood Master",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 3
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 2,
+      "par": 4
+    },
+    {
+      "id": "level-26",
+      "name": "Shielded Volley",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 1
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 0,
+            "c": 6
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 2
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 6,
+      "par": 8
+    },
+    {
+      "id": "level-27",
+      "name": "Threading the Needle",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 6,
+        "c": 3
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 1
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 2
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-28",
+      "name": "Combo Drought",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 2
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 3
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 3
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 2
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 5
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-29",
+      "name": "Final Gauntlet",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 1
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 3
+          },
+          "type": "spawner",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 5
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 4
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 7
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 2
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 1
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 1,
+      "par": 3
+    },
+    {
+      "id": "level-30",
+      "name": "The Soul Leech",
+      "rows": 8,
+      "cols": 8,
+      "scoutStart": {
+        "r": 7,
+        "c": 4
+      },
+      "zombies": [
+        {
+          "pos": {
+            "r": 0,
+            "c": 3
+          },
+          "type": "boss-leech",
+          "hpRemaining": 5,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 1,
+            "c": 1
+          },
+          "type": "archer",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 2
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 2,
+            "c": 6
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 3,
+            "c": 1
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 1
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 4
+          },
+          "type": "tank",
+          "hpRemaining": 2,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 4,
+            "c": 6
+          },
+          "type": "shielded",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 5
+          },
+          "type": "bomber",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 5,
+            "c": 6
+          },
+          "type": "runner",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 1
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 3
+          },
+          "type": "walker",
+          "hpRemaining": 1,
+          "stunned": false
+        },
+        {
+          "pos": {
+            "r": 6,
+            "c": 6
+          },
+          "type": "crawler",
+          "hpRemaining": 1,
+          "stunned": false
+        }
+      ],
+      "optimal": 3,
+      "par": 5
+    }
+  ]
+}

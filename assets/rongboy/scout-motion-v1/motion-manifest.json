@@ -1,0 +1,2688 @@
+{
+  "source": "assets/rongboy/scout-v1/rongboy-scout-v1.blend",
+  "source_object_count": 369,
+  "assigned_visible_parts": 368,
+  "assignment": {
+    "Boot -1 / padded toe": "CTRL / boot -1",
+    "Boot -1 / stacked sole": "CTRL / boot -1",
+    "Boot -1 / ankle": "CTRL / boot -1",
+    "Boot -1 / felt tongue": "CTRL / boot -1",
+    "Boot -1 / crossing lace 0": "CTRL / boot -1",
+    "Boot brass eyelet": "CTRL / boot -1",
+    "Boot brass eyelet.001": "CTRL / boot -1",
+    "Boot -1 / crossing lace 1": "CTRL / boot -1",
+    "Boot brass eyelet.002": "CTRL / boot -1",
+    "Boot brass eyelet.003": "CTRL / boot -1",
+    "Boot -1 / crossing lace 2": "CTRL / boot -1",
+    "Boot brass eyelet.004": "CTRL / boot -1",
+    "Boot brass eyelet.005": "CTRL / boot -1",
+    "Boot -1 / crossing lace 3": "CTRL / boot -1",
+    "Boot brass eyelet.006": "CTRL / boot -1",
+    "Boot brass eyelet.007": "CTRL / boot -1",
+    "Sole welt stitch 00": "CTRL / boot -1",
+    "Sole welt stitch 01": "CTRL / boot -1",
+    "Sole welt stitch 02": "CTRL / boot -1",
+    "Sole welt stitch 03": "CTRL / boot -1",
+    "Sole welt stitch 04": "CTRL / boot -1",
+    "Sole welt stitch 05": "CTRL / boot -1",
+    "Sole welt stitch 06": "CTRL / boot -1",
+    "Sole welt stitch 07": "CTRL / boot -1",
+    "Sole welt stitch 08": "CTRL / boot -1",
+    "Sole welt stitch 09": "CTRL / boot -1",
+    "Sole welt stitch 10": "CTRL / boot -1",
+    "Sole welt stitch 11": "CTRL / boot -1",
+    "Sole welt stitch 12": "CTRL / boot -1",
+    "Sole welt stitch 13": "CTRL / boot -1",
+    "Sole welt stitch 14": "CTRL / boot -1",
+    "Sole welt stitch 15": "CTRL / boot -1",
+    "Sole welt stitch 16": "CTRL / boot -1",
+    "Sole welt stitch 17": "CTRL / boot -1",
+    "Sole welt stitch 18": "CTRL / boot -1",
+    "Sole welt stitch 19": "CTRL / boot -1",
+    "Sole welt stitch 20": "CTRL / boot -1",
+    "Sole welt stitch 21": "CTRL / boot -1",
+    "Sole welt stitch 22": "CTRL / boot -1",
+    "Sole welt stitch 23": "CTRL / boot -1",
+    "Sole welt stitch 24": "CTRL / boot -1",
+    "Sole welt stitch 25": "CTRL / boot -1",
+    "Sole welt stitch 26": "CTRL / boot -1",
+    "Sole welt stitch 27": "CTRL / boot -1",
+    "Sole welt stitch 28": "CTRL / boot -1",
+    "Sole welt stitch 29": "CTRL / boot -1",
+    "Leg -1": "CTRL / leg -1",
+    "Shorts leg -1": "CTRL / leg -1",
+    "Shorts cuff seam": "CTRL / leg -1",
+    "Boot 1 / padded toe": "CTRL / boot 1",
+    "Boot 1 / stacked sole": "CTRL / boot 1",
+    "Boot 1 / ankle": "CTRL / boot 1",
+    "Boot 1 / felt tongue": "CTRL / boot 1",
+    "Boot 1 / crossing lace 0": "CTRL / boot 1",
+    "Boot brass eyelet.008": "CTRL / boot 1",
+    "Boot brass eyelet.009": "CTRL / boot 1",
+    "Boot 1 / crossing lace 1": "CTRL / boot 1",
+    "Boot brass eyelet.010": "CTRL / boot 1",
+    "Boot brass eyelet.011": "CTRL / boot 1",
+    "Boot 1 / crossing lace 2": "CTRL / boot 1",
+    "Boot brass eyelet.012": "CTRL / boot 1",
+    "Boot brass eyelet.013": "CTRL / boot 1",
+    "Boot 1 / crossing lace 3": "CTRL / boot 1",
+    "Boot brass eyelet.014": "CTRL / boot 1",
+    "Boot brass eyelet.015": "CTRL / boot 1",
+    "Sole welt stitch 00.001": "CTRL / boot 1",
+    "Sole welt stitch 01.001": "CTRL / boot 1",
+    "Sole welt stitch 02.001": "CTRL / boot 1",
+    "Sole welt stitch 03.001": "CTRL / boot 1",
+    "Sole welt stitch 04.001": "CTRL / boot 1",
+    "Sole welt stitch 05.001": "CTRL / boot 1",
+    "Sole welt stitch 06.001": "CTRL / boot 1",
+    "Sole welt stitch 07.001": "CTRL / boot 1",
+    "Sole welt stitch 08.001": "CTRL / boot 1",
+    "Sole welt stitch 09.001": "CTRL / boot 1",
+    "Sole welt stitch 10.001": "CTRL / boot 1",
+    "Sole welt stitch 11.001": "CTRL / boot 1",
+    "Sole welt stitch 12.001": "CTRL / boot 1",
+    "Sole welt stitch 13.001": "CTRL / boot 1",
+    "Sole welt stitch 14.001": "CTRL / boot 1",
+    "Sole welt stitch 15.001": "CTRL / boot 1",
+    "Sole welt stitch 16.001": "CTRL / boot 1",
+    "Sole welt stitch 17.001": "CTRL / boot 1",
+    "Sole welt stitch 18.001": "CTRL / boot 1",
+    "Sole welt stitch 19.001": "CTRL / boot 1",
+    "Sole welt stitch 20.001": "CTRL / boot 1",
+    "Sole welt stitch 21.001": "CTRL / boot 1",
+    "Sole welt stitch 22.001": "CTRL / boot 1",
+    "Sole welt stitch 23.001": "CTRL / boot 1",
+    "Sole welt stitch 24.001": "CTRL / boot 1",
+    "Sole welt stitch 25.001": "CTRL / boot 1",
+    "Sole welt stitch 26.001": "CTRL / boot 1",
+    "Sole welt stitch 27.001": "CTRL / boot 1",
+    "Sole welt stitch 28.001": "CTRL / boot 1",
+    "Sole welt stitch 29.001": "CTRL / boot 1",
+    "Leg 1": "CTRL / leg 1",
+    "Shorts leg 1": "CTRL / leg 1",
+    "Shorts cuff seam.001": "CTRL / leg 1",
+    "Jacket / padded torso": "CTRL / body",
+    "Jacket / lower hem": "CTRL / body",
+    "Jacket center stitched placket": "CTRL / body",
+    "Jacket / wood button": "CTRL / body",
+    "Jacket / wood button.001": "CTRL / body",
+    "Jacket / wood button.002": "CTRL / body",
+    "Jacket / cargo pocket": "CTRL / body",
+    "Pocket / folded flap": "CTRL / body",
+    "Pocket / button": "CTRL / body",
+    "Pocket embroidery 00": "CTRL / body",
+    "Pocket embroidery 01": "CTRL / body",
+    "Pocket embroidery 02": "CTRL / body",
+    "Pocket embroidery 03": "CTRL / body",
+    "Pocket embroidery 04": "CTRL / body",
+    "Pocket embroidery 05": "CTRL / body",
+    "Pocket embroidery 06": "CTRL / body",
+    "Pocket embroidery 07": "CTRL / body",
+    "Pocket embroidery 08": "CTRL / body",
+    "Pocket embroidery 09": "CTRL / body",
+    "Pocket embroidery 10": "CTRL / body",
+    "Pocket embroidery 11": "CTRL / body",
+    "Sleeve -1": "CTRL / arm -1",
+    "Cuff -1": "CTRL / arm -1",
+    "Mitten -1": "CTRL / arm -1",
+    "Thumb -1": "CTRL / arm -1",
+    "Mitten / thumb seam": "CTRL / arm -1",
+    "Jacket / cargo pocket.001": "CTRL / body",
+    "Pocket / folded flap.001": "CTRL / body",
+    "Pocket / button.001": "CTRL / body",
+    "Pocket embroidery 00.001": "CTRL / body",
+    "Pocket embroidery 01.001": "CTRL / body",
+    "Pocket embroidery 02.001": "CTRL / body",
+    "Pocket embroidery 03.001": "CTRL / body",
+    "Pocket embroidery 04.001": "CTRL / body",
+    "Pocket embroidery 05.001": "CTRL / body",
+    "Pocket embroidery 06.001": "CTRL / body",
+    "Pocket embroidery 07.001": "CTRL / body",
+    "Pocket embroidery 08.001": "CTRL / body",
+    "Pocket embroidery 09.001": "CTRL / body",
+    "Pocket embroidery 10.001": "CTRL / body",
+    "Pocket embroidery 11.001": "CTRL / body",
+    "Sleeve 1": "CTRL / arm 1",
+    "Cuff 1": "CTRL / arm 1",
+    "Mitten 1": "CTRL / arm 1",
+    "Thumb 1": "CTRL / arm 1",
+    "Mitten / thumb seam.001": "CTRL / arm 1",
+    "Rucksack / main sewn canvas": "CTRL / backpack",
+    "Rucksack / top flap": "CTRL / backpack",
+    "Rucksack / front pouch": "CTRL / backpack",
+    "Shoulder / leather strap": "CTRL / body",
+    "Backpack / wrapped bedroll strap": "CTRL / backpack",
+    "Rucksack leather tab": "CTRL / body",
+    "Rucksack leather tab.001": "CTRL / body",
+    "Shoulder / leather strap.001": "CTRL / body",
+    "Backpack / wrapped bedroll strap.001": "CTRL / backpack",
+    "Rucksack leather tab.002": "CTRL / body",
+    "Rucksack leather tab.003": "CTRL / body",
+    "Bedroll / blanket roll": "CTRL / backpack",
+    "Bedroll / spiral end": "CTRL / backpack",
+    "Bedroll / spiral end.001": "CTRL / backpack",
+    "Backpack / pocket border 00": "CTRL / backpack",
+    "Backpack / pocket border 01": "CTRL / backpack",
+    "Backpack / pocket border 02": "CTRL / backpack",
+    "Backpack / pocket border 03": "CTRL / backpack",
+    "Backpack / pocket border 04": "CTRL / backpack",
+    "Backpack / pocket border 05": "CTRL / backpack",
+    "Backpack / pocket border 06": "CTRL / backpack",
+    "Backpack / pocket border 07": "CTRL / backpack",
+    "Backpack / pocket border 08": "CTRL / backpack",
+    "Backpack / pocket border 09": "CTRL / backpack",
+    "Backpack / pocket border 10": "CTRL / backpack",
+    "Backpack / pocket border 11": "CTRL / backpack",
+    "Backpack / pocket border 12": "CTRL / backpack",
+    "Backpack / pocket border 13": "CTRL / backpack",
+    "Backpack / pocket border 14": "CTRL / backpack",
+    "Backpack / pocket border 15": "CTRL / backpack",
+    "Backpack / pocket border 16": "CTRL / backpack",
+    "Backpack / pocket border 17": "CTRL / backpack",
+    "Backpack / pocket border 18": "CTRL / backpack",
+    "Backpack / pocket border 19": "CTRL / backpack",
+    "Backpack / pocket border 20": "CTRL / backpack",
+    "Backpack / pocket border 21": "CTRL / backpack",
+    "Backpack / pocket border 22": "CTRL / backpack",
+    "Backpack / pocket border 23": "CTRL / backpack",
+    "Backpack / pocket border 24": "CTRL / backpack",
+    "Backpack / pocket border 25": "CTRL / backpack",
+    "Head / felt face": "CTRL / head",
+    "Ear": "CTRL / head",
+    "Ear / inner": "CTRL / head",
+    "Eye / embroidered rim": "CTRL / head",
+    "Eye / inset dark bead": "CTRL / head",
+    "Eye / tiny catchlight": "CTRL / head",
+    "Cheek / peach wool": "CTRL / head",
+    "Eyebrow / sewn wool": "CTRL / head",
+    "Ear.001": "CTRL / head",
+    "Ear / inner.001": "CTRL / head",
+    "Eye / embroidered rim.001": "CTRL / head",
+    "Eye / inset dark bead.001": "CTRL / head",
+    "Eye / tiny catchlight.001": "CTRL / head",
+    "Cheek / peach wool.001": "CTRL / head",
+    "Eyebrow / sewn wool.001": "CTRL / head",
+    "Nose / little felt button": "CTRL / head",
+    "Smile / embroidered thread": "CTRL / head",
+    "Hair / felt fringe tuft": "CTRL / head",
+    "Hair / felt fringe tuft.001": "CTRL / head",
+    "Hair / felt fringe tuft.002": "CTRL / head",
+    "Hair / felt fringe tuft.003": "CTRL / head",
+    "Hair / felt fringe tuft.004": "CTRL / head",
+    "Hair / felt fringe tuft.005": "CTRL / head",
+    "Hair / felt fringe tuft.006": "CTRL / head",
+    "Hair / felt fringe tuft.007": "CTRL / head",
+    "Hair / felt fringe tuft.008": "CTRL / head",
+    "Hair / felt fringe tuft.009": "CTRL / head",
+    "Hair / felt fringe tuft.010": "CTRL / head",
+    "Hair / sideburn": "CTRL / head",
+    "Hair / sideburn.001": "CTRL / head",
+    "Hair / rounded back cap": "CTRL / head",
+    "Scarf / rolled neckerchief": "CTRL / body",
+    "Scarf / knot": "CTRL / body",
+    "Scarf / left triangular tail": "CTRL / body",
+    "Scarf / right triangular tail": "CTRL / body",
+    "Hat / curled soft brim": "CTRL / hat",
+    "Hat / pinched crown": "CTRL / hat",
+    "Hat / chestnut band": "CTRL / hat",
+    "Hat / brim stitching 00": "CTRL / hat",
+    "Hat / brim stitching 01": "CTRL / hat",
+    "Hat / brim stitching 02": "CTRL / hat",
+    "Hat / brim stitching 03": "CTRL / hat",
+    "Hat / brim stitching 04": "CTRL / hat",
+    "Hat / brim stitching 05": "CTRL / hat",
+    "Hat / brim stitching 06": "CTRL / hat",
+    "Hat / brim stitching 07": "CTRL / hat",
+    "Hat / brim stitching 08": "CTRL / hat",
+    "Hat / brim stitching 09": "CTRL / hat",
+    "Hat / brim stitching 10": "CTRL / hat",
+    "Hat / brim stitching 11": "CTRL / hat",
+    "Hat / brim stitching 12": "CTRL / hat",
+    "Hat / brim stitching 13": "CTRL / hat",
+    "Hat / brim stitching 14": "CTRL / hat",
+    "Hat / brim stitching 15": "CTRL / hat",
+    "Hat / brim stitching 16": "CTRL / hat",
+    "Hat / brim stitching 17": "CTRL / hat",
+    "Hat / brim stitching 18": "CTRL / hat",
+    "Hat / brim stitching 19": "CTRL / hat",
+    "Hat / brim stitching 20": "CTRL / hat",
+    "Hat / brim stitching 21": "CTRL / hat",
+    "Hat / brim stitching 22": "CTRL / hat",
+    "Hat / brim stitching 23": "CTRL / hat",
+    "Hat / brim stitching 24": "CTRL / hat",
+    "Hat / brim stitching 25": "CTRL / hat",
+    "Hat / brim stitching 26": "CTRL / hat",
+    "Hat / brim stitching 27": "CTRL / hat",
+    "Hat / brim stitching 28": "CTRL / hat",
+    "Hat / brim stitching 29": "CTRL / hat",
+    "Hat / brim stitching 30": "CTRL / hat",
+    "Hat / brim stitching 31": "CTRL / hat",
+    "Hat / brim stitching 32": "CTRL / hat",
+    "Hat / brim stitching 33": "CTRL / hat",
+    "Hat / brim stitching 34": "CTRL / hat",
+    "Hat / brim stitching 35": "CTRL / hat",
+    "Hat / brim stitching 36": "CTRL / hat",
+    "Hat / brim stitching 37": "CTRL / hat",
+    "Hat / brim stitching 38": "CTRL / hat",
+    "Hat / brim stitching 39": "CTRL / hat",
+    "Hat / brim stitching 40": "CTRL / hat",
+    "Hat / brim stitching 41": "CTRL / hat",
+    "Hat / brim stitching 42": "CTRL / hat",
+    "Hat / brim stitching 43": "CTRL / hat",
+    "Hat / brim stitching 44": "CTRL / hat",
+    "Hat / brim stitching 45": "CTRL / hat",
+    "Hat / brim stitching 46": "CTRL / hat",
+    "Hat / brim stitching 47": "CTRL / hat",
+    "Hat / brim stitching 48": "CTRL / hat",
+    "Hat / brim stitching 49": "CTRL / hat",
+    "Hat / brim stitching 50": "CTRL / hat",
+    "Hat / brim stitching 51": "CTRL / hat",
+    "Hat / brim stitching 52": "CTRL / hat",
+    "Hat / brim stitching 53": "CTRL / hat",
+    "Hat / brim stitching 54": "CTRL / hat",
+    "Hat / brim stitching 55": "CTRL / hat",
+    "Hat / brim stitching 56": "CTRL / hat",
+    "Hat / brim stitching 57": "CTRL / hat",
+    "Hat / brim stitching 58": "CTRL / hat",
+    "Hat / brim stitching 59": "CTRL / hat",
+    "Hat / brim stitching 60": "CTRL / hat",
+    "Hat / brim stitching 61": "CTRL / hat",
+    "Hat / brim stitching 62": "CTRL / hat",
+    "Hat / brim stitching 63": "CTRL / hat",
+    "Hat / brim stitching 64": "CTRL / hat",
+    "Hat / brim stitching 65": "CTRL / hat",
+    "Hat / brim stitching 66": "CTRL / hat",
+    "Hat / brim stitching 67": "CTRL / hat",
+    "Hat / brim stitching 68": "CTRL / hat",
+    "Hat / brim stitching 69": "CTRL / hat",
+    "Hat / brim stitching 70": "CTRL / hat",
+    "Hat / brim stitching 71": "CTRL / hat",
+    "Hat / brim stitching 72": "CTRL / hat",
+    "Hat / brim stitching 73": "CTRL / hat",
+    "Hat / brim stitching 74": "CTRL / hat",
+    "Hat / brim stitching 75": "CTRL / hat",
+    "Hat / brim stitching 76": "CTRL / hat",
+    "Hat / brim stitching 77": "CTRL / hat",
+    "Hat / brim stitching 78": "CTRL / hat",
+    "Hat / brim stitching 79": "CTRL / hat",
+    "Hat / brim stitching 80": "CTRL / hat",
+    "Hat / brim stitching 81": "CTRL / hat",
+    "Hat / brim stitching 82": "CTRL / hat",
+    "Hat / brim stitching 83": "CTRL / hat",
+    "Hat / brim stitching 84": "CTRL / hat",
+    "Hat / brim stitching 85": "CTRL / hat",
+    "Hat / brim stitching 86": "CTRL / hat",
+    "Hat / brim stitching 87": "CTRL / hat",
+    "Hat / brim stitching 88": "CTRL / hat",
+    "Hat / brim stitching 89": "CTRL / hat",
+    "Hat / brim stitching 90": "CTRL / hat",
+    "Hat / brim stitching 91": "CTRL / hat",
+    "Goggle / brass frame": "CTRL / hat",
+    "Goggle / warm dark lens": "CTRL / hat",
+    "Goggle / glass glint": "CTRL / hat",
+    "Goggle / brass frame.001": "CTRL / hat",
+    "Goggle / warm dark lens.001": "CTRL / hat",
+    "Goggle / glass glint.001": "CTRL / hat",
+    "Goggles / bridge": "CTRL / hat",
+    "Leg -1 / fine wool nap": "CTRL / leg -1",
+    "Shorts leg -1 / fine wool nap": "CTRL / leg -1",
+    "Leg 1 / fine wool nap": "CTRL / leg 1",
+    "Shorts leg 1 / fine wool nap": "CTRL / leg 1",
+    "Jacket / padded torso / fine wool nap": "CTRL / body",
+    "Jacket / lower hem / fine wool nap": "CTRL / body",
+    "Jacket / cargo pocket / fine wool nap": "CTRL / body",
+    "Sleeve -1 / fine wool nap": "CTRL / arm -1",
+    "Cuff -1 / fine wool nap": "CTRL / arm -1",
+    "Mitten -1 / fine wool nap": "CTRL / arm -1",
+    "Thumb -1 / fine wool nap": "CTRL / arm -1",
+    "Jacket / cargo pocket.001 / fine wool nap": "CTRL / body",
+    "Sleeve 1 / fine wool nap": "CTRL / arm 1",
+    "Cuff 1 / fine wool nap": "CTRL / arm 1",
+    "Mitten 1 / fine wool nap": "CTRL / arm 1",
+    "Thumb 1 / fine wool nap": "CTRL / arm 1",
+    "Rucksack / main sewn canvas / fine wool nap": "CTRL / backpack",
+    "Rucksack / top flap / fine wool nap": "CTRL / backpack",
+    "Rucksack / front pouch / fine wool nap": "CTRL / backpack",
+    "Bedroll / blanket roll / fine wool nap": "CTRL / backpack",
+    "Head / felt face / fine wool nap": "CTRL / head",
+    "Ear / fine wool nap": "CTRL / head",
+    "Ear / inner / fine wool nap": "CTRL / head",
+    "Cheek / peach wool / fine wool nap": "CTRL / head",
+    "Ear.001 / fine wool nap": "CTRL / head",
+    "Ear / inner.001 / fine wool nap": "CTRL / head",
+    "Cheek / peach wool.001 / fine wool nap": "CTRL / head",
+    "Nose / little felt button / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.001 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.002 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.003 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.004 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.005 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.006 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.007 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.008 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.009 / fine wool nap": "CTRL / head",
+    "Hair / felt fringe tuft.010 / fine wool nap": "CTRL / head",
+    "Hair / sideburn / fine wool nap": "CTRL / head",
+    "Hair / sideburn.001 / fine wool nap": "CTRL / head",
+    "Hair / rounded back cap / fine wool nap": "CTRL / head",
+    "Scarf / knot / fine wool nap": "CTRL / body",
+    "Scarf / left triangular tail / fine wool nap": "CTRL / body",
+    "Scarf / right triangular tail / fine wool nap": "CTRL / body",
+    "Hat / curled soft brim / fine wool nap": "CTRL / hat",
+    "Hat / pinched crown / fine wool nap": "CTRL / hat"
+  },
+  "fps": 24,
+  "frames": 192,
+  "resolution": [
+    960,
+    600
+  ],
+  "camera_cut": 97,
+  "poses": [
+    {
+      "frame": 1,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 1
+    },
+    {
+      "frame": 2,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 2
+    },
+    {
+      "frame": 3,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 3
+    },
+    {
+      "frame": 4,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 4
+    },
+    {
+      "frame": 5,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 5
+    },
+    {
+      "frame": 6,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 6
+    },
+    {
+      "frame": 7,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 7
+    },
+    {
+      "frame": 8,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 8
+    },
+    {
+      "frame": 9,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 9
+    },
+    {
+      "frame": 10,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 10
+    },
+    {
+      "frame": 11,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 11
+    },
+    {
+      "frame": 12,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 12
+    },
+    {
+      "frame": 13,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.04296875,
+      "landing": 0,
+      "timeline_frame": 13
+    },
+    {
+      "frame": 14,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.15625,
+      "landing": 0,
+      "timeline_frame": 14
+    },
+    {
+      "frame": 15,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.31640625,
+      "landing": 0,
+      "timeline_frame": 15
+    },
+    {
+      "frame": 16,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.5,
+      "landing": 0,
+      "timeline_frame": 16
+    },
+    {
+      "frame": 17,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.68359375,
+      "landing": 0,
+      "timeline_frame": 17
+    },
+    {
+      "frame": 18,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.84375,
+      "landing": 0,
+      "timeline_frame": 18
+    },
+    {
+      "frame": 19,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.95703125,
+      "landing": 0,
+      "timeline_frame": 19
+    },
+    {
+      "frame": 20,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 1,
+      "landing": 0,
+      "timeline_frame": 20
+    },
+    {
+      "frame": 21,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 21
+    },
+    {
+      "frame": 22,
+      "position": [
+        -1.527405247813411,
+        0,
+        0.2016326530612245
+      ],
+      "flight": 0.2225209339563144,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 22
+    },
+    {
+      "frame": 23,
+      "position": [
+        -1.4641399416909622,
+        0,
+        0.3722448979591837
+      ],
+      "flight": 0.4338837391175581,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 23
+    },
+    {
+      "frame": 24,
+      "position": [
+        -1.3669825072886297,
+        0,
+        0.5118367346938775
+      ],
+      "flight": 0.6234898018587335,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 24
+    },
+    {
+      "frame": 25,
+      "position": [
+        -1.2427113702623906,
+        0,
+        0.6204081632653061
+      ],
+      "flight": 0.7818314824680298,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 25
+    },
+    {
+      "frame": 26,
+      "position": [
+        -1.0981049562682217,
+        0,
+        0.6979591836734694
+      ],
+      "flight": 0.9009688679024191,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 26
+    },
+    {
+      "frame": 27,
+      "position": [
+        -0.9399416909620992,
+        0,
+        0.7444897959183672
+      ],
+      "flight": 0.9749279121818236,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 27
+    },
+    {
+      "frame": 28,
+      "position": [
+        -0.775,
+        0,
+        0.76
+      ],
+      "flight": 1.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 28
+    },
+    {
+      "frame": 29,
+      "position": [
+        -0.610058309037901,
+        0,
+        0.7444897959183674
+      ],
+      "flight": 0.9749279121818236,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 29
+    },
+    {
+      "frame": 30,
+      "position": [
+        -0.45189504373177836,
+        0,
+        0.6979591836734693
+      ],
+      "flight": 0.9009688679024191,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 30
+    },
+    {
+      "frame": 31,
+      "position": [
+        -0.3072886297376094,
+        0,
+        0.6204081632653061
+      ],
+      "flight": 0.7818314824680299,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 31
+    },
+    {
+      "frame": 32,
+      "position": [
+        -0.18301749271137036,
+        0,
+        0.5118367346938776
+      ],
+      "flight": 0.6234898018587336,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 32
+    },
+    {
+      "frame": 33,
+      "position": [
+        -0.08586005830903787,
+        0,
+        0.37224489795918375
+      ],
+      "flight": 0.43388373911755823,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 33
+    },
+    {
+      "frame": 34,
+      "position": [
+        -0.022594752186589018,
+        0,
+        0.2016326530612244
+      ],
+      "flight": 0.2225209339563145,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 34
+    },
+    {
+      "frame": 35,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 1.2246467991473532e-16,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 35
+    },
+    {
+      "frame": 36,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.3826834323650898,
+      "timeline_frame": 36
+    },
+    {
+      "frame": 37,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.7071067811865475,
+      "timeline_frame": 37
+    },
+    {
+      "frame": 38,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.9238795325112867,
+      "timeline_frame": 38
+    },
+    {
+      "frame": 39,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 1.0,
+      "timeline_frame": 39
+    },
+    {
+      "frame": 40,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0859375,
+      "landing": 0.9238795325112867,
+      "timeline_frame": 40
+    },
+    {
+      "frame": 41,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.275,
+      "landing": 0.7071067811865476,
+      "timeline_frame": 41
+    },
+    {
+      "frame": 42,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.46406250000000004,
+      "landing": 0.3826834323650899,
+      "timeline_frame": 42
+    },
+    {
+      "frame": 43,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.55,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 43
+    },
+    {
+      "frame": 44,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 44
+    },
+    {
+      "frame": 45,
+      "position": [
+        0.026103777878925816,
+        0,
+        0.19597633136094675
+      ],
+      "flight": 0.23931566428755777,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 45
+    },
+    {
+      "frame": 46,
+      "position": [
+        0.09877105143377336,
+        0,
+        0.3592899408284024
+      ],
+      "flight": 0.46472317204376856,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 46
+    },
+    {
+      "frame": 47,
+      "position": [
+        0.2095357305416477,
+        0,
+        0.4899408284023668
+      ],
+      "flight": 0.6631226582407952,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 47
+    },
+    {
+      "frame": 48,
+      "position": [
+        0.34993172507965414,
+        0,
+        0.5879289940828403
+      ],
+      "flight": 0.8229838658936564,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 48
+    },
+    {
+      "frame": 49,
+      "position": [
+        0.5114929449248976,
+        0,
+        0.6532544378698225
+      ],
+      "flight": 0.9350162426854148,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 49
+    },
+    {
+      "frame": 50,
+      "position": [
+        0.6857532999544834,
+        0,
+        0.6859171597633136
+      ],
+      "flight": 0.992708874098054,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 50
+    },
+    {
+      "frame": 51,
+      "position": [
+        0.8642467000455166,
+        0,
+        0.6859171597633136
+      ],
+      "flight": 0.992708874098054,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 51
+    },
+    {
+      "frame": 52,
+      "position": [
+        1.0385070550751025,
+        0,
+        0.6532544378698224
+      ],
+      "flight": 0.9350162426854148,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 52
+    },
+    {
+      "frame": 53,
+      "position": [
+        1.200068274920346,
+        0,
+        0.5879289940828402
+      ],
+      "flight": 0.8229838658936565,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 53
+    },
+    {
+      "frame": 54,
+      "position": [
+        1.3404642694583522,
+        0,
+        0.4899408284023668
+      ],
+      "flight": 0.6631226582407952,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 54
+    },
+    {
+      "frame": 55,
+      "position": [
+        1.4512289485662269,
+        0,
+        0.3592899408284024
+      ],
+      "flight": 0.4647231720437687,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 55
+    },
+    {
+      "frame": 56,
+      "position": [
+        1.5238962221210743,
+        0,
+        0.1959763313609466
+      ],
+      "flight": 0.23931566428755768,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 56
+    },
+    {
+      "frame": 57,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 1.2246467991473532e-16,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 57
+    },
+    {
+      "frame": 58,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.3420201433256687,
+      "timeline_frame": 58
+    },
+    {
+      "frame": 59,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.6427876096865393,
+      "timeline_frame": 59
+    },
+    {
+      "frame": 60,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.8660254037844386,
+      "timeline_frame": 60
+    },
+    {
+      "frame": 61,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.984807753012208,
+      "timeline_frame": 61
+    },
+    {
+      "frame": 62,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.984807753012208,
+      "timeline_frame": 62
+    },
+    {
+      "frame": 63,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.8660254037844387,
+      "timeline_frame": 63
+    },
+    {
+      "frame": 64,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.6427876096865395,
+      "timeline_frame": 64
+    },
+    {
+      "frame": 65,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.3420201433256689,
+      "timeline_frame": 65
+    },
+    {
+      "frame": 66,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 66
+    },
+    {
+      "frame": 67,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 67
+    },
+    {
+      "frame": 68,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 68
+    },
+    {
+      "frame": 69,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 69
+    },
+    {
+      "frame": 70,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 70
+    },
+    {
+      "frame": 71,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 71
+    },
+    {
+      "frame": 72,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 72
+    },
+    {
+      "frame": 73,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 73
+    },
+    {
+      "frame": 74,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 74
+    },
+    {
+      "frame": 75,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 75
+    },
+    {
+      "frame": 76,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 76
+    },
+    {
+      "frame": 77,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 77
+    },
+    {
+      "frame": 78,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 78
+    },
+    {
+      "frame": 79,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 79
+    },
+    {
+      "frame": 80,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 80
+    },
+    {
+      "frame": 81,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 81
+    },
+    {
+      "frame": 82,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 82
+    },
+    {
+      "frame": 83,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 83
+    },
+    {
+      "frame": 84,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 84
+    },
+    {
+      "frame": 85,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 85
+    },
+    {
+      "frame": 86,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 86
+    },
+    {
+      "frame": 87,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 87
+    },
+    {
+      "frame": 88,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 88
+    },
+    {
+      "frame": 89,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 89
+    },
+    {
+      "frame": 90,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 90
+    },
+    {
+      "frame": 91,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 91
+    },
+    {
+      "frame": 92,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 92
+    },
+    {
+      "frame": 93,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 93
+    },
+    {
+      "frame": 94,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 94
+    },
+    {
+      "frame": 95,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 95
+    },
+    {
+      "frame": 96,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 96
+    },
+    {
+      "frame": 1,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 97
+    },
+    {
+      "frame": 2,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 98
+    },
+    {
+      "frame": 3,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 99
+    },
+    {
+      "frame": 4,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 100
+    },
+    {
+      "frame": 5,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 101
+    },
+    {
+      "frame": 6,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 102
+    },
+    {
+      "frame": 7,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 103
+    },
+    {
+      "frame": 8,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 104
+    },
+    {
+      "frame": 9,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 105
+    },
+    {
+      "frame": 10,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 106
+    },
+    {
+      "frame": 11,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 107
+    },
+    {
+      "frame": 12,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 108
+    },
+    {
+      "frame": 13,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.04296875,
+      "landing": 0,
+      "timeline_frame": 109
+    },
+    {
+      "frame": 14,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.15625,
+      "landing": 0,
+      "timeline_frame": 110
+    },
+    {
+      "frame": 15,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.31640625,
+      "landing": 0,
+      "timeline_frame": 111
+    },
+    {
+      "frame": 16,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.5,
+      "landing": 0,
+      "timeline_frame": 112
+    },
+    {
+      "frame": 17,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.68359375,
+      "landing": 0,
+      "timeline_frame": 113
+    },
+    {
+      "frame": 18,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.84375,
+      "landing": 0,
+      "timeline_frame": 114
+    },
+    {
+      "frame": 19,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.95703125,
+      "landing": 0,
+      "timeline_frame": 115
+    },
+    {
+      "frame": 20,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 1,
+      "landing": 0,
+      "timeline_frame": 116
+    },
+    {
+      "frame": 21,
+      "position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "flight": 0.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 117
+    },
+    {
+      "frame": 22,
+      "position": [
+        -1.527405247813411,
+        0,
+        0.2016326530612245
+      ],
+      "flight": 0.2225209339563144,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 118
+    },
+    {
+      "frame": 23,
+      "position": [
+        -1.4641399416909622,
+        0,
+        0.3722448979591837
+      ],
+      "flight": 0.4338837391175581,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 119
+    },
+    {
+      "frame": 24,
+      "position": [
+        -1.3669825072886297,
+        0,
+        0.5118367346938775
+      ],
+      "flight": 0.6234898018587335,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 120
+    },
+    {
+      "frame": 25,
+      "position": [
+        -1.2427113702623906,
+        0,
+        0.6204081632653061
+      ],
+      "flight": 0.7818314824680298,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 121
+    },
+    {
+      "frame": 26,
+      "position": [
+        -1.0981049562682217,
+        0,
+        0.6979591836734694
+      ],
+      "flight": 0.9009688679024191,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 122
+    },
+    {
+      "frame": 27,
+      "position": [
+        -0.9399416909620992,
+        0,
+        0.7444897959183672
+      ],
+      "flight": 0.9749279121818236,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 123
+    },
+    {
+      "frame": 28,
+      "position": [
+        -0.775,
+        0,
+        0.76
+      ],
+      "flight": 1.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 124
+    },
+    {
+      "frame": 29,
+      "position": [
+        -0.610058309037901,
+        0,
+        0.7444897959183674
+      ],
+      "flight": 0.9749279121818236,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 125
+    },
+    {
+      "frame": 30,
+      "position": [
+        -0.45189504373177836,
+        0,
+        0.6979591836734693
+      ],
+      "flight": 0.9009688679024191,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 126
+    },
+    {
+      "frame": 31,
+      "position": [
+        -0.3072886297376094,
+        0,
+        0.6204081632653061
+      ],
+      "flight": 0.7818314824680299,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 127
+    },
+    {
+      "frame": 32,
+      "position": [
+        -0.18301749271137036,
+        0,
+        0.5118367346938776
+      ],
+      "flight": 0.6234898018587336,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 128
+    },
+    {
+      "frame": 33,
+      "position": [
+        -0.08586005830903787,
+        0,
+        0.37224489795918375
+      ],
+      "flight": 0.43388373911755823,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 129
+    },
+    {
+      "frame": 34,
+      "position": [
+        -0.022594752186589018,
+        0,
+        0.2016326530612244
+      ],
+      "flight": 0.2225209339563145,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 130
+    },
+    {
+      "frame": 35,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 1.2246467991473532e-16,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 131
+    },
+    {
+      "frame": 36,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.3826834323650898,
+      "timeline_frame": 132
+    },
+    {
+      "frame": 37,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.7071067811865475,
+      "timeline_frame": 133
+    },
+    {
+      "frame": 38,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 0.9238795325112867,
+      "timeline_frame": 134
+    },
+    {
+      "frame": 39,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0,
+      "landing": 1.0,
+      "timeline_frame": 135
+    },
+    {
+      "frame": 40,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.0859375,
+      "landing": 0.9238795325112867,
+      "timeline_frame": 136
+    },
+    {
+      "frame": 41,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.275,
+      "landing": 0.7071067811865476,
+      "timeline_frame": 137
+    },
+    {
+      "frame": 42,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.46406250000000004,
+      "landing": 0.3826834323650899,
+      "timeline_frame": 138
+    },
+    {
+      "frame": 43,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0.55,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 139
+    },
+    {
+      "frame": 44,
+      "position": [
+        0.0,
+        0,
+        0.0
+      ],
+      "flight": 0.0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 140
+    },
+    {
+      "frame": 45,
+      "position": [
+        0.026103777878925816,
+        0,
+        0.19597633136094675
+      ],
+      "flight": 0.23931566428755777,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 141
+    },
+    {
+      "frame": 46,
+      "position": [
+        0.09877105143377336,
+        0,
+        0.3592899408284024
+      ],
+      "flight": 0.46472317204376856,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 142
+    },
+    {
+      "frame": 47,
+      "position": [
+        0.2095357305416477,
+        0,
+        0.4899408284023668
+      ],
+      "flight": 0.6631226582407952,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 143
+    },
+    {
+      "frame": 48,
+      "position": [
+        0.34993172507965414,
+        0,
+        0.5879289940828403
+      ],
+      "flight": 0.8229838658936564,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 144
+    },
+    {
+      "frame": 49,
+      "position": [
+        0.5114929449248976,
+        0,
+        0.6532544378698225
+      ],
+      "flight": 0.9350162426854148,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 145
+    },
+    {
+      "frame": 50,
+      "position": [
+        0.6857532999544834,
+        0,
+        0.6859171597633136
+      ],
+      "flight": 0.992708874098054,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 146
+    },
+    {
+      "frame": 51,
+      "position": [
+        0.8642467000455166,
+        0,
+        0.6859171597633136
+      ],
+      "flight": 0.992708874098054,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 147
+    },
+    {
+      "frame": 52,
+      "position": [
+        1.0385070550751025,
+        0,
+        0.6532544378698224
+      ],
+      "flight": 0.9350162426854148,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 148
+    },
+    {
+      "frame": 53,
+      "position": [
+        1.200068274920346,
+        0,
+        0.5879289940828402
+      ],
+      "flight": 0.8229838658936565,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 149
+    },
+    {
+      "frame": 54,
+      "position": [
+        1.3404642694583522,
+        0,
+        0.4899408284023668
+      ],
+      "flight": 0.6631226582407952,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 150
+    },
+    {
+      "frame": 55,
+      "position": [
+        1.4512289485662269,
+        0,
+        0.3592899408284024
+      ],
+      "flight": 0.4647231720437687,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 151
+    },
+    {
+      "frame": 56,
+      "position": [
+        1.5238962221210743,
+        0,
+        0.1959763313609466
+      ],
+      "flight": 0.23931566428755768,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 152
+    },
+    {
+      "frame": 57,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 1.2246467991473532e-16,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 153
+    },
+    {
+      "frame": 58,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.3420201433256687,
+      "timeline_frame": 154
+    },
+    {
+      "frame": 59,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.6427876096865393,
+      "timeline_frame": 155
+    },
+    {
+      "frame": 60,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.8660254037844386,
+      "timeline_frame": 156
+    },
+    {
+      "frame": 61,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.984807753012208,
+      "timeline_frame": 157
+    },
+    {
+      "frame": 62,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.984807753012208,
+      "timeline_frame": 158
+    },
+    {
+      "frame": 63,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.8660254037844387,
+      "timeline_frame": 159
+    },
+    {
+      "frame": 64,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.6427876096865395,
+      "timeline_frame": 160
+    },
+    {
+      "frame": 65,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0.3420201433256689,
+      "timeline_frame": 161
+    },
+    {
+      "frame": 66,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 162
+    },
+    {
+      "frame": 67,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 163
+    },
+    {
+      "frame": 68,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 164
+    },
+    {
+      "frame": 69,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 165
+    },
+    {
+      "frame": 70,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 166
+    },
+    {
+      "frame": 71,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 167
+    },
+    {
+      "frame": 72,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 168
+    },
+    {
+      "frame": 73,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 169
+    },
+    {
+      "frame": 74,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 170
+    },
+    {
+      "frame": 75,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 171
+    },
+    {
+      "frame": 76,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 172
+    },
+    {
+      "frame": 77,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 173
+    },
+    {
+      "frame": 78,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 174
+    },
+    {
+      "frame": 79,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 175
+    },
+    {
+      "frame": 80,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 176
+    },
+    {
+      "frame": 81,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 177
+    },
+    {
+      "frame": 82,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 178
+    },
+    {
+      "frame": 83,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 179
+    },
+    {
+      "frame": 84,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 180
+    },
+    {
+      "frame": 85,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 181
+    },
+    {
+      "frame": 86,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 182
+    },
+    {
+      "frame": 87,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 183
+    },
+    {
+      "frame": 88,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 184
+    },
+    {
+      "frame": 89,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 185
+    },
+    {
+      "frame": 90,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 186
+    },
+    {
+      "frame": 91,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 187
+    },
+    {
+      "frame": 92,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 188
+    },
+    {
+      "frame": 93,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 189
+    },
+    {
+      "frame": 94,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 190
+    },
+    {
+      "frame": 95,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 191
+    },
+    {
+      "frame": 96,
+      "position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "flight": 0,
+      "anticipation": 0,
+      "landing": 0,
+      "timeline_frame": 192
+    }
+  ]
+}

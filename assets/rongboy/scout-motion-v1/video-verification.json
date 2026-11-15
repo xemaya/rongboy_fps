@@ -1,0 +1,21 @@
+{
+  "rendered_frames": 192,
+  "fps": 24,
+  "codec_probe": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 960,
+        "height": 600,
+        "r_frame_rate": "24/1",
+        "nb_frames": "192"
+      }
+    ],
+    "format": {
+      "duration": "8.000000"
+    }
+  },
+  "review": "Key poses inspected for frame bounds, planted boots, arm/hat/backpack attachment. Final aesthetic and motion feel await user feedback."
+}

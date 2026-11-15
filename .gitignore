@@ -2,3 +2,10 @@ node_modules/
 .DS_Store
 shots/
 film/
+
+# Rongboy generated render caches and standalone bundles
+scripts/blender/__pycache__/
+assets/rongboy/**/frames/
+assets/rongboy/**/renders/
+assets/rongboy/**/checks/
+dist/rongboy*.html

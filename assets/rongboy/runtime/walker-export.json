@@ -1,0 +1,17 @@
+{
+  "source": "assets/rongboy/walker-v1/rongboy-walker-v1.blend",
+  "format": "GLB",
+  "atlas": 1024,
+  "sampled_wool_fibers": 1031,
+  "polygons": 67190,
+  "parts": [
+    "Body",
+    "Head",
+    "ArmL",
+    "ArmR",
+    "LegL",
+    "LegR"
+  ],
+  "materials": 10,
+  "file_bytes": 4882836
+}

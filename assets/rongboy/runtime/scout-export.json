@@ -1,0 +1,22 @@
+{
+  "source": "assets/rongboy/scout-motion-v1/rongboy-scout-motion-v1.blend",
+  "format": "GLB",
+  "atlas": 1024,
+  "sampled_wool_fibers": 1634,
+  "polygons": 154750,
+  "parts": [
+    "CTRL / ground motion",
+    "CTRL / body",
+    "CTRL / head",
+    "CTRL / hat",
+    "CTRL / backpack",
+    "CTRL / arm -1",
+    "CTRL / leg -1",
+    "CTRL / boot -1",
+    "CTRL / arm 1",
+    "CTRL / leg 1",
+    "CTRL / boot 1"
+  ],
+  "materials": 16,
+  "file_bytes": 7098080
+}

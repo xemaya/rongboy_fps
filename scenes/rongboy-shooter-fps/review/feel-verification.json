@@ -1,0 +1,688 @@
+{
+  "sound": [
+    {
+      "clipped": 0,
+      "peak": 0.12817853689193726,
+      "rms": 0.005005784383351306,
+      "weapon": "single"
+    },
+    {
+      "clipped": 0,
+      "peak": 0.13723136484622955,
+      "rms": 0.006188080819367373,
+      "weapon": "scatter"
+    },
+    {
+      "clipped": 0,
+      "peak": 0.26989656686782837,
+      "rms": 0.018203075236631193,
+      "weapon": "heavy"
+    }
+  ],
+  "single": {
+    "audio": {
+      "enabled": true,
+      "state": "running"
+    },
+    "ballStates": [
+      {
+        "age": 0.15833333333333333,
+        "bounceCount": 1,
+        "enemyHits": 1,
+        "hitCounts": {
+          "1": 1
+        },
+        "id": 4,
+        "lifetime": 12,
+        "weapon": "single",
+        "x": 0.01700943008254907,
+        "y": 1.676537083147375,
+        "z": 3.6441159795704032
+      }
+    ],
+    "balls": 1,
+    "bounces": 1,
+    "charge": 0,
+    "charging": false,
+    "covers": 7,
+    "enemies": [
+      {
+        "alive": true,
+        "hopPhase": 0.6648148148148152,
+        "hp": 5,
+        "id": 1,
+        "maxHp": 6,
+        "reaction": {
+          "bend": 0.010807351874446735,
+          "compression": 0,
+          "flail": 0.30049206462079214,
+          "flash": 0.0367973610315187,
+          "headLag": 0.2596852317310087,
+          "lift": 0.018999400753082752,
+          "twist": 0.009794130196364508,
+          "wobble": 0.1052695448115033
+        },
+        "reactionAge": 0.11666666666666664,
+        "reactionStrength": 0.68,
+        "reactionWeapon": "single",
+        "screenX": 624.809970073093,
+        "screenY": 463.46489499757905,
+        "type": "walker",
+        "vx": -0.412169209727137,
+        "vz": -1.1369037170326115,
+        "x": -0.06357118976546434,
+        "y": 0.09844243613409798,
+        "z": 1.555532694674868
+      },
+      {
+        "alive": true,
+        "hopPhase": 0.4317829457364347,
+        "hp": 4,
+        "id": 2,
+        "maxHp": 4,
+        "reaction": {
+          "bend": 0,
+          "compression": 0,
+          "flail": 0,
+          "flash": 0,
+          "headLag": 0,
+          "lift": 0,
+          "twist": 0,
+          "wobble": 0
+        },
+        "reactionAge": 10.341666666666647,
+        "reactionStrength": 0,
+        "reactionWeapon": "single",
+        "screenX": 360.65581539883226,
+        "screenY": 424.1820891933524,
+        "type": "runner",
+        "vx": 0,
+        "vz": 0,
+        "x": -1.8899156487764297,
+        "y": 0.3154793236133753,
+        "z": 0.09783777147205748
+      },
+      {
+        "alive": true,
+        "hopPhase": 0.7379084967320264,
+        "hp": 10,
+        "id": 3,
+        "maxHp": 10,
+        "reaction": {
+          "bend": 0,
+          "compression": 0,
+          "flail": 0,
+          "flash": 0,
+          "headLag": 0,
+          "lift": 0,
+          "twist": 0,
+          "wobble": 0
+        },
+        "reactionAge": 10.341666666666647,
+        "reactionStrength": 0,
+        "reactionWeapon": "single",
+        "screenX": 817.930973165443,
+        "screenY": 398.7574976603276,
+        "type": "heavy",
+        "vx": 0,
+        "vz": 0,
+        "x": 2.003234450572859,
+        "y": 0.02024643785448178,
+        "z": -2.440191589101389
+      }
+    ],
+    "errors": [],
+    "health": 3,
+    "hits": 1,
+    "inputMode": "keyboard",
+    "kills": 0,
+    "lookDirection": {
+      "x": 0,
+      "y": 0.0010404262947252647,
+      "z": -0.9999994587564162
+    },
+    "maxCombo": 0,
+    "mode": "playing",
+    "paused": true,
+    "pitch": 0,
+    "player": {
+      "aimX": 0,
+      "aimY": 0.0010404262947252647,
+      "aimZ": -0.9999994587564162,
+      "vx": 0,
+      "vz": 0,
+      "x": 0,
+      "z": 3.9200000000000017
+    },
+    "recoil": {
+      "back": 0.012554041072672792,
+      "camera": 0.0008369360715115192,
+      "pitch": 0.006575926276161932,
+      "weapon": "single"
+    },
+    "repeatHits": 0,
+    "score": 0,
+    "shots": 1,
+    "time": 0.3416666666666669,
+    "transition": 0,
+    "weapon": "single",
+    "yaw": 0
+  },
+  "scatter": {
+    "audio": {
+      "enabled": true,
+      "state": "running"
+    },
+    "ballStates": [
+      {
+        "age": 0.13333333333333333,
+        "bounceCount": 1,
+        "enemyHits": 1,
+        "hitCounts": {
+          "1": 1
+        },
+        "id": 4,
+        "lifetime": 12,
+        "weapon": "scatter",
+        "x": -0.5496116321977488,
+        "y": 1.520095186292814,
+        "z": 3.011310577968229
+      },
+      {
+        "age": 0.13333333333333333,
+        "bounceCount": 1,
+        "enemyHits": 1,
+        "hitCounts": {
+          "1": 1
+        },
+        "id": 5,
+        "lifetime": 12,
+        "weapon": "scatter",
+        "x": 0.022098973549365457,
+        "y": 1.5253483975329656,
+        "z": 3.179440587675593
+      },
+      {
+        "age": 0.13333333333333333,
+        "bounceCount": 1,
+        "enemyHits": 1,
+        "hitCounts": {
+          "1": 1
+        },
+        "id": 6,
+        "lifetime": 12,
+        "weapon": "scatter",
+        "x": 0.5783719829637552,
+        "y": 1.5199114498858504,
+        "z": 3.0681388515933365
+      }
+    ],
+    "balls": 3,
+    "bounces": 3,
+    "charge": 0,
+    "charging": false,
+    "covers": 7,
+    "enemies": [
+      {
+        "alive": true,
+        "hopPhase": 0.6185185185185187,
+        "hp": 3,
+        "id": 1,
+        "maxHp": 6,
+        "reaction": {
+          "bend": 0.07530115722831057,
+          "compression": 0.027849098448819574,
+          "flail": 0.28041713140499175,
+          "flash": 0.0538576421097911,
+          "headLag": 0.2678516573320609,
+          "lift": 0.01791042484248745,
+          "twist": -0.030769517625343877,
+          "wobble": 0.2005357385228456
+        },
+        "reactionAge": 0.09166666666666666,
+        "reactionStrength": 0.532728,
+        "reactionWeapon": "scatter",
+        "screenX": 626.1457052973074,
+        "screenY": 467.8987782354709,
+        "type": "walker",
+        "vx": -0.5030249662311366,
+        "vz": -1.418870751740586,
+        "x": -0.05753854735680865,
+        "y": 0.13321038863893775,
+        "z": 1.551229356038457
+      },
+      {
+        "alive": true,
+        "hopPhase": 0.35426356589147323,
+        "hp": 4,
+        "id": 2,
+        "maxHp": 4,
+        "reaction": {
+          "bend": 0,
+          "compression": 0,
+          "flail": 0,
+          "flash": 0,
+          "headLag": 0,
+          "lift": 0,
+          "twist": 0,
+          "wobble": 0
+        },
+        "reactionAge": 10.308333333333316,
+        "reactionStrength": 0,
+        "reactionWeapon": "single",
+        "screenX": 359.0761463976404,
+        "screenY": 426.261641429214,
+        "type": "runner",
+        "vx": 0,
+        "vz": 0,
+        "x": -1.9427324013990976,
+        "y": 0.31669095220845,
+        "z": -0.004995267069003759
+      },
+      {
+        "alive": true,
+        "hopPhase": 0.7052287581699348,
+        "hp": 10,
+        "id": 3,
+        "maxHp": 10,
+        "reaction": {
+          "bend": 0,
+          "compression": 0,
+          "flail": 0,
+          "flash": 0,
+          "headLag": 0,
+          "lift": 0,
+          "twist": 0,
+          "wobble": 0
+        },
+        "reactionAge": 10.308333333333316,
+        "reactionStrength": 0,
+        "reactionWeapon": "single",
+        "screenX": 818.0191442386101,
+        "screenY": 402.097619172335,
+        "type": "heavy",
+        "vx": 0,
+        "vz": 0,
+        "x": 2.005073217089442,
+        "y": 0.03559479371532221,
+        "z": -2.4543388335248975
+      }
+    ],
+    "errors": [],
+    "health": 3,
+    "hits": 3,
+    "inputMode": "keyboard",
+    "kills": 0,
+    "lookDirection": {
+      "x": 0,
+      "y": 0.007165014163825104,
+      "z": -0.9999743309565662
+    },
+    "maxCombo": 0,
+    "mode": "playing",
+    "paused": true,
+    "pitch": 0,
+    "player": {
+      "aimX": 0,
+      "aimY": 0.0071650141638251045,
+      "aimZ": -0.9999743309565664,
+      "vx": 0,
+      "vz": 0,
+      "x": 0,
+      "z": 3.8937500000000016
+    },
+    "recoil": {
+      "back": 0.11001359855569408,
+      "camera": 0.006500803551018285,
+      "pitch": 0.05250649021976308,
+      "weapon": "scatter"
+    },
+    "repeatHits": 0,
+    "score": 0,
+    "shots": 1,
+    "time": 0.30833333333333346,
+    "transition": 0,
+    "weapon": "scatter",
+    "yaw": 0
+  },
+  "heavy": {
+    "state": {
+      "audio": {
+        "enabled": true,
+        "state": "running"
+      },
+      "ballStates": [
+        {
+          "age": 0.6833333333333333,
+          "bounceCount": 2,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 4,
+          "lifetime": 16,
+          "weapon": "heavy",
+          "x": 0.3083641235037639,
+          "y": 3.1436974624916023,
+          "z": 0.4866793617740406
+        }
+      ],
+      "balls": 1,
+      "bounces": 2,
+      "charge": 0,
+      "charging": false,
+      "covers": 7,
+      "enemies": [
+        {
+          "alive": true,
+          "hopPhase": 0.4287037037037027,
+          "hp": 5,
+          "id": 1,
+          "maxHp": 6,
+          "reaction": {
+            "bend": 0.0347333561411995,
+            "compression": 0.00006930407148206866,
+            "flail": 0.013526021611331387,
+            "flash": 1.1218237720887818e-7,
+            "headLag": -0.009758449704439578,
+            "lift": 0.00009410264115990832,
+            "twist": 0.003808208597687669,
+            "wobble": 0.002534103797553128
+          },
+          "reactionAge": 0.6500000000000001,
+          "reactionStrength": 1.28,
+          "reactionWeapon": "heavy",
+          "screenX": 501.0431239606299,
+          "screenY": 440.29248943195734,
+          "type": "walker",
+          "vx": -0.2069096290290638,
+          "vz": 0,
+          "x": -0.7525505138742974,
+          "y": 0.21733235131733292,
+          "z": 0.7809999999999999
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.710852713178293,
+          "hp": 4,
+          "id": 2,
+          "maxHp": 4,
+          "reaction": {
+            "bend": 0,
+            "compression": 0,
+            "flail": 0,
+            "flash": 0,
+            "headLag": 0,
+            "lift": 0,
+            "twist": 0,
+            "wobble": 0
+          },
+          "reactionAge": 10.891666666666616,
+          "reactionStrength": 0,
+          "reactionWeapon": "single",
+          "screenX": 356.26941387034367,
+          "screenY": 449.0825234848975,
+          "type": "runner",
+          "vx": 0,
+          "vz": 0,
+          "x": -1.3848960936491577,
+          "y": 0.08797343045327746,
+          "z": 1.0831314368295248
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.27712418300653524,
+          "hp": 10,
+          "id": 3,
+          "maxHp": 10,
+          "reaction": {
+            "bend": 0,
+            "compression": 0,
+            "flail": 0,
+            "flash": 0,
+            "headLag": 0,
+            "lift": 0,
+            "twist": 0,
+            "wobble": 0
+          },
+          "reactionAge": 10.891666666666616,
+          "reactionStrength": 0,
+          "reactionWeapon": "single",
+          "screenX": 825.0606784689894,
+          "screenY": 400.92063437767894,
+          "type": "heavy",
+          "vx": 0,
+          "vz": 0,
+          "x": 1.9677304830556408,
+          "y": 0.10781093369367874,
+          "z": -2.1670284104485105
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 1,
+      "inputMode": "keyboard",
+      "kills": 0,
+      "lookDirection": {
+        "x": 0,
+        "y": 0.0000984130538001722,
+        "z": -0.9999999951574354
+      },
+      "maxCombo": 0,
+      "mode": "playing",
+      "paused": true,
+      "pitch": 0,
+      "player": {
+        "aimX": 0,
+        "aimY": 0.0000984130538001722,
+        "aimZ": -0.9999999951574354,
+        "vx": 0,
+        "vz": 0,
+        "x": 0,
+        "z": 3.8412500000000014
+      },
+      "recoil": {
+        "back": 0.0012920237679923123,
+        "camera": 0.0000894477993225444,
+        "pitch": 0.0007619627349698256,
+        "weapon": "heavy"
+      },
+      "repeatHits": 0,
+      "score": 0,
+      "shots": 1,
+      "time": 0.8916666666666659,
+      "transition": 0,
+      "weapon": "heavy",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 164,
+      "frameIntervalMs": 14.561052631578947,
+      "geometries": 171,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 61,
+      "tris": 328688
+    }
+  },
+  "heavyPeak": {
+    "state": {
+      "audio": {
+        "enabled": true,
+        "state": "running"
+      },
+      "ballStates": [
+        {
+          "age": 0.09166666666666666,
+          "bounceCount": 1,
+          "enemyHits": 1,
+          "hitCounts": {
+            "1": 1
+          },
+          "id": 4,
+          "lifetime": 16,
+          "weapon": "heavy",
+          "x": 0.1256987411678664,
+          "y": 1.3239859047186815,
+          "z": 2.839753958896667
+        }
+      ],
+      "balls": 1,
+      "bounces": 1,
+      "charge": 0,
+      "charging": false,
+      "covers": 7,
+      "enemies": [
+        {
+          "alive": true,
+          "hopPhase": 0.5837962962962964,
+          "hp": 5,
+          "id": 1,
+          "maxHp": 6,
+          "reaction": {
+            "bend": 0.8065566416816242,
+            "compression": 0.5103985134446853,
+            "flail": 0.849027975093441,
+            "flash": 0.29775828213413463,
+            "headLag": 0.6916718410743,
+            "lift": 0.04415135730025174,
+            "twist": 0.08814872118829715,
+            "wobble": 0.7374012622020033
+          },
+          "reactionAge": 0.05833333333333333,
+          "reactionStrength": 1.28,
+          "reactionWeapon": "heavy",
+          "screenX": 600.7208913717533,
+          "screenY": 473.5303682427539,
+          "type": "walker",
+          "vx": -2.53095201781362,
+          "vz": -6.824877091654585,
+          "x": -0.1708300538460326,
+          "y": 0.15631585378585455,
+          "z": 1.270229413471766
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.29612403100775225,
+          "hp": 4,
+          "id": 2,
+          "maxHp": 4,
+          "reaction": {
+            "bend": 0,
+            "compression": 0,
+            "flail": 0,
+            "flash": 0,
+            "headLag": 0,
+            "lift": 0,
+            "twist": 0,
+            "wobble": 0
+          },
+          "reactionAge": 10.283333333333315,
+          "reactionStrength": 0,
+          "reactionWeapon": "single",
+          "screenX": 347.87431013058847,
+          "screenY": 437.67129860346137,
+          "type": "runner",
+          "vx": 0,
+          "vz": 0,
+          "x": -1.9779355795143816,
+          "y": 0.29739735534076195,
+          "z": -0.0825265587669064
+        },
+        {
+          "alive": true,
+          "hopPhase": 0.6807189542483661,
+          "hp": 10,
+          "id": 3,
+          "maxHp": 10,
+          "reaction": {
+            "bend": 0,
+            "compression": 0,
+            "flail": 0,
+            "flash": 0,
+            "headLag": 0,
+            "lift": 0,
+            "twist": 0,
+            "wobble": 0
+          },
+          "reactionAge": 10.283333333333315,
+          "reactionStrength": 0,
+          "reactionWeapon": "single",
+          "screenX": 821.7458536386912,
+          "screenY": 412.7590120069646,
+          "type": "heavy",
+          "vx": 0,
+          "vz": 0,
+          "x": 2.006939115003916,
+          "y": 0.0467161161126647,
+          "z": -2.4686948236015636
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 1,
+      "inputMode": "keyboard",
+      "kills": 0,
+      "lookDirection": {
+        "x": 0,
+        "y": 0.02405540832974823,
+        "z": -0.9997106267966192
+      },
+      "maxCombo": 0,
+      "mode": "playing",
+      "paused": true,
+      "pitch": 0,
+      "player": {
+        "aimX": 0,
+        "aimY": 0.024055408329748233,
+        "aimZ": -0.9997106267966192,
+        "vx": 0,
+        "vz": 0,
+        "x": 0,
+        "z": 3.710000000000001
+      },
+      "recoil": {
+        "back": 0.3432283366109585,
+        "camera": 0.023761961765374047,
+        "pitch": 0.20241671133466785,
+        "weapon": "heavy"
+      },
+      "repeatHits": 0,
+      "score": 0,
+      "shots": 1,
+      "time": 0.2833333333333334,
+      "transition": 0,
+      "weapon": "heavy",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 269,
+      "frameIntervalMs": 9.096874999999995,
+      "geometries": 171,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 61,
+      "tris": 637030
+    }
+  }
+}

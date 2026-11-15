@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "direction_samples": 15,
+  "body_alignment_min": 1.0,
+  "boot_alignment_min": 1.0,
+  "zombie_root_scale_preserved": true,
+  "supported_mesh_clearance_nonnegative": true,
+  "camera_samples": 25,
+  "camera_mesh_bounds_pass": true,
+  "art_status": "motion candidate; user acceptance pending"
+}

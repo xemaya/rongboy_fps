@@ -1,0 +1,2 @@
+# Original rule snapshot
+Copied without modification from user-owned local xemaya/combo-hopper HEAD 6d91d28 on 2026-11-13. Contains src/game, i18n dependencies and storage adapter. Only consumed by the Rongboy presentation prototype. Do not infer third-party distribution rights from this snapshot. Original repository is unchanged. Bundle-time import.meta.env.BASE_URL is defined as ./; no source patch.

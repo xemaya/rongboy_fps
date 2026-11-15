@@ -1,0 +1,15 @@
+{
+  "blender": "5.1.2",
+  "status": "visual candidate",
+  "model_objects": 369,
+  "wool_fiber_count": 32490,
+  "views": {
+    "hero": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/scout-v1/renders/hero.png",
+    "front": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/scout-v1/renders/front.png",
+    "side": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/scout-v1/renders/side.png",
+    "game": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/scout-v1/renders/game.png",
+    "rear": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/scout-v1/renders/rear.png"
+  },
+  "render_engine": "CYCLES",
+  "samples": 48
+}

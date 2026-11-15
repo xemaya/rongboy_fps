@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-13",
+  "originalSourceCommit": "6d91d28",
+  "level": 7,
+  "buff": "long-legs",
+  "pureParityTransitions": 217,
+  "previewDoesNotMutateLiveState": true,
+  "originalBrowser": {
+    "actions": 12,
+    "turns": 6,
+    "phase": "win"
+  },
+  "candidateBrowser": {
+    "actions": 12,
+    "turns": 6,
+    "phase": "win"
+  },
+  "riskTest": {
+    "destination": "C7",
+    "prediction": "surrounded",
+    "observed": "surrounded"
+  },
+  "visualStatus": "candidate; below generated target fidelity; user acceptance pending",
+  "performanceFile": "benchmark.json",
+  "notes": [
+    "Earlier geometry merge index mismatch fixed by normalizing geometry before merge. Earlier solution replay array/object mismatch fixed.",
+    "Flat comparison is reconstructed; original browser screenshots are separate.",
+    "Physical mobile input has not been verified."
+  ]
+}

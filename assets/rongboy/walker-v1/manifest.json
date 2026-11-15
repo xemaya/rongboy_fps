@@ -1,0 +1,12 @@
+{
+  "source_reference": "Original combo-hopper/public/sprites/zombie_walker.png",
+  "status": "visual candidate",
+  "objects": 181,
+  "fiber_count": 20440,
+  "collection": "RONGBOY / Walker figurine",
+  "views": {
+    "hero": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/walker-v1/renders/hero.png",
+    "front": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/walker-v1/renders/front.png",
+    "side": "/Users/huanghaibin/Workspace/games/cine-engine/assets/rongboy/walker-v1/renders/side.png"
+  }
+}

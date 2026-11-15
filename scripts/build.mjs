@@ -4,7 +4,7 @@
 //   node scripts/build.mjs --serve [page]   rebuild on change and serve dist/ (port 5173, or the next free one)
 // A page is a folder with main.js + index.html: scenes/<name>/ or tools/<name>/ (tools/showcase).
 import * as esbuild from 'esbuild';
-import { readFile, writeFile, mkdir, readdir, stat } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
@@ -28,18 +28,25 @@ async function pages() {
   return only.length ? out.filter((p) => only.includes(p.name)) : out;
 }
 
+let emitSequence = 0;
+async function atomicWrite(file, content) {
+  const temp = file + '.' + process.pid + '.' + emitSequence++ + '.tmp';
+  await writeFile(temp, content);
+  await rename(temp, file);
+}
+
 async function emit(page, js) {
   const outFile = path.join(root, 'dist', page.name + '.html');
   const html = await readFile(path.join(page.dir, 'index.html'), 'utf8');
   await mkdir(path.dirname(outFile), { recursive: true });
   // a function replacement keeps `$` sequences in the bundle literal
   const full = html.replace('/*__BUNDLE__*/', () => js.replace(/<\/script/g, '<\\/script'));
-  await writeFile(outFile, full);
+  await atomicWrite(outFile, full);
   // The same page as a fragment (no doctype / html / head / body) for hosts that wrap it in their own skeleton.
   const head = full.slice(full.indexOf('<title>'), full.indexOf('</style>') + 8);
   const body = full.slice(full.indexOf('<body>') + 6, full.lastIndexOf('</body>'));
   const fragment = head.replace('</title>', '</title>\n<meta name="claude:viewport-fit-sides" content="cover">') + body;
-  await writeFile(outFile.replace(/\.html$/, '.fragment.html'), fragment);
+  await atomicWrite(outFile.replace(/\.html$/, '.fragment.html'), fragment);
   console.log(`[build] ${path.relative(root, outFile)}  ${(Buffer.byteLength(js) / 1024).toFixed(0)} kB of script`);
 }
 
@@ -48,6 +55,7 @@ const options = (page) => ({
   bundle: true,
   format: 'iife',
   target: 'es2022',
+  loader: { '.glb': 'binary' },
   minify: !serve,
   write: false,
   legalComments: 'none',
@@ -73,8 +81,9 @@ if (serve) {
     const name = decodeURIComponent((req.url || '/').split('?')[0].replace(/^\/+/, '')) || list[0].name + '.html';
     try {
       const file = path.join(root, 'dist', path.basename(name));
+      const html = await readFile(file);
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
-      res.end(await readFile(file));
+      res.end(html);
     } catch {
       res.writeHead(404).end('not built: ' + name);
     }

@@ -1,0 +1,4054 @@
+{
+  "fps": 24,
+  "frames": 192,
+  "resolution": [
+    960,
+    600
+  ],
+  "source_scout": "assets/rongboy/scout-motion-v1/rongboy-scout-motion-v1.blend",
+  "source_walker": "assets/rongboy/walker-v1/rongboy-walker-v1.blend",
+  "camera_cut": 97,
+  "hit_frame": 36,
+  "contact_hold_frames": [
+    36,
+    37,
+    38
+  ],
+  "landing_frame": 50,
+  "walker_hidden_frame": 65,
+  "walker_parts": 180,
+  "poses": [
+    {
+      "local_frame": 1,
+      "action_frame": 1,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 1
+    },
+    {
+      "local_frame": 2,
+      "action_frame": 2,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 2
+    },
+    {
+      "local_frame": 3,
+      "action_frame": 3,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 3
+    },
+    {
+      "local_frame": 4,
+      "action_frame": 4,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 4
+    },
+    {
+      "local_frame": 5,
+      "action_frame": 5,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 5
+    },
+    {
+      "local_frame": 6,
+      "action_frame": 6,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.03658503666520119,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 6
+    },
+    {
+      "local_frame": 7,
+      "action_frame": 7,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.13689886033535004,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 7
+    },
+    {
+      "local_frame": 8,
+      "action_frame": 8,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.2867794930934906,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 8
+    },
+    {
+      "local_frame": 9,
+      "action_frame": 9,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.4720650017261505,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 9
+    },
+    {
+      "local_frame": 10,
+      "action_frame": 10,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.6785934567451477,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 10
+    },
+    {
+      "local_frame": 11,
+      "action_frame": 11,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.8922028541564941,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 11
+    },
+    {
+      "local_frame": 12,
+      "action_frame": 12,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.098731279373169,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 12
+    },
+    {
+      "local_frame": 13,
+      "action_frame": 13,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.2840168476104736,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 13
+    },
+    {
+      "local_frame": 14,
+      "action_frame": 14,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.4338974952697754,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 14
+    },
+    {
+      "local_frame": 15,
+      "action_frame": 15,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.534211277961731,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 15
+    },
+    {
+      "local_frame": 16,
+      "action_frame": 16,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 16
+    },
+    {
+      "local_frame": 17,
+      "action_frame": 17,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 17
+    },
+    {
+      "local_frame": 18,
+      "action_frame": 18,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 18
+    },
+    {
+      "local_frame": 19,
+      "action_frame": 19,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 19
+    },
+    {
+      "local_frame": 20,
+      "action_frame": 20,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 20
+    },
+    {
+      "local_frame": 21,
+      "action_frame": 21,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 21
+    },
+    {
+      "local_frame": 22,
+      "action_frame": 22,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 22
+    },
+    {
+      "local_frame": 23,
+      "action_frame": 23,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 23
+    },
+    {
+      "local_frame": 24,
+      "action_frame": 24,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 24
+    },
+    {
+      "local_frame": 25,
+      "action_frame": 25,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 25
+    },
+    {
+      "local_frame": 26,
+      "action_frame": 26,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 26
+    },
+    {
+      "local_frame": 27,
+      "action_frame": 27,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 27
+    },
+    {
+      "local_frame": 28,
+      "action_frame": 28,
+      "scout_position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 28
+    },
+    {
+      "local_frame": 29,
+      "action_frame": 29,
+      "scout_position": [
+        -1.527525,
+        0,
+        0.3705
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 29
+    },
+    {
+      "local_frame": 30,
+      "action_frame": 30,
+      "scout_position": [
+        -1.4632,
+        0,
+        0.7020000000000001
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 30
+    },
+    {
+      "local_frame": 31,
+      "action_frame": 31,
+      "scout_position": [
+        -1.361675,
+        0,
+        0.9944999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 31
+    },
+    {
+      "local_frame": 32,
+      "action_frame": 32,
+      "scout_position": [
+        -1.2276,
+        0,
+        1.2480000000000002
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 32
+    },
+    {
+      "local_frame": 33,
+      "action_frame": 33,
+      "scout_position": [
+        -1.065625,
+        0,
+        1.4625
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 33
+    },
+    {
+      "local_frame": 34,
+      "action_frame": 34,
+      "scout_position": [
+        -0.8804000000000001,
+        0,
+        1.638
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 34
+    },
+    {
+      "local_frame": 35,
+      "action_frame": 35,
+      "scout_position": [
+        -0.6765750000000001,
+        0,
+        1.7745
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 35
+    },
+    {
+      "local_frame": 36,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 36
+    },
+    {
+      "local_frame": 37,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 37
+    },
+    {
+      "local_frame": 38,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 38
+    },
+    {
+      "local_frame": 39,
+      "action_frame": 37,
+      "scout_position": [
+        -0.23172499999999974,
+        0,
+        1.9305
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.7407407407407407,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 39
+    },
+    {
+      "local_frame": 40,
+      "action_frame": 38,
+      "scout_position": [
+        0.0,
+        0,
+        1.95
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 40
+    },
+    {
+      "local_frame": 41,
+      "action_frame": 39,
+      "scout_position": [
+        0.2317250000000004,
+        0,
+        1.9304999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.014577259475218658,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 41
+    },
+    {
+      "local_frame": 42,
+      "action_frame": 40,
+      "scout_position": [
+        0.4587999999999999,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.0553935860058309,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 42
+    },
+    {
+      "local_frame": 43,
+      "action_frame": 41,
+      "scout_position": [
+        0.6765750000000004,
+        0,
+        1.7745
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.11807580174927114,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 43
+    },
+    {
+      "local_frame": 44,
+      "action_frame": 42,
+      "scout_position": [
+        0.8803999999999996,
+        0,
+        1.6380000000000001
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.19825072886297376,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 44
+    },
+    {
+      "local_frame": 45,
+      "action_frame": 43,
+      "scout_position": [
+        1.065625,
+        0,
+        1.4625
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.2915451895043732,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 45
+    },
+    {
+      "local_frame": 46,
+      "action_frame": 44,
+      "scout_position": [
+        1.2276000000000005,
+        0,
+        1.2479999999999998
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.39358600583090375,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 46
+    },
+    {
+      "local_frame": 47,
+      "action_frame": 45,
+      "scout_position": [
+        1.3616749999999997,
+        0,
+        0.9945000000000002
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.5,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 47
+    },
+    {
+      "local_frame": 48,
+      "action_frame": 46,
+      "scout_position": [
+        1.4631999999999998,
+        0,
+        0.7019999999999998
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.6064139941690961,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 48
+    },
+    {
+      "local_frame": 49,
+      "action_frame": 47,
+      "scout_position": [
+        1.527525,
+        0,
+        0.3705000000000003
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.7084548104956269,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0007966831781895042,
+      "landing": 0,
+      "timeline_frame": 49
+    },
+    {
+      "local_frame": 50,
+      "action_frame": 48,
+      "scout_position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.8017492711370262,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.009365979921260113,
+      "landing": 0,
+      "timeline_frame": 50
+    },
+    {
+      "local_frame": 51,
+      "action_frame": 49,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.8819241982507289,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.3090169943749474,
+      "timeline_frame": 51
+    },
+    {
+      "local_frame": 52,
+      "action_frame": 50,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.9446064139941691,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.5877852522924731,
+      "timeline_frame": 52
+    },
+    {
+      "local_frame": 53,
+      "action_frame": 51,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.9854227405247813,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.8090169943749475,
+      "timeline_frame": 53
+    },
+    {
+      "local_frame": 54,
+      "action_frame": 52,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.9510565162951535,
+      "timeline_frame": 54
+    },
+    {
+      "local_frame": 55,
+      "action_frame": 53,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.0,
+      "timeline_frame": 55
+    },
+    {
+      "local_frame": 56,
+      "action_frame": 54,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.9510565162951536,
+      "timeline_frame": 56
+    },
+    {
+      "local_frame": 57,
+      "action_frame": 55,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.8090169943749475,
+      "timeline_frame": 57
+    },
+    {
+      "local_frame": 58,
+      "action_frame": 56,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.5877852522924732,
+      "timeline_frame": 58
+    },
+    {
+      "local_frame": 59,
+      "action_frame": 57,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.3090169943749475,
+      "timeline_frame": 59
+    },
+    {
+      "local_frame": 60,
+      "action_frame": 58,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 60
+    },
+    {
+      "local_frame": 61,
+      "action_frame": 59,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 61
+    },
+    {
+      "local_frame": 62,
+      "action_frame": 60,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 62
+    },
+    {
+      "local_frame": 63,
+      "action_frame": 61,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 63
+    },
+    {
+      "local_frame": 64,
+      "action_frame": 62,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 64
+    },
+    {
+      "local_frame": 65,
+      "action_frame": 63,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 65
+    },
+    {
+      "local_frame": 66,
+      "action_frame": 64,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 66
+    },
+    {
+      "local_frame": 67,
+      "action_frame": 65,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 67
+    },
+    {
+      "local_frame": 68,
+      "action_frame": 66,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 68
+    },
+    {
+      "local_frame": 69,
+      "action_frame": 67,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 69
+    },
+    {
+      "local_frame": 70,
+      "action_frame": 68,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 70
+    },
+    {
+      "local_frame": 71,
+      "action_frame": 69,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 71
+    },
+    {
+      "local_frame": 72,
+      "action_frame": 70,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 72
+    },
+    {
+      "local_frame": 73,
+      "action_frame": 71,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 73
+    },
+    {
+      "local_frame": 74,
+      "action_frame": 72,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 74
+    },
+    {
+      "local_frame": 75,
+      "action_frame": 73,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 75
+    },
+    {
+      "local_frame": 76,
+      "action_frame": 74,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 76
+    },
+    {
+      "local_frame": 77,
+      "action_frame": 75,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 77
+    },
+    {
+      "local_frame": 78,
+      "action_frame": 76,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 78
+    },
+    {
+      "local_frame": 79,
+      "action_frame": 77,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 79
+    },
+    {
+      "local_frame": 80,
+      "action_frame": 78,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 80
+    },
+    {
+      "local_frame": 81,
+      "action_frame": 79,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 81
+    },
+    {
+      "local_frame": 82,
+      "action_frame": 80,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 82
+    },
+    {
+      "local_frame": 83,
+      "action_frame": 81,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 83
+    },
+    {
+      "local_frame": 84,
+      "action_frame": 82,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 84
+    },
+    {
+      "local_frame": 85,
+      "action_frame": 83,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 85
+    },
+    {
+      "local_frame": 86,
+      "action_frame": 84,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 86
+    },
+    {
+      "local_frame": 87,
+      "action_frame": 85,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 87
+    },
+    {
+      "local_frame": 88,
+      "action_frame": 86,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 88
+    },
+    {
+      "local_frame": 89,
+      "action_frame": 87,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 89
+    },
+    {
+      "local_frame": 90,
+      "action_frame": 88,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 90
+    },
+    {
+      "local_frame": 91,
+      "action_frame": 89,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 91
+    },
+    {
+      "local_frame": 92,
+      "action_frame": 90,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 92
+    },
+    {
+      "local_frame": 93,
+      "action_frame": 91,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 93
+    },
+    {
+      "local_frame": 94,
+      "action_frame": 92,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 94
+    },
+    {
+      "local_frame": 95,
+      "action_frame": 93,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 95
+    },
+    {
+      "local_frame": 96,
+      "action_frame": 94,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 96
+    },
+    {
+      "local_frame": 1,
+      "action_frame": 1,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 97
+    },
+    {
+      "local_frame": 2,
+      "action_frame": 2,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 98
+    },
+    {
+      "local_frame": 3,
+      "action_frame": 3,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 99
+    },
+    {
+      "local_frame": 4,
+      "action_frame": 4,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 100
+    },
+    {
+      "local_frame": 5,
+      "action_frame": 5,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.0,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 101
+    },
+    {
+      "local_frame": 6,
+      "action_frame": 6,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.03658503666520119,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 102
+    },
+    {
+      "local_frame": 7,
+      "action_frame": 7,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.13689886033535004,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 103
+    },
+    {
+      "local_frame": 8,
+      "action_frame": 8,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.2867794930934906,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 104
+    },
+    {
+      "local_frame": 9,
+      "action_frame": 9,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.4720650017261505,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 105
+    },
+    {
+      "local_frame": 10,
+      "action_frame": 10,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.6785934567451477,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 106
+    },
+    {
+      "local_frame": 11,
+      "action_frame": 11,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 0.8922028541564941,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 107
+    },
+    {
+      "local_frame": 12,
+      "action_frame": 12,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.098731279373169,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 108
+    },
+    {
+      "local_frame": 13,
+      "action_frame": 13,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.2840168476104736,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 109
+    },
+    {
+      "local_frame": 14,
+      "action_frame": 14,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.4338974952697754,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 110
+    },
+    {
+      "local_frame": 15,
+      "action_frame": 15,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.534211277961731,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 111
+    },
+    {
+      "local_frame": 16,
+      "action_frame": 16,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 112
+    },
+    {
+      "local_frame": 17,
+      "action_frame": 17,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 113
+    },
+    {
+      "local_frame": 18,
+      "action_frame": 18,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 114
+    },
+    {
+      "local_frame": 19,
+      "action_frame": 19,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 115
+    },
+    {
+      "local_frame": 20,
+      "action_frame": 20,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 116
+    },
+    {
+      "local_frame": 21,
+      "action_frame": 21,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 117
+    },
+    {
+      "local_frame": 22,
+      "action_frame": 22,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 118
+    },
+    {
+      "local_frame": 23,
+      "action_frame": 23,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 119
+    },
+    {
+      "local_frame": 24,
+      "action_frame": 24,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 120
+    },
+    {
+      "local_frame": 25,
+      "action_frame": 25,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 121
+    },
+    {
+      "local_frame": 26,
+      "action_frame": 26,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 122
+    },
+    {
+      "local_frame": 27,
+      "action_frame": 27,
+      "scout_position": [
+        -1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 123
+    },
+    {
+      "local_frame": 28,
+      "action_frame": 28,
+      "scout_position": [
+        -1.55,
+        0,
+        0.0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 124
+    },
+    {
+      "local_frame": 29,
+      "action_frame": 29,
+      "scout_position": [
+        -1.527525,
+        0,
+        0.3705
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 125
+    },
+    {
+      "local_frame": 30,
+      "action_frame": 30,
+      "scout_position": [
+        -1.4632,
+        0,
+        0.7020000000000001
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 126
+    },
+    {
+      "local_frame": 31,
+      "action_frame": 31,
+      "scout_position": [
+        -1.361675,
+        0,
+        0.9944999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 127
+    },
+    {
+      "local_frame": 32,
+      "action_frame": 32,
+      "scout_position": [
+        -1.2276,
+        0,
+        1.2480000000000002
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 128
+    },
+    {
+      "local_frame": 33,
+      "action_frame": 33,
+      "scout_position": [
+        -1.065625,
+        0,
+        1.4625
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 129
+    },
+    {
+      "local_frame": 34,
+      "action_frame": 34,
+      "scout_position": [
+        -0.8804000000000001,
+        0,
+        1.638
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 130
+    },
+    {
+      "local_frame": 35,
+      "action_frame": 35,
+      "scout_position": [
+        -0.6765750000000001,
+        0,
+        1.7745
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 131
+    },
+    {
+      "local_frame": 36,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 132
+    },
+    {
+      "local_frame": 37,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 133
+    },
+    {
+      "local_frame": 38,
+      "action_frame": 36,
+      "scout_position": [
+        -0.45879999999999965,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.25925925925925924,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 134
+    },
+    {
+      "local_frame": 39,
+      "action_frame": 37,
+      "scout_position": [
+        -0.23172499999999974,
+        0,
+        1.9305
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 0.7407407407407407,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 135
+    },
+    {
+      "local_frame": 40,
+      "action_frame": 38,
+      "scout_position": [
+        0.0,
+        0,
+        1.95
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 0,
+      "timeline_frame": 136
+    },
+    {
+      "local_frame": 41,
+      "action_frame": 39,
+      "scout_position": [
+        0.2317250000000004,
+        0,
+        1.9304999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.014577259475218658,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 137
+    },
+    {
+      "local_frame": 42,
+      "action_frame": 40,
+      "scout_position": [
+        0.4587999999999999,
+        0,
+        1.8719999999999999
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.0553935860058309,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 138
+    },
+    {
+      "local_frame": 43,
+      "action_frame": 41,
+      "scout_position": [
+        0.6765750000000004,
+        0,
+        1.7745
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.11807580174927114,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 139
+    },
+    {
+      "local_frame": 44,
+      "action_frame": 42,
+      "scout_position": [
+        0.8803999999999996,
+        0,
+        1.6380000000000001
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.19825072886297376,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 140
+    },
+    {
+      "local_frame": 45,
+      "action_frame": 43,
+      "scout_position": [
+        1.065625,
+        0,
+        1.4625
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.2915451895043732,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 141
+    },
+    {
+      "local_frame": 46,
+      "action_frame": 44,
+      "scout_position": [
+        1.2276000000000005,
+        0,
+        1.2479999999999998
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.39358600583090375,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 142
+    },
+    {
+      "local_frame": 47,
+      "action_frame": 45,
+      "scout_position": [
+        1.3616749999999997,
+        0,
+        0.9945000000000002
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.5,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 143
+    },
+    {
+      "local_frame": 48,
+      "action_frame": 46,
+      "scout_position": [
+        1.4631999999999998,
+        0,
+        0.7019999999999998
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.6064139941690961,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0,
+      "timeline_frame": 144
+    },
+    {
+      "local_frame": 49,
+      "action_frame": 47,
+      "scout_position": [
+        1.527525,
+        0,
+        0.3705000000000003
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.7084548104956269,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0007966831781895042,
+      "landing": 0,
+      "timeline_frame": 145
+    },
+    {
+      "local_frame": 50,
+      "action_frame": 48,
+      "scout_position": [
+        1.55,
+        0,
+        0.0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.8017492711370262,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.009365979921260113,
+      "landing": 0,
+      "timeline_frame": 146
+    },
+    {
+      "local_frame": 51,
+      "action_frame": 49,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.8819241982507289,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.3090169943749474,
+      "timeline_frame": 147
+    },
+    {
+      "local_frame": 52,
+      "action_frame": 50,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.9446064139941691,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.5877852522924731,
+      "timeline_frame": 148
+    },
+    {
+      "local_frame": 53,
+      "action_frame": 51,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 0.9854227405247813,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.8090169943749475,
+      "timeline_frame": 149
+    },
+    {
+      "local_frame": 54,
+      "action_frame": 52,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.9510565162951535,
+      "timeline_frame": 150
+    },
+    {
+      "local_frame": 55,
+      "action_frame": 53,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.0,
+      "timeline_frame": 151
+    },
+    {
+      "local_frame": 56,
+      "action_frame": 54,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.9510565162951536,
+      "timeline_frame": 152
+    },
+    {
+      "local_frame": 57,
+      "action_frame": 55,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.8090169943749475,
+      "timeline_frame": 153
+    },
+    {
+      "local_frame": 58,
+      "action_frame": 56,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.5877852522924732,
+      "timeline_frame": 154
+    },
+    {
+      "local_frame": 59,
+      "action_frame": 57,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 0.3090169943749475,
+      "timeline_frame": 155
+    },
+    {
+      "local_frame": 60,
+      "action_frame": 58,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 156
+    },
+    {
+      "local_frame": 61,
+      "action_frame": 59,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 157
+    },
+    {
+      "local_frame": 62,
+      "action_frame": 60,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 158
+    },
+    {
+      "local_frame": 63,
+      "action_frame": 61,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 159
+    },
+    {
+      "local_frame": 64,
+      "action_frame": 62,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": true,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": 0.0,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 160
+    },
+    {
+      "local_frame": 65,
+      "action_frame": 63,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 161
+    },
+    {
+      "local_frame": 66,
+      "action_frame": 64,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 162
+    },
+    {
+      "local_frame": 67,
+      "action_frame": 65,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 163
+    },
+    {
+      "local_frame": 68,
+      "action_frame": 66,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 164
+    },
+    {
+      "local_frame": 69,
+      "action_frame": 67,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 165
+    },
+    {
+      "local_frame": 70,
+      "action_frame": 68,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 166
+    },
+    {
+      "local_frame": 71,
+      "action_frame": 69,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 167
+    },
+    {
+      "local_frame": 72,
+      "action_frame": 70,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 168
+    },
+    {
+      "local_frame": 73,
+      "action_frame": 71,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 169
+    },
+    {
+      "local_frame": 74,
+      "action_frame": 72,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 170
+    },
+    {
+      "local_frame": 75,
+      "action_frame": 73,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 171
+    },
+    {
+      "local_frame": 76,
+      "action_frame": 74,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 172
+    },
+    {
+      "local_frame": 77,
+      "action_frame": 75,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 173
+    },
+    {
+      "local_frame": 78,
+      "action_frame": 76,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 174
+    },
+    {
+      "local_frame": 79,
+      "action_frame": 77,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 175
+    },
+    {
+      "local_frame": 80,
+      "action_frame": 78,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 176
+    },
+    {
+      "local_frame": 81,
+      "action_frame": 79,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 177
+    },
+    {
+      "local_frame": 82,
+      "action_frame": 80,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 178
+    },
+    {
+      "local_frame": 83,
+      "action_frame": 81,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 179
+    },
+    {
+      "local_frame": 84,
+      "action_frame": 82,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 180
+    },
+    {
+      "local_frame": 85,
+      "action_frame": 83,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 181
+    },
+    {
+      "local_frame": 86,
+      "action_frame": 84,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 182
+    },
+    {
+      "local_frame": 87,
+      "action_frame": 85,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 183
+    },
+    {
+      "local_frame": 88,
+      "action_frame": 86,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 184
+    },
+    {
+      "local_frame": 89,
+      "action_frame": 87,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 185
+    },
+    {
+      "local_frame": 90,
+      "action_frame": 88,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 186
+    },
+    {
+      "local_frame": 91,
+      "action_frame": 89,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 187
+    },
+    {
+      "local_frame": 92,
+      "action_frame": 90,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 188
+    },
+    {
+      "local_frame": 93,
+      "action_frame": 91,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 189
+    },
+    {
+      "local_frame": 94,
+      "action_frame": 92,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 190
+    },
+    {
+      "local_frame": 95,
+      "action_frame": 93,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 191
+    },
+    {
+      "local_frame": 96,
+      "action_frame": 94,
+      "scout_position": [
+        1.55,
+        0,
+        0
+      ],
+      "heading_radians": 1.5707963705062866,
+      "hit": 1,
+      "fall": 1,
+      "zombie_visible": false,
+      "zombie_scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "zombie_ground_min": null,
+      "landing": 1.2246467991473532e-16,
+      "timeline_frame": 192
+    }
+  ]
+}

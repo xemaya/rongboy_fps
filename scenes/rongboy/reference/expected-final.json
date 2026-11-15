@@ -1,0 +1,30 @@
+{
+  "rows": 8,
+  "cols": 8,
+  "phase": "win",
+  "scout": {
+    "r": 4,
+    "c": 1
+  },
+  "zombies": [],
+  "kills": 9,
+  "combo": 0,
+  "chainActive": false,
+  "surgeActive": false,
+  "quakeArmed": false,
+  "apexUsesRemaining": 0,
+  "freeMoveMode": false,
+  "buff": "long-legs",
+  "legalJumps": [],
+  "legalFreeMoves": [],
+  "legalWalks": [],
+  "lastTurnKills": 8,
+  "buffUsesRemaining": 1,
+  "initialScoutPos": {
+    "r": 7,
+    "c": 2
+  },
+  "stepsThisLevel": 12,
+  "turnsThisLevel": 6,
+  "preJumpStunnedIds": []
+}

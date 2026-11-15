@@ -1,0 +1,29 @@
+[
+  {
+    "weapon": "single",
+    "peak": 0.128173828125,
+    "rms": 0.0050056462218033984,
+    "shotSpectralCentroidHz": 836.8820293540434,
+    "sampleRate": 48000,
+    "seconds": 1.85,
+    "clipped": 0
+  },
+  {
+    "weapon": "scatter",
+    "peak": 0.137237548828125,
+    "rms": 0.0061879057674282464,
+    "shotSpectralCentroidHz": 1355.1458314444687,
+    "sampleRate": 48000,
+    "seconds": 1.85,
+    "clipped": 0
+  },
+  {
+    "weapon": "heavy",
+    "peak": 0.2698974609375,
+    "rms": 0.0182024749189634,
+    "shotSpectralCentroidHz": 186.14546707632098,
+    "sampleRate": 48000,
+    "seconds": 1.85,
+    "clipped": 0
+  }
+]

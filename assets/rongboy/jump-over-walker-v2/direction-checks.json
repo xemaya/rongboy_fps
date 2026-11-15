@@ -1,0 +1,92 @@
+[
+  {
+    "frame": 28,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 32,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 35,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 36,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 38,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 42,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 48,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 50,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 124,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 128,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 132,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 134,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 138,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 144,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  },
+  {
+    "frame": 146,
+    "forward_dot_world_plus_x": 1.0,
+    "boots_min_forward_dot": 1.0,
+    "heading_radians": 1.5707963705062866
+  }
+]
