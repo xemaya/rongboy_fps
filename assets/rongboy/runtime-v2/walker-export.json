@@ -1,0 +1,17 @@
+{
+  "source": "assets/rongboy/walker-v2/rongboy-walker-v2.blend",
+  "version": "v2",
+  "colour_mode": "constant PBR factors, vertex-colour batching in runtime",
+  "normal": "256px tile; no albedo atlas",
+  "sampled_wool_fibers": 1006,
+  "polygons": 76032,
+  "parts": [
+    "Body",
+    "Head",
+    "ArmL",
+    "ArmR",
+    "LegL",
+    "LegR"
+  ],
+  "file_bytes": 2243464
+}

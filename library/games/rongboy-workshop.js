@@ -54,6 +54,7 @@ export function buildWoolWorkshop(scene,room,covers){
 }
 const accessories=new Map();
 export function dressWalker(actor,type,scale=1){
+ if(actor.nativeVariant===type||type==='tank'&&actor.nativeVariant==='heavy')return;
  actor.model.scale.multiplyScalar(scale);if(type==='walker')return;
  let template=accessories.get(type);
  if(!template){template=new T.Group();if(type==='runner'){

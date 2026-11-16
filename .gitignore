@@ -8,4 +8,5 @@ scripts/blender/__pycache__/
 assets/rongboy/**/frames/
 assets/rongboy/**/renders/
 assets/rongboy/**/checks/
+assets/rongboy/**/*.blend[0-9]
 dist/rongboy*.html

@@ -1,0 +1,88 @@
+{
+  "models": [
+    {
+      "id": "walker",
+      "name": "跳跳",
+      "role": "原始布偶 · 基准",
+      "pose": "hop",
+      "accent": "#BDA678",
+      "height": 1.574,
+      "width": 0.786
+    },
+    {
+      "id": "leaper",
+      "name": "跃行者",
+      "role": "收腹弓腿 · 敏捷扑击",
+      "pose": "pounce",
+      "accent": "#B99E60",
+      "height": 1.508,
+      "width": 0.835
+    },
+    {
+      "id": "heavy",
+      "name": "棉甲",
+      "role": "梨形厚躯 · 小头短腿",
+      "pose": "stomp",
+      "accent": "#9B7C63",
+      "height": 1.77,
+      "width": 1.22
+    },
+    {
+      "id": "crawler",
+      "name": "爬行者",
+      "role": "低腹四肢 · 长臂支撑",
+      "pose": "crawl",
+      "accent": "#81968B",
+      "height": 0.985,
+      "width": 1.129
+    },
+    {
+      "id": "shielded",
+      "name": "持盾者",
+      "role": "偏肩长脸 · 巨型盾臂",
+      "pose": "guard",
+      "accent": "#7C929B",
+      "height": 1.684,
+      "width": 1.007
+    },
+    {
+      "id": "bomber",
+      "name": "炸弹客",
+      "role": "团身短腿 · 捧弹抛投",
+      "pose": "throw",
+      "accent": "#BB8D60",
+      "height": 1.526,
+      "width": 1.01
+    },
+    {
+      "id": "archer",
+      "name": "弓手",
+      "role": "瘦长驼背 · 长弓搭箭",
+      "pose": "bow",
+      "accent": "#718C7D",
+      "height": 1.707,
+      "width": 0.593
+    },
+    {
+      "id": "boss-warden",
+      "name": "守墓巨像",
+      "role": "沉肩巨臂 · 震地重击",
+      "pose": "warden",
+      "accent": "#898D80",
+      "height": 2.19,
+      "width": 1.906
+    },
+    {
+      "id": "boss-leech",
+      "name": "噬连兽",
+      "role": "垂袋长颈 · 吸盘长臂",
+      "pose": "leech",
+      "accent": "#8C7999",
+      "height": 1.885,
+      "width": 0.858
+    }
+  ],
+  "source": "rongboy-zombie-roster-v5.blend",
+  "basis": "Original V2 walker untouched; eight independently constructed body plans",
+  "bytes": 11637952
+}

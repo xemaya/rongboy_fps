@@ -1,0 +1,1466 @@
+{
+  "method": "Real keyboard input and read-only DOM diagnostics; no debug state mutation or clock stepping",
+  "archerAim": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "archer-aim",
+          "actionAge": 0.3583333333333336,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 13863268,
+            "duration": 0.95,
+            "ground": false,
+            "kind": "line",
+            "label": "瞄准",
+            "progress": 0.3771929824561407,
+            "radius": 0.55,
+            "target": {
+              "x": 0,
+              "z": 4.2
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-archer",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.9166666666666623,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 80,
+      "frameIntervalMs": 8.021666666666635,
+      "geometries": 99,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 56,
+      "tris": 141082
+    }
+  },
+  "archerDodge": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 0.10833333333333332,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyShots": [
+        {
+          "age": 0.8166666666666662,
+          "id": 2,
+          "x": 0.006664757987195723,
+          "y": 0.9970856830983202,
+          "z": 4.379950039659424
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-archer",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 4.4100000000000135,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 3.324999999999991,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 79,
+      "frameIntervalMs": 8.137222222222286,
+      "geometries": 103,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 140694
+    }
+  },
+  "shieldBlock": {
+    "alive": 1,
+    "ammo": [
+      {
+        "mag": 5,
+        "reserve": "inf"
+      },
+      {
+        "mag": 2,
+        "reserve": 4
+      },
+      {
+        "mag": 1,
+        "reserve": 1
+      }
+    ],
+    "backHits": 0,
+    "balls": 1,
+    "bounces": 1,
+    "enemies": [
+      {
+        "action": "chase",
+        "actionAge": 0.9416666666666658,
+        "alive": true,
+        "awareness": "alert",
+        "cue": null,
+        "enabled": true,
+        "guardBroken": 0,
+        "hp": 7,
+        "id": 1,
+        "model": "shielded",
+        "reserveOf": null,
+        "type": "shielded",
+        "x": 0,
+        "z": -1.1917481889960435
+      }
+    ],
+    "enemyShots": [],
+    "errors": [],
+    "health": 3,
+    "hits": 0,
+    "kills": 0,
+    "level": "training-shielded",
+    "mode": "playing",
+    "neutralized": 0,
+    "paused": true,
+    "phase": "playing",
+    "pickups": 4,
+    "pitch": 0,
+    "player": {
+      "x": 0,
+      "z": 4.2
+    },
+    "pulledUntil": 0,
+    "reloading": false,
+    "room": "training",
+    "shots": 1,
+    "slowUntil": 0,
+    "sneakHits": 0,
+    "stars": 0,
+    "time": 0.9416666666666658,
+    "total": 1,
+    "weapon": "single",
+    "yaw": 0
+  },
+  "shieldBreak": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 5,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 0,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 2,
+      "bounces": 2,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 1.3499999999999976,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 1.7916666666666667,
+          "hp": 2,
+          "id": 1,
+          "model": "shielded",
+          "reserveOf": null,
+          "type": "shielded",
+          "x": -0.0035665348232659247,
+          "z": -0.5571704785292317
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 1,
+      "kills": 0,
+      "level": "training-shielded",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 2,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.3499999999999976,
+      "total": 1,
+      "weapon": "heavy",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 110,
+      "frameIntervalMs": 8.161445782845279,
+      "geometries": 107,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 62,
+      "tris": 262984
+    }
+  },
+  "summon": {
+    "state": {
+      "alive": 3,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "special-recover",
+          "actionAge": 0.19166666666666665,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 8,
+          "id": 1,
+          "model": "spawner",
+          "reserveOf": null,
+          "type": "spawner",
+          "x": 0,
+          "z": -2.2
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "waking",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 2,
+          "model": "walker",
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0.9894627076000184,
+          "z": -2.055212050678102
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 3,
+          "model": null,
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-spawner",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.9583333333333255,
+      "total": 3,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 98,
+      "frameIntervalMs": 8.051666666666668,
+      "geometries": 112,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 233270
+    }
+  },
+  "wardenWarning": {
+    "state": {
+      "alive": 3,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "warden-windup",
+          "actionAge": 0.15833333333333333,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 15053647,
+            "duration": 1.3,
+            "ground": false,
+            "kind": "ring",
+            "label": "震地",
+            "progress": 0.12179487179487178,
+            "radius": 3.2,
+            "target": {
+              "x": 0,
+              "z": 1.9949999999999912
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 24,
+          "id": 1,
+          "model": "boss-warden",
+          "reserveOf": null,
+          "type": "boss-warden",
+          "x": 0,
+          "z": -0.6525279561015288
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 2,
+          "model": null,
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0,
+          "z": -2.2
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 3,
+          "model": null,
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-boss-warden",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 1.9949999999999912
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.0749999999999953,
+      "total": 3,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 100,
+      "frameIntervalMs": 8.004444444444443,
+      "geometries": 97,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 262836
+    }
+  },
+  "wardenDodge": {
+    "state": {
+      "alive": 3,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "special-recover",
+          "actionAge": 0.1,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 24,
+          "id": 1,
+          "model": "boss-warden",
+          "reserveOf": null,
+          "type": "boss-warden",
+          "x": 0,
+          "z": -0.6525279561015288
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 2,
+          "model": null,
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0,
+          "z": -2.2
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 3,
+          "model": null,
+          "reserveOf": 1,
+          "type": "walker",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-boss-warden",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 3.884999999999999
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 3.324999999999991,
+      "total": 3,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 103,
+      "frameIntervalMs": 7.933888888888823,
+      "geometries": 97,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 265718
+    }
+  },
+  "bomberWarning": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "bomber-fuse",
+          "actionAge": 0.11666666666666664,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 15053647,
+            "duration": 1.5,
+            "ground": false,
+            "kind": "ring",
+            "label": "蓄爆",
+            "progress": 0.07777777777777777,
+            "radius": 2.2,
+            "target": {
+              "x": 0,
+              "z": 1.67999999999999
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 0,
+          "z": -0.06998669863547154
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-bomber",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 1.67999999999999
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.066666666666662,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 99,
+      "frameIntervalMs": 8.068333333333332,
+      "geometries": 96,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 261068
+    }
+  },
+  "bomberDodge": {
+    "state": {
+      "alive": 0,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 1,
+      "level": "training-bomber",
+      "mode": "result",
+      "neutralized": 0,
+      "paused": false,
+      "phase": "won",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 3.7274999999999983
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 3,
+      "time": 4.766666666666693,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 66,
+      "frameIntervalMs": 8.054444444444451,
+      "geometries": 96,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 83940
+    }
+  },
+  "leechPull": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "leech-pull",
+          "actionAge": 0.2833333333333334,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 11240381,
+            "duration": 0.65,
+            "ground": false,
+            "kind": "cone",
+            "label": "吸引",
+            "progress": 0.435897435897436,
+            "radius": 0.55,
+            "target": {
+              "x": 0,
+              "z": 4.2
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 20,
+          "id": 1,
+          "model": "boss-leech",
+          "reserveOf": null,
+          "type": "boss-leech",
+          "x": -1.2102634622236037,
+          "z": 0.28919368802079454
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-boss-leech",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": -0.22830540519240372,
+        "z": 3.4622612781807156
+      },
+      "pulledUntil": 3.0299999999999923,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.949999999999992,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 83,
+      "frameIntervalMs": 8.266111111111112,
+      "geometries": 100,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 140584
+    }
+  },
+  "leechEscape": {
+    "alive": 1,
+    "ammo": [
+      {
+        "mag": 6,
+        "reserve": "inf"
+      },
+      {
+        "mag": 2,
+        "reserve": 4
+      },
+      {
+        "mag": 1,
+        "reserve": 1
+      }
+    ],
+    "backHits": 0,
+    "balls": 0,
+    "bounces": 0,
+    "enemies": [
+      {
+        "action": "special-recover",
+        "actionAge": 0.5583333333333338,
+        "alive": true,
+        "awareness": "alert",
+        "cue": null,
+        "enabled": true,
+        "guardBroken": 0,
+        "hp": 20,
+        "id": 1,
+        "model": "boss-leech",
+        "reserveOf": null,
+        "type": "boss-leech",
+        "x": -1.2102634622236037,
+        "z": 0.28919368802079454
+      }
+    ],
+    "enemyShots": [],
+    "errors": [],
+    "health": 3,
+    "hits": 0,
+    "kills": 0,
+    "level": "training-boss-leech",
+    "mode": "playing",
+    "neutralized": 0,
+    "paused": true,
+    "phase": "playing",
+    "pickups": 4,
+    "pitch": 0,
+    "player": {
+      "x": 1.8235470796827655,
+      "z": 2.276
+    },
+    "pulledUntil": 3.3883333333333243,
+    "reloading": false,
+    "room": "training",
+    "shots": 0,
+    "slowUntil": 0,
+    "sneakHits": 0,
+    "stars": 0,
+    "time": 3.874999999999989,
+    "total": 1,
+    "weapon": "single",
+    "yaw": 0
+  },
+  "leechWarning": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "leech-windup",
+          "actionAge": 0.275,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 8868767,
+            "duration": 1.1,
+            "ground": false,
+            "kind": "cone",
+            "label": "吸引",
+            "progress": 0.25,
+            "radius": 0.55,
+            "target": {
+              "x": 0,
+              "z": 4.2
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 20,
+          "id": 1,
+          "model": "boss-leech",
+          "reserveOf": null,
+          "type": "boss-leech",
+          "x": 0,
+          "z": 0.7682641242829418
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-boss-leech",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": -0.2085050000000001,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.8333333333333293,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 109,
+      "frameIntervalMs": 8.145555555555555,
+      "geometries": 101,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 57,
+      "tris": 262824
+    }
+  },
+  "mixedCourt": {
+    "state": {
+      "alive": 16,
+      "ammo": [
+        {
+          "mag": 5,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 1,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 1,
+          "model": "walker",
+          "reserveOf": null,
+          "type": "walker",
+          "x": -8,
+          "z": 4.5
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 4,
+          "id": 2,
+          "model": "runner",
+          "reserveOf": null,
+          "type": "runner",
+          "x": -3,
+          "z": 4.5
+        },
+        {
+          "action": "sidestep",
+          "actionAge": 0.6416666666666668,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 3,
+          "model": "weaver",
+          "reserveOf": null,
+          "type": "weaver",
+          "x": 3.788337941295579,
+          "z": 4.889698681128016
+        },
+        {
+          "action": "chase",
+          "actionAge": 0.6500000000000001,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 4,
+          "model": "leaper",
+          "reserveOf": null,
+          "type": "leaper",
+          "x": 7.30679096220681,
+          "z": 5.064016296123792
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 8,
+          "id": 5,
+          "model": "heavy",
+          "reserveOf": null,
+          "type": "heavy",
+          "x": -8,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 4,
+          "id": 6,
+          "model": "crawler",
+          "reserveOf": null,
+          "type": "crawler",
+          "x": -3,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 7,
+          "id": 7,
+          "model": "shielded",
+          "reserveOf": null,
+          "type": "shielded",
+          "x": 3,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 8,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 8,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 8,
+          "id": 9,
+          "model": "spawner",
+          "reserveOf": null,
+          "type": "spawner",
+          "x": -8,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 10,
+          "model": null,
+          "reserveOf": 9,
+          "type": "walker",
+          "x": -8,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 11,
+          "model": null,
+          "reserveOf": 9,
+          "type": "walker",
+          "x": -8,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 12,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": -3,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 24,
+          "id": 13,
+          "model": "boss-warden",
+          "reserveOf": null,
+          "type": "boss-warden",
+          "x": 3,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 14,
+          "model": null,
+          "reserveOf": 13,
+          "type": "walker",
+          "x": 3,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 15,
+          "model": null,
+          "reserveOf": 13,
+          "type": "walker",
+          "x": 3,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 20,
+          "id": 16,
+          "model": "boss-leech",
+          "reserveOf": null,
+          "type": "boss-leech",
+          "x": 8,
+          "z": -8
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-all",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 3.4387500000000095,
+        "z": 7.952500000000059
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 1,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.9749999999999952,
+      "total": 16,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 166,
+      "frameIntervalMs": 9.62277777777777,
+      "geometries": 215,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 30,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 63,
+      "tris": 695362
+    }
+  }
+}

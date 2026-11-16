@@ -1,0 +1,1758 @@
+{
+  "method": "Native Blender render sheets plus real keyboard UI input and read-only DOM diagnostics. No debug state mutation.",
+  "fronts": [
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "walker",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 58,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 168286
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "leaper",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 63858
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "heavy",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 64790
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "crawler",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 61518
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "shielded",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 67130
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "bomber",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 58,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 69218
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "archer",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 59,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 63942
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "boss-warden",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 75478
+      }
+    },
+    {
+      "state": {
+        "count": 9,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.67,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.7,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.5707963267948966,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.52,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "boss-leech",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 54,
+        "geometries": 139,
+        "programs": 24,
+        "quality": "medium",
+        "res": [
+          600,
+          708
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 74686
+      }
+    }
+  ],
+  "motion": {
+    "state": {
+      "count": 9,
+      "errors": [],
+      "kinds": [
+        "walker",
+        "leaper",
+        "heavy",
+        "crawler",
+        "shielded",
+        "bomber",
+        "archer",
+        "boss-warden",
+        "boss-leech"
+      ],
+      "moving": true,
+      "poses": [
+        {
+          "arm": -1.07,
+          "id": "walker",
+          "native": "walker",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.27,
+          "id": "leaper",
+          "native": "leaper",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.67,
+          "id": "heavy",
+          "native": "heavy",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "crawler",
+          "native": "crawler",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "shielded",
+          "native": "shielded",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.7,
+          "id": "bomber",
+          "native": "bomber",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.5707963267948966,
+          "id": "archer",
+          "native": "archer",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.52,
+          "id": "boss-warden",
+          "native": "boss-warden",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "boss-leech",
+          "native": "boss-leech",
+          "parts": 6,
+          "y": 0
+        }
+      ],
+      "ready": true,
+      "selected": "archer",
+      "view": "front"
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 59,
+      "geometries": 139,
+      "programs": 24,
+      "quality": "medium",
+      "res": [
+        600,
+        708
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 32,
+      "tris": 63942
+    }
+  },
+  "bomberWindup": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "bomber-throw",
+          "actionAge": 0.11666666666666664,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 12417324,
+            "duration": 0.95,
+            "ground": false,
+            "kind": "landing",
+            "label": "投弹",
+            "progress": 0.12280701754385964,
+            "radius": 2.2,
+            "target": {
+              "x": 0,
+              "z": 4.2
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyBombs": [],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-bomber",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.6749999999999965,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 74,
+      "frameIntervalMs": 8.123333333333335,
+      "geometries": 92,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        796,
+        924
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 52,
+      "tris": 88626
+    }
+  },
+  "bombLanded": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 0.39166666666666705,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyBombs": [
+        {
+          "fuse": 0.8916666666666675,
+          "id": 2,
+          "landed": true,
+          "x": 0.0033235294117644684,
+          "y": 0.16,
+          "z": 4.141401960784309
+        }
+      ],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-bomber",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": -0.13447000000000064,
+      "player": {
+        "x": 0,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 3.608333333333323,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 70,
+      "frameIntervalMs": 8.340000000000003,
+      "geometries": 95,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        796,
+        924
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 53,
+      "tris": 87072
+    }
+  },
+  "bombDodge": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 1.4999999999999971,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyBombs": [],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-bomber",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": -0.13447000000000064,
+      "player": {
+        "x": 3.4650000000000096,
+        "z": 4.2
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 4.716666666666691,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 67,
+      "frameIntervalMs": 8.348888889153791,
+      "geometries": 95,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 29,
+      "quality": "medium",
+      "res": [
+        796,
+        924
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 55,
+      "tris": 83632
+    }
+  },
+  "bowDraw": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "archer-aim",
+          "actionAge": 0.3583333333333336,
+          "alive": true,
+          "awareness": "alert",
+          "cue": {
+            "color": 11689534,
+            "duration": 0.95,
+            "ground": false,
+            "kind": "line",
+            "label": "瞄准",
+            "progress": 0.3771929824561407,
+            "radius": 0.55,
+            "target": {
+              "x": 0,
+              "z": 3.464999999999997
+            }
+          },
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyBombs": [],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-archer",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 3.412499999999997
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.9166666666666623,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 74,
+      "frameIntervalMs": 8.397222222222222,
+      "geometries": 95,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 31,
+      "quality": "medium",
+      "res": [
+        796,
+        924
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 53,
+      "tris": 83364
+    }
+  },
+  "arrowReleased": {
+    "state": {
+      "alive": 1,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 0.008333333333333333,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 1,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": 0,
+          "z": -2.2
+        }
+      ],
+      "enemyBombs": [],
+      "enemyShots": [
+        {
+          "age": 0.7166666666666666,
+          "id": 2,
+          "x": 0.010990816519584737,
+          "y": 0.9839081825119884,
+          "z": 3.732828844661464
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-archer",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 7.507500000000014
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 0,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 3.224999999999991,
+      "total": 1,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 65,
+      "frameIntervalMs": 8.293333333333331,
+      "geometries": 99,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 31,
+      "quality": "medium",
+      "res": [
+        796,
+        924
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 55,
+      "tris": 73536
+    }
+  },
+  "mixedCourt": {
+    "state": {
+      "alive": 11,
+      "ammo": [
+        {
+          "mag": 5,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 1,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 1,
+          "model": "walker",
+          "reserveOf": null,
+          "type": "walker",
+          "x": -7,
+          "z": 4.5
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "waking",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 2,
+          "model": "leaper",
+          "reserveOf": null,
+          "type": "leaper",
+          "x": 0,
+          "z": 4.5
+        },
+        {
+          "action": "chase",
+          "actionAge": 1.033333333333332,
+          "alive": true,
+          "awareness": "alert",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 8,
+          "id": 3,
+          "model": "heavy",
+          "reserveOf": null,
+          "type": "heavy",
+          "x": 6.468557043600951,
+          "z": 5.1757628249578005
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 4,
+          "id": 4,
+          "model": "crawler",
+          "reserveOf": null,
+          "type": "crawler",
+          "x": -7,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 7,
+          "id": 5,
+          "model": "shielded",
+          "reserveOf": null,
+          "type": "shielded",
+          "x": 0,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 6,
+          "model": "bomber",
+          "reserveOf": null,
+          "type": "bomber",
+          "x": 7,
+          "z": -1
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 5,
+          "id": 7,
+          "model": "archer",
+          "reserveOf": null,
+          "type": "archer",
+          "x": -7,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 24,
+          "id": 8,
+          "model": "boss-warden",
+          "reserveOf": null,
+          "type": "boss-warden",
+          "x": 0,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 9,
+          "model": null,
+          "reserveOf": 8,
+          "type": "walker",
+          "x": 0,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "asleep",
+          "cue": null,
+          "enabled": false,
+          "guardBroken": 0,
+          "hp": 6,
+          "id": 10,
+          "model": null,
+          "reserveOf": 8,
+          "type": "walker",
+          "x": 0,
+          "z": -8
+        },
+        {
+          "action": "chase",
+          "actionAge": 0,
+          "alive": true,
+          "awareness": "idle",
+          "cue": null,
+          "enabled": true,
+          "guardBroken": 0,
+          "hp": 20,
+          "id": 11,
+          "model": "boss-leech",
+          "reserveOf": null,
+          "type": "boss-leech",
+          "x": 7,
+          "z": -8
+        }
+      ],
+      "enemyBombs": [],
+      "enemyShots": [],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "level": "training-all",
+      "mode": "playing",
+      "neutralized": 0,
+      "paused": true,
+      "phase": "playing",
+      "pickups": 4,
+      "pitch": 0,
+      "player": {
+        "x": 3.51750000000001,
+        "z": 7.978750000000059
+      },
+      "pulledUntil": 0,
+      "reloading": false,
+      "room": "training",
+      "shots": 1,
+      "slowUntil": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 1.9249999999999956,
+      "total": 11,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 164,
+      "frameIntervalMs": 8.296666666666667,
+      "geometries": 145,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 28,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 62,
+      "tris": 369102
+    }
+  }
+}

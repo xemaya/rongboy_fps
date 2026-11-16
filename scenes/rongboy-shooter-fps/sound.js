@@ -22,6 +22,7 @@ export function scheduleSound(ctx,out,noise,kind,{weapon='single',power=0,streng
   }else{
    tone(0,470*tune,155,.085,.105,'triangle');tone(.012,880*tune,570,.15,.029);tone(0,1550,750,.021,.018,'triangle');puff(0,.060,.16,3500,'bandpass',.8);
   }
+ }else if(kind==='arrow'){tone(0,960,430,.14,.045);puff(0,.12,.12,2600,'bandpass',.65);
  }else if(kind==='hit'){
   if(weapon==='heavy'){tone(0,126,47,.21,.15);tone(.003,410,115,.09,.045,'triangle');puff(0,.13,.19,850);}
   else if(weapon==='scatter'){puff(0,.10,.13,1900,'bandpass',.65);tone(0,325,140,.075,.050,'triangle');}

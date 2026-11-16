@@ -1,0 +1,41 @@
+{
+  "version": "v2",
+  "kind": "walker",
+  "source_v1": "assets/rongboy/walker-v1/rongboy-walker-v1.blend",
+  "source_sha256": "4f3f1cff894b8257315faeecdfff5ae4695b89a3bb9d4f58d02dfb8e5cd4cf69",
+  "changes": [
+    "constant authored base colours",
+    "shared fine normal instead of coloured atlas",
+    "native wool nap shortened to 42 percent",
+    "soft button sockets and thinner buttons",
+    "rounded forehead patch with thickness and tiny sewn border",
+    "mouth piping",
+    "fuller palms and blended finger pads",
+    "six editable native pose pivots",
+    "forearm stitches conformed to skin"
+  ],
+  "palette": {
+    "Rubber / dark stacked sole": "#3C3530",
+    "Walker / charcoal yarn": "#4A5943",
+    "Walker / worn chestnut felt vest": "#75604E",
+    "Walker / mouth wool inset": "#3D4938",
+    "Walker / plum brown cloth": "#6E6470",
+    "Walker / oat felt teeth": "#E8D9B7",
+    "Walker / dark moss felt patch": "#697F5C",
+    "Walker / ochre wooden button": "#D0AF65",
+    "Walker / dark sewn button": "#51594F",
+    "Walker / moss green wool": "#8E9F7B",
+    "Walker / faded green wool": "#A3B18E"
+  },
+  "native_fibres": 20440,
+  "status": "visual candidate",
+  "micro_normal": {
+    "size": 256,
+    "uv_repeat": [
+      6,
+      6
+    ],
+    "strength": 0.38
+  },
+  "runtime_wool": "short silhouette fibres with view-angle fade"
+}

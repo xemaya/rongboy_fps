@@ -1,0 +1,139 @@
+{
+  "models": [
+    {
+      "id": "walker",
+      "name": "跳跳",
+      "original": "walker",
+      "role": "普通追击",
+      "accent": "#BDA678",
+      "pose": "hop",
+      "active": true,
+      "height": 1.574,
+      "width": 0.786
+    },
+    {
+      "id": "runner",
+      "name": "快跳",
+      "original": "runner",
+      "role": "轻巧快跑",
+      "accent": "#72A99C",
+      "pose": "run",
+      "active": true,
+      "height": 1.405,
+      "width": 0.692
+    },
+    {
+      "id": "weaver",
+      "name": "侧跳",
+      "original": null,
+      "role": "侧跳变线",
+      "accent": "#A18BB1",
+      "pose": "weave",
+      "active": true,
+      "height": 1.498,
+      "width": 0.802
+    },
+    {
+      "id": "leaper",
+      "name": "扑扑",
+      "original": null,
+      "role": "蓄势扑近",
+      "accent": "#D7AD58",
+      "pose": "pounce",
+      "active": true,
+      "height": 1.544,
+      "width": 0.758
+    },
+    {
+      "id": "heavy",
+      "name": "棉甲",
+      "original": "tank",
+      "role": "厚甲抗击退",
+      "accent": "#AB735D",
+      "pose": "stomp",
+      "active": true,
+      "height": 1.761,
+      "width": 1.049
+    },
+    {
+      "id": "crawler",
+      "name": "爬行者",
+      "original": "crawler",
+      "role": "低伏爬行",
+      "accent": "#839D9D",
+      "pose": "crawl",
+      "active": false,
+      "height": 0.968,
+      "width": 0.918
+    },
+    {
+      "id": "shielded",
+      "name": "持盾者",
+      "original": "shielded",
+      "role": "正面守护",
+      "accent": "#738F9C",
+      "pose": "guard",
+      "active": false,
+      "height": 1.668,
+      "width": 1.024
+    },
+    {
+      "id": "bomber",
+      "name": "炸弹客",
+      "original": "bomber",
+      "role": "毛线团炸弹兜",
+      "accent": "#C78E5E",
+      "pose": "wobble",
+      "active": false,
+      "height": 1.537,
+      "width": 0.965
+    },
+    {
+      "id": "spawner",
+      "name": "召唤巢",
+      "original": "spawner",
+      "role": "布篮孵化巢",
+      "accent": "#AC7B79",
+      "pose": "summon",
+      "active": false,
+      "height": 1.363,
+      "width": 1.188
+    },
+    {
+      "id": "archer",
+      "name": "弓手",
+      "original": "archer",
+      "role": "弓与绒球箭袋",
+      "accent": "#5F8580",
+      "pose": "bow",
+      "active": false,
+      "height": 1.704,
+      "width": 0.752
+    },
+    {
+      "id": "boss-warden",
+      "name": "守墓巨像",
+      "original": "boss-warden",
+      "role": "巨型棉甲与布钥匙",
+      "accent": "#8A8D85",
+      "pose": "warden",
+      "active": false,
+      "height": 2.178,
+      "width": 1.529
+    },
+    {
+      "id": "boss-leech",
+      "name": "噬连兽",
+      "original": "boss-leech",
+      "role": "长臂与吸盘手",
+      "accent": "#8A709A",
+      "pose": "leech",
+      "active": false,
+      "height": 1.872,
+      "width": 0.918
+    }
+  ],
+  "source": "rongboy-zombie-roster-v3.blend",
+  "base": "../walker-v2/rongboy-walker-v2.blend",
+  "bytes": 3056816
+}

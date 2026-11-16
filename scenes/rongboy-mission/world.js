@@ -176,9 +176,11 @@ export function buildWorld(scene, level, weapons) {
 
   // 天花板和屋顶盖住室内，花园露天。
   const hw = house.maxX - house.minX, hd = house.maxZ - house.minZ, hx = (house.minX + house.maxX) / 2, hz = (house.minZ + house.maxZ) / 2;
+  if(indoor.length){
   block(statics, hw + 0.4, 0.12, hd + 0.4, ceiling, hx, H + 0.06, hz, 0.02);
   block(statics, hw + 1.0, 0.5, hd + 1.0, roof, hx, H + 0.37, hz, 0.12);
   block(statics, hw * 0.7, 0.5, hd * 0.7, roof, hx, H + 0.85, hz, 0.14);
+  }
   // 踢脚线让室内墙面不那么平。
   for (const r of indoor) for (const [x, z, w, d] of [[(r.minX + r.maxX) / 2, r.minZ + 0.115, r.maxX - r.minX - 0.3, 0.03], [(r.minX + r.maxX) / 2, r.maxZ - 0.115, r.maxX - r.minX - 0.3, 0.03]]) {
     block(statics, w, 0.1, d, trim, x, 0.05, z, 0.01);

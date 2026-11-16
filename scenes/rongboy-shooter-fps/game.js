@@ -5,9 +5,7 @@ import {ROOM,COVERS,segmentBox,routeTo,clearPath,freePoint,resolveCover} from '.
 export const CONFIG={halfX:ROOM.halfX,halfZ:ROOM.halfZ,playerSpeed:3.15,enemyRadius:.32,playerRadius:.30,chargeTime:.82,maxAlive:14,enemyHp:6,maxBalls:48,maxBounces:3,ballHalfX:ROOM.halfX,ballHalfZ:ROOM.halfZ,ceilingY:ROOM.height,ballLife:5,heavyBallLife:6.5,repeatHitDelay:.18,gravity:.9};
 export const ENEMY_TYPES={
  walker:{name:'Hopper',hp:6,radius:.32,height:1.62,scale:1,speed:1.35,hopHeight:.22,hopPeriod:.72,resistance:1},
- runner:{name:'Skipper',hp:4,radius:.28,height:1.43,scale:.88,speed:2.05,hopHeight:.32,hopPeriod:.43,resistance:1.2},
- weaver:{name:'Weaver',hp:5,radius:.30,height:1.54,scale:.95,speed:1.5,hopHeight:.26,hopPeriod:.60,resistance:1.05},
- leaper:{name:'Springer',hp:5,radius:.30,height:1.56,scale:.96,speed:1.5,hopHeight:.23,hopPeriod:.70,resistance:.9},
+ leaper:{name:'Springer',hp:5,radius:.30,height:1.56,scale:.96,speed:1.9,hopHeight:.28,hopPeriod:.55,resistance:.9},
  heavy:{name:'Quiltguard',hp:10,radius:.43,height:1.81,scale:1.12,speed:.88,hopHeight:.12,hopPeriod:1.02,resistance:.38},
 };
 export const WEAPONS=[
@@ -19,7 +17,7 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const length=(x,z)=>Math.hypot(x,z);
 function rng(s){s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed/4294967296;}
 export function createGame({seed=1743,duration=60,covers=COVERS}={}){const s={phase:'playing',seed,time:0,duration,covers,weapon:0,health:3,score:0,kills:0,shots:0,hits:0,bounces:0,repeatHits:0,maxCombo:0,combo:0,lastKill:-10,charge:0,charging:false,cooldown:0,invul:0,spawnIn:2.6,wave:1,nextId:1,enemies:[],balls:[],events:[],player:{x:0,z:5.7,vx:0,vz:0,aimX:0,aimY:0,aimZ:-1}};spawn(s,0,3.0);spawn(s,-1.8,1.7,'runner');spawn(s,1.8,-1.7,'heavy');spawn(s,-4.8,1.8,'weaver');spawn(s,2.2,1.4,'leaper');spawn(s,5.05,-1.0);return s;}
-export function spawn(s,x,z,type='walker'){const def=ENEMY_TYPES[type]||ENEMY_TYPES.walker;const e={...def,type,id:s.nextId++,x,y:0,z,vx:0,vz:0,hp:def.hp,maxHp:def.hp,alive:true,hit:0,age:0,deathAge:0,heading:0,fallX:0,fallZ:1,chainCooldown:0,reactionAge:10,reactionStrength:0,reactionWeapon:'single',reactionX:0,reactionZ:1,reactionTwist:0,hitDuration:0,navIn:0,route:[],hopPhase:0,action:'chase',actionAge:0,actionCooldown:1.3+(s.nextId%3)*.25,sideLean:0,moveMultiplier:1};resolveCover(e,e.radius,s.covers);s.enemies.push(e);s.events.push({type:'spawn',id:e.id,x:e.x,z:e.z,enemyType:type});return e;}
+export function spawn(s,x,z,type='walker'){type=type==='runner'||type==='weaver'?'leaper':type;const def=ENEMY_TYPES[type]||ENEMY_TYPES.walker;const e={...def,type,id:s.nextId++,x,y:0,z,vx:0,vz:0,hp:def.hp,maxHp:def.hp,alive:true,hit:0,age:0,deathAge:0,heading:0,fallX:0,fallZ:1,chainCooldown:0,reactionAge:10,reactionStrength:0,reactionWeapon:'single',reactionX:0,reactionZ:1,reactionTwist:0,hitDuration:0,navIn:0,route:[],hopPhase:0,action:'chase',actionAge:0,actionCooldown:1.3+(s.nextId%3)*.25,sideLean:0,moveMultiplier:1};resolveCover(e,e.radius,s.covers);s.enemies.push(e);s.events.push({type:'spawn',id:e.id,x:e.x,z:e.z,enemyType:type});return e;}
 export function selectWeapon(s,index){if(s.phase!=='playing'||!WEAPONS[index]||s.weapon===index)return false;s.weapon=index;s.charging=false;s.charge=0;s.events.push({type:'weapon',weapon:index});return true;}
 export function beginCharge(s){if(s.phase==='playing'&&!s.charging){s.charging=true;s.charge=0;}}
 export function releaseCharge(s,shot=null){if(!s.charging)return false;s.charging=false;const power=clamp((s.charge-.12)/(CONFIG.chargeTime-.12),0,1);s.charge=0;return fire(s,power,shot);}
@@ -123,7 +121,7 @@ export function step(s,dt,input={}){if(s.phase!=='playing')return;dt=clamp(dt,0,
   let count=0;const amount=Math.min(3,CONFIG.maxAlive-alive);
   for(let group=0;group<amount;group++){
    let point=null;for(let attempt=0;attempt<36;attempt++){const side=Math.floor(rng(s)*4);let x=(rng(s)*2-1)*(CONFIG.halfX-.7),z=(rng(s)*2-1)*(CONFIG.halfZ-.7);if(side<2)x=(side===0?-1:1)*(CONFIG.halfX-.7);else z=(side===2?-1:1)*(CONFIG.halfZ-.7);if(length(x-p.x,z-p.z)>5.5&&freePoint(x,z,.52,s.covers)&&s.enemies.every(e=>!e.alive||length(e.x-x,e.z-z)>1.0)){point={x,z};break;}}
-   if(point){const types=['walker','runner','heavy','weaver','leaper'],type=types[(s.wave+group+Math.floor(rng(s)*3))%types.length];spawn(s,point.x,point.z,type);count++;}
+   if(point){const types=['walker','leaper','heavy'],type=types[(s.wave+group+Math.floor(rng(s)*3))%types.length];spawn(s,point.x,point.z,type);count++;}
   }
   if(count){s.wave++;s.events.push({type:'wave',wave:s.wave,count});}s.spawnIn=alive<6?2.3:3.8;
  }

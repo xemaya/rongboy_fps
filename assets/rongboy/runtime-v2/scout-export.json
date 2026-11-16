@@ -1,0 +1,22 @@
+{
+  "source": "assets/rongboy/scout-v2/rongboy-scout-v2.blend",
+  "version": "v2",
+  "colour_mode": "constant PBR factors, vertex-colour batching in runtime",
+  "normal": "256px tile; no albedo atlas",
+  "sampled_wool_fibers": 1634,
+  "polygons": 155048,
+  "parts": [
+    "CTRL / ground motion",
+    "CTRL / body",
+    "CTRL / head",
+    "CTRL / hat",
+    "CTRL / backpack",
+    "CTRL / arm -1",
+    "CTRL / arm 1",
+    "CTRL / leg -1",
+    "CTRL / leg 1",
+    "CTRL / boot -1",
+    "CTRL / boot 1"
+  ],
+  "file_bytes": 4512192
+}

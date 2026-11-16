@@ -13,11 +13,16 @@ import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES } from './game.js';
 import { buildWorld } from './world.js';
 import houseDef from './levels/house.js';
+import {trainingDef} from './levels/training.js';
+import {ATTACKS,attackCue} from './attacks.js';
+import {applyAttackPose} from './attack-pose.js';
+import {createCombatFx} from './combat-fx.js';
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const level = compileLevel(houseDef);
+const training=q.get('level')==='training',practiceType=ENEMY_TYPES[q.get('type')]?q.get('type'):null;
+const level = compileLevel(training?trainingDef(practiceType):houseDef);
 const EYE = 1.23, FAR = 30;
 
 let s = createGame({ level });
@@ -48,6 +53,7 @@ const cine = createCineRenderer({
   dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1, -1, B.minZ - 1], max: [B.maxX + 1, 5, B.maxZ + 1], softness: 0.6 }, onError: fail,
 });
 const world = buildWorld(cine.scene, level, WEAPONS);
+const combatFx=createCombatFx(cine.scene);
 // 屋顶挡住了太阳，室内靠两盏不投影的补光照亮。
 const fill = new T.DirectionalLight(0xffeed1, 1.8); fill.position.set(-2, 6, 7); cine.scene.add(fill);
 const cool = new T.DirectionalLight(0xd5e1df, 0.65); cool.position.set(4, 5, -2); cine.scene.add(cool);
@@ -155,7 +161,7 @@ function animateHero(dt, moving) {
 
 // ---------- 僵尸 ----------
 
-const BUTTON_COLORS = { heavy: '#d6a68a', runner: '#aed4c7', weaver: '#cab8dc', leaper: '#eed18a', walker: '#edcf83' };
+const BUTTON_COLORS = { heavy: '#d6a68a', runner: '#aed4c7', weaver: '#cab8dc', leaper: '#eed18a', walker: '#edcf83', crawler:'#a5bdb4', shielded:'#a1bac8', bomber:'#d6a475', spawner:'#c4a0ad', archer:'#98b8b0', 'boss-warden':'#c5c09c', 'boss-leech':'#bb9dcc' };
 const healthMaterials = new Map(), moodMaterials = new Map();
 function healthMaterial(type, hp, max) {
   const key = type + ':' + hp;
@@ -164,12 +170,14 @@ function healthMaterial(type, hp, max) {
   const ctx = c.getContext('2d'), name = ENEMY_TYPES[type].name;
   ctx.textAlign = 'center'; ctx.font = 'bold 26px Georgia, "Songti SC", serif'; ctx.lineWidth = 5; ctx.strokeStyle = '#f3ead3'; ctx.strokeText(name, 224, 26);
   ctx.fillStyle = '#3e5248'; ctx.fillText(name, 224, 26);
+  if(max>10){ctx.fillStyle='#6b765b';ctx.fillRect(44,42,360,17);ctx.fillStyle=BUTTON_COLORS[type]||'#edcf83';ctx.fillRect(46,44,356*Math.max(0,hp)/max,13);ctx.font='bold 15px Georgia';ctx.fillStyle='#31422e';ctx.fillText(hp+' / '+max,224,73);}else{
   const gap = 30, start = 224 - (max - 1) * gap / 2;
   for (let i = 0; i < max; i++) {
     const x = start + i * gap;
     ctx.globalAlpha = i < hp ? 1 : 0.45; ctx.fillStyle = i < hp ? BUTTON_COLORS[type] : '#68775f'; ctx.strokeStyle = '#526247'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(x, 53, 10, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
     ctx.strokeStyle = '#715e47'; ctx.beginPath(); ctx.moveTo(x - 3, 50); ctx.lineTo(x + 3, 56); ctx.moveTo(x + 3, 50); ctx.lineTo(x - 3, 56); ctx.stroke();
+  }
   }
   const map = new T.CanvasTexture(c); map.colorSpace = T.SRGBColorSpace;
   const material = new T.SpriteMaterial({ map, transparent: true, depthTest: true, depthWrite: false });
@@ -180,9 +188,9 @@ function moodMaterial(text) {
   if (moodMaterials.has(text)) return moodMaterials.get(text);
   const c = document.createElement('canvas'); c.width = 160; c.height = 96;
   const ctx = c.getContext('2d');
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `bold ${text === '!' ? 84 : 52}px Georgia, serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `bold ${text === '!' ? 84 : Math.min(52,140/text.length)}px Georgia, serif`;
   ctx.lineWidth = 8; ctx.strokeStyle = '#3e4a38'; ctx.strokeText(text, 80, 50);
-  ctx.fillStyle = text === '!' ? '#f2b84b' : '#eef2e2'; ctx.fillText(text, 80, 50);
+  ctx.fillStyle = text === 'Zzz' ? '#eef2e2' : '#f2b84b'; ctx.fillText(text, 80, 50);
   const map = new T.CanvasTexture(c); map.colorSpace = T.SRGBColorSpace;
   const material = new T.SpriteMaterial({ map, transparent: true, depthWrite: false });
   moodMaterials.set(text, material); return material;
@@ -202,9 +210,10 @@ function updateEnemy(e, a) {
   a.healthBar.material = healthMaterial(e.type, Math.max(0, e.hp), e.maxHp);
   a.healthBar.visible = e.alive && (e.hp < e.maxHp || (e.awareness === 'alert' && distance < 6));
   const asleep = e.awareness === 'asleep', waking = e.awareness === 'waking';
-  a.mood.visible = e.alive && (asleep || waking);
+  const cue=attackCue(e);
+  a.mood.visible = e.alive && (asleep || waking || !!cue || e.guardBroken>0);
   if (a.mood.visible) {
-    a.mood.material = moodMaterial(asleep ? 'Zzz' : '!');
+    a.mood.material = moodMaterial(asleep?'Zzz':waking?'!':e.guardBroken>0?'破防':cue?.label||'!');
     a.mood.position.set(0.25, e.height + 0.12 + (asleep ? Math.sin(e.age * 1.6) * 0.05 : 0.12), 0);
     a.mood.scale.set(asleep ? 0.5 : 0.42, 0.3, 1);
   }
@@ -225,7 +234,7 @@ function updateEnemy(e, a) {
     return;
   }
   a.model.rotation.y += response.twist * 0.65;
-  const flight = Math.min(1, e.hopPhase / 0.78), lift = Math.sin(flight * Math.PI), land = Math.max(0, (e.hopPhase - 0.78) / 0.22), squash = Math.sin(land * Math.PI);
+  const flight = Math.min(1, e.hopPhase / 0.78), lift = e.y>.001?Math.min(1,e.y/Math.max(.001,e.hopHeight)):0, land = Math.max(0, (e.hopPhase - 0.78) / 0.22), squash = ['chase','rush','sidestep'].includes(e.action)?Math.sin(land * Math.PI):0;
   a.tilt.scale.set(1 + squash * 0.025, 1 - squash * 0.05, 1 + squash * 0.025);
   const axis = new T.Vector3(e.reactionZ || 0, 0, -(e.reactionX || 0)).normalize();
   a.tilt.quaternion.setFromAxisAngle(axis, response.bend * 0.58 + response.wobble * 0.055);
@@ -266,7 +275,8 @@ function updateEnemy(e, a) {
     a.tell.visible = e.action === 'windup'; a.tell.position.y = 0.025 - e.y;
     a.tell.scale.setScalar(1.65 - Math.min(1, e.actionAge / 0.48) * 0.65);
   }
-  a.flash(response.flash * 0.7);
+  applyAttackPose(e,a);
+  a.flash(Math.max(response.flash * 0.7,e.action==='bomber-throw'?(reduced?.04:.10+Math.sin(e.actionAge*12)*.08):0));
 }
 
 // 从眼睛到僵尸的头、身体两侧、脚各连一条线，任一条不被挡就算看得见。
@@ -281,11 +291,12 @@ function canSee(e) {
 function updateModels(dt) {
   animateHero(dt, mode === 'playing' && !paused);
   const present = new Set(s.enemies.map(e => e.id));
-  for (const [id, a] of enemyModels) if (!present.has(id)) { a.world.removeFromParent(); for (const m of a.materials) m.dispose(); enemyModels.delete(id); }
+  for (const [id, a] of enemyModels) if (!present.has(id)) { a.world.removeFromParent(); a.dispose(); enemyModels.delete(id); }
   for (const e of s.enemies) {
+    if(!e.enabled){const hidden=enemyModels.get(e.id);if(hidden)hidden.world.visible=false;continue;}
     let a = enemyModels.get(e.id);
     if (!a) {
-      a = actors.create('walker'); dressWalker(a, e.type, e.scale);
+      a = actors.create(e.type); dressWalker(a, e.type, e.scale);
       a.model.traverse(m => { if (m.isMesh) m.frustumCulled = true; });
       enemyModels.set(e.id, a); cine.scene.add(a.world);
     }
@@ -317,6 +328,7 @@ function updateModels(dt) {
     o.scale.setScalar(b.r * Math.min(1, Math.max(0, (b.lifetime - b.age) / 0.45)));
     o.rotation.x += dt * b.speed * 2; o.rotation.z += dt * 3;
   }
+  combatFx.update(s,dt);
   for (const k of s.pickups) {
     const o = world.pickups.get(k.id);
     if (!o) continue;
@@ -325,7 +337,8 @@ function updateModels(dt) {
   }
 }
 function clearModels() {
-  for (const a of enemyModels.values()) { a.world.removeFromParent(); for (const m of a.materials) m.dispose(); }
+  combatFx.clear();
+  for (const a of enemyModels.values()) { a.world.removeFromParent(); a.dispose(); }
   enemyModels.clear();
   for (const o of ballModels.values()) { o.removeFromParent(); for (const m of o.userData.ownMaterials) m.dispose(); }
   ballModels.clear(); fx.length = 0;
@@ -337,11 +350,24 @@ function processEvents() {
   let strongest = null, bonus = '';   // bonus：本批事件里最近一次带加成的命中，击倒提示会带上它
   for (const e of consumeEvents(s)) {
     const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r;
-    if (e.type === 'weapon') { say(WEAPONS[e.weapon].name, 1); syncWeapon(); sfx('switch'); }
+    combatFx.event(e);
+    if(e.type==='blocked'){if(near(9)){say('盾挡住了 · 绕后或重弹破防',1);sfx('switch');}}
+    else if(e.type==='guard-break'){say('破防！',1);sfx('kill');}
+    else if(e.type==='attack-windup'){if(near(11))say(ATTACKS[e.enemyType].name+' · '+ATTACKS[e.enemyType].counter,1.2);}
+    else if(e.type==='summoned'){if(near(12)){burst(e.x,e.z,12,.5,0xbaa5c2,.5);say('援兵出来了 · 优先击破召唤源',1.2);}}
+    else if(e.type==='sealed'){say('封住 '+e.count+' 只援兵',1.2);}
+    else if(e.type==='bomb-thrown'){if(near(12)){sfx('arrow');say('毛线炸弹！离开落点',1.0);}}
+    else if(e.type==='bomb-land'){if(near(10))say('炸弹落地 · 离开红圈',.9);}
+    else if(e.type==='enemy-shot'){if(near(12))sfx('arrow');}
+    else if(e.type==='enemy-shot-impact'){burst(e.x,e.z,4,.4,0xd4a588,e.y);}
+    else if(e.type==='yarn-blast'){burst(e.x,e.z,30,1.8,0xd5b58a,.7);sfx('kill');}
+    else if(e.type==='ground-slam'){shake=Math.max(shake,.018);burst(e.x,e.z,20,1.3,0xe0c58e,.15);sfx('kill');}
+    else if(e.type==='drain'){say('被吸取了 · 侧移或找掩体',1.2);}
+    else if (e.type === 'weapon') { say(WEAPONS[e.weapon].name, 1); syncWeapon(); sfx('switch'); }
     else if (e.type === 'reload') { sfx('switch'); }
     else if (e.type === 'reloaded') { sfx('switch'); }
     else if (e.type === 'dry') { say(`${WEAPONS[s.weapon].name}没弹药了 · 按 1 换回手枪`, 1.6); sfx('switch'); }
-    else if (e.type === 'interrupted') say('打断了扑击！', 0.8);
+    else if (e.type === 'interrupted') say('打断了攻击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
     else if (e.type === 'alert') { if (near(9)) { say(`${ENEMY_TYPES[e.enemyType].name}发现你了！`, 1.1); sfx('hurt'); } }
     else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, 0.04); }
@@ -369,7 +395,7 @@ function processEvents() {
     } else if (e.type === 'hurt') {
       shake = 0.04; sfx('hurt');
       $('hurtFrame').classList.remove('damage'); void $('hurtFrame').offsetWidth; $('hurtFrame').classList.add('damage');
-      say('被扑到了！拉开距离', 1);
+      say(e.source==='arrow'?'被绒球箭击中！':e.source==='ground-slam'?'震地！退离范围':e.source==='yarn-blast'?'线团爆开了！':e.source==='leech-drain'?'被吸取了！':'被扑到了！拉开距离',1);
     } else if (e.type === 'mission-complete') say('全部清空！', 1.5);
     else if (e.type === 'round-end') showResult();
   }
@@ -389,7 +415,7 @@ function aim() {
   const from = camera.position, far = from.clone().addScaledVector(lookDir, FAR);
   let distance = FAR, picked = null;
   for (const e of s.enemies) {
-    if (!e.alive) continue;
+    if (!e.alive||!e.enabled) continue;
     const t = segmentCylinder(from.x, from.y, from.z, far.x, far.y, far.z, e.x, e.z, e.radius, e.y + 0.04, e.y + e.height);
     if (t !== null && t * FAR < distance) { distance = t * FAR; picked = e; }
   }
@@ -444,6 +470,7 @@ function cameraFrame(dt) {
 const clock = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 function hud() {
   const w = WEAPONS[s.weapon], a = s.ammo[s.weapon], status = missionStatus(s);
+  $('statusEffect').textContent=s.pulledUntil>s.time?'吸引中 · 侧移或找掩体':s.slowUntil>s.time?'缠线减速 · '+Math.max(0,s.slowUntil-s.time).toFixed(1)+'s':'';
   $('weaponName').textContent = w.name; $('weaponTag').textContent = w.tag;
   $('ammo').textContent = `${a.mag} / ${a.reserve === Infinity ? '∞' : a.reserve}`;
   $('ammo').classList.toggle('low', a.mag === 0);
@@ -478,7 +505,8 @@ function snapshot() {
     weapon: WEAPONS[s.weapon].id, ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, z: s.player.z }, yaw, pitch, room: roomAt(level, s.player.x, s.player.z)?.id,
-    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, x: e.x, z: e.z, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, enabled:e.enabled, reserveOf:e.reserveOf, guardBroken:e.guardBroken, actionAge:e.actionAge, cue:attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, z: e.z, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    level:level.id,enemyBombs:s.enemyBombs.map(b=>({id:b.id,x:b.x,y:b.y,z:b.z,landed:b.landed,fuse:b.fuse})),enemyShots:s.enemyShots.map(b=>({id:b.id,x:b.x,y:b.y,z:b.z,age:b.age})),slowUntil:s.slowUntil,pulledUntil:s.pulledUntil,neutralized:s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
   };
 }
@@ -535,7 +563,7 @@ $('view').addEventListener('contextmenu', e => e.preventDefault());
 addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
-  if ((k === 'enter' || k === ' ') && e.target?.tagName === 'BUTTON') return;
+  if ((k === 'enter' || k === ' ') && ['BUTTON','A'].includes(e.target?.tagName)) return;
   if (HELD.includes(k) || k === 'enter') e.preventDefault();
   if (k === 'enter' && ready && !e.repeat) { if (mode === 'menu' || mode === 'result') start(); else if (paused) setPause(false); return; }
   if (k === 'escape') { if (mode === 'playing') setPause(!paused); return; }
@@ -602,9 +630,10 @@ function frame(now) {
 async function boot() {
   camera.position.copy(menuCamera); camera.lookAt(menuLook);
   actors = await loadFigurines(assetData);
-  menuHero = actors.create('scout'); menuZombie = actors.create('walker');
+  menuHero = actors.create('scout'); menuZombie = actors.create(training&&practiceType?practiceType:'walker');
   cine.scene.add(menuHero.world, menuZombie.world);
   for (const name of ['ArmL', 'ArmR']) part(menuZombie, name).rotation.x -= 1.18;
+  if(training&&practiceType)applyAttackPose({type:practiceType,action:'chase',actionAge:0,age:0,guardBroken:0},menuZombie);
   attachGun(menuHero);
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
@@ -612,7 +641,8 @@ async function boot() {
   cameraFrame(0); resize();
   await cine.warmup();
   ready = true; window.__ready = true;
-  $('start').disabled = false; $('start').textContent = '进入花园'; $('start').focus();
+  $('start').disabled = false; $('start').textContent = training?'进入试战':'进入花园'; $('start').focus();
+  if(training){document.title='Rongboy · '+level.name;$('intro').querySelector('.eyebrow').textContent=level.name;$('intro').querySelector('h1').innerHTML='看懂预告，<br>再动手。';$('intro').querySelector('p').textContent=practiceType?ATTACKS[practiceType].name+'：'+ATTACKS[practiceType].counter+'。本场共 '+s.total+' 个目标。':'九类僵尸各有攻击。看瞄准线、爆圈、吸引扇区，优先处理召唤源；援兵开局就有限定。';document.querySelector('.sub').textContent=level.name;$('result').querySelector('.eyebrow').textContent=level.name;$('intro').querySelector('.how').innerHTML='WASD 移动 · 方向键 瞄准<br>空格射击 / 蓄力 · R 换弹<br>1 / 2 / 3 选枪，棉被炮或蓄力可打断强攻击<br>3 颗心 · 用掩体挡箭和吸引';}
   diagnostics();
 }
 requestAnimationFrame(frame);

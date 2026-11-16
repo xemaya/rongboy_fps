@@ -76,25 +76,25 @@ export default {
   enemies: [
     // 花园
     { type: 'walker', x: -4.5, z: 5.5, state: 'idle', heading: Math.PI / 2, patrol: [[3.5, 5.5], [-4.5, 5.5]] },
-    { type: 'runner', x: -7.6, z: 5.0, state: 'asleep', heading: 0 },
+    { type: 'leaper', x: -7.6, z: 5.0, state: 'asleep', heading: 0 },
     { type: 'walker', x: 7.0, z: 7.6, state: 'asleep', heading: -Math.PI / 2 },
     // 门厅：第一只背对正门，给玩家一次从背后下手的机会
     { type: 'walker', x: 0, z: -0.5, state: 'idle', heading: Math.PI },
     { type: 'leaper', x: 0.3, z: -5.6, state: 'asleep', heading: 0 },
     // 客厅
-    { type: 'weaver', x: -5.4, z: 1.8, state: 'idle', heading: Math.PI, patrol: [[-5.4, -2.1], [-5.4, 1.8]] },
+    { type: 'leaper', x: -5.4, z: 1.8, state: 'idle', heading: Math.PI, patrol: [[-5.4, -2.1], [-5.4, 1.8]] },
     { type: 'walker', x: -7.6, z: -2.3, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'runner', x: -2.3, z: 2.4, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'leaper', x: -2.3, z: 2.4, state: 'asleep', heading: -Math.PI / 2 },
     // 厨房
     { type: 'heavy', x: -7.2, z: -4.8, state: 'idle', heading: Math.PI / 2 },
     { type: 'walker', x: -3.0, z: -7.6, state: 'asleep', heading: 0 },
     { type: 'walker', x: -7.3, z: -7.6, state: 'asleep', heading: Math.PI / 2 },
     // 卧室
     { type: 'leaper', x: 4.9, z: 1.3, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'weaver', x: 2.6, z: -0.6, state: 'idle', heading: Math.PI / 2, patrol: [[7.4, -0.6], [2.6, -0.6]] },
+    { type: 'leaper', x: 2.6, z: -0.6, state: 'idle', heading: Math.PI / 2, patrol: [[7.4, -0.6], [2.6, -0.6]] },
     // 书房
     { type: 'heavy', x: 6.9, z: -6.2, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'runner', x: 3.2, z: -6.4, state: 'idle', heading: Math.PI / 2, patrol: [[7.0, -5.2], [3.2, -6.4]] },
+    { type: 'leaper', x: 3.2, z: -6.4, state: 'idle', heading: Math.PI / 2, patrol: [[7.0, -5.2], [3.2, -6.4]] },
     { type: 'walker', x: 3.4, z: -7.4, state: 'asleep', heading: 0 },
   ],
 

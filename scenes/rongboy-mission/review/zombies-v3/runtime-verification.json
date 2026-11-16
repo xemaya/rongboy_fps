@@ -1,0 +1,2024 @@
+{
+  "overview": {
+    "state": {
+      "count": 12,
+      "errors": [],
+      "kinds": [
+        "walker",
+        "runner",
+        "weaver",
+        "leaper",
+        "heavy",
+        "crawler",
+        "shielded",
+        "bomber",
+        "spawner",
+        "archer",
+        "boss-warden",
+        "boss-leech"
+      ],
+      "moving": false,
+      "poses": [
+        {
+          "arm": -1.07,
+          "id": "walker",
+          "native": "walker",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.6200000000000001,
+          "id": "runner",
+          "native": "runner",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "weaver",
+          "native": "weaver",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.27,
+          "id": "leaper",
+          "native": "leaper",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "heavy",
+          "native": "heavy",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "crawler",
+          "native": "crawler",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "shielded",
+          "native": "shielded",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.8400000000000001,
+          "id": "bomber",
+          "native": "bomber",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.2,
+          "id": "spawner",
+          "native": "spawner",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.8,
+          "id": "archer",
+          "native": "archer",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.94,
+          "id": "boss-warden",
+          "native": "boss-warden",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "boss-leech",
+          "native": "boss-leech",
+          "parts": 6,
+          "y": 0
+        }
+      ],
+      "ready": true,
+      "selected": null,
+      "view": "front"
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 318,
+      "geometries": 149,
+      "programs": 23,
+      "quality": "medium",
+      "res": [
+        1161,
+        623
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 32,
+      "tris": 2082998
+    }
+  },
+  "portraits": [
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "walker",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 58,
+        "geometries": 155,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 168286
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "runner",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 66,
+        "geometries": 161,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 179254
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "weaver",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 60,
+        "geometries": 167,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 173718
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "leaper",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 64,
+        "geometries": 173,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 172870
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "heavy",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 62,
+        "geometries": 179,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 177126
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "crawler",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 64,
+        "geometries": 185,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 171310
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "shielded",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 62,
+        "geometries": 191,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 174190
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "bomber",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 60,
+        "geometries": 197,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 179782
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "spawner",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 62,
+        "geometries": 203,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 192734
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "archer",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 64,
+        "geometries": 209,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 181078
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "boss-warden",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 62,
+        "geometries": 215,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 181662
+      }
+    },
+    {
+      "state": {
+        "count": 12,
+        "errors": [],
+        "kinds": [
+          "walker",
+          "runner",
+          "weaver",
+          "leaper",
+          "heavy",
+          "crawler",
+          "shielded",
+          "bomber",
+          "spawner",
+          "archer",
+          "boss-warden",
+          "boss-leech"
+        ],
+        "moving": false,
+        "poses": [
+          {
+            "arm": -1.07,
+            "id": "walker",
+            "native": "walker",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.6200000000000001,
+            "id": "runner",
+            "native": "runner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "weaver",
+            "native": "weaver",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.27,
+            "id": "leaper",
+            "native": "leaper",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "heavy",
+            "native": "heavy",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "crawler",
+            "native": "crawler",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": 0,
+            "id": "shielded",
+            "native": "shielded",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8400000000000001,
+            "id": "bomber",
+            "native": "bomber",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.2,
+            "id": "spawner",
+            "native": "spawner",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.8,
+            "id": "archer",
+            "native": "archer",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -0.94,
+            "id": "boss-warden",
+            "native": "boss-warden",
+            "parts": 6,
+            "y": 0
+          },
+          {
+            "arm": -1.07,
+            "id": "boss-leech",
+            "native": "boss-leech",
+            "parts": 6,
+            "y": 0
+          }
+        ],
+        "ready": true,
+        "selected": "boss-leech",
+        "view": "front"
+      },
+      "stats": {
+        "adapt": null,
+        "advanced": true,
+        "calls": 64,
+        "geometries": 221,
+        "programs": 23,
+        "quality": "medium",
+        "res": [
+          1161,
+          623
+        ],
+        "scale": 1,
+        "shaderErrors": 0,
+        "softShadows": true,
+        "textures": 32,
+        "tris": 179694
+      }
+    }
+  ],
+  "animation": {
+    "state": {
+      "count": 12,
+      "errors": [],
+      "kinds": [
+        "walker",
+        "runner",
+        "weaver",
+        "leaper",
+        "heavy",
+        "crawler",
+        "shielded",
+        "bomber",
+        "spawner",
+        "archer",
+        "boss-warden",
+        "boss-leech"
+      ],
+      "moving": true,
+      "poses": [
+        {
+          "arm": -1.07,
+          "id": "walker",
+          "native": "walker",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.6200000000000001,
+          "id": "runner",
+          "native": "runner",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "weaver",
+          "native": "weaver",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.27,
+          "id": "leaper",
+          "native": "leaper",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "heavy",
+          "native": "heavy",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "crawler",
+          "native": "crawler",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": 0,
+          "id": "shielded",
+          "native": "shielded",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.8400000000000001,
+          "id": "bomber",
+          "native": "bomber",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.2,
+          "id": "spawner",
+          "native": "spawner",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.8,
+          "id": "archer",
+          "native": "archer",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -0.94,
+          "id": "boss-warden",
+          "native": "boss-warden",
+          "parts": 6,
+          "y": 0
+        },
+        {
+          "arm": -1.07,
+          "id": "boss-leech",
+          "native": "boss-leech",
+          "parts": 6,
+          "y": 0.013139238266244418
+        }
+      ],
+      "ready": true,
+      "selected": "boss-leech",
+      "view": "back"
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 64,
+      "geometries": 221,
+      "programs": 23,
+      "quality": "medium",
+      "res": [
+        1161,
+        623
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 32,
+      "tris": 179694
+    }
+  },
+  "mission": {
+    "state": {
+      "alive": 16,
+      "ammo": [
+        {
+          "mag": 5,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 1,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "alert",
+          "hp": 6,
+          "id": 1,
+          "model": "walker",
+          "type": "walker",
+          "x": -3.0113643661282676,
+          "z": 5.496099780022158
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "waking",
+          "hp": 4,
+          "id": 2,
+          "model": "runner",
+          "type": "runner",
+          "x": -7.6,
+          "z": 5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 3,
+          "model": "walker",
+          "type": "walker",
+          "x": 7,
+          "z": 7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 6,
+          "id": 4,
+          "model": "walker",
+          "type": "walker",
+          "x": 0,
+          "z": -0.5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 5,
+          "model": "leaper",
+          "type": "leaper",
+          "x": 0.3,
+          "z": -5.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 6,
+          "model": "weaver",
+          "type": "weaver",
+          "x": -5.4,
+          "z": 0.19358263365924783
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 7,
+          "model": "walker",
+          "type": "walker",
+          "x": -7.6,
+          "z": -2.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 4,
+          "id": 8,
+          "model": "runner",
+          "type": "runner",
+          "x": -2.3,
+          "z": 2.4
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 8,
+          "id": 9,
+          "model": "heavy",
+          "type": "heavy",
+          "x": -7.2,
+          "z": -4.8
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 10,
+          "model": "walker",
+          "type": "walker",
+          "x": -3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 11,
+          "model": "walker",
+          "type": "walker",
+          "x": -7.3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 12,
+          "model": "leaper",
+          "type": "leaper",
+          "x": 4.9,
+          "z": 1.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 13,
+          "model": "weaver",
+          "type": "weaver",
+          "x": 4.206417366340766,
+          "z": -0.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 8,
+          "id": 14,
+          "model": "heavy",
+          "type": "heavy",
+          "x": 6.9,
+          "z": -6.2
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 4,
+          "id": 15,
+          "model": "runner",
+          "type": "runner",
+          "x": 5.737510443152674,
+          "z": -5.59868091268862
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 16,
+          "model": "walker",
+          "type": "walker",
+          "x": 3.4,
+          "z": -7.4
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "mode": "playing",
+      "paused": true,
+      "phase": "playing",
+      "pickups": 6,
+      "pitch": 0,
+      "player": {
+        "x": 3.1762500000000085,
+        "z": 4.933750000000047
+      },
+      "reloading": false,
+      "room": "garden",
+      "shots": 1,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.8166666666666593,
+      "total": 16,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 180,
+      "frameIntervalMs": 8.377777777777778,
+      "geometries": 151,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 31,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 97,
+      "tris": 439232
+    }
+  },
+  "keyboardEntry": "http://localhost:5192/rongboy-zombies.html?v=roster-v3"
+}

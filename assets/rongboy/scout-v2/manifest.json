@@ -1,0 +1,40 @@
+{
+  "version": "v2",
+  "kind": "scout",
+  "source_v1": "assets/rongboy/scout-motion-v1/rongboy-scout-motion-v1.blend",
+  "source_sha256": "ea2af93660cb859e8546eaef89c95e90a8fbb2a3bf029c1f65eb89483c591aa4",
+  "changes": [
+    "constant authored base colours",
+    "shared fine normal instead of coloured atlas",
+    "native wool nap shortened to 42 percent"
+  ],
+  "palette": {
+    "Wool / sand canvas jacket": "#B19A6A",
+    "Wool / moss canvas rucksack": "#85916B",
+    "Glass / dark brown bead eyes": "#30271F",
+    "Cotton / oatmeal stitching": "#DFCEA7",
+    "Wool / warm oatmeal skin": "#EACFA8",
+    "Brass / worn buckles": "#B99C60",
+    "Glass / reflected catchlight": "#FFF2D7",
+    "Wool / ochre neckerchief": "#D7AF4F",
+    "Wool / soft camel explorer hat": "#C8A76F",
+    "Wool / chestnut tufts": "#594637",
+    "Leather / chestnut boots and straps": "#70513D",
+    "Wool / olive shorts": "#687354",
+    "Cotton / embroidered mouth": "#70503A",
+    "Wool / rolled oat blanket": "#CDBA8A",
+    "Wool / subtle apricot cheeks": "#DDA78B",
+    "Rubber / dark stacked sole": "#3C3530"
+  },
+  "native_fibres": 32490,
+  "status": "visual candidate",
+  "micro_normal": {
+    "size": 256,
+    "uv_repeat": [
+      6,
+      6
+    ],
+    "strength": 0.38
+  },
+  "runtime_wool": "short silhouette fibres with view-angle fade"
+}
