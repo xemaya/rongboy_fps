@@ -324,4 +324,30 @@ test('view-relative movement is unchanged', () => {
   assert.ok(Math.abs(body.x + 1.5) > 0.39, 'a body inside a wall is pushed out');
 });
 
+// ---------- 只影响画面的摆设 ----------
+
+test('windows sit in solid wall clear of doors; lamps, rugs and pictures are inside the house', () => {
+  const rooms = houseDef.rooms.filter(r => !r.outdoor), edge = k => [Math.min(...rooms.map(r => r['min' + k])), Math.max(...rooms.map(r => r['max' + k]))];
+  const [x0, x1] = edge('X'), [z0, z1] = edge('Z');
+  for (const w of houseDef.windows) {
+    const alongZ = typeof w.x === 'number', line = alongZ ? w.x : w.z, a0 = w.at - w.w / 2, a1 = w.at + w.w / 2;
+    assert.ok(alongZ ? [x0, x1].includes(line) : [z0, z1].includes(line), 'windows belong to outside walls');
+    assert.ok(a0 > (alongZ ? z0 : x0) + 0.3 && a1 < (alongZ ? z1 : x1) - 0.3, 'window clear of the corners');
+    const wall = houseDef.walls.find(v => (alongZ ? v.x : v.z) === line);
+    for (const [d0, d1] of wall?.doors || []) assert.ok(a1 < d0 - 0.2 || a0 > d1 + 0.2, `window at ${w.at} overlaps a door`);
+    for (const v of houseDef.walls) {   // 窗不能正对着一道内墙的端头
+      const cross = alongZ ? v.z : v.x, span = alongZ ? v.x : v.z;
+      if (typeof cross === 'number' && Array.isArray(span) && span.includes(line)) assert.ok(cross < a0 - 0.15 || cross > a1 + 0.15, `window at ${w.at} straddles an inner wall`);
+    }
+    assert.ok((w.sill ?? 1.0) >= 0.9 && (w.head ?? 2.1) <= houseDef.height - 0.3);
+  }
+  const inside = p => p.x > x0 && p.x < x1 && p.z > z0 && p.z < z1;
+  for (const l of houseDef.lamps) {
+    assert.ok(inside(l), 'lamp inside the house');
+    assert.ok(house.furnitureBoxes.every(c => c.maxY < 2.0 || l.x < c.minX - 0.35 || l.x > c.maxX + 0.35 || l.z < c.minZ - 0.35 || l.z > c.maxZ + 0.35), 'lamp clear of tall furniture');
+  }
+  for (const p of houseDef.pictures) assert.ok(p.x >= x0 && p.x <= x1 && p.z >= z0 && p.z <= z1 && p.y > 1.2);
+  for (const f of houseDef.furniture) if (f.face) assert.ok('nsew'.includes(f.face));
+});
+
 console.log(`${checks} mission checks passed`);

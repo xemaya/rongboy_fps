@@ -1,7 +1,7 @@
 // Rongboy 任务制试玩：家 · 一层与花园。第一人称、纯键盘。
 // 战斗规则在 game.js，关卡几何在 level.js；这里只管画面、声音、输入和 HUD。
 import * as T from 'three';
-import { createCineRenderer, LOOKS, cloneLook } from '../../engine/index.js';
+import { createCineRenderer, LOOKS, QUALITY, cloneLook } from '../../engine/index.js';
 import { loadFigurines, createWoolBall } from '../../library/games/rongboy-runtime.js';
 import { dressWalker, createWeaponKit } from '../../library/games/rongboy-workshop.js';
 import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-shooter-fps/feedback.js';
@@ -11,7 +11,7 @@ import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES } from './game.js';
-import { buildWorld } from './world.js';
+import { buildWorld, INDOOR_SKY } from './world.js';
 import houseDef from './levels/house.js';
 
 const $ = id => document.getElementById(id);
@@ -24,7 +24,8 @@ let s = createGame({ level });
 let mode = 'menu', ready = false, paused = false, down = false;
 let actors, menuHero, menuZombie, fpHero, gun, loadedBall;
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
-let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '';
+let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', handSky = 1;
+const handMaterials = new Set();
 const keys = new Set(), errors = [], frameIntervals = [];
 
 function fail(err) {
@@ -36,21 +37,24 @@ addEventListener('unhandledrejection', e => fail(e.reason));
 
 // ---------- 画面 ----------
 
+// 光线：下午四五点的斜阳，从西南方照过来。花园里影子拉得长，阳光穿过西窗、南窗和两扇门落在地板上；
+// 屋里的天光按 INDOOR_SKY 压暗，靠每个房间的吊灯补亮（world.js）。
 const look = cloneLook(LOOKS.clearNoon);
-Object.assign(look.sun, { azimuth: 205, elevation: 52, intensity: 3.5, color: [1, 0.89, 0.72] });
-look.env.intensity = 1.45;
-Object.assign(look.sky, { zenith: [0.36, 0.50, 0.62], mid: [0.58, 0.68, 0.70], horizon: [0.80, 0.80, 0.68], horizonAway: [0.70, 0.74, 0.70], cloudCover: 0.45 });
-Object.assign(look.air, { sigma: 0.0001, mist: 0, sunScale: 0, aoRadius: 0.22, aoIntensity: 1.1 });
-Object.assign(look.grade, { minExposure: 0.95, maxExposure: 1.04, exposure: 1, key: 0.18, bloom: 0.025, flare: 0, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.12, saturation: 1.02, contrast: 0.08 });
+Object.assign(look.sun, { azimuth: 138, elevation: 30, intensity: 5.2, color: [1, 0.86, 0.66] });
+look.env.intensity = 1.15;
+Object.assign(look.sky, { zenith: [0.16, 0.33, 0.62], mid: [0.36, 0.55, 0.80], midSun: [0.75, 0.70, 0.62], horizon: [0.95, 0.84, 0.66], horizonAway: [0.62, 0.72, 0.84], glow: [1.6, 1.3, 0.9], cloudCover: 0.3, cloudWarm: 0.6 });
+Object.assign(look.air, { sigma: 0.0006, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.65, aoStrength: 0.75 });
+Object.assign(look.grade, { key: 0.17, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.16, saturation: 1.06, contrast: 0.2, sharpen: 0.55 });
 const B = level.bounds;
+// 清晰度：默认用 high 档（内部分辨率不缩、4 倍多重采样），像素预算放到 360 万，Retina 屏按 2 倍像素比渲染；
+// 帧率掉到 45 以下时引擎会自动降内部分辨率。网址加 ?q=medium 或 ?q=low 可以手动降档。
 const cine = createCineRenderer({
-  canvas: $('view'), look, quality: q.get('q') || 'medium', fov: 65, near: 0.035, far: 150, maxPixelRatio: 1.35, targetFps: 30,
-  dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1, -1, B.minZ - 1], max: [B.maxX + 1, 5, B.maxZ + 1], softness: 0.6 }, onError: fail,
+  canvas: $('view'), look, quality: QUALITY[q.get('q')] || { ...QUALITY.high, pixels: 3.6e6 }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 45,
+  dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, 5, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
 });
-const world = buildWorld(cine.scene, level, WEAPONS);
-// 屋顶挡住了太阳，室内靠两盏不投影的补光照亮。
-const fill = new T.DirectionalLight(0xffeed1, 1.8); fill.position.set(-2, 6, 7); cine.scene.add(fill);
-const cool = new T.DirectionalLight(0xd5e1df, 0.65); cool.position.set(4, 5, -2); cine.scene.add(cool);
+const world = buildWorld(cine, level, WEAPONS);
+// 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
+if (cine.postChain) cine.postChain.enable.volumetrics = false;
 
 const camera = cine.camera, ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
 const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), target = new T.Vector3(0, 0.75, -1);
@@ -131,6 +135,11 @@ function animateHero(dt, moving) {
     const arm = part(hero, 'CTRL / arm ' + sign);
     if (arm) { arm.rotation.x -= 1.05; arm.rotation.z -= sign * 0.43; }
   }
+  // 手和枪跟着所在的地方变亮变暗：屋里只有一部分天光。
+  if (mode !== 'menu') {
+    handSky += ((isOutdoor(level, s.player.x, s.player.z) ? 1 : INDOOR_SKY) - handSky) * Math.min(1, dt * 4);
+    for (const m of handMaterials) m.envMapIntensity = handSky;
+  }
   const charge = s.charging ? s.charge / CONFIG.chargeTime : 0, motion = reduced ? 0.5 : 1;
   // 换弹时把枪压低，换完再抬起来。
   const w = WEAPONS[s.weapon], reload = s.reloading ? Math.sin(Math.min(1, 1 - s.reload / w.reload) * Math.PI) : 0;
@@ -187,6 +196,15 @@ function moodMaterial(text) {
   const material = new T.SpriteMaterial({ map, transparent: true, depthWrite: false });
   moodMaterials.set(text, material); return material;
 }
+// 脚下的软影：一张径向渐变的圆片。
+const blobGeo = new T.PlaneGeometry(1, 1);
+const blobMat = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const ctx = c.getContext('2d'), g = ctx.createRadialGradient(32, 32, 2, 32, 32, 32);
+  g.addColorStop(0, 'rgba(0,0,0,0.62)'); g.addColorStop(0.55, 'rgba(0,0,0,0.3)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+  return new T.MeshBasicMaterial({ map: new T.CanvasTexture(c), color: 0x1b140c, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+})();
 const tellGeo = new T.RingGeometry(0.42, 0.48, 28);
 const tellMat = new T.MeshBasicMaterial({ color: 0xe9bf65, transparent: true, opacity: 0.8, side: T.DoubleSide, depthWrite: false });
 
@@ -294,9 +312,12 @@ function updateModels(dt) {
     if (canSee(e)) a.seenAt = s.time;
     a.world.visible = distance < 2.5 || s.time - (a.seenAt ?? -9) < 0.35;
     if (!a.world.visible) continue;
-    // 屋顶下的僵尸照不到太阳，不必进阴影贴图。
-    const sunlit = isOutdoor(level, e.x, e.z);
-    if (a.sunlit !== sunlit) { a.sunlit = sunlit; a.model.traverse(m => { if (m.isMesh && !m.userData.fuzz) m.castShadow = sunlit; }); }
+    // 屋里的僵尸和墙面一样只分到一部分天光；脚下垫一块软影，没有太阳的地方也站得住。
+    const outdoor = isOutdoor(level, e.x, e.z);
+    if (a.outdoor !== outdoor) { a.outdoor = outdoor; for (const m of a.materials) m.envMapIntensity = outdoor ? 1 : INDOOR_SKY; }
+    if (!a.blob) { a.blob = new T.Mesh(blobGeo, blobMat); a.blob.rotation.x = -Math.PI / 2; a.blob.renderOrder = 1; a.world.add(a.blob); }
+    a.blob.visible = e.alive || e.deathAge < 0.9;
+    a.blob.position.y = 0.05 - e.y; a.blob.scale.setScalar(e.radius * 3.4 * (1 - Math.min(0.5, e.y * 0.6)));
     a.model.traverse(m => { if (m.userData.fuzz) m.visible = distance < 8.5; });
     updateEnemy(e, a);
     if (!e.alive && e.deathAge > 0.78 && !a.poof) { a.poof = true; burst(e.x, e.z, 20, 0.95, 0xddd7b5); }
@@ -419,13 +440,14 @@ function shotParams() {
   return { origin: { x: m.x, y: m.y, z: m.z }, direction: { x: direction.x, y: direction.y, z: direction.z } };
 }
 
-const menuCamera = new T.Vector3(level.player.x + 2.3, 1.75, level.player.z + 0.78), menuLook = new T.Vector3(level.player.x - 0.2, 0.72, level.player.z - 0.55);
+// 开始画面的机位整体往西挪 0.6 米，避开院门边的信箱。
+const menuCamera = new T.Vector3(level.player.x + 1.7, 1.75, level.player.z + 0.78), menuLook = new T.Vector3(level.player.x - 0.8, 0.72, level.player.z - 0.55);
 function cameraFrame(dt) {
   if (mode === 'menu') {
     camera.fov = 40; camera.position.lerp(menuCamera, 0.10); camera.lookAt(menuLook);
     if (menuHero) {
-      menuHero.world.position.set(level.player.x - 0.95, 0, level.player.z - 0.5); menuHero.model.rotation.y = 0.18;
-      menuZombie.world.position.set(level.player.x + 0.55, 0, level.player.z - 0.6); menuZombie.model.rotation.y = -0.06;
+      menuHero.world.position.set(level.player.x - 1.55, 0, level.player.z - 0.5); menuHero.model.rotation.y = 0.18;
+      menuZombie.world.position.set(level.player.x - 0.05, 0, level.player.z - 0.6); menuZombie.model.rotation.y = -0.06;
     }
   } else {
     const motion = reduced ? 0.25 : 1, bob = reduced ? 0 : Math.sin(phase * 2) * 0.006;
@@ -595,6 +617,7 @@ function frame(now) {
   if (mode === 'playing' && !paused && !window.__rb.hold) advance(dt);
   else if (mode === 'menu') { animateHero(dt, false); updateFx(dt); }
   if (performance.now() > toastUntil) $('toast').textContent = '';
+  world.update(cine.uniforms.time.value);
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
@@ -608,6 +631,7 @@ async function boot() {
   attachGun(menuHero);
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
+  fpHero.model.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) handMaterials.add(m); });
   camera.add(fpHero.world); fpHero.world.visible = false;
   cameraFrame(0); resize();
   await cine.warmup();
@@ -622,6 +646,7 @@ boot().catch(fail);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },   // 仅供调试：直接读写战斗状态
+  cine, world,
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图
   snapshot, start,
   advance(seconds, held = []) {
@@ -633,4 +658,6 @@ window.__rb = {
   teleport(x, z, newYaw = yaw, newPitch = 0) { s.player.x = x; s.player.z = z; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
   render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
+  // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
+  async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },
 };

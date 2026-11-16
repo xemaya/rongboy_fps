@@ -83,6 +83,17 @@ if (serve) {
   for (const p of list) await (await esbuild.context(options(p))).watch();
   const server = createServer(async (req, res) => {
     const name = decodeURIComponent((req.url || '/').split('?')[0].replace(/^\/+/, '')) || list[0].name + '.html';
+    // POST /__shot?name=<n> with a JPEG data URL as the body: saved to shots/<n>.jpg (gitignored). Pages use it to
+    // hand a canvas frame to whoever is checking the picture when the browser window itself cannot be captured.
+    if (req.method === 'POST' && name === '__shot') {
+      const chunks = [];
+      for await (const c of req) chunks.push(c);
+      const shot = (new URL(req.url, 'http://x').searchParams.get('name') || 'shot').replace(/[^\w.-]/g, '_');
+      await mkdir(path.join(root, 'shots'), { recursive: true });
+      await writeFile(path.join(root, 'shots', shot + '.jpg'), Buffer.from(Buffer.concat(chunks).toString().replace(/^data:image\/\w+;base64,/, ''), 'base64'));
+      res.writeHead(200).end('ok');
+      return;
+    }
     try {
       const file = path.join(root, 'dist', path.basename(name));
       const html = await readFile(file);
