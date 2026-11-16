@@ -12,7 +12,6 @@ import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, sto
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED } from './game.js';
 import { buildWorld } from './world.js';
-import { roomLitActor } from '../../library/surfaces/plush.js';
 import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
 import { createArsenalAudio } from './sfx.js';
 import { LEVELS, ORDER } from './levels/index.js';
@@ -31,8 +30,7 @@ let s = createGame({ level });
 let mode = 'menu', ready = false, paused = false, down = false;
 let actors, menuHero, menuZombie, fpHero, gun, loadedBall;
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
-let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', handSky = 1, zoom = 0;
-const handMaterials = new Set();
+let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', zoom = 0;
 const keys = new Set(), errors = [], frameIntervals = [];
 
 // 把这张图的名字和说明写进界面；开始画面上列出所有地图，按数字键换图。
@@ -103,7 +101,6 @@ const cine = createCineRenderer({
   dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
 });
 const world = buildWorld(cine, level, WEAPONS);
-const INDOOR_SKY = world.theme.indoorSky, INDOOR_ACTOR = world.theme.actor;
 // 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
 if (cine.postChain) cine.postChain.enable.volumetrics = false;
 
@@ -201,8 +198,6 @@ function animateHero(dt, moving) {
   }
   // 手和枪跟着所在的地方变亮变暗：屋里只有一部分天光。
   if (mode !== 'menu') {
-    handSky += ((openAir(s.player.x, s.player.y, s.player.z) ? 1 : 0) - handSky) * Math.min(1, dt * 4);
-    for (const m of handMaterials) { m.envMapIntensity = INDOOR_SKY + (1 - INDOOR_SKY) * handSky; m.userData.indoor.value = (1 - handSky) * INDOOR_ACTOR; }
   }
   const charge = s.charging ? s.charge / CONFIG.chargeTime : 0, motion = reduced ? 0.5 : 1;
   // 换弹时把枪压低，换完再抬起来。
@@ -389,6 +384,7 @@ function updateModels(dt) {
     if (!a) {
       a = actors.create('walker'); dressWalker(a, e.type, e.scale);
       a.model.traverse(m => { if (m.isMesh) m.frustumCulled = true; });
+      world.light(a.world);   // 角色和墙、家具查同一份烘焙光照：站在灯下亮，躲进角落暗
       enemyModels.set(e.id, a); cine.scene.add(a.world);
     }
     const distance = Math.hypot(e.x - s.player.x, e.z - s.player.z);
@@ -397,9 +393,7 @@ function updateModels(dt) {
     if (apart < SH * 1.6 && canSee(e)) a.seenAt = s.time;
     a.world.visible = (distance < 2.5 && apart < 1.5) || s.time - (a.seenAt ?? -9) < 0.35;
     if (!a.world.visible) continue;
-    // 屋里的僵尸和墙面一样只分到一部分天光；脚下垫一块软影，没有太阳的地方也站得住。
-    const outdoor = openAir(e.x, e.base, e.z);
-    if (a.outdoor !== outdoor) { a.outdoor = outdoor; for (const m of a.materials) { m.envMapIntensity = outdoor ? 1 : INDOOR_SKY; roomLitActor(m).userData.indoor.value = outdoor ? 0 : INDOOR_ACTOR; } }
+    // 脚下垫一块软影，没有太阳的地方也站得住。
     if (!a.blob) { a.blob = new T.Mesh(blobGeo, blobMat); a.blob.rotation.x = -Math.PI / 2; a.blob.renderOrder = 1; a.world.add(a.blob); }
     a.blob.visible = e.alive || e.deathAge < 0.9;
     const hop = e.y - e.base;
@@ -415,6 +409,7 @@ function updateModels(dt) {
     if (!o) {
       o = ballTemplates[Math.max(0, WEAPONS.findIndex(w => w.id === b.weapon))].clone(true); o.userData.ownMaterials = []; o.userData.trail = 0; o.userData.fuse = o.getObjectByName('fuse') || null;
       o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; o.userData.ownMaterials.push(m.material); } });
+      world.light(o);
       ballModels.set(b.id, o); cine.scene.add(o);
     }
     o.position.set(b.x, b.y, b.z);
@@ -749,7 +744,7 @@ function frame(now) {
   else if (mode === 'menu') { animateHero(dt, false); updateFx(dt); }
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); world.updateLights(mode === 'menu' ? stage.x : s.player.x, mode === 'menu' ? stage.z : s.player.z);
+  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y));
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
@@ -761,12 +756,10 @@ async function boot() {
   menuHero = actors.create('scout'); menuZombie = actors.create('walker');
   cine.scene.add(menuHero.world, menuZombie.world);
   for (const name of ['ArmL', 'ArmR']) part(menuZombie, name).rotation.x -= 1.18;
-  // 开始画面的两个角色如果站在屋里（博物馆），也按室内的光来照
-  if (!openAir(stage.x, 0, stage.z)) for (const actor of [menuHero, menuZombie]) for (const m of actor.materials) { m.envMapIntensity = INDOOR_SKY; roomLitActor(m).userData.indoor.value = INDOOR_ACTOR; }
   attachGun(menuHero);
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
-  fpHero.model.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) handMaterials.add(roomLitActor(m)); });
+  for (const actor of [menuHero, menuZombie, fpHero]) world.light(actor.world);
   camera.add(fpHero.world); fpHero.world.visible = false;
   cameraFrame(0); resize();
   await cine.warmup();
@@ -791,7 +784,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); world.updateLights(mode === 'menu' ? stage.x : s.player.x, mode === 'menu' ? stage.z : s.player.z); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

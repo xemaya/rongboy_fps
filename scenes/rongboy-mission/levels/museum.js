@@ -25,7 +25,8 @@ export default {
   // 外观：浅色石墙，没有木梁和坡屋顶，灯是贴着天花板的射灯；屋里的环境光是偏蓝的月色。
   theme: {
     wall: 0xe6dfd0, ceiling: 0xd8d4c8, trim: 0xcbbf9f, beams: false, roof: false, lamp: 'spot', night: true,
-    indoorSky: 0.5, actor: 0.5, roomLight: [0.62, 0.74, 1.0, 1.15], bounce: [0x38445c, 0x6b7c98, 0.4],
+    // 光照：射灯是暖白的一圈一圈，照不到的地方是月色的蓝；天窗进来的夜空光放大很多倍才看得出
+    lampColor: 0xffe6c0, lampPower: 7, lampRange: 8, skyGain: 14, lightAmbient: [0.16, 0.24, 0.44], bounce: null,
     sheer: [0xdfe9ff, 0x9fbdf0, 0.55],
   },
   texts: {

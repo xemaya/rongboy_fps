@@ -20,7 +20,7 @@ export default {
   mission: { type: 'clear', title: '把学校里的僵尸全部清走' },
   theme: {
     wall: 0xfff0c4, ceiling: 0xfffaf0, roofColor: 0xef7b6b, beams: false, yard: 'playground', rainbow: true,
-    indoorSky: 0.5, roomLight: [1.0, 0.93, 0.8, 2.1], lawn: 0xb4dc8c,
+    lawn: 0xb4dc8c, lampPower: 8, skyGain: 6,   // 教室比家里更亮堂
   },
   texts: {
     short: '学校',

@@ -2,17 +2,14 @@
 // 楼有几层就搭几层：每层在自己的坐标里从 y = 0 建起，整组抬到那一层的高度；楼梯间是通高的一个竖井。
 // 碰撞仍然只认 level.js 的盒子；这里画出来的东西都落在那些盒子里，盒子外只有贴地、贴墙或高过头顶的装饰。
 import * as T from 'three';
-import { createMaterialLibrary } from '../../engine/index.js';
-import { skyMaterial } from '../../engine/kit.js';
+import { createMaterialLibrary, createLightVolume, lightFromLook } from '../../engine/index.js';
 import { mulberry32 } from '../../engine/noise.js';
-import { registerPlush, plush, roomLit, ROOM_LIGHT } from '../../library/surfaces/plush.js';
+import { plushMaterials } from '../../library/surfaces/plush.js';
 import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, hedge, tree, planter, windowUnit, pendantLamp, rug, picture, flower, PETALS } from '../../library/structures/plush.js';
 import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../library/structures/museum.js';
 import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../library/structures/school.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 
-export const INDOOR_SKY = 0.4;   // 屋里能分到多少天光（环境光按这个比例压暗）
-export const INDOOR_ACTOR = 0.55; // 角色身上的室内反射光强度（见 roomLitActor）
 const WALL = 0xf0e4c8, CEILING = 0xf6eedb, ROOF = 0xd98468, HEDGE = 0x7caa66, LAWN = 0xa5c57c;
 
 function label(text, { width = 512, height = 128, size = 64, ink = '#4d5c47', paper = '#efe3c4' } = {}) {
@@ -142,29 +139,27 @@ export function buildWorld(cine, level, weapons) {
   const inTower = (x, z) => !!T0 && x >= T0.minX - 0.01 && x <= T0.maxX + 0.01 && z >= T0.endZ - 0.01 && z <= T0.mouthZ;
   const inHouse = (x, z, pad = 0.01) => (x >= house.minX - pad && x <= house.maxX + pad && z >= house.minZ - pad && z <= house.maxZ) || inTower(x, z);   // 南立面外侧算室外
   // 这张图的外观参数：关卡的 theme 盖在默认值（家的样子）上
-  const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false, indoorSky: INDOOR_SKY, actor: INDOOR_ACTOR,
-    roomLight: [1.0, 0.86, 0.68, 1.9], bounce: [0x59636e, 0xffd2a0, 0.45], sheer: [0xfff6e2, 0xffe6bd, 1], ...(level.theme || {}) };
-  const skyAt = (x, y, z) => (y < H + 0.05 && inHouse(x, z) ? TH.indoorSky : 1);
+  // lampPower / lampRange / lampColor：每盏灯烘焙进光照体积时的亮度、照多远、颜色；skyGain：从窗和天窗进来的天光的倍数；
+  // lightBounces：反射几次；lightBleed：反射光带多少表面的颜色；lightAmbient：屋里暗部的底色（[r, g, b]）；
+  // sunBounce：晒到太阳的地面往回反多少光（1 是照实算；玩具的颜色都很亮，照实算室外会发白）
+  const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false,
+    lampPower: 7, lampRange: 9, lampColor: 0xfff4e6, skyGain: 5, lightGain: 1, lightBounces: 4, lightBleed: 0.5, lightAmbient: null, sunBounce: 0.45, bounce: [0x59636e, 0xffd2a0, 0.4], sheer: [0xfff6e2, 0xffe6bd, 1], ...(level.theme || {}) };
 
-  // ---- 材质：织物从材质库烘焙，小硬件（线、纽扣、灯罩、纱帘）用普通材质
-  const lib = registerPlush(createMaterialLibrary(cine.renderer, { resolution: 1024 }));
-  const cache = new Map(), once = (key, make) => { if (!cache.has(key)) cache.set(key, make()); return cache.get(key); };
-  // 七种织物各自只有一个材质，颜色写在顶点上（{ base, color } 由 PlushKit 展开），同一种布不管多少颜色都只画一次
-  const VERTEX = new Set(['felt', 'knit', 'quilt', 'terry', 'leaves', 'boards', 'shingle']);
-  const M = (id, color = 0xffffff) => (VERTEX.has(id)
-    ? once(id + color, () => ({ base: plush(lib, id, undefined, { vertexColors: true }), color: new T.Color(color) }))
-    : plush(lib, id, color === 0xffffff ? undefined : color));
-  M.thread = roomLit(skyMaterial({ color: 0xf3e8cc, roughness: 0.85 }), 'vSky');
-  const buttonBase = roomLit(skyMaterial({ roughness: 0.3, vertexColors: true }), 'vSky');
-  M.button = color => once('b' + color, () => ({ base: buttonBase, color: new T.Color(color) }));
-  M.glow = (color, strength) => once('g' + color + ':' + strength, () => { const m = skyMaterial({ color, emissive: color, emissiveIntensity: strength, roughness: 0.9 }); m.userData.noShadow = true; return m; });
-  M.sheer = strength => once('s' + strength, () => {
-    const m = skyMaterial({ color: TH.sheer[0], emissive: TH.sheer[1], emissiveIntensity: strength * TH.sheer[2], transparent: true, opacity: 0.66, roughness: 1, side: T.DoubleSide, depthWrite: false });
-    m.userData.noShadow = true; return m;
+  // ---- 光照体积：整栋楼（外加一圈院子）里每半米一格，记下那里收到的天光、灯光和反射光。
+  // 墙、家具和会动的角色都按自己的位置去查同一份数据，所以不用再给“室内”单独调一个亮度。
+  // 这里只定范围、给材质挂上查询；搭完之后（文件末尾）再把搭出来的网格交给它烘焙。
+  const VM = 2.5, vol = createLightVolume({
+    min: [Math.min(house.minX, T0 ? T0.minX : Infinity) - VM, -0.2, Math.min(house.minZ, T0 ? T0.endZ : Infinity) - VM],
+    max: [Math.max(house.maxX, T0 ? T0.maxX : -Infinity) + VM, level.top + (TH.roof ? 4.2 : 1.6), house.maxZ + VM + 1.5],
+    cell: TH.lightCell ?? 0.5, voxel: 0.2, ground: { y: 0, color: TH.lawn ?? LAWN },
   });
-  // 玻璃：展柜的四壁和天窗。几乎全透，带一点点自己的亮度，夜里也看得出有一层
-  M.glass = skyMaterial({ color: 0xdff0ff, emissive: 0x9fc8e8, emissiveIntensity: 0.12, transparent: true, opacity: 0.16, roughness: 0.1, side: T.DoubleSide, depthWrite: false });
-  M.glass.userData.noShadow = true;
+  const lit = m => vol.light(m);
+  const lampList = [];   // 烘焙进体积的灯：吊灯 / 射灯、壁灯
+
+  // ---- 材质：织物从材质库烘焙，小硬件（线、纽扣、灯罩、纱帘）用普通材质；整套由 library 的 plushMaterials 给，
+  // 每个材质都过一遍 vol.light，于是墙、家具、线头都按位置查同一份烘焙光照
+  const lib = createMaterialLibrary(cine.renderer, { resolution: 1024 });
+  const M = plushMaterials(lib, { lit, sheer: TH.sheer });
   const wall = M('felt', TH.wall), wood = M('toy_wood'), trim = TH.trim ? M('felt', TH.trim) : wood, sun = cine.sunDir;
   // 从一组矩形里挖掉一个洞（天窗）：每块被洞压到的矩形换成洞四周的四条
   const minus = (rects, h) => rects.flatMap(r => {
@@ -177,7 +172,7 @@ export function buildWorld(cine, level, weapons) {
   // ================================================================== 每一层
   // shell：外墙、窗、层间腰线（一直画，从花园看得到）；inner：地面、内墙、家具、灯（只画玩家所在层和上下相邻的层）
   function buildStorey(S) {
-    const shell = new PlushKit({ skyAt }), k = new PlushKit({ skyAt }), top = S.index === N - 1, ground = S.index === 0;
+    const shell = new PlushKit(), k = new PlushKit(), top = S.index === N - 1, ground = S.index === 0;
     const indoor = S.rooms.filter(r => !r.outdoor && !r.tower);
     for (const r of indoor) {
       const w = r.maxX - r.minX, d = r.maxZ - r.minZ;
@@ -252,7 +247,7 @@ export function buildWorld(cine, level, weapons) {
         const o = ((i + 0.5) / n - 0.5) * (alongX ? d : w);
         k.soft(wood, alongX ? w - 0.2 : 0.12, 0.13, alongX ? 0.12 : d - 0.2, cx + (alongX ? 0 : o), H - 0.065, cz + (alongX ? o : 0), { r: 0.02, long: alongX ? 0 : 2 });
       }
-      // 每个房间一块天花板（有天窗的挖掉天窗）：顶点落在屋内，才分得到室内的反射光
+      // 每个房间一块天花板（有天窗的挖掉天窗）
       for (const q of holes(S).reduce(minus, [r])) k.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.06, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.03, (q.minZ + q.maxZ) / 2, { r: 0 });
     }
     // 天窗：木框、几根窗棂（月光把它们的影子投在地上）、一层玻璃
@@ -280,10 +275,12 @@ export function buildWorld(cine, level, weapons) {
       for (const sx of [-1, 1]) shell.soft(wood, 0.06, 0.06, 0.8, x + sx * (w / 2 - 0.08), 2.26, z + 0.4, { r: 0.012, rx: 0.32 });
       shell.soft(wood, 0.1, 0.16, 0.1, x + w / 2 + 0.1, 1.86, z + 0.05, { r: 0.02 });
       shell.sphere(M.glow(0xffd9a0, 2.2), 0.09, x + w / 2 + 0.1, 1.72, z + 0.1, { seg: 10, rings: 8 });
+      lampList.push({ p: [x + w / 2 + 0.1, 1.72, z + 0.25], color: 0xffd9a0, power: TH.lampPower * 0.25, range: 4 });
     }
 
     // ---- 室内摆设
     const lamps = S.lamps.map(l => { const p = TH.lamp === 'spot' ? spotLamp(k, M, { x: l.x, z: l.z, ceiling: H }) : pendantLamp(k, M, { x: l.x, z: l.z, ceiling: H, color: l.color ?? 0xffd9a0 }); return { x: p.x, y: p.y + S.y, z: p.z }; });
+    for (const l of lamps) lampList.push({ p: [l.x, l.y - 0.05, l.z], color: TH.lampColor, power: TH.lampPower, range: TH.lampRange, ...(TH.lamp === 'spot' ? { dir: [0, -1, 0], cone: 1.15, soft: 0.6 } : {}) });
     for (const g of S.hangings) (g.kind === 'whale' ? whale : banner)(k, M, { ...g, ceiling: H });
     for (const r of S.rugs) rug(k, M, { ...r, y: inHouse(r.x, r.z) ? 0.026 : 0.012 });
     S.pictures.forEach((p, i) => picture(k, M, { ...p, seed: S.index * 31 + i + 1 }));
@@ -300,7 +297,7 @@ export function buildWorld(cine, level, weapons) {
   const storeys = level.storeys.map(buildStorey);
 
   // ================================================================== 楼梯间：通高的竖井，折返楼梯
-  const tower = new PlushKit({ skyAt: (x, y, z) => (inTower(x, z) && y < level.top ? TH.indoorSky : 1) });
+  const tower = new PlushKit();
   if (T0) {
     const t = T0, tw = t.maxX - t.minX, depth = t.mouthZ - t.endZ, zc = (t.mouthZ + t.endZ) / 2, hgt = level.top - (SH - H), laneW = -t.minX - t.spine, STEPS = 8, dz = t.run / STEPS;
     // 三面墙；北墙在每个半层平台的高度开一扇窗
@@ -327,6 +324,7 @@ export function buildWorld(cine, level, weapons) {
       tower.soft(tread, tw - 0.02, 0.2, t.landingZ - t.endZ, 0, y + t.rise - 0.1, t.landZ, { r: 0.02, long: 0 });
       tower.soft(runner, tw - 0.5, 0.02, (t.landingZ - t.endZ) * 0.55, 0, y + t.rise + 0.006, t.landZ, { r: 0.006 });
       tower.sphere(M.glow(0xffd9a0, 2.2), 0.08, -tw / 2 + 0.1, y + t.rise + 1.9, t.landZ, { seg: 10, rings: 8 });   // 平台上的壁灯
+      lampList.push({ p: [-tw / 2 + 0.3, y + t.rise + 1.9, t.landZ], color: 0xffd9a0, power: TH.lampPower * 0.45, range: 6 });
     }
     // 一层：东边那一跑下面是楼梯柜
     tower.soft(M('quilt', 0xb9a07c), laneW - 0.1, H - 0.5, 0.06, t.xB, (H - 0.5) / 2 + 0.06, t.mouthZ + 0.03, { r: 0.03 });
@@ -428,12 +426,29 @@ export function buildWorld(cine, level, weapons) {
   }
   update(0);
 
-  // ---- 灯光：一组朝下的聚光灯（不投影），最多八盏，点亮离玩家最近的那几盏吊灯 / 射灯。
-  // 灯的数量固定，换层、走动只是挪位置和调亮度，不会重编着色器；排在最远的那盏亮度降到零，所以换灯时看不出跳变。
-  const POOL = 8, pool = Array.from({ length: Math.min(POOL, Math.max(1, ...storeys.map(s => s.lamps.length))) }, () => {
-    const s = new T.SpotLight(0xffd3a0, 0, 10, 1.3, 0.8, 0.5);   // 衰减放得很缓：灯正下方的头顶不至于过曝
-    s.castShadow = false; root.add(s, s.target); return s;
-  });
+  // ---- 烘焙光照：搭好的网格就是挡光的东西；窗洞和天窗保持通透；每个房间给一个“这里是空气”的种子点
+  for (const st of storeys) for (const g of [st.shell, st.inner]) for (const m of g.children) vol.addMesh(m);
+  for (const m of fixed) vol.addMesh(m);
+  const seeds = [];
+  for (const S of level.storeys) {
+    for (const r of S.rooms) seeds.push([(r.minX + r.maxX) / 2, S.y + 1.5, (r.minZ + r.maxZ) / 2]);
+    for (const w of S.windows) {
+      const alongZ = typeof w.x === 'number', edge = alongZ ? w.x : w.z, a0 = w.at - w.w / 2 + 0.06, a1 = w.at + w.w / 2 - 0.06, y0 = S.y + (w.sill ?? 1.0) + 0.06, y1 = S.y + (w.head ?? 2.1) - 0.06;
+      vol.carve(alongZ ? [edge - WT - 0.1, y0, a0] : [a0, y0, edge - WT - 0.1], alongZ ? [edge + WT + 0.1, y1, a1] : [a1, y1, edge + WT + 0.1]);
+    }
+    for (const q of S.skylights) vol.carve([q.x - q.w / 2, S.y + H - 0.1, q.z - q.d / 2], [q.x + q.w / 2, S.y + H + 0.5, q.z + q.d / 2]);
+  }
+  if (T0) for (let i = 0; i < T0.flights; i++) { seeds.push([T0.xA, i * SH + 1.6, (T0.mouthZ + T0.landingZ) / 2]); vol.carve([-0.55, i * SH + T0.rise + 1.0, T0.endZ - WT - 0.1], [0.55, i * SH + T0.rise + 2.0, T0.endZ + 0.1]); }
+  for (const l of lampList) { seeds.push(l.p); vol.carve([l.p[0] - 0.3, l.p[1] - 0.3, l.p[2] - 0.3], [l.p[0] + 0.3, l.p[1] + 0.3, l.p[2] + 0.3]); }   // 灯罩不算挡光的东西
+  vol.uniforms.uLvGain.value = TH.lightGain;
+  // 调光用：换一组参数重新烘焙（挡光的格子不变）。o: skyGain, lampScale, lampColor, bounces, rays
+  const rebake = (o = {}) => { const from = lightFromLook(cine.look, { skyGain: o.skyGain ?? TH.skyGain }); from.sun.bounce = o.sunBounce ?? TH.sunBounce; return vol.bake({ ...from, seeds, rays: o.rays ?? TH.lightRays ?? 48, bounces: o.bounces ?? TH.lightBounces, bleed: o.bleed ?? TH.lightBleed, ambient: o.ambient ?? TH.lightAmbient,
+    lamps: lampList.map(l => ({ ...l, power: l.power * (o.lampScale ?? 1), color: o.lampColor ?? l.color })) }); };
+  const bake = rebake();
+
+  // 室外地面反上来的一点光（体积只管到房子周围两米多，再远的院子靠它）；只作用于见得到天的地方，屋里不受影响
+  if (TH.bounce) root.add(new T.HemisphereLight(TH.bounce[0], TH.bounce[1], TH.bounce[2]));
+
   let floor = -1;
   // 玩家换层时：只画这一层和上下相邻两层的室内
   function setFloor(f) {
@@ -441,25 +456,13 @@ export function buildWorld(cine, level, weapons) {
     floor = f;
     storeys.forEach((s, i) => { s.inner.visible = Math.abs(i - f) <= 1; });
   }
-  function updateLights(x, z) {
-    const lamps = storeys[Math.max(0, floor)].lamps.map(l => ({ l, d: Math.hypot(l.x - x, l.z - z) })).sort((a, b) => a.d - b.d);
-    const cut = lamps.length > pool.length ? lamps[pool.length].d : Infinity;
-    pool.forEach((light, i) => {
-      const it = lamps[i];
-      light.intensity = it ? 3.2 * Math.min(1, (cut - it.d) / 3) : 0;
-      if (it) { light.position.set(it.l.x, it.l.y, it.l.z); light.target.position.set(it.l.x, it.l.y - 2.2, it.l.z); }
-    });
-  }
-  setFloor(0); updateLights(level.player.x, level.player.z);
-
-  // 屋里的反射光：吊灯和晒到太阳的地板把整间屋子映亮（只作用于见不到天的面，见 library/surfaces/plush.js）
-  ROOM_LIGHT.value.setRGB(TH.roomLight[0], TH.roomLight[1], TH.roomLight[2]).multiplyScalar(TH.roomLight[3]);
-  // 地面反上来的一点光，角色和朝下的面靠它不发黑
-  const bounce = new T.HemisphereLight(TH.bounce[0], TH.bounce[1], TH.bounce[2]); root.add(bounce);
+  setFloor(0);
+  // 给会动的东西（角色、手里的枪、掉落物）挂上同一份光照
+  const light = (object) => { object.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) if (m.isMeshStandardMaterial) lit(m); }); return object; };
 
   const pickups = new Map();
-  for (const p of level.pickups) { const m = pickupModel(p, weapons); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
+  for (const p of level.pickups) { const m = light(pickupModel(p, weapons)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, lights: pool, bounce, roomLight: ROOM_LIGHT, theme: TH, update, setFloor, updateLights, lib, stats: { tris, meshes: all.length, ...lib.stats() } };
+  return { root, storeys, pickups, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
 }
