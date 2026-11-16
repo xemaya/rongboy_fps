@@ -1,0 +1,4 @@
+[submodule "cine-engine"]
+	path = cine-engine
+	url = https://github.com/xemaya/cine-engine.git
+	branch = pipeline

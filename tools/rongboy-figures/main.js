@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {createCineRenderer,LOOKS,cloneLook} from '../../engine/index.js';
+import {createCineRenderer,LOOKS,cloneLook} from '../../cine-engine/engine/index.js';
 import {loadFigurines} from '../../library/games/rongboy-runtime.js';
 import scoutAsset from '../../assets/rongboy/runtime-v2/scout.glb';
 import walkerAsset from '../../assets/rongboy/runtime-v2/walker.glb';

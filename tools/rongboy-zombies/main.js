@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {createCineRenderer,LOOKS,cloneLook} from '../../engine/index.js';
+import {createCineRenderer,LOOKS,cloneLook} from '../../cine-engine/engine/index.js';
 import {loadFigurines} from '../../library/games/rongboy-runtime.js';
 import {ZOMBIE_ROSTER} from '../../library/games/rongboy-roster.js';
 import {ATTACKS} from '../../scenes/rongboy-mission/attacks.js';

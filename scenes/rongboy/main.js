@@ -1,5 +1,5 @@
 import * as T from 'three';
-import {createCineRenderer,LOOKS,cloneLook} from '../../engine/index.js';
+import {createCineRenderer,LOOKS,cloneLook} from '../../cine-engine/engine/index.js';
 import {makeStage,puppet,pos} from '../../library/games/rongboy.js';
 import {createInitialState,recomputeLegalMoves,clickCell,endTurn,activateApexMove,shouldAutoEndTurn,AUTO_END_TURN_DELAY_MS,LEVELS_ACT_1} from './rules.js';
 const $=id=>document.getElementById(id), clone=s=>structuredClone(s), reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;

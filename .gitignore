@@ -1,12 +1,13 @@
 node_modules/
 .DS_Store
 shots/
-film/
 
-# Rongboy generated render caches and standalone bundles
+# built pages: one self-contained HTML file each, made by scripts/build.mjs
+dist/
+
+# generated render caches
 scripts/blender/__pycache__/
 assets/rongboy/**/frames/
 assets/rongboy/**/renders/
 assets/rongboy/**/checks/
 assets/rongboy/**/*.blend[0-9]
-dist/rongboy*.html

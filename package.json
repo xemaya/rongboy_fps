@@ -1,12 +1,13 @@
 {
-  "name": "cine-engine",
+  "name": "rongboy-fps",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Cinematic WebGL render pipeline for three.js (sky, soft shadows, volumetrics, lens, grade) with a lakeside forest demo",
+  "description": "Rongboy: a plush first-person woolball shooter (mission-based, keyboard only), built on cine-engine",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "dev": "node scripts/build.mjs --serve"
+    "dev": "node scripts/build.mjs --serve",
+    "test": "for f in scripts/tests/*.mjs; do node \"$f\" > /dev/null || { echo \"FAIL $f\"; exit 1; }; echo \"ok   $f\"; done"
   },
   "dependencies": {
     "lil-gui": "0.20.0",

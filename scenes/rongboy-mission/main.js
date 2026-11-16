@@ -1,7 +1,7 @@
 // Rongboy 任务制试玩：家 · 三层楼与花园。第一人称、纯键盘。
 // 战斗规则在 game.js，关卡几何在 level.js；这里只管画面、声音、输入和 HUD。
 import * as T from 'three';
-import { createCineRenderer, LOOKS, QUALITY, cloneLook } from '../../engine/index.js';
+import { createCineRenderer, LOOKS, QUALITY, cloneLook } from '../../cine-engine/engine/index.js';
 import { loadFigurines, createWoolBall } from '../../library/games/rongboy-runtime.js';
 import { dressWalker, createWeaponKit } from '../../library/games/rongboy-workshop.js';
 import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-shooter-fps/feedback.js';

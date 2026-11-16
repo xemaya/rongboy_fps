@@ -2,12 +2,12 @@
 // 楼有几层就搭几层：每层在自己的坐标里从 y = 0 建起，整组抬到那一层的高度；楼梯间是通高的一个竖井。
 // 碰撞仍然只认 level.js 的盒子；这里画出来的东西都落在那些盒子里，盒子外只有贴地、贴墙或高过头顶的装饰。
 import * as T from 'three';
-import { createMaterialLibrary, createLightVolume, lightFromLook } from '../../engine/index.js';
-import { mulberry32 } from '../../engine/noise.js';
-import { plushMaterials } from '../../library/surfaces/plush.js';
-import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, hedge, tree, planter, windowUnit, pendantLamp, rug, picture, flower, PETALS } from '../../library/structures/plush.js';
-import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../library/structures/museum.js';
-import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../library/structures/school.js';
+import { createMaterialLibrary, createLightVolume, lightFromLook } from '../../cine-engine/engine/index.js';
+import { mulberry32 } from '../../cine-engine/engine/noise.js';
+import { plushMaterials } from '../../cine-engine/library/surfaces/plush.js';
+import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, hedge, tree, planter, windowUnit, pendantLamp, rug, picture, flower, PETALS } from '../../cine-engine/library/structures/plush.js';
+import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../cine-engine/library/structures/museum.js';
+import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../cine-engine/library/structures/school.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 
 const WALL = 0xf0e4c8, CEILING = 0xf6eedb, ROOF = 0xd98468, HEDGE = 0x7caa66, LAWN = 0xa5c57c;
