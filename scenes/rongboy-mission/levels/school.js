@@ -112,29 +112,29 @@ export default {
   enemies: [
     // 操场
     { type: 'walker', x: -6.0, z: 4.2, state: 'idle', heading: Math.PI / 2, patrol: [[6.0, 4.2], [-6.0, 4.2]] },
-    { type: 'runner', x: -10.6, z: 4.6, state: 'asleep', heading: Math.PI / 2 },
+    { type: 'leaper', x: -10.6, z: 4.6, state: 'asleep', heading: Math.PI / 2 },
     { type: 'walker', x: 10.6, z: 10.8, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'weaver', x: 10.6, z: 6.4, state: 'idle', heading: Math.PI },
+    { type: 'leaper', x: 10.6, z: 6.4, state: 'idle', heading: Math.PI },
     { type: 'leaper', x: -6.4, z: 9.8, state: 'asleep', heading: Math.PI / 2 },
     // 走廊
     { type: 'walker', x: -10.0, z: -1.0, state: 'idle', heading: Math.PI / 2, patrol: [[10.0, -1.0], [-10.0, -1.0]] },
-    { type: 'runner', x: 11.2, z: -1.4, state: 'idle', heading: -Math.PI / 2 },
+    { type: 'leaper', x: 11.2, z: -1.4, state: 'idle', heading: -Math.PI / 2 },
     { type: 'heavy', x: -11.3, z: -1.3, state: 'asleep', heading: Math.PI / 2 },
     // 一班教室
     { type: 'walker', x: -7.5, z: -6.68, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'heavy', x: -10.2, z: -3.8, state: 'idle', heading: Math.PI / 2 },
-    { type: 'runner', x: -5.0, z: -4.9, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'leaper', x: -5.0, z: -4.9, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'leaper', x: -10.2, z: -8.2, state: 'idle', heading: 0 },
     // 美术教室
-    { type: 'weaver', x: -2.4, z: -3.6, state: 'idle', heading: Math.PI / 2, patrol: [[2.4, -3.6], [-2.4, -3.6]] },
+    { type: 'leaper', x: -2.4, z: -3.6, state: 'idle', heading: Math.PI / 2, patrol: [[2.4, -3.6], [-2.4, -3.6]] },
     { type: 'walker', x: 2.0, z: -7.3, state: 'asleep', heading: Math.PI },
     { type: 'walker', x: -1.8, z: -7.6, state: 'asleep', heading: 0 },
-    { type: 'runner', x: 0, z: -7.6, state: 'idle', heading: 0 },
+    { type: 'leaper', x: 0, z: -7.6, state: 'idle', heading: 0 },
     // 科学教室
     { type: 'heavy', x: 10.7, z: -6.6, state: 'idle', heading: -Math.PI / 2 },
     { type: 'walker', x: 5.6, z: -4.0, state: 'asleep', heading: Math.PI / 2 },
     { type: 'leaper', x: 10.6, z: -3.2, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'weaver', x: 5.6, z: -8.4, state: 'idle', heading: Math.PI / 2, patrol: [[10.2, -8.4], [5.6, -8.4]] },
+    { type: 'leaper', x: 5.6, z: -8.4, state: 'idle', heading: Math.PI / 2, patrol: [[10.2, -8.4], [5.6, -8.4]] },
   ],
 
   pickups: [

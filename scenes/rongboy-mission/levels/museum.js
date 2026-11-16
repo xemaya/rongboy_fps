@@ -165,22 +165,22 @@ export default {
     { type: 'walker', x: 2.6, z: 8.0, state: 'asleep', heading: Math.PI },
     // 中央大厅
     { type: 'walker', x: -3.0, z: -3.0, state: 'idle', heading: Math.PI / 2, patrol: [[3.0, -3.0], [-3.0, -3.0]] },
-    { type: 'runner', x: -3.2, z: 4.4, state: 'idle', heading: Math.PI, patrol: [[-3.2, -1.2], [-3.2, 4.4]] },
+    { type: 'leaper', x: -3.2, z: 4.4, state: 'idle', heading: Math.PI, patrol: [[-3.2, -1.2], [-3.2, 4.4]] },
     { type: 'leaper', x: 3.4, z: 2.4, state: 'asleep', heading: -Math.PI / 2 },
     // 埃及厅
     { type: 'heavy', x: -11.4, z: -0.8, state: 'idle', heading: Math.PI / 2 },
     { type: 'walker', x: -12.0, z: 4.9, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'weaver', x: -7.0, z: -2.4, state: 'idle', heading: 0, patrol: [[-7.0, 3.6], [-7.0, -2.4]] },
+    { type: 'leaper', x: -7.0, z: -2.4, state: 'idle', heading: 0, patrol: [[-7.0, 3.6], [-7.0, -2.4]] },
     { type: 'leaper', x: -10.2, z: -2.0, state: 'asleep', heading: 0 },
     { type: 'walker', x: -8.6, z: 4.6, state: 'asleep', heading: Math.PI },
     // 自然厅
-    { type: 'runner', x: 6.4, z: -1.6, state: 'idle', heading: Math.PI / 2, patrol: [[12.0, -1.6], [6.4, -1.6]] },
+    { type: 'leaper', x: 6.4, z: -1.6, state: 'idle', heading: Math.PI / 2, patrol: [[12.0, -1.6], [6.4, -1.6]] },
     { type: 'walker', x: 11.8, z: 3.0, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'heavy', x: 7.0, z: 2.6, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'weaver', x: 11.6, z: 5.0, state: 'idle', heading: -Math.PI / 2 },
+    { type: 'leaper', x: 11.6, z: 5.0, state: 'idle', heading: -Math.PI / 2 },
     // 画廊
     { type: 'walker', x: -12.5, z: -5.2, state: 'idle', heading: Math.PI / 2, patrol: [[-3.2, -5.2], [-12.5, -5.2]] },
-    { type: 'runner', x: -12.8, z: -11.2, state: 'asleep', heading: Math.PI / 2 },
+    { type: 'leaper', x: -12.8, z: -11.2, state: 'asleep', heading: Math.PI / 2 },
     { type: 'walker', x: -5.0, z: -10.6, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'leaper', x: -9.0, z: -10.6, state: 'idle', heading: 0 },
     // 北走廊
@@ -188,11 +188,11 @@ export default {
     // 珍宝馆
     { type: 'heavy', x: 8.5, z: -5.6, state: 'idle', heading: -Math.PI / 2 },
     { type: 'walker', x: 12.8, z: -10.4, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'runner', x: 3.4, z: -6.0, state: 'idle', heading: Math.PI, patrol: [[3.4, -10.6], [3.4, -6.0]] },
-    { type: 'weaver', x: 12.8, z: -6.4, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'leaper', x: 3.4, z: -6.0, state: 'idle', heading: Math.PI, patrol: [[3.4, -10.6], [3.4, -6.0]] },
+    { type: 'leaper', x: 12.8, z: -6.4, state: 'asleep', heading: -Math.PI / 2 },
     // 纪念品店
     { type: 'walker', x: -12.0, z: 7.2, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'runner', x: -6.4, z: 10.4, state: 'idle', heading: -Math.PI / 2 },
+    { type: 'leaper', x: -6.4, z: 10.4, state: 'idle', heading: -Math.PI / 2 },
     // 咖啡厅
     { type: 'walker', x: 5.6, z: 10.9, state: 'asleep', heading: Math.PI / 2 },
     { type: 'leaper', x: 11.2, z: 11.0, state: 'asleep', heading: -Math.PI / 2 },

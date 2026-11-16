@@ -238,8 +238,8 @@ export function resolveBody(level, body, r) {
   if (body.z > b.maxZ - r) { body.z = b.maxZ - r; if (body.vz > 0) body.vz *= -0.25; }
 }
 
-// 寻路只分两档体宽，避免每种半径各建一张图。
-export function navRadius(radius) { return radius <= 0.33 ? 0.345 : 0.455; }
+// 寻路分普通、厚身与首领三档体宽，避免每种半径各建一张图。
+export function navRadius(radius) { return radius <= 0.33 ? 0.345 : radius<=.46?.455:.675; }
 
 // 拐角可见图：每个挡路盒子的四个外角是节点，互相看得见就连边。每个关卡、每档体宽建一次。
 const graphs = new WeakMap();

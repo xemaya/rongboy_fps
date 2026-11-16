@@ -135,7 +135,10 @@ function furniture(k, M, c) {
 export function buildWorld(cine, level, weapons) {
   const scene = cine.scene, B = level.bounds, H = level.height, WT = level.wallThickness, SH = level.storeyHeight, N = level.storeys.length, T0 = level.stairs;
   const root = new T.Group(); scene.add(root);
-  const house = level.house, hx = (house.minX + house.maxX) / 2, hz = (house.minZ + house.maxZ) / 2, hw = house.maxX - house.minX, hd = house.maxZ - house.minZ;
+  // 没有房子的图（试战庭院：整张图都是露天）：把“房子”当成北边界上一条零进深的线，院子就是整张图，
+  // 下面凡是搭房子的地方（外墙、屋檐、屋顶、石板路）都跳过
+  const built = Number.isFinite(level.house.minX);
+  const house = built ? level.house : { minX: B.minX, maxX: B.maxX, minZ: B.minZ, maxZ: B.minZ }, hx = (house.minX + house.maxX) / 2, hz = (house.minZ + house.maxZ) / 2, hw = house.maxX - house.minX, hd = house.maxZ - house.minZ;
   const inTower = (x, z) => !!T0 && x >= T0.minX - 0.01 && x <= T0.maxX + 0.01 && z >= T0.endZ - 0.01 && z <= T0.mouthZ;
   const inHouse = (x, z, pad = 0.01) => (x >= house.minX - pad && x <= house.maxX + pad && z >= house.minZ - pad && z <= house.maxZ) || inTower(x, z);   // 南立面外侧算室外
   // 这张图的外观参数：关卡的 theme 盖在默认值（家的样子）上
@@ -144,13 +147,14 @@ export function buildWorld(cine, level, weapons) {
   // sunBounce：晒到太阳的地面往回反多少光（1 是照实算；玩具的颜色都很亮，照实算室外会发白）
   const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false,
     lampPower: 7, lampRange: 9, lampColor: 0xfff4e6, skyGain: 5, lightGain: 1, lightBounces: 4, lightBleed: 0.5, lightAmbient: null, sunBounce: 0.45, bounce: [0x59636e, 0xffd2a0, 0.4], sheer: [0xfff6e2, 0xffe6bd, 1], ...(level.theme || {}) };
+  if (!built) TH.roof = false;
 
   // ---- 光照体积：整栋楼（外加一圈院子）里每半米一格，记下那里收到的天光、灯光和反射光。
   // 墙、家具和会动的角色都按自己的位置去查同一份数据，所以不用再给“室内”单独调一个亮度。
   // 这里只定范围、给材质挂上查询；搭完之后（文件末尾）再把搭出来的网格交给它烘焙。
   const VM = 2.5, vol = createLightVolume({
     min: [Math.min(house.minX, T0 ? T0.minX : Infinity) - VM, -0.2, Math.min(house.minZ, T0 ? T0.endZ : Infinity) - VM],
-    max: [Math.max(house.maxX, T0 ? T0.maxX : -Infinity) + VM, level.top + (TH.roof ? 4.2 : 1.6), house.maxZ + VM + 1.5],
+    max: [Math.max(house.maxX, T0 ? T0.maxX : -Infinity) + VM, level.top + (TH.roof ? 4.2 : 1.6), (built ? house.maxZ + 1.5 : B.maxZ) + VM],   // 没有房子就包住整个院子
     cell: TH.lightCell ?? 0.5, voxel: 0.2, ground: { y: 0, color: TH.lawn ?? LAWN },
   });
   const lit = m => vol.light(m);
@@ -184,7 +188,7 @@ export function buildWorld(cine, level, weapons) {
     const slabs = [];
     for (const c of S.walls) slabs.push({ alongZ: c.alongZ, line: c.alongZ ? c.x : c.z, t: WT, a0: c.alongZ ? c.minZ : c.minX, a1: c.alongZ ? c.maxZ : c.maxX, y0: c.minY - S.y, y1: c.maxY - S.y, lintel: c.kind === 'lintel' });
     const interiorLines = new Set(slabs.map(s => (s.alongZ ? 'x' : 'z') + s.line)), southOutside = !interiorLines.has('z' + house.maxZ);
-    for (const [alongZ, edge, out] of [[true, house.minX, -1], [true, house.maxX, 1], [false, house.minZ, -1], [false, house.maxZ, 1]]) {
+    for (const [alongZ, edge, out] of built ? [[true, house.minX, -1], [true, house.maxX, 1], [false, house.minZ, -1], [false, house.maxZ, 1]] : []) {
       if (interiorLines.has((alongZ ? 'x' : 'z') + edge)) continue;   // 这一边本来就有一道内墙（一层的南立面）
       const lo = alongZ ? house.minZ : house.minX, hi = alongZ ? house.maxZ : house.maxX, base = { alongZ, line: edge + out * WT / 2, edge, t: WT, y0: 0, y1: H, outside: true };
       if (alongZ) slabs.push({ ...base, a0: lo - WT, a1: hi + (southOutside ? WT : WT / 2) });
@@ -261,7 +265,8 @@ export function buildWorld(cine, level, weapons) {
     }
     // 外立面：一层的墙基，层与层之间的腰线，顶层的屋檐（伸出去一截，负责挡住太阳）
     if (ground) for (const s of pieces) if (!s.alongZ && s.line === house.maxZ && s.y0 === 0) along(shell, s, M('boards', 0x9db3a0), s.a1 - s.a0, 0.42, 0.04, (s.a0 + s.a1) / 2, 0.21, s.t / 2 + 0.014, { r: 0.015, long: 0 });
-    if (top) for (const q of holes(S).reduce(minus, [{ minX: hx - hw / 2 - 0.65, maxX: hx + hw / 2 + 0.65, minZ: hz - hd / 2 - 0.65, maxZ: hz + hd / 2 + 0.65 }])) shell.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.1, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.11, (q.minZ + q.maxZ) / 2, { r: 0 });
+    if (!built) { /* 露天：没有屋檐也没有腰线 */ }
+    else if (top) for (const q of holes(S).reduce(minus, [{ minX: hx - hw / 2 - 0.65, maxX: hx + hw / 2 + 0.65, minZ: hz - hd / 2 - 0.65, maxZ: hz + hd / 2 + 0.65 }])) shell.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.1, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.11, (q.minZ + q.maxZ) / 2, { r: 0 });
     else {
       const band = M('boards', 0xc9b48f), y = H + (SH - H) / 2;
       shell.soft(band, hw + 0.56, SH - H + 0.12, 0.1, hx, y, house.maxZ + (ground ? WT / 2 : WT) + 0.03, { r: 0.03, long: 0 });
@@ -345,6 +350,7 @@ export function buildWorld(cine, level, weapons) {
   else if (G) {
     // 围篱：东、南、西三面，朝外的一面没人看得到
     hedge(k, M, { id: 'edge-s', x: hx, z: G.maxZ + 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 's' });
+    if (!built) hedge(k, M, { id: 'edge-n', x: hx, z: G.minZ - 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 'n' });
     for (const sx of [-1, 1]) hedge(k, M, { id: 'edge' + sx, x: hx + sx * (hw / 2 + 0.3), z: (G.minZ + WT / 2 + G.maxZ) / 2, w: 0.6, d: G.maxZ - G.minZ - WT / 2, h: 2.2, color: HEDGE, hidden: sx > 0 ? 'e' : 'w' });
     const gx = level.player.x, gz = G.maxZ - 0.06;
     for (const s of [-1, 1]) { k.soft(wood, 0.16, 1.9, 0.16, gx + s * 0.95, 0.95, gz, { r: 0.03 }); k.sphere(M.button(0xe9c46a), 0.11, gx + s * 0.95, 1.98, gz, { seg: 10, rings: 8 }); }
@@ -354,7 +360,7 @@ export function buildWorld(cine, level, weapons) {
     const path = [[0, 4.45], [0.05, 5.2], [-0.04, 5.95]];
     for (const s of [-1, 1]) path.push([s * 1.0, 6.5], [s * 2.0, 6.75], [s * 3.0, 7.05], [s * 3.3, 7.9], [s * 2.8, 8.75], [s * 1.9, 9.4], [s * 0.85, 9.9]);
     path.push([-5.45, 3.8], [-5.2, 4.6], [-4.6, 5.3], [-3.7, 5.85], [-2.7, 6.2], [-1.7, 6.45]);
-    for (const [x, z] of path) k.cyl(M('felt', stone[Math.floor(rnd() * 3)]), 0.3 + rnd() * 0.06, 0.33 + rnd() * 0.06, 0.035, x + (rnd() - 0.5) * 0.08, 0.004, z, { seg: 12 });
+    if (built) for (const [x, z] of path) k.cyl(M('felt', stone[Math.floor(rnd() * 3)]), 0.3 + rnd() * 0.06, 0.33 + rnd() * 0.06, 0.035, x + (rnd() - 0.5) * 0.08, 0.004, z, { seg: 12 });
     // 沿围篱脚下的野花和蘑菇（都很矮，不挡路）
     for (let i = 0; i < 46; i++) {
       const side = Math.floor(rnd() * 3), u = rnd();

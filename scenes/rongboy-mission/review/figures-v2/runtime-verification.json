@@ -1,0 +1,495 @@
+{
+  "intro": {
+    "state": {
+      "alive": 16,
+      "ammo": [
+        {
+          "mag": 6,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 0,
+      "bounces": 0,
+      "enemies": [
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 6,
+          "id": 1,
+          "type": "walker",
+          "x": -4.5,
+          "z": 5.5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 4,
+          "id": 2,
+          "type": "runner",
+          "x": -7.6,
+          "z": 5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 3,
+          "type": "walker",
+          "x": 7,
+          "z": 7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 6,
+          "id": 4,
+          "type": "walker",
+          "x": 0,
+          "z": -0.5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 5,
+          "type": "leaper",
+          "x": 0.3,
+          "z": -5.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 6,
+          "type": "weaver",
+          "x": -5.4,
+          "z": 1.8
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 7,
+          "type": "walker",
+          "x": -7.6,
+          "z": -2.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 4,
+          "id": 8,
+          "type": "runner",
+          "x": -2.3,
+          "z": 2.4
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 8,
+          "id": 9,
+          "type": "heavy",
+          "x": -7.2,
+          "z": -4.8
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 10,
+          "type": "walker",
+          "x": -3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 11,
+          "type": "walker",
+          "x": -7.3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 12,
+          "type": "leaper",
+          "x": 4.9,
+          "z": 1.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 13,
+          "type": "weaver",
+          "x": 2.6,
+          "z": -0.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 8,
+          "id": 14,
+          "type": "heavy",
+          "x": 6.9,
+          "z": -6.2
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 4,
+          "id": 15,
+          "type": "runner",
+          "x": 3.2,
+          "z": -6.4
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 16,
+          "type": "walker",
+          "x": 3.4,
+          "z": -7.4
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "mode": "menu",
+      "paused": false,
+      "phase": "playing",
+      "pickups": 6,
+      "pitch": 0,
+      "player": {
+        "x": 0,
+        "z": 10
+      },
+      "reloading": false,
+      "room": "garden",
+      "shots": 0,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 0,
+      "total": 16,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 121,
+      "frameIntervalMs": null,
+      "geometries": 119,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 28,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 69,
+      "tris": 348486
+    }
+  },
+  "playing": {
+    "state": {
+      "alive": 16,
+      "ammo": [
+        {
+          "mag": 5,
+          "reserve": "inf"
+        },
+        {
+          "mag": 2,
+          "reserve": 4
+        },
+        {
+          "mag": 1,
+          "reserve": 1
+        }
+      ],
+      "backHits": 0,
+      "balls": 1,
+      "bounces": 1,
+      "enemies": [
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "alert",
+          "hp": 6,
+          "id": 1,
+          "type": "walker",
+          "x": -2.9788482044052835,
+          "z": 5.4935305513598305
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "waking",
+          "hp": 4,
+          "id": 2,
+          "type": "runner",
+          "x": -7.6,
+          "z": 5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 3,
+          "type": "walker",
+          "x": 7,
+          "z": 7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 6,
+          "id": 4,
+          "type": "walker",
+          "x": 0,
+          "z": -0.5
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 5,
+          "type": "leaper",
+          "x": 0.3,
+          "z": -5.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 6,
+          "type": "weaver",
+          "x": -5.4,
+          "z": 0.177508849002027
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 7,
+          "type": "walker",
+          "x": -7.6,
+          "z": -2.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 4,
+          "id": 8,
+          "type": "runner",
+          "x": -2.3,
+          "z": 2.4
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 8,
+          "id": 9,
+          "type": "heavy",
+          "x": -7.2,
+          "z": -4.8
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 10,
+          "type": "walker",
+          "x": -3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 11,
+          "type": "walker",
+          "x": -7.3,
+          "z": -7.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 5,
+          "id": 12,
+          "type": "leaper",
+          "x": 4.9,
+          "z": 1.3
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 5,
+          "id": 13,
+          "type": "weaver",
+          "x": 4.222491150997986,
+          "z": -0.6
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 8,
+          "id": 14,
+          "type": "heavy",
+          "x": 6.9,
+          "z": -6.2
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "idle",
+          "hp": 4,
+          "id": 15,
+          "type": "runner",
+          "x": 5.778326004708639,
+          "z": -5.585791787986737
+        },
+        {
+          "action": "chase",
+          "alive": true,
+          "awareness": "asleep",
+          "hp": 6,
+          "id": 16,
+          "type": "walker",
+          "x": 3.4,
+          "z": -7.4
+        }
+      ],
+      "errors": [],
+      "health": 3,
+      "hits": 0,
+      "kills": 0,
+      "mode": "playing",
+      "paused": true,
+      "phase": "playing",
+      "pickups": 6,
+      "pitch": 0,
+      "player": {
+        "x": 3.1500000000000083,
+        "z": 4.960000000000047
+      },
+      "reloading": true,
+      "room": "garden",
+      "shots": 1,
+      "sneakHits": 0,
+      "stars": 0,
+      "time": 2.8416666666666592,
+      "total": 16,
+      "weapon": "single",
+      "yaw": 0
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 102,
+      "frameIntervalMs": 10.162222222222224,
+      "geometries": 141,
+      "measurement": "observed RAF intervals; not synchronized GPU benchmark",
+      "programs": 31,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 97,
+      "tris": 106318
+    }
+  },
+  "studioAnimation": {
+    "state": {
+      "errors": [],
+      "mode": "both",
+      "moving": true,
+      "pose": {
+        "scoutY": 0.007896021441482408,
+        "walkerArm": -1.09518512135477,
+        "walkerY": 0.040296194167631985
+      },
+      "ready": true,
+      "scout": {
+        "meshes": 27,
+        "parts": 11,
+        "vertices": 523710
+      },
+      "version": "v2",
+      "walker": {
+        "meshes": 15,
+        "parts": 6,
+        "vertices": 251796
+      }
+    },
+    "stats": {
+      "adapt": null,
+      "advanced": true,
+      "calls": 114,
+      "geometries": 58,
+      "programs": 23,
+      "quality": "medium",
+      "res": [
+        1469,
+        826
+      ],
+      "scale": 1,
+      "shaderErrors": 0,
+      "softShadows": true,
+      "textures": 33,
+      "tris": 518066
+    }
+  },
+  "before": "intro-before.png",
+  "after": "intro-after.png"
+}
