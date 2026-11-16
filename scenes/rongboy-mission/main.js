@@ -74,6 +74,16 @@ const LOOK_PRESETS = {
     Object.assign(look.grade, { key: 0.17, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.16, saturation: 1.06, contrast: 0.2, sharpen: 0.55 });
     return look;
   },
+  // morning：上学路上的晴天上午。太阳在东南方，照亮教学楼的正面和整个操场；天更蓝、更饱和一点，颜色像蜡笔盒。
+  morning() {
+    const look = cloneLook(LOOKS.clearNoon);
+    Object.assign(look.sun, { azimuth: 56, elevation: 46, intensity: 5.6, color: [1, 0.94, 0.82] });
+    look.env.intensity = 1.25;
+    Object.assign(look.sky, { zenith: [0.14, 0.36, 0.72], mid: [0.34, 0.6, 0.9], midSun: [0.6, 0.74, 0.9], horizon: [0.82, 0.9, 0.96], horizonAway: [0.62, 0.78, 0.94], glow: [1.4, 1.35, 1.2], cloudCover: 0.22, cloudWarm: 0.2 });
+    Object.assign(look.air, { sigma: 0.0005, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.6, aoStrength: 0.7 });
+    Object.assign(look.grade, { key: 0.18, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.14, saturation: 1.12, contrast: 0.18, sharpen: 0.55 });
+    return look;
+  },
   night() {
     const look = cloneLook(LOOKS.blueHour);
     Object.assign(look.sun, { azimuth: 52, elevation: 66, intensity: 2.6, color: [0.62, 0.76, 1.0] });

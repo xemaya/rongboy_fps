@@ -8,6 +8,7 @@ import { mulberry32 } from '../../engine/noise.js';
 import { registerPlush, plush, roomLit, ROOM_LIGHT } from '../../library/surfaces/plush.js';
 import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, hedge, tree, planter, windowUnit, pendantLamp, rug, picture, flower, PETALS } from '../../library/structures/plush.js';
 import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../library/structures/museum.js';
+import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../library/structures/school.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 
 export const INDOOR_SKY = 0.4;   // 屋里能分到多少天光（环境光按这个比例压暗）
@@ -69,11 +70,14 @@ function pickupModel(k, weapons) {
 function furniture(k, M, c) {
   const look = c.look || c.kind;
   // 博物馆的展品
-  if (c.kind === 'plinth') return look === 'dino' ? dinosaur(k, M, c) : plinth(k, M, c);
+  if (c.kind === 'plinth') return look === 'dino' ? dinosaur(k, M, c) : look === 'skeleton' ? skeletonModel(k, M, c) : plinth(k, M, c);
   if (c.kind === 'case') return displayCase(k, M, c);
   if (c.kind === 'sarcophagus') return sarcophagus(k, M, c);
   if (look === 'ottoman') return ottoman(k, M, c);
   if (look === 'reception') return reception(k, M, c);
+  // 学校的课桌椅和操场上的玩具
+  const school = { 'desk-kid': kidDesk, podium, locker: lockers, easel, palette: paletteTable, labbench: labBench, slide, swing: swings, playhouse, seesaw, blocks: blockStack }[look];
+  if (school) return school(k, M, c);
   if (look === 'hedge') hedge(k, M, c);
   else if (look === 'tree') tree(k, M, c);
   else if (look === 'planter') planter(k, M, c);
@@ -127,7 +131,7 @@ function furniture(k, M, c) {
     const l = cabinet(k, M, c), [x, z] = l.pos(l.across * 0.2, l.depth / 2), rnd = l.rnd;
     k.cyl(M.button(0xd08a66), 0.07, 0.055, 0.1, x, c.h + 0.05, z, { seg: 10 });
     for (let i = 0; i < 5; i++) k.sphere(M('terry', 0x6f9a5e), 0.05 + rnd() * 0.03, x + (rnd() - 0.5) * 0.1, c.h + 0.14 + rnd() * 0.1, z + (rnd() - 0.5) * 0.1, { seg: 8, rings: 6 });
-  } else if (c.kind === 'bench') table(k, M, c, look === 'bench' && c.id !== 'garden-bench' ? 'coffee' : look);
+  } else if (c.kind === 'bench') table(k, M, c, c.look || 'coffee');
   else crate(k, M, c, look);
 }
 
@@ -336,10 +340,11 @@ export function buildWorld(cine, level, weapons) {
 
   // ================================================================== 花园：草地、围篱、院门、石板路
   const k = new PlushKit(), far = new PlushKit();   // far：屋顶和远景，不投影
-  k.soft(M('terry', LAWN), 120, 0.2, 120, hx, -0.1, (B.minZ + B.maxZ) / 2, { r: 0 });   // 草地顶面在 y = 0，室内地面高出 1.2 厘米
+  k.soft(M('terry', TH.lawn ?? LAWN), 120, 0.2, 120, hx, -0.1, (B.minZ + B.maxZ) / 2, { r: 0 });   // 草地顶面在 y = 0，室内地面高出 1.2 厘米
   for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) furniture(k, M, c);
   const G = level.outdoor.length ? { minX: house.minX, maxX: house.maxX, minZ: house.maxZ, maxZ: B.maxZ } : null;
-  if (G) {
+  if (G && TH.yard === 'playground') playground(k, M, { G, gateX: level.player.x, yard: level.yard || [] });   // 学校：铅笔围栏、蜡笔校门、地上的画线
+  else if (G) {
     // 围篱：东、南、西三面，朝外的一面没人看得到
     hedge(k, M, { id: 'edge-s', x: hx, z: G.maxZ + 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 's' });
     for (const sx of [-1, 1]) hedge(k, M, { id: 'edge' + sx, x: hx + sx * (hw / 2 + 0.3), z: (G.minZ + WT / 2 + G.maxZ) / 2, w: 0.6, d: G.maxZ - G.minZ - WT / 2, h: 2.2, color: HEDGE, hidden: sx > 0 ? 'e' : 'w' });
@@ -368,10 +373,10 @@ export function buildWorld(cine, level, weapons) {
   // ---- 坡屋顶、烟囱（在顶层上面）
   const roofY = (N - 1) * SH, pitch = 0.47, run = hd / 2 + 0.75, rise = run * Math.tan(pitch), slope = run / Math.cos(pitch), eave = roofY + H + 0.16;
   for (const sign of [-1, 1]) {
-    far.soft(M('shingle', ROOF), hw + 1.6, 0.18, slope + 0.1, hx, eave + rise / 2, hz + sign * run / 2, { r: 0.05, rx: sign * pitch, ry: sign > 0 ? Math.PI : 0 });
+    far.soft(M('shingle', TH.roofColor ?? ROOF), hw + 1.6, 0.18, slope + 0.1, hx, eave + rise / 2, hz + sign * run / 2, { r: 0.05, rx: sign * pitch, ry: sign > 0 ? Math.PI : 0 });
     for (const x of [house.minX - 0.5, house.maxX + 0.5]) far.quad(M('felt', WALL), [x, eave - 0.05, hz], [x, eave - 0.05, hz + sign * run], [x, eave + rise, hz], [x, eave + rise, hz], [[0, 0], [run, 0], [0, rise], [0, rise]], 1, [Math.sign(x - hx), 0, 0]);
   }
-  far.cyl(M('felt', tone(ROOF, -0.2)), 0.13, 0.13, hw + 1.7, hx, eave + rise + 0.05, hz, { seg: 10, rz: Math.PI / 2 });
+  far.cyl(M('felt', tone(TH.roofColor ?? ROOF, -0.2)), 0.13, 0.13, hw + 1.7, hx, eave + rise + 0.05, hz, { seg: 10, rz: Math.PI / 2 });
   chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
   far.soft(M('quilt', 0xb86a55), 0.9, 2.2, 0.9, chimney.x, chimney.top - 1.1, chimney.z, { r: 0.05 });
   far.soft(M('felt', 0xe9dcc0), 1.06, 0.16, 1.06, chimney.x, chimney.top, chimney.z, { r: 0.05 });
@@ -380,6 +385,7 @@ export function buildWorld(cine, level, weapons) {
 
   if (G) {
   // ---- 远景：毛毡小山、棒棒糖树（都在围篱外面）
+  if (TH.rainbow) rainbow(far, M, { x: hx, z: house.minZ - 34, r: 23 });
   const hills = [0x9dbb7c, 0x8fb074, 0xa9c487, 0x86a86e];
   for (let i = 0; i < 14; i++) {
     const a = (i / 14) * Math.PI * 2 + rnd() * 0.3, dist = 34 + rnd() * 24, r = 12 + rnd() * 14;
