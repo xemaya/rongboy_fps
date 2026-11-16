@@ -2,6 +2,7 @@
 //   node scripts/build.mjs                  build every page
 //   node scripts/build.mjs lakeside         build one page
 //   node scripts/build.mjs --serve [page]   rebuild on change and serve dist/ (port 5173, or the next free one)
+//   node scripts/build.mjs --serve --port 5192 [page]   same, on a fixed port
 // A page is a folder with main.js + index.html: scenes/<name>/ or tools/<name>/ (tools/showcase).
 import * as esbuild from 'esbuild';
 import { readFile, writeFile, rename, mkdir, readdir, stat } from 'node:fs/promises';
@@ -13,7 +14,10 @@ import path from 'node:path';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const serve = args.includes('--serve');
-const only = args.filter((a) => !a.startsWith('--'));
+// --port <n> pins the dev-server port (same as PORT=<n>); its value is not a page name
+const portAt = args.indexOf('--port');
+const portArg = portAt >= 0 ? Number(args[portAt + 1]) : 0;
+const only = args.filter((a, i) => !a.startsWith('--') && (portAt < 0 || i !== portAt + 1));
 
 async function pages() {
   const out = [];
@@ -89,7 +93,7 @@ if (serve) {
     }
   });
   // 5173 is often taken by another dev server: walk up until a free port is found
-  let port = Number(process.env.PORT) || 5173;
+  let port = portArg || Number(process.env.PORT) || 5173;
   server.on('error', (e) => {
     if (e.code === 'EADDRINUSE' && port < 5200) server.listen(++port, '127.0.0.1');
     else throw e;
