@@ -40,6 +40,7 @@ scripts/blender/        生成和导出手办的 Blender 脚本
 scripts/build.mjs       打包；scripts/tests/ 检查
 vendor/combo-hopper/    跳棋样板用的原规则快照，见其中的 PROVENANCE.md
 docs/figures.md         手办造型的规则和检查记录
+docs/readme-before-split.md   拆分前 cine-engine 的 README 里关于 Rongboy 的几节（各版本手办、图鉴、试战场的说明）
 ```
 
 ## 和引擎的分工
