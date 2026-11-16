@@ -4,18 +4,19 @@
 // 身体（玩家、僵尸）只被离地不高的盒子挡住；门楣之类悬空的盒子只挡毛球。
 const BODY_HEIGHT = 1.1;
 
-function box(o) {
-  const minY = o.minY ?? 0;
+// y0 是这一层的地面高度；盒子里的 minY / maxY 都是绝对高度，floorY 记下它属于哪一层。
+function box(o, y0 = 0) {
+  const minY = y0 + (o.minY ?? 0);
   return {
     ...o,
     minX: o.x - o.w / 2, maxX: o.x + o.w / 2,
     minZ: o.z - o.d / 2, maxZ: o.z + o.d / 2,
-    minY, maxY: o.maxY ?? minY + o.h,
+    minY, maxY: minY + o.h, floorY: y0,
   };
 }
 
 // 一道带门洞的墙拆成若干实心段，每个门洞上方补一块门楣。
-function wallBoxes(wall, index, def) {
+function wallBoxes(wall, index, def, y0) {
   const t = def.wallThickness, alongZ = typeof wall.x === 'number';
   const [from, to] = alongZ ? wall.z : wall.x;
   const doors = [...(wall.doors || [])].sort((a, b) => a[0] - b[0]);
@@ -24,8 +25,8 @@ function wallBoxes(wall, index, def) {
     if (b - a < 1e-6) return;
     const mid = (a + b) / 2, len = b - a;
     out.push(box(alongZ
-      ? { id: `wall${index}-${kind}${n}`, kind, x: wall.x, z: mid, w: t, d: len, minY, h }
-      : { id: `wall${index}-${kind}${n}`, kind, x: mid, z: wall.z, w: len, d: t, minY, h }));
+      ? { id: `wall${index}-${kind}${n}`, kind, alongZ, x: wall.x, z: mid, w: t, d: len, minY, h }
+      : { id: `wall${index}-${kind}${n}`, kind, alongZ, x: mid, z: wall.z, w: len, d: t, minY, h }, y0));
   };
   let cursor = from;
   doors.forEach(([a, b], n) => {
@@ -37,16 +38,122 @@ function wallBoxes(wall, index, def) {
   return out;
 }
 
+const rectOf = rooms => rooms.reduce((a, r) => ({ minX: Math.min(a.minX, r.minX), maxX: Math.max(a.maxX, r.maxX), minZ: Math.min(a.minZ, r.minZ), maxZ: Math.max(a.maxZ, r.maxZ) }),
+  { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity });
+
+// 关卡可以有好几层：def 本身是底层，def.upper 是往上的各层（各有自己的房间、墙、家具、僵尸、拾取物）。
+// 层高 storeyHeight = 室内净高 + 楼板厚。每层编译成一个 storey：有自己的边界和挡路盒子，二维的碰撞、寻路按层做；
+// level.solids 是全楼所有盒子（含楼板），毛球和视线在三维里用它。
+//
+// 楼梯间（def.stairs）是屋外凸出去的一个竖井，里面每两层之间一段折返楼梯：
+// 西边一跑（A）从这层往北上到半层平台，东边一跑（B）从平台往南上到上一层。mouthZ 是楼梯口，landingZ 往北是平台。
 export function compileLevel(def) {
-  const walls = def.walls.flatMap((w, i) => wallBoxes(w, i, def));
-  const furniture = def.furniture.map(f => box({ ...f, solid: 'furniture' }));
-  const solids = [...walls, ...furniture];
+  const SH = def.storeyHeight ?? def.height + 0.2, parts = [def, ...(def.upper || [])], n = parts.length, top = n * SH;
+  const house = rectOf(def.rooms.filter(r => !r.outdoor && !r.tower));
+  const B = def.bounds, shared = [], stairBoxes = [];
+  let stairs = null;
+  if (def.stairs) {
+    const t = def.stairs, spine = 0.1;
+    stairs = { ...t, spine, xA: (t.minX - spine) / 2, xB: (t.maxX + spine) / 2, run: t.mouthZ - t.landingZ, rise: SH / 2,
+      landZ: (t.landingZ + t.endZ) / 2, outZ: t.mouthZ + 0.45, flights: n - 1 };
+    // 竖井两侧是实心的（屋外的空地不属于关卡），两跑之间是一道通高的隔墙
+    for (const [x0, x1, side] of [[B.minX, t.minX, 'w'], [t.maxX, B.maxX, 'e']]) {
+      shared.push(box({ id: 'void-' + side, kind: 'void', x: (x0 + x1) / 2, z: (t.endZ + t.mouthZ) / 2, w: x1 - x0, d: t.mouthZ - t.endZ, h: top }));
+    }
+    shared.push(box({ id: 'stair-spine', kind: 'spine', x: 0, z: (t.landingZ + t.mouthZ) / 2, w: spine * 2, d: stairs.run, h: top }));
+    // 踏步和平台只给毛球和视线用（身体的高度由 surfaceY 按坡道算），每跑粗分成 5 级
+    const STEPS = 5, dz = stairs.run / STEPS;
+    for (let i = 0; i < n - 1; i++) {
+      for (let j = 0; j < STEPS; j++) {
+        const z = t.mouthZ - (j + 0.5) * dz, hA = stairs.rise * (j + 1) / STEPS, hB = SH - stairs.rise * j / STEPS;
+        stairBoxes.push(box({ id: `stairA${i}-${j}`, kind: 'stair', x: stairs.xA, z, w: -t.minX - spine, d: dz, minY: hA - 0.3, h: 0.3 }, i * SH));
+        stairBoxes.push(box({ id: `stairB${i}-${j}`, kind: 'stair', x: stairs.xB, z, w: t.maxX - spine, d: dz, minY: hB - 0.3, h: 0.3 }, i * SH));
+      }
+      stairBoxes.push(box({ id: `landing${i}`, kind: 'stair', x: (t.minX + t.maxX) / 2, z: stairs.landZ, w: t.maxX - t.minX, d: t.landingZ - t.endZ, minY: stairs.rise - 0.2, h: 0.2 }, i * SH));
+    }
+    stairBoxes.push(box({ id: 'stair-roof', kind: 'slab', x: (t.minX + t.maxX) / 2, z: (t.endZ + t.mouthZ) / 2, w: t.maxX - t.minX, d: t.mouthZ - t.endZ, minY: top - (SH - def.height), h: SH - def.height }));
+  }
+  const storeys = parts.map((part, i) => {
+    const y = i * SH, rooms = part.rooms, indoor = rooms.filter(r => !r.outdoor && !r.tower);
+    const walls = (part.walls || []).flatMap((w, k) => wallBoxes(w, k, def, y));
+    const furniture = (part.furniture || []).map(f => box({ ...f, solid: 'furniture' }, y));
+    const extra = [];
+    if (indoor.length) {   // 这一层的天花板（也是上一层的楼板）
+      const r = rectOf(indoor);
+      extra.push(box({ id: 'slab' + i, kind: 'slab', x: (r.minX + r.maxX) / 2, z: (r.minZ + r.maxZ) / 2, w: r.maxX - r.minX, d: r.maxZ - r.minZ, minY: def.height, h: SH - def.height }, y));
+    }
+    // 楼上朝花园的那面外墙：身体由本层边界挡住，这块盒子挡毛球和视线
+    if (i > 0) extra.push(box({ id: 'shell' + i, kind: 'shell', x: (house.minX + house.maxX) / 2, z: house.maxZ + 0.1, w: house.maxX - house.minX + 0.4, d: 0.2, h: SH }, y));
+    if (stairs) {
+      // 底层：东边那一跑的下面是楼梯柜，封住；顶层：西边没有再往上的楼梯，口上一道栏杆
+      if (i === 0) extra.push(box({ id: 'stair-cupboard', kind: 'cupboard', x: stairs.xB, z: stairs.mouthZ, w: stairs.maxX - stairs.spine, d: 0.1, h: def.height }, y));
+      if (i === n - 1 && n > 1) extra.push(box({ id: 'stair-rail', kind: 'railing', x: stairs.xA, z: stairs.mouthZ, w: -stairs.minX - stairs.spine, d: 0.1, h: 1.0 }, y));
+    }
+    const solids = [...walls, ...furniture, ...extra];
+    return {
+      index: i, y, height: def.height, rooms, outdoor: rooms.filter(r => r.outdoor),
+      bounds: i === 0 ? B : { minX: B.minX, maxX: B.maxX, minZ: B.minZ, maxZ: house.maxZ },
+      walls, furnitureBoxes: furniture, solids,
+      blockers: [...solids.filter(b => b.minY - y < BODY_HEIGHT), ...shared],
+      windows: part.windows || [], lamps: part.lamps || [], rugs: part.rugs || [], pictures: part.pictures || [],
+    };
+  });
+  const ground = storeys[0];
   return {
-    ...def,
-    walls, furnitureBoxes: furniture, solids,
-    blockers: solids.filter(b => b.minY < BODY_HEIGHT),
-    outdoor: def.rooms.filter(r => r.outdoor),
+    ...def, storeys, storeyHeight: SH, top, stairs, house,
+    walls: ground.walls, furnitureBoxes: ground.furnitureBoxes, blockers: ground.blockers, outdoor: ground.outdoor,
+    solids: [...storeys.flatMap(s => s.solids), ...shared, ...stairBoxes],
+    enemies: parts.flatMap((part, i) => (part.enemies || []).map(e => ({ ...e, floor: i }))),
+    pickups: parts.flatMap((part, i) => (part.pickups || []).map(k => ({ ...k, floor: i, y: i * SH }))),
   };
+}
+
+// 高度 y 的身体算在哪一层：半层平台及以上归上一层。
+export function floorIndex(level, y = 0) {
+  return Math.max(0, Math.min(level.storeys.length - 1, Math.floor(y / level.storeyHeight + 0.5 + 1e-6)));
+}
+export function storeyAt(level, y = 0) { return level.storeys[floorIndex(level, y)]; }
+export function inStairs(level, p) {
+  const t = level.stairs;
+  return !!t && p.z < t.mouthZ && p.x > t.minX - 0.5 && p.x < t.maxX + 0.5;
+}
+
+// 站在 (x, z) 时脚下的高度：在几层楼板和楼梯坡面里取离当前高度 y 最近的那个。
+// 身体每一步都拿上一步的高度来问，所以上下楼是连续的，不会从一层跳到另一层。
+export function surfaceY(level, x, z, y = 0) {
+  const t = level.stairs, SH = level.storeyHeight;
+  let best = 0, gap = Infinity;
+  const consider = h => { const g = Math.abs(h - y); if (g < gap) { gap = g; best = h; } };
+  if (inStairs(level, { x, z })) {
+    const k = Math.min(1, (t.mouthZ - z) / t.run);
+    for (let i = 0; i < t.flights; i++) consider(z <= t.landingZ ? i * SH + t.rise : x < 0 ? i * SH + t.rise * k : (i + 1) * SH - t.rise * k);
+    return best;
+  }
+  consider(0);
+  for (let i = 1; i < level.storeys.length; i++) {
+    const b = level.storeys[i].bounds;
+    if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ + 0.2) consider(i * SH);
+  }
+  return best;
+}
+
+// 要从 body 走到 target（都带高度），下一步该朝哪里去。
+// 同一高度：就是 target 本身（direct 表示两者在同一段楼梯上，直接走过去）。
+// 不同高度：楼梯间外先走到楼梯口（上楼走西边 A，下楼走东边 B），楼梯间里沿着折返的路线走；这些点都是直走可达的。
+export function navGoal(level, body, target) {
+  const t = level.stairs, by = body.base ?? body.y ?? 0, dy = (target.y ?? 0) - by;
+  const inside = inStairs(level, body);
+  if (!t || Math.abs(dy) < 0.3) return { x: target.x, z: target.z, direct: !!t && inside && inStairs(level, target) };
+  const up = dy > 0, point = (x, z) => ({ x, z, direct: true });
+  if (inside) {
+    const onLanding = body.z < t.landZ + 0.15;
+    if (up) return onLanding ? (body.x < t.xB - 0.2 ? point(t.xB, t.landZ) : point(t.xB, t.outZ)) : body.x < 0 ? point(t.xA, t.landZ) : point(t.xB, t.outZ);
+    return onLanding ? (body.x > t.xA + 0.2 ? point(t.xA, t.landZ) : point(t.xA, t.outZ)) : body.x > 0 ? point(t.xB, t.landZ) : point(t.xA, t.outZ);
+  }
+  const mouthX = up ? t.xA : t.xB;
+  // 已经站在这一跑的正前方：直接往里走（一直走到进了楼梯间为止，不再回头找楼梯口那个点）
+  if (body.z < t.outZ + 0.3 && Math.abs(body.x - mouthX) < 0.3) return point(mouthX, t.landZ);
+  return { x: mouthX, z: t.outZ, direct: false };
 }
 
 // 线段与盒子求交（slab 法），返回最早的交点参数和表面法线。pad 把盒子向外扩一圈。
@@ -76,7 +183,8 @@ const gapTo = (c, p) => Math.max(c.minX - p.x, p.x - c.maxX, c.minZ - p.z, p.z -
 // loose：端点本身贴着某个盒子（比如玩家靠在柜子边）时，对那个盒子只按实际间隙检查，
 // 否则贴着家具站的目标会被判成"永远走不到"。
 export function clearPath(level, a, b, r, loose = false) {
-  const p = { x: a.x, y: 0.2, z: a.z }, q = { x: b.x, y: 0.2, z: b.z };
+  const y = (level.y ?? 0) + 0.2;   // 贴着这一层的地面量
+  const p = { x: a.x, y, z: a.z }, q = { x: b.x, y, z: b.z };
   return !level.blockers.some(c => {
     let pad = r;
     if (loose) { const gap = Math.min(gapTo(c, a), gapTo(c, b)); if (gap < r) pad = Math.max(0, gap - 0.01); }

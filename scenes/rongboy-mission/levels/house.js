@@ -1,15 +1,22 @@
-// 家 · 一层 + 花园。米制；x 向东，z 向南；玩家从南侧院门进入，面朝北。
-// 房子占 z∈[-9,3]，花园占 z∈[3,11]。二、三层在第三阶段加入，楼梯位先用实体占住。
+// 家：三层楼 + 花园。米制；x 向东，z 向南；玩家从南侧院门进入，面朝北。
+// 房子占 x∈[-9,9]、z∈[-9,3]，花园占 z∈[3,11]；楼梯间是房子北面凸出去的竖井，从每层门厅 / 走廊的北头进。
+// 这个对象本身是一层；upper 是二层和三层（格式一样，没有花园）。层高 3 米（净高 2.8 + 楼板 0.2）。
+const garden = { minX: -1.5, maxX: 1.5, minZ: 9.4, maxZ: 11 };
 export default {
-  id: 'house-ground',
-  name: '家 · 一层与花园',
-  bounds: { minX: -9, maxX: 9, minZ: -9, maxZ: 11 },
+  id: 'house',
+  name: '家 · 三层楼与花园',
+  bounds: { minX: -9, maxX: 9, minZ: -12.5, maxZ: 11 },
   height: 2.8,
+  storeyHeight: 3,
   wallThickness: 0.2,
   doorHeight: 2.05,
-  par: 240,
+  par: 480,
   player: { x: 0, z: 10, yaw: 0 },
-  mission: { type: 'clear', title: '清空一层和花园里的所有僵尸' },
+  // 任务：上到阁楼的藏宝间拿回毛线篮，再带回院门。拿起它会惊动 alarm 米以内的僵尸（隔着楼板减半：差不多是整个三楼，加上正下方的一两只）。
+  // 想改回"清空全部"只要换成 { type: 'clear', title: '清空整栋房子里的僵尸' }。
+  mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 13, exit: garden },
+  // 折返楼梯：西边一跑往北上到半层平台，东边一跑往南上到上一层。
+  stairs: { minX: -1.4, maxX: 1.4, mouthZ: -9, landingZ: -11.2, endZ: -12.5 },
 
   rooms: [
     // surface / floor：地面的织物和颜色；accent：这个房间的墙裙颜色，用来一眼认出在哪个房间。
@@ -19,6 +26,7 @@ export default {
     { id: 'kitchen', name: '厨房', minX: -9, maxX: -1.5, minZ: -9, maxZ: -3, surface: 'quilt', floor: 0xeadcc2, accent: 0xe8c877 },
     { id: 'bedroom', name: '卧室', minX: 1.5, maxX: 9, minZ: -3, maxZ: 3, surface: 'boards', floor: 0xd2b49c, accent: 0xbfa8cf },
     { id: 'study', name: '书房', minX: 1.5, maxX: 9, minZ: -9, maxZ: -3, surface: 'boards', floor: 0xb39068, accent: 0x86aaa6 },
+    { id: 'stairs', name: '楼梯间', minX: -1.5, maxX: 1.5, minZ: -12.5, maxZ: -9, tower: true },
   ],
 
   // 一道墙沿一条轴线走；doors 是墙上的门洞区间（沿墙方向的坐标）。
@@ -34,7 +42,7 @@ export default {
   // 窗：x 或 z 是所在墙线，at 是沿墙的中心，w 是宽；sill / head 是窗台和窗顶高度（默认 1.0 / 2.1）。
   windows: [
     { x: -9, at: 1.4, w: 1.8 }, { x: -9, at: -5.2, w: 1.8 },                                   // 西：客厅、厨房
-    { z: -9, at: -5.5, w: 2.0, sill: 1.3 }, { z: -9, at: 6.3, w: 1.8 }, { z: -9, at: 0, w: 1.1, sill: 1.65, head: 2.45 },   // 北：厨房、书房、楼梯上方
+    { z: -9, at: -5.5, w: 2.0, sill: 1.3 }, { z: -9, at: 6.3, w: 1.8 },                         // 北：厨房、书房
     { x: 9, at: 0.9, w: 1.6 },                                                                    // 东：卧室
     { z: 3, at: 4.6, w: 2.0 }, { z: 3, at: -2.9, w: 1.6 },                                     // 南立面：卧室、客厅
   ],
@@ -70,7 +78,6 @@ export default {
     // 院门内的高树篱挡住视线：开局是安全的，要从左或右绕出去
     { id: 'gate-hedge', kind: 'hedge', x: 0, z: 7.4, w: 5.0, d: 0.6, h: 1.7, color: 0x74a260 },
     // 门厅
-    { id: 'stairs', kind: 'stairs', face: 's', x: 0, z: -8.0, w: 2.6, d: 1.8, h: 1.4, color: 0xa98463 },
     { id: 'shoe-cabinet', kind: 'cabinet', face: 'e', x: -1.15, z: 2.2, w: 0.5, d: 1.2, h: 1.0, color: 0x9c9d7b },
     { id: 'console', kind: 'bench', look: 'console', face: 'w', x: 1.2, z: -2.0, w: 0.4, d: 1.0, h: 0.9, color: 0xb58767 },
     // 客厅
@@ -131,5 +138,152 @@ export default {
     { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
     { kind: 'heart', amount: 1, x: -8.3, z: 2.4 },
     { kind: 'heart', amount: 1, x: 1.0, z: -6.6 },
+  ],
+  upper: [
+    // ---------------------------------------------------------------- 二层：主卧、浴室、儿童房、游戏室
+    {
+      rooms: [
+        { id: 'hall2', name: '二楼走廊', minX: -1.5, maxX: 1.5, minZ: -9, maxZ: 3, surface: 'boards', floor: 0xd9bd92, accent: 0x8fb0b8 },
+        { id: 'master', name: '主卧', minX: -9, maxX: -1.5, minZ: -3, maxZ: 3, surface: 'boards', floor: 0xcbb096, accent: 0xd9a6a0 },
+        { id: 'bath', name: '浴室', minX: -9, maxX: -1.5, minZ: -9, maxZ: -3, surface: 'quilt', floor: 0xdfe8e4, accent: 0x8fc0c4 },
+        { id: 'kids', name: '儿童房', minX: 1.5, maxX: 9, minZ: -3, maxZ: 3, surface: 'boards', floor: 0xe0c08a, accent: 0xf0c060 },
+        { id: 'play', name: '游戏室', minX: 1.5, maxX: 9, minZ: -9, maxZ: -3, surface: 'boards', floor: 0xc4a47c, accent: 0xa8c08a },
+        { id: 'stairs2', name: '楼梯间', minX: -1.5, maxX: 1.5, minZ: -12.5, maxZ: -9, tower: true },
+      ],
+      walls: [
+        { x: -1.5, z: [-9, 3], doors: [[-5.6, -4.1], [0.6, 2.1]] },    // 走廊西墙：浴室门、主卧门
+        { x: 1.5, z: [-9, 3], doors: [[-7.6, -6.1], [-1.4, 0.1]] },    // 走廊东墙：游戏室门、儿童房门
+        { z: -3, x: [-9, -1.5], doors: [[-8.2, -6.7]] },               // 主卧 ↔ 浴室
+        { z: -3, x: [1.5, 9], doors: [[3.0, 4.5]] },                   // 儿童房 ↔ 游戏室
+      ],
+      windows: [
+        { x: -9, at: 0.3, w: 1.8, sill: 1.2 }, { x: -9, at: -6.9, w: 1.4, sill: 1.25 },
+        { z: -9, at: -4.2, w: 1.6, sill: 1.3 }, { z: -9, at: 5.6, w: 1.8, sill: 1.1 },
+        { x: 9, at: 0.5, w: 1.6 }, { x: 9, at: -4.0, w: 1.3 },
+        { z: 3, at: -5.5, w: 2.0 }, { z: 3, at: 0, w: 1.2 }, { z: 3, at: 4.6, w: 1.8 },
+      ],
+      lamps: [{ x: -5.25, z: 0 }, { x: -5.25, z: -6 }, { x: 5.25, z: 0 }, { x: 5.25, z: -6 }, { x: 0, z: 0.4 }, { x: 0, z: -5 }],
+      rugs: [
+        { x: -5.0, z: 0.4, w: 2.6, d: 3.2, color: 0xd8a8a2 }, { x: -5.2, z: -6.9, w: 1.8, d: 0.9, color: 0x9cc8c6 },
+        { x: 5.0, z: 0.4, w: 3.0, d: 2.6, color: 0xe9c46a }, { x: 5.6, z: -6.2, w: 3.2, d: 2.2, color: 0x9fb98a }, { x: 0, z: -3.2, w: 1.3, d: 5.0, color: 0x7fa3ad },
+      ],
+      pictures: [
+        { x: -1.6, z: -1.6, y: 1.65, normal: [-1, 0], w: 0.8, h: 0.55, color: 0xf2dfb0 }, { x: 1.4, z: -3.6, y: 1.55, normal: [-1, 0], color: 0xe9c9d9 },
+        { x: -1.4, z: -1.2, y: 1.55, normal: [1, 0], w: 0.5, h: 0.6, color: 0xa9cfe0 }, { x: 6.2, z: -2.9, y: 1.6, normal: [0, 1], w: 0.9, h: 0.6, color: 0xbfe0d0 },
+      ],
+      furniture: [
+        // 走廊
+        { id: 'hall2-console', kind: 'bench', look: 'console', face: 'n', x: 0, z: 2.65, w: 1.2, d: 0.7, h: 0.9, color: 0x9db3a0 },
+        { id: 'hall2-cabinet', kind: 'cabinet', face: 'e', x: -1.15, z: -2.0, w: 0.5, d: 1.2, h: 1.0, color: 0xb9a07c },
+        // 主卧
+        { id: 'master-bed', kind: 'bed', face: 'e', x: -7.9, z: 0.3, w: 2.2, d: 1.8, h: 0.55, color: 0xd39a94 },
+        { id: 'master-night-n', kind: 'crate', look: 'nightstand', face: 'e', x: -8.75, z: -0.85, w: 0.5, d: 0.5, h: 0.6, color: 0xb98a66 },
+        { id: 'master-night-s', kind: 'crate', look: 'nightstand', face: 'e', x: -8.75, z: 1.45, w: 0.5, d: 0.5, h: 0.6, color: 0xb98a66 },
+        { id: 'master-wardrobe', kind: 'cabinet', look: 'wardrobe', face: 's', x: -4.2, z: -2.55, w: 2.0, d: 0.7, h: 2.1, color: 0xa9b59a },
+        { id: 'master-dresser', kind: 'cabinet', face: 'w', x: -1.95, z: -1.6, w: 0.7, d: 1.4, h: 1.0, color: 0xc7a98a },
+        { id: 'master-armchair', kind: 'sofa', face: 'n', x: -3.3, z: 2.525, w: 0.95, d: 0.95, h: 0.85, color: 0xc98f86 },
+        // 浴室
+        { id: 'tub', kind: 'bench', look: 'tub', face: 's', x: -7.9, z: -8.45, w: 2.2, d: 1.1, h: 0.62, color: 0xf3f0e8 },
+        { id: 'vanity', kind: 'bench', look: 'vanity', face: 's', x: -4.2, z: -8.65, w: 1.8, d: 0.7, h: 0.9, color: 0xbcd6d2 },
+        { id: 'laundry', kind: 'crate', look: 'basket', x: -1.95, z: -8.65, w: 0.7, d: 0.7, h: 0.75, color: 0xd9b98c },
+        { id: 'towel-shelf', kind: 'cabinet', face: 'e', x: -8.7, z: -5.0, w: 0.6, d: 1.6, h: 1.9, color: 0x9cc0c2 },
+        { id: 'bath-stool', kind: 'bench', look: 'coffee', x: -5.0, z: -5.6, w: 1.4, d: 0.7, h: 0.45, color: 0xd9c7a4, accent: 0x9cc8c6 },
+        // 儿童房
+        { id: 'kids-bed', kind: 'bed', face: 'w', x: 7.9, z: 2.3, w: 2.2, d: 1.4, h: 0.55, color: 0x8fb7d9, accent: 0xe9c46a },
+        { id: 'kids-chest', kind: 'crate', look: 'chest', face: 's', x: 3.4, z: -2.55, w: 1.4, d: 0.7, h: 0.6, color: 0xe2a35c },
+        { id: 'kids-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -1.6, w: 0.6, d: 1.8, h: 1.6, color: 0xe0b060 },
+        { id: 'kids-table', kind: 'bench', look: 'coffee', x: 4.6, z: 0.6, w: 1.2, d: 1.2, h: 0.5, color: 0xd9b98c, accent: 0xe7836f },
+        { id: 'kids-blocks', kind: 'crate', look: 'chest', face: 'e', x: 2.0, z: 2.6, w: 0.8, d: 0.8, h: 0.7, color: 0x9fc3e0 },
+        // 游戏室
+        { id: 'play-sofa', kind: 'sofa', face: 's', x: 5.6, z: -8.5, w: 2.6, d: 1.0, h: 0.8, color: 0x8fae8a },
+        { id: 'play-tv', kind: 'cabinet', look: 'tv', face: 'n', x: 6.2, z: -3.4, w: 1.4, d: 0.6, h: 0.9, color: 0x8a9a86 },
+        { id: 'play-table', kind: 'bench', look: 'coffee', x: 5.6, z: -6.2, w: 1.3, d: 0.8, h: 0.45, color: 0xbb855d },
+        { id: 'play-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -6.0, w: 0.6, d: 2.0, h: 2.0, color: 0x9bb07c },
+        { id: 'play-crate', kind: 'crate', x: 1.95, z: -3.55, w: 0.7, d: 0.9, h: 0.7, color: 0xb9936d },
+      ],
+      enemies: [
+        { type: 'walker', x: 0, z: 1.0, state: 'idle', heading: Math.PI, patrol: [[0, -6.0], [0, 1.0]] },
+        { type: 'heavy', x: -5.4, z: 1.2, state: 'asleep', heading: Math.PI / 2 },
+        { type: 'runner', x: -3.0, z: -1.2, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.0, -1.6], [-3.0, -1.2]] },
+        { type: 'walker', x: -6.0, z: 2.3, state: 'asleep', heading: Math.PI },
+        { type: 'leaper', x: -5.6, z: -7.2, state: 'asleep', heading: 0 },
+        { type: 'weaver', x: -3.0, z: -4.2, state: 'idle', heading: -Math.PI / 2, patrol: [[-7.2, -4.2], [-3.0, -4.2]] },
+        { type: 'runner', x: 4.0, z: 2.2, state: 'asleep', heading: Math.PI },
+        { type: 'walker', x: 6.6, z: -0.6, state: 'idle', heading: -Math.PI / 2, patrol: [[3.0, -1.4], [6.6, -0.6]] },
+        { type: 'walker', x: 3.2, z: -7.6, state: 'asleep', heading: Math.PI / 2 },
+        { type: 'heavy', x: 7.4, z: -4.9, state: 'idle', heading: -Math.PI / 2 },
+        { type: 'weaver', x: 3.4, z: -5.0, state: 'asleep', heading: 0 },
+      ],
+      pickups: [
+        { kind: 'ammo', weapon: 'scatter', amount: 4, x: -2.2, z: 2.4 },
+        { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
+        { kind: 'heart', amount: 1, x: -2.4, z: -3.9 },
+        { kind: 'ammo', weapon: 'scatter', amount: 2, x: 2.3, z: 0.9 },
+      ],
+    },
+    // ---------------------------------------------------------------- 三层（阁楼）：储藏间、缝纫间、藏宝间
+    {
+      rooms: [
+        { id: 'hall3', name: '阁楼走廊', minX: -1.5, maxX: 1.5, minZ: -9, maxZ: 3, surface: 'boards', floor: 0xb89a74, accent: 0xb08a6a },
+        { id: 'attic', name: '储藏间', minX: -9, maxX: -1.5, minZ: -9, maxZ: 3, surface: 'boards', floor: 0xa98860, accent: 0x9a8f7a },
+        { id: 'sewing', name: '缝纫间', minX: 1.5, maxX: 9, minZ: -9, maxZ: -3, surface: 'boards', floor: 0xc9a67a, accent: 0xd98a8a },
+        { id: 'treasure', name: '藏宝间', minX: 1.5, maxX: 9, minZ: -3, maxZ: 3, surface: 'quilt', floor: 0xc9b0d0, accent: 0xe9c46a },
+        { id: 'stairs3', name: '楼梯间', minX: -1.5, maxX: 1.5, minZ: -12.5, maxZ: -9, tower: true },
+      ],
+      walls: [
+        { x: -1.5, z: [-9, 3], doors: [[-7.4, -5.9], [-0.6, 0.9]] },   // 走廊西墙：储藏间的两个门
+        { x: 1.5, z: [-9, 3], doors: [[-6.4, -4.9], [0.8, 2.3]] },     // 走廊东墙：缝纫间门、藏宝间门
+        { z: -3, x: [1.5, 9], doors: [[6.6, 8.1]] },                   // 缝纫间 ↔ 藏宝间
+        { z: -3, x: [-9, -5.5] },                                      // 储藏间里的一段隔墙
+      ],
+      windows: [
+        { x: -9, at: 0.4, w: 1.4, sill: 1.2 }, { x: -9, at: -7.3, w: 1.0, sill: 1.35 },
+        { z: -9, at: -4.0, w: 1.6, sill: 1.2 }, { z: -9, at: 5.2, w: 1.6, sill: 1.25 },
+        { x: 9, at: 1.2, w: 1.4 },
+        { z: 3, at: -7.5, w: 1.6 }, { z: 3, at: 0, w: 1.2 }, { z: 3, at: 6.4, w: 1.6 },
+      ],
+      lamps: [{ x: -5.25, z: 0.2 }, { x: -5.0, z: -6.2 }, { x: 5.25, z: 0 }, { x: 5.4, z: -6.9 }, { x: 0, z: -2 }],
+      rugs: [{ x: 6.4, z: 1.2, w: 2.6, d: 2.4, color: 0xe2b85a }, { x: 0, z: -2.0, w: 1.3, d: 5.0, color: 0xa87f62 }, { x: 5.4, z: -4.3, w: 2.4, d: 1.0, color: 0xd98a8a }],
+      pictures: [{ x: 1.6, z: -0.8, y: 1.6, normal: [1, 0], w: 0.9, h: 0.6, color: 0xf2dfb0 }, { x: -1.4, z: -3.3, y: 1.55, normal: [1, 0], color: 0xa9cfe0 }],
+      furniture: [
+        { id: 'hall3-bench', kind: 'cabinet', face: 'w', x: 1.15, z: -2.4, w: 0.5, d: 1.4, h: 1.0, color: 0xa98f72 },
+        // 储藏间：成堆的箱子和旧家具
+        { id: 'attic-crate-a', kind: 'crate', x: -8.5, z: -8.5, w: 1.0, d: 1.0, h: 1.2, color: 0xb9936d },
+        { id: 'attic-crate-b', kind: 'crate', x: -7.4, z: -8.6, w: 1.2, d: 0.8, h: 0.7, color: 0xa98463 },
+        { id: 'attic-shelf', kind: 'cabinet', look: 'bookshelf', face: 'e', x: -8.7, z: -5.6, w: 0.6, d: 2.2, h: 2.0, color: 0x8f8a72 },
+        { id: 'attic-pile', kind: 'crate', x: -4.6, z: -6.2, w: 1.4, d: 1.0, h: 1.0, color: 0xc0a078 },
+        { id: 'attic-sofa', kind: 'sofa', face: 'e', x: -8.5, z: 0.4, w: 1.0, d: 2.2, h: 0.8, color: 0x9a86a6 },
+        { id: 'attic-chest', kind: 'crate', look: 'chest', face: 'n', x: -5.0, z: 2.65, w: 1.4, d: 0.7, h: 0.6, color: 0xb0764f },
+        { id: 'attic-table', kind: 'bench', look: 'coffee', x: -4.8, z: 0.2, w: 1.0, d: 1.4, h: 0.45, color: 0xbb855d },
+        { id: 'attic-wardrobe', kind: 'cabinet', look: 'wardrobe', face: 'w', x: -1.95, z: -3.2, w: 0.7, d: 1.8, h: 2.1, color: 0x8a947c },
+        // 缝纫间
+        { id: 'sewing-table', kind: 'bench', look: 'desk', face: 's', x: 5.2, z: -8.55, w: 2.2, d: 0.9, h: 0.78, color: 0xc98f86 },
+        { id: 'yarn-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -5.6, w: 0.6, d: 2.0, h: 2.0, color: 0xc7a07a },
+        { id: 'fabric-crate', kind: 'crate', look: 'basket', x: 2.05, z: -8.5, w: 0.9, d: 1.0, h: 0.8, color: 0xd9b98c },
+        { id: 'cutting-table', kind: 'bench', look: 'island', face: 's', x: 5.4, z: -5.6, w: 2.0, d: 0.9, h: 0.9, color: 0xd9a6a0 },
+        // 藏宝间
+        { id: 'treasure-chest-e', kind: 'crate', look: 'chest', face: 'w', x: 8.55, z: -1.2, w: 0.9, d: 1.4, h: 0.7, color: 0xd9a441 },
+        { id: 'treasure-chest-s', kind: 'crate', look: 'chest', face: 'n', x: 4.0, z: 2.65, w: 1.6, d: 0.7, h: 0.7, color: 0xb0764f },
+        { id: 'treasure-cabinet', kind: 'cabinet', face: 's', x: 4.2, z: -2.6, w: 1.6, d: 0.6, h: 1.6, color: 0xa68fb8 },
+        { id: 'treasure-crate', kind: 'crate', x: 5.2, z: 0.2, w: 1.0, d: 1.0, h: 1.0, color: 0xc0a078 },
+      ],
+      enemies: [
+        { type: 'walker', x: 0, z: 1.4, state: 'idle', heading: Math.PI, patrol: [[0, -5.5], [0, 1.4]] },
+        { type: 'runner', x: -3.2, z: -7.6, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.4, -7.4], [-3.2, -7.6]] },
+        { type: 'walker', x: -6.6, z: -4.4, state: 'asleep', heading: Math.PI / 2 },
+        { type: 'walker', x: -3.4, z: 2.0, state: 'asleep', heading: Math.PI },
+        { type: 'leaper', x: -6.6, z: -1.4, state: 'asleep', heading: Math.PI / 2 },
+        { type: 'weaver', x: 3.4, z: -6.9, state: 'idle', heading: Math.PI / 2, patrol: [[7.4, -7.2], [3.4, -6.9]] },
+        { type: 'walker', x: 7.2, z: -4.0, state: 'asleep', heading: -Math.PI / 2 },
+        { type: 'heavy', x: 6.6, z: -0.8, state: 'idle', heading: -Math.PI / 2 },
+        { type: 'leaper', x: 3.0, z: 1.4, state: 'asleep', heading: Math.PI / 2 },
+      ],
+      pickups: [
+        { kind: 'objective', x: 7.8, z: 1.9 },
+        { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
+        { kind: 'ammo', weapon: 'scatter', amount: 4, x: 8.2, z: -8.3 },
+        { kind: 'ammo', weapon: 'heavy', amount: 1, x: -7.9, z: 2.4 },
+      ],
+    },
   ],
 };

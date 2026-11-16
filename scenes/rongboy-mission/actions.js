@@ -33,12 +33,12 @@ export function advanceAction(level, e, dt, player, events) {
     e.pounceX = dx / distance; e.pounceZ = dz / distance;
     e.pounceDistance = clamp(distance - 0.55, 1.4, 3.8);
     setAction(e, 'pounce');
-    events.push({ type: 'pounce', id: e.id, x: e.x, z: e.z });
+    events.push({ type: 'pounce', id: e.id, x: e.x, z: e.z, base: e.base });
   }
   if (e.action === 'pounce') {
     if (e.actionAge >= POUNCE) {
       setAction(e, 'recover'); e.actionCooldown = 2.5;
-      events.push({ type: 'land', id: e.id, x: e.x, z: e.z, enemyType: e.type, pounce: true });
+      events.push({ type: 'land', id: e.id, x: e.x, z: e.z, base: e.base, enemyType: e.type, pounce: true });
       return still;
     }
     const t = e.actionAge / POUNCE;
@@ -51,7 +51,7 @@ export function advanceAction(level, e, dt, player, events) {
 
   if (e.type === 'leaper' && e.actionCooldown <= 0 && distance > 2.3 && distance < 5.4 && clearPath(level, e, player, e.radius + 0.045)) {
     setAction(e, 'windup');
-    events.push({ type: 'windup', id: e.id, x: e.x, z: e.z });
+    events.push({ type: 'windup', id: e.id, x: e.x, z: e.z, base: e.base });
     return still;
   }
   if (e.type === 'weaver' && distance < 8 && distance > 1.15 && clearPath(level, e, player, e.radius + 0.06)) {

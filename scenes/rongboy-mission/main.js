@@ -1,4 +1,4 @@
-// Rongboy 任务制试玩：家 · 一层与花园。第一人称、纯键盘。
+// Rongboy 任务制试玩：家 · 三层楼与花园。第一人称、纯键盘。
 // 战斗规则在 game.js，关卡几何在 level.js；这里只管画面、声音、输入和 HUD。
 import * as T from 'three';
 import { createCineRenderer, LOOKS, QUALITY, cloneLook } from '../../engine/index.js';
@@ -8,17 +8,20 @@ import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-
 import { createWoolAudio } from '../rongboy-shooter-fps/sound.js';
 import assetData from '../rongboy-shooter-fps/models.js';
 import { actionPose } from './actions.js';
-import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor } from './level.js';
+import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES } from './game.js';
-import { buildWorld, INDOOR_SKY } from './world.js';
+import { buildWorld, INDOOR_SKY, INDOOR_ACTOR } from './world.js';
+import { roomLitActor } from '../../library/surfaces/plush.js';
 import houseDef from './levels/house.js';
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const level = compileLevel(houseDef);
-const EYE = 1.23, FAR = 30;
+const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
+// 脚下是露天的花园吗（楼上不算）
+const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
 let mode = 'menu', ready = false, paused = false, down = false;
@@ -50,7 +53,7 @@ const B = level.bounds;
 // 帧率掉到 45 以下时引擎会自动降内部分辨率。网址加 ?q=medium 或 ?q=low 可以手动降档。
 const cine = createCineRenderer({
   canvas: $('view'), look, quality: QUALITY[q.get('q')] || { ...QUALITY.high, pixels: 3.6e6 }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 45,
-  dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, 5, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
+  dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
 });
 const world = buildWorld(cine, level, WEAPONS);
 // 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
@@ -72,16 +75,17 @@ const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStan
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 cine.scene.add(fxMesh);
 function burst(x, z, n = 10, force = 1, color = 0xf0dfba, y = 0.55) {
+  const floor = Math.max(0, Math.floor((y + 0.25) / SH)) * SH + 0.035;   // 绒絮落到这一层的地面为止
   for (let i = 0; i < n; i++) {
     if (fx.length >= FX_MAX) fx.shift();
     const a = Math.random() * Math.PI * 2;
-    fx.push({ x, y, z, vx: Math.cos(a) * force, vz: Math.sin(a) * force, vy: 0.6 + Math.random() * 1.3, age: 0, life: 0.45 + Math.random() * 0.25, r: 0.025 + Math.random() * 0.035, color });
+    fx.push({ x, y, z, floor, vx: Math.cos(a) * force, vz: Math.sin(a) * force, vy: 0.6 + Math.random() * 1.3, age: 0, life: 0.45 + Math.random() * 0.25, r: 0.025 + Math.random() * 0.035, color });
   }
 }
 function updateFx(dt) {
   for (let i = fx.length - 1; i >= 0; i--) {
     const p = fx[i];
-    p.age += dt; p.x += p.vx * dt; p.z += p.vz * dt; p.y = Math.max(0.035, p.y + p.vy * dt); p.vy -= dt * 4;
+    p.age += dt; p.x += p.vx * dt; p.z += p.vz * dt; p.y = Math.max(p.floor, p.y + p.vy * dt); p.vy -= dt * 4;
     if (p.age > p.life) fx.splice(i, 1);
   }
   for (let i = 0; i < fx.length; i++) {
@@ -137,8 +141,8 @@ function animateHero(dt, moving) {
   }
   // 手和枪跟着所在的地方变亮变暗：屋里只有一部分天光。
   if (mode !== 'menu') {
-    handSky += ((isOutdoor(level, s.player.x, s.player.z) ? 1 : INDOOR_SKY) - handSky) * Math.min(1, dt * 4);
-    for (const m of handMaterials) m.envMapIntensity = handSky;
+    handSky += ((openAir(s.player.x, s.player.y, s.player.z) ? 1 : 0) - handSky) * Math.min(1, dt * 4);
+    for (const m of handMaterials) { m.envMapIntensity = INDOOR_SKY + (1 - INDOOR_SKY) * handSky; m.userData.indoor.value = (1 - handSky) * INDOOR_ACTOR; }
   }
   const charge = s.charging ? s.charge / CONFIG.chargeTime : 0, motion = reduced ? 0.5 : 1;
   // 换弹时把枪压低，换完再抬起来。
@@ -281,7 +285,7 @@ function updateEnemy(e, a) {
   }
   if (e.type === 'leaper') {
     if (!a.tell) { a.tell = new T.Mesh(tellGeo, tellMat); a.tell.rotation.x = -Math.PI / 2; a.world.add(a.tell); }
-    a.tell.visible = e.action === 'windup'; a.tell.position.y = 0.025 - e.y;
+    a.tell.visible = e.action === 'windup'; a.tell.position.y = 0.025 - (e.y - e.base);
     a.tell.scale.setScalar(1.65 - Math.min(1, e.actionAge / 0.48) * 0.65);
   }
   a.flash(response.flash * 0.7);
@@ -309,18 +313,20 @@ function updateModels(dt) {
     }
     const distance = Math.hypot(e.x - s.player.x, e.z - s.player.z);
     // 隔着墙看不见的僵尸不画（每只约 6.7 万面，全屋 16 只一起画太重）。
-    if (canSee(e)) a.seenAt = s.time;
-    a.world.visible = distance < 2.5 || s.time - (a.seenAt ?? -9) < 0.35;
+    const apart = Math.abs(e.base - s.player.y);   // 隔了一层以上的不用看
+    if (apart < SH * 1.6 && canSee(e)) a.seenAt = s.time;
+    a.world.visible = (distance < 2.5 && apart < 1.5) || s.time - (a.seenAt ?? -9) < 0.35;
     if (!a.world.visible) continue;
     // 屋里的僵尸和墙面一样只分到一部分天光；脚下垫一块软影，没有太阳的地方也站得住。
-    const outdoor = isOutdoor(level, e.x, e.z);
-    if (a.outdoor !== outdoor) { a.outdoor = outdoor; for (const m of a.materials) m.envMapIntensity = outdoor ? 1 : INDOOR_SKY; }
+    const outdoor = openAir(e.x, e.base, e.z);
+    if (a.outdoor !== outdoor) { a.outdoor = outdoor; for (const m of a.materials) { m.envMapIntensity = outdoor ? 1 : INDOOR_SKY; roomLitActor(m).userData.indoor.value = outdoor ? 0 : INDOOR_ACTOR; } }
     if (!a.blob) { a.blob = new T.Mesh(blobGeo, blobMat); a.blob.rotation.x = -Math.PI / 2; a.blob.renderOrder = 1; a.world.add(a.blob); }
     a.blob.visible = e.alive || e.deathAge < 0.9;
-    a.blob.position.y = 0.05 - e.y; a.blob.scale.setScalar(e.radius * 3.4 * (1 - Math.min(0.5, e.y * 0.6)));
+    const hop = e.y - e.base;
+    a.blob.position.y = 0.05 - hop; a.blob.scale.setScalar(e.radius * 3.4 * (1 - Math.min(0.5, hop * 0.6)));
     a.model.traverse(m => { if (m.userData.fuzz) m.visible = distance < 8.5; });
     updateEnemy(e, a);
-    if (!e.alive && e.deathAge > 0.78 && !a.poof) { a.poof = true; burst(e.x, e.z, 20, 0.95, 0xddd7b5); }
+    if (!e.alive && e.deathAge > 0.78 && !a.poof) { a.poof = true; burst(e.x, e.z, 20, 0.95, 0xddd7b5, e.base + 0.55); }
   }
   const ballIds = new Set(s.balls.map(b => b.id));
   for (const [id, o] of ballModels) if (!ballIds.has(id)) { o.removeFromParent(); for (const m of o.userData.ownMaterials) m.dispose(); ballModels.delete(id); }
@@ -357,7 +363,8 @@ function clearModels() {
 function processEvents() {
   let strongest = null, bonus = '';   // bonus：本批事件里最近一次带加成的命中，击倒提示会带上它
   for (const e of consumeEvents(s)) {
-    const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r;
+    const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r && Math.abs((e.base ?? s.player.y) - s.player.y) < 2;
+    const base = e.base ?? 0;
     if (e.type === 'weapon') { say(WEAPONS[e.weapon].name, 1); syncWeapon(); sfx('switch'); }
     else if (e.type === 'reload') { sfx('switch'); }
     else if (e.type === 'reloaded') { sfx('switch'); }
@@ -365,7 +372,7 @@ function processEvents() {
     else if (e.type === 'interrupted') say('打断了扑击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
     else if (e.type === 'alert') { if (near(9)) { say(`${ENEMY_TYPES[e.enemyType].name}发现你了！`, 1.1); sfx('hurt'); } }
-    else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, 0.04); }
+    else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, base + 0.04); }
     else if (e.type === 'shot') {
       kickRecoil(recoil, e.weapon, e.power);
       burst(e.x, e.z, e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : 4, e.weapon === 'heavy' ? 0.85 : 0.45, WEAPONS.find(w => w.id === e.weapon).color, e.y ?? 0.8);
@@ -385,13 +392,13 @@ function processEvents() {
       if (performance.now() - lastBounceSound > 90) { sfx('bounce', { weapon: e.weapon }); lastBounceSound = performance.now(); }
     } else if (e.type === 'ball-expired') burst(e.x, e.z, 4, 0.25, 0xeadbb9, e.y);
     else if (e.type === 'pickup') {
-      burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, 0.6); sfx('switch');
-      say(e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? '拿到了！快回出口' : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
+      burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6); sfx('switch');
+      say(e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? '拿到毛线篮了！楼里被惊动了，快回院门' : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
     } else if (e.type === 'hurt') {
       shake = 0.04; sfx('hurt');
       $('hurtFrame').classList.remove('damage'); void $('hurtFrame').offsetWidth; $('hurtFrame').classList.add('damage');
       say('被扑到了！拉开距离', 1);
-    } else if (e.type === 'mission-complete') say('全部清空！', 1.5);
+    } else if (e.type === 'mission-complete') say(level.mission.type === 'fetch' ? '带回来了！' : '全部清空！', 1.5);
     else if (e.type === 'round-end') showResult();
   }
   if (strongest) {
@@ -416,7 +423,7 @@ function aim() {
   }
   for (const c of level.solids) { const h = segmentBox(from, far, c); if (h && h.t * FAR < distance) { distance = h.t * FAR; picked = null; } }
   ray.set(from, lookDir);
-  const edge = ray.ray.intersectBox(new T.Box3(new T.Vector3(B.minX, 0.03, B.minZ), new T.Vector3(B.maxX, level.height, B.maxZ)), new T.Vector3());
+  const edge = ray.ray.intersectBox(new T.Box3(new T.Vector3(B.minX, 0.03, B.minZ), new T.Vector3(B.maxX, level.top, B.maxZ)), new T.Vector3());
   if (edge) { const d = edge.distanceTo(from); if (d < distance) { distance = d; picked = null; } }
   if (picked) {
     const state = picked.awareness === 'asleep' ? ' · 睡着' : picked.awareness === 'idle' ? ' · 没发现你' : '';
@@ -454,7 +461,7 @@ function cameraFrame(dt) {
     camera.fov = 65 + recoil.fov.x * motion;
     camera.rotation.order = 'YXZ';
     camera.rotation.set(pitch + recoil.camera.x * motion, yaw, Math.sin(s.time * 49) * shake * motion);
-    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
+    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
     if (fpHero) { fpHero.world.position.set(0.30 + Math.sin(phase) * 0.004, -0.76 - Math.abs(Math.sin(phase)) * 0.004, -0.52); fpHero.model.rotation.y = Math.PI; }
   }
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
@@ -475,13 +482,14 @@ function hud() {
     slot.classList.toggle('empty', ammo.mag === 0 && ammo.reserve === 0);
     slot.textContent = `${i + 1} · ${ammo.reserve === Infinity ? ammo.mag : ammo.mag + ammo.reserve}`;
   });
-  $('objective').textContent = status.type === 'fetch' ? (status.carrying ? '带着它回到出口' : level.mission.title) : level.mission.title;
+  $('objective').textContent = status.type === 'fetch' && status.carrying ? '带着毛线篮回到院门' : level.mission.title;
   $('enemyCount').textContent = `${status.alive} / ${status.total}`;
   $('timer').textContent = clock(s.time);
-  const room = roomAt(level, s.player.x, s.player.z)?.name || '';
+  const room = roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.name || '';
   $('room').textContent = room;
   if (mode === 'playing' && room && room !== lastRoom) { if (lastRoom) say(room, 0.9); lastRoom = room; }
-  $('hearts').textContent = '♥'.repeat(Math.max(0, s.health)) + '♡'.repeat(CONFIG.maxHealth - Math.max(0, s.health));
+  const hearts = Math.max(0, Math.min(CONFIG.maxHealth, s.health));
+  $('hearts').textContent = '♥'.repeat(hearts) + '♡'.repeat(CONFIG.maxHealth - hearts);
   $('hearts').setAttribute('aria-label', `${s.health} 颗心`);
   const charging = s.charging ? s.charge / CONFIG.chargeTime : 0, reloading = s.reloading ? 1 - s.reload / w.reload : 0;
   $('chargeFill').style.width = (s.reloading ? reloading : charging) * 100 + '%';
@@ -499,8 +507,8 @@ function snapshot() {
     mode, paused, phase: s.phase, time: s.time, health: s.health, stars: s.stars, kills: s.kills, total: s.total, alive: aliveCount(s),
     weapon: WEAPONS[s.weapon].id, ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
-    player: { x: s.player.x, z: s.player.z }, yaw, pitch, room: roomAt(level, s.player.x, s.player.z)?.id,
-    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, x: e.x, z: e.z, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    player: { x: s.player.x, y: s.player.y, z: s.player.z }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
+    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, x: e.x, y: e.base, z: e.z, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
   };
 }
@@ -522,7 +530,7 @@ function start() {
   $('intro').hidden = true; $('pausePanel').hidden = true; $('result').hidden = true;
   menuZombie.world.visible = false; menuHero.world.visible = false; fpHero.world.visible = true;
   $('view').focus(); unlock(); syncWeapon();
-  say('高树篱挡着你 · 从左边或右边绕出去', 3);
+  say('毛线篮在三楼的藏宝间 · 楼梯在门厅尽头', 3.5);
   updateModels(0);
 }
 function setPause(value) {
@@ -536,11 +544,11 @@ function showResult() {
   mode = 'result'; keys.clear(); down = false;
   const won = s.phase === 'won';
   $('result').hidden = false; $('pausePanel').hidden = true;
-  $('resultTitle').textContent = won ? '清空了！' : '被扑倒了';
+  $('resultTitle').textContent = won ? (level.mission.type === 'fetch' ? '带回来了！' : '清空了！') : '被扑倒了';
   $('resultStars').textContent = won ? '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '再试一次';
   $('resultNote').textContent = won
     ? `受伤 ${s.damageTaken} 次${s.damageTaken <= 1 ? ' ✓' : '（不超过 1 次得一星）'} · 用时 ${clock(s.time)}${s.time <= level.par ? ' ✓' : `（${clock(level.par)} 内得一星）`}`
-    : '被发现的僵尸越多越危险：先打落单的，从背后下手。';
+    : s.carrying ? '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。' : '被发现的僵尸越多越危险：先打落单的，从背后下手。';
   $('rKills').textContent = `${s.kills}/${s.total}`; $('rTime').textContent = clock(s.time); $('rSneak').textContent = s.backHits + s.sneakHits;
 }
 function toMenu() {
@@ -618,6 +626,7 @@ function frame(now) {
   else if (mode === 'menu') { animateHero(dt, false); updateFx(dt); }
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
+  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y));
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
@@ -631,7 +640,7 @@ async function boot() {
   attachGun(menuHero);
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
-  fpHero.model.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) handMaterials.add(m); });
+  fpHero.model.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) handMaterials.add(roomLitActor(m)); });
   camera.add(fpHero.world); fpHero.world.visible = false;
   cameraFrame(0); resize();
   await cine.warmup();
@@ -655,8 +664,8 @@ window.__rb = {
     keys.clear(); hud(); diagnostics(); return snapshot();
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
-  teleport(x, z, newYaw = yaw, newPitch = 0) { s.player.x = x; s.player.z = z; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); hud(); cine.frame(1 / 60); return cine.stats(); },
+  teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
+  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

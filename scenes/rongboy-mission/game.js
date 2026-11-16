@@ -1,7 +1,9 @@
 // 任务制毛球战斗。确定性、不依赖 DOM；地面是 X/Z 平面，单位为米和秒。
+// 楼可以有好几层：身体各自记着脚下的高度（玩家 p.y，僵尸 e.base，e.y = base + 跳起的高度），
+// 走路、碰撞、寻路按所在那一层的平面做，毛球和视线在三维里算。
 // 与工坊版的区别：僵尸数量固定且默认没发现你；武器有伤害、射程、弹匣和噪音；通关靠完成任务。
 import { FEEL } from '../rongboy-shooter-fps/feedback.js';
-import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor } from './level.js';
+import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, storeyAt, surfaceY, navGoal, inStairs } from './level.js';
 import { advanceAction, interruptAction } from './actions.js';
 
 export const CONFIG = {
@@ -15,6 +17,7 @@ export const CONFIG = {
   callRadius: 4.5,     // 一只警觉后会叫醒这么近、且看得见的同伴
   backCos: 0.35,       // 毛球飞行方向与僵尸朝向的夹角小于约 70° 算打中后背
   endDelay: 1.3, pickupRadius: 0.75,
+  sameLevel: 1.1,      // 两个身体脚下高度差在这以内才碰得到、推得动对方
 };
 
 export const ENEMY_TYPES = {
@@ -49,24 +52,24 @@ export function createGame({ level } = {}) {
     charge: 0, charging: false, cooldown: 0, invul: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     enemies: [], balls: [], events: [],
     pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false })),
-    player: { x: level.player.x, z: level.player.z, vx: 0, vz: 0, aimX: 0, aimY: 0, aimZ: -1 },
+    player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
   for (const e of level.enemies || []) spawn(s, e);
   return s;
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null }) {
-  const def = ENEMY_TYPES[type] || ENEMY_TYPES.walker;
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0 }) {
+  const def = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
   const e = {
-    ...def, type, id: s.nextId++, x, y: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, type, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
     navIn: 0, route: [], hopPhase: 0, action: 'chase', actionAge: 0, actionCooldown: 1.3, sideLean: 0, moveMultiplier: 1,
   };
   e.actionCooldown += (e.id % 3) * 0.25;
-  resolveBody(s.level, e, e.radius);
+  resolveBody(storeyAt(s.level, e.base), e, e.radius);
   s.enemies.push(e);
   s.total++;
   return e;
@@ -126,7 +129,7 @@ export function fire(s, power = 0, shot = null) {
   const w = WEAPONS[s.weapon], p = s.player;
   const dir = shot?.direction || { x: p.aimX, y: p.aimY || 0, z: p.aimZ };
   const m = Math.hypot(dir.x, dir.y, dir.z) || 1, dx = dir.x / m, dy = dir.y / m, dz = dir.z / m;
-  const origin = shot?.origin || { x: p.x + dx * 0.63, y: 0.76, z: p.z + dz * 0.63 };
+  const origin = shot?.origin || { x: p.x + dx * 0.63, y: p.y + 0.76, z: p.z + dz * 0.63 };
   const flat = Math.hypot(dx, dz) || 1, rx = -dz / flat, rz = dx / flat;
   // 开枪声会立刻惊动目标，所以"偷袭"按开枪那一刻算：当时还没察觉的僵尸，这一枪打中它仍有加成。
   const quiet = s.enemies.filter(e => e.alive && unaware(e)).map(e => e.id);
@@ -149,7 +152,7 @@ export function fire(s, power = 0, shot = null) {
   s.shots++;
   s.cooldown = w.cooldown + (w.id === 'single' && power >= 0.6 ? 0.16 : 0);
   s.events.push({ type: 'shot', x: origin.x, y: origin.y, z: origin.z, dx, dy, dz, power, weapon: w.id });
-  emitNoise(s, origin.x, origin.z, w.noise);
+  emitNoise(s, origin.x, origin.z, w.noise, origin.y);
   return true;
 }
 
@@ -162,37 +165,41 @@ export function ballDamage(b) {
 // ---------- 感知 ----------
 
 const unaware = e => e.awareness === 'asleep' || e.awareness === 'idle';
+const at = e => ({ x: e.x, z: e.z, base: e.base });
+// 视线两端：僵尸从脚边算起（矮家具会挡住它），玩家按眼睛高度。
+const feet = e => ({ x: e.x, y: e.y, z: e.z });
+const eyes = p => ({ x: p.x, y: p.y + 1.2, z: p.z });
 
 // 僵尸察觉到异常，过一小段反应时间后才会警觉。
 function notice(s, e, delay, reason) {
   if (!e.alive || !unaware(e)) return;
   const base = reason === 'hit' ? CONFIG.wakeHit : e.awareness === 'asleep' ? CONFIG.wakeAsleep : CONFIG.wakeIdle;
   e.awareness = 'waking'; e.wake = base + delay; e.patrol = null;
-  s.events.push({ type: 'notice', id: e.id, x: e.x, z: e.z, reason });
+  s.events.push({ type: 'notice', id: e.id, ...at(e), reason });
 }
 
 function becomeAlert(s, e) {
   e.awareness = 'alert'; e.action = 'chase'; e.actionAge = 0; e.navIn = 0;
-  s.events.push({ type: 'alert', id: e.id, x: e.x, z: e.z, enemyType: e.type });
+  s.events.push({ type: 'alert', id: e.id, ...at(e), enemyType: e.type });
   for (const o of s.enemies) {
     if (o === e || !o.alive || !unaware(o)) continue;
-    const d = length(o.x - e.x, o.z - e.z);
-    if (d < CONFIG.callRadius && lineOfSight(s.level, e, o)) notice(s, o, 0.25 + d / 10, 'call');
+    const d = Math.hypot(o.x - e.x, o.base - e.base, o.z - e.z);
+    if (d < CONFIG.callRadius && lineOfSight(s.level, feet(e), feet(o))) notice(s, o, 0.25 + d / 10, 'call');
   }
 }
 
-// 声音：看得见声源的在 radius 内都会被惊动，隔着墙只有一半距离。
-export function emitNoise(s, x, z, radius) {
+// 声音：看得见声源的在 radius 内都会被惊动，隔着墙或楼板只有一半距离。y 是声源的高度。
+export function emitNoise(s, x, z, radius, y = 1.2) {
   for (const e of s.enemies) {
     if (!e.alive || !unaware(e)) continue;
-    const d = length(e.x - x, e.z - z);
+    const d = Math.hypot(e.x - x, e.base + 1.2 - y, e.z - z);
     if (d >= radius) continue;
-    if (d < radius * 0.5 || lineOfSight(s.level, { x, z }, e)) notice(s, e, d / 14, 'noise');
+    if (d < radius * 0.5 || lineOfSight(s.level, { x, y, z }, feet(e))) notice(s, e, d / 14, 'noise');
   }
 }
 
 function sense(s, e, dt) {
-  const p = s.player, dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz) || 1;
+  const p = s.player, dx = p.x - e.x, dz = p.z - e.z, flat = length(dx, dz) || 1, d = Math.hypot(flat, p.y - e.base);
   if (e.awareness === 'waking') {
     e.wake -= dt;
     let turn = Math.atan2(dx, dz) - e.heading;
@@ -204,20 +211,21 @@ function sense(s, e, dt) {
   e.senseIn -= dt;
   if (e.senseIn > 0) return;
   e.senseIn = 0.1;
+  const sees = () => lineOfSight(s.level, feet(e), eyes(p));
   if (e.awareness === 'asleep') {
-    if (d < CONFIG.hearRadius && lineOfSight(s.level, e, p)) notice(s, e, 0, 'near');
+    if (d < CONFIG.hearRadius && sees()) notice(s, e, 0, 'near');
     return;
   }
-  if (d < CONFIG.closeRange && lineOfSight(s.level, e, p)) { notice(s, e, 0, 'near'); return; }
+  if (d < CONFIG.closeRange && sees()) { notice(s, e, 0, 'near'); return; }
   if (d < CONFIG.sightRange) {
-    const facing = (Math.sin(e.heading) * dx + Math.cos(e.heading) * dz) / d;
-    if (facing > CONFIG.sightCos && lineOfSight(s.level, e, p)) notice(s, e, 0, 'sight');
+    const facing = (Math.sin(e.heading) * dx + Math.cos(e.heading) * dz) / flat;
+    if (facing > CONFIG.sightCos && sees()) notice(s, e, 0, 'sight');
   }
 }
 
 // 没发现玩家时：睡着的不动，巡逻的在几个点之间慢慢蹦。
 function idleMove(s, e, dt) {
-  e.y = 0; e.hopPhase = 0;
+  e.hop = 0; e.hopPhase = 0;
   if (e.awareness !== 'idle' || !e.patrol || e.hit > 0) return;
   if (e.patrolWait > 0) { e.patrolWait -= dt; return; }
   const [tx, tz] = e.patrol[e.patrolIndex], dx = tx - e.x, dz = tz - e.z, d = length(dx, dz);
@@ -225,28 +233,33 @@ function idleMove(s, e, dt) {
   const period = e.hopPeriod * 1.5;
   e.hopPhase = (e.age % period) / period;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
-  e.y = lift * e.hopHeight * 0.5;
+  e.hop = lift * e.hopHeight * 0.5;
   const travel = Math.min(d, e.speed * 0.42 * (0.15 + 1.55 * lift) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   e.heading = Math.atan2(dx, dz);
 }
 
-// 警觉后：绕开家具追玩家，按兵种穿插扑击、侧跳、冲刺。
+// 警觉后：绕开家具追玩家，按兵种穿插扑击、侧跳、冲刺。玩家在别的楼层时先去走楼梯。
 function chase(s, e, dt) {
-  const L = s.level, p = s.player, prevPhase = e.hopPhase, r = navRadius(e.radius);
-  const action = advanceAction(L, e, dt, p, s.events);
+  const L = s.level, p = s.player, S = storeyAt(L, e.base), prevPhase = e.hopPhase, r = navRadius(e.radius);
+  // 扑击、侧跳这些动作只在和玩家站在同一块平地上时才做；在楼梯上或隔着楼层就老实追
+  const level = Math.abs(p.y - e.base) < 0.3 && !inStairs(L, e) && !inStairs(L, p);
+  if (!level) { e.action = 'chase'; e.moveMultiplier = 1; e.sideLean = 0; }
+  const action = level ? advanceAction(S, e, dt, p, s.events) : null;
   e.hopPhase = ((e.age + e.id * 0.137) % e.hopPeriod) / e.hopPeriod;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
-  e.y = action ? action.y : lift * e.hopHeight;
-  if (e.hopPhase < prevPhase && !action) s.events.push({ type: 'land', id: e.id, x: e.x, z: e.z, enemyType: e.type });
+  e.hop = action ? action.y : lift * e.hopHeight;
+  if (e.hopPhase < prevPhase && !action) s.events.push({ type: 'land', id: e.id, ...at(e), enemyType: e.type });
   if (action) {
     if (e.hit <= 0) { e.x += action.x * dt; e.z += action.z * dt; }
     return;
   }
+  const goal = navGoal(L, e, p);
   e.navIn -= dt;
-  if (e.navIn <= 0) { e.route = routeTo(L, e, p, r); e.navIn = 0.4; }
+  if (goal.direct) e.route = [];
+  else if (e.navIn <= 0) { e.route = routeTo(S, e, goal, r); e.navIn = 0.4; }
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
-  const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : clearPath(L, e, p, r, true) ? p : e.route[0];
+  const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
   if (!next) return;
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (0.15 + 1.55 * lift) : 0;
@@ -264,13 +277,13 @@ function knockdown(s, e, dx, dz, source) {
   if (!e.alive) return;
   e.alive = false; e.deathAge = 0; e.fallX = dx; e.fallZ = dz;
   s.kills++;
-  s.events.push({ type: 'knockdown', id: e.id, x: e.x, z: e.z, dx, dz, source, weapon: e.reactionWeapon, strength: e.reactionStrength, left: aliveCount(s) });
+  s.events.push({ type: 'knockdown', id: e.id, ...at(e), dx, dz, source, weapon: e.reactionWeapon, strength: e.reactionStrength, left: aliveCount(s) });
 }
 
 function damage(s, e, amount, dx, dz, impulse, source = 'ball', meta = {}) {
   if (!e.alive) return;
   e.hp = Math.max(0, e.hp - amount);
-  if (interruptAction(e)) s.events.push({ type: 'interrupted', id: e.id, x: e.x, z: e.z });
+  if (interruptAction(e)) s.events.push({ type: 'interrupted', id: e.id, ...at(e) });
   if (unaware(e)) notice(s, e, 0, 'hit');
   else if (e.awareness === 'waking') e.wake = Math.min(e.wake, CONFIG.wakeHit);
   e.vx += dx * impulse * e.resistance; e.vz += dz * impulse * e.resistance;
@@ -282,7 +295,7 @@ function damage(s, e, amount, dx, dz, impulse, source = 'ball', meta = {}) {
   const offsetX = (meta.contactX ?? e.x) - e.x, offsetZ = (meta.contactZ ?? e.z) - e.z;
   const twist = (offsetX * dz - offsetZ * dx) / e.radius;
   e.reactionTwist = Math.abs(twist) > 0.08 ? clamp(twist, -1, 1) : (e.id % 2 ? 1 : -1) * 0.7;
-  s.events.push({ type: 'hit', id: e.id, x: e.x, z: e.z, dx, dz, heavy: weapon === 'heavy', source, amount, hp: e.hp, maxHp: e.maxHp,
+  s.events.push({ type: 'hit', id: e.id, ...at(e), dx, dz, heavy: weapon === 'heavy', source, amount, hp: e.hp, maxHp: e.maxHp,
     impulse: impulse * e.resistance, strength: e.reactionStrength, ...meta, weapon });
   if (e.hp <= 0) knockdown(s, e, dx, dz, source);
 }
@@ -335,7 +348,7 @@ function advanceBall(s, b, dt) {
   b.age += dt;
   if (b.age >= b.lifetime) { expireBall(s, b); return; }
   b.vy -= CONFIG.gravity * dt;
-  const limits = [['x', B.minX + b.r, B.maxX - b.r], ['y', 0.03 + b.r, L.height - b.r], ['z', B.minZ + b.r, B.maxZ - b.r]];
+  const limits = [['x', B.minX + b.r, B.maxX - b.r], ['y', 0.03 + b.r, L.top - b.r], ['z', B.minZ + b.r, B.maxZ - b.r]];
   for (const [axis, lo, hi] of limits) b[axis] = clamp(b[axis], lo, hi);
   let left = dt;
   for (let pass = 0; pass < 6 && left > 1e-7 && !b.destroyed; pass++) {
@@ -368,7 +381,8 @@ function advanceBall(s, b, dt) {
     }
     for (const c of L.solids) {
       const h = segmentBox(b, end, c, b.r);
-      if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, 'solid');
+      // 楼板和踏步的顶面算地面：和落在底层地面上一样弹
+      if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, h.ny > 0.5 && (c.kind === 'slab' || c.kind === 'stair') ? 'floor' : 'solid');
     }
     const t = hit ? hit.t : 1;
     b.travel += Math.hypot(end.x - b.x, end.y - b.y, end.z - b.z) * t;
@@ -404,7 +418,7 @@ function advanceBall(s, b, dt) {
 function collect(s) {
   const p = s.player;
   for (const k of s.pickups) {
-    if (k.taken || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius) continue;
+    if (k.taken || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     if (k.kind === 'heart') {
       if (s.health >= CONFIG.maxHealth) continue;
       s.health = Math.min(CONFIG.maxHealth, s.health + k.amount);
@@ -414,10 +428,15 @@ function collect(s) {
       s.ammo[index].reserve += k.amount;
     } else if (k.kind === 'objective') {
       s.carrying = true;
-      if (s.level.mission.alarm) for (const e of s.enemies) notice(s, e, length(e.x - p.x, e.z - p.z) / 14, 'alarm');
+      // 拿到东西会惊动周围：alarm 是 true 就是全图，是数字就是这么多米以内（按三维距离，隔着楼板减半）
+      const alarm = s.level.mission.alarm;
+      if (alarm) for (const e of s.enemies) {
+        const d = Math.hypot(e.x - p.x, e.base - p.y, e.z - p.z);
+        if (alarm === true || d < alarm * (Math.abs(e.base - p.y) > 1.5 ? 0.5 : 1)) notice(s, e, d / 14, 'alarm');
+      }
     }
     k.taken = true;
-    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: k.weapon, amount: k.amount, x: k.x, z: k.z });
+    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: k.weapon, amount: k.amount, x: k.x, z: k.z, base: k.y ?? 0 });
   }
 }
 
@@ -426,7 +445,7 @@ export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
-    const atExit = p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
+    const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
     return { type: 'fetch', carrying: s.carrying, atExit, alive, total: s.total, done: s.carrying && atExit };
   }
   return { type: 'clear', alive, total: s.total, done: s.total > 0 && alive === 0 };
@@ -461,23 +480,25 @@ export function step(s, dt, input = {}) {
   }
   p.x += mx * CONFIG.playerSpeed * dt + p.vx * dt; p.z += mz * CONFIG.playerSpeed * dt + p.vz * dt;
   p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
-  resolveBody(L, p, CONFIG.playerRadius);
+  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+  p.y = surfaceY(L, p.x, p.z, p.y);
 
   for (const e of s.enemies) {
     e.age += dt; e.reactionAge += dt;
     e.hit = Math.max(0, e.hit - dt); e.chainCooldown = Math.max(0, e.chainCooldown - dt);
-    if (!e.alive) { e.deathAge += dt; e.y *= Math.exp(-dt * 12); }
+    if (!e.alive) { e.deathAge += dt; e.hop *= Math.exp(-dt * 12); }
     else if (e.awareness === 'alert') chase(s, e, dt);
     else { sense(s, e, dt); if (e.awareness !== 'alert') idleMove(s, e, dt); }
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
-    resolveBody(L, e, e.radius);
+    resolveBody(storeyAt(L, e.base), e, e.radius);
+    e.base = surfaceY(L, e.x, e.z, e.base); e.y = e.base + e.hop;
   }
 
   // 软身体互相推开；被打飞的僵尸撞到同伴会传递冲量并造成 1 点伤害。
   for (let i = 0; i < s.enemies.length; i++) for (let j = i + 1; j < s.enemies.length; j++) {
     const a = s.enemies[i], b = s.enemies[j];
-    if ((!a.alive && a.deathAge > 0.48) || (!b.alive && b.deathAge > 0.48)) continue;
+    if ((!a.alive && a.deathAge > 0.48) || (!b.alive && b.deathAge > 0.48) || Math.abs(a.base - b.base) > CONFIG.sameLevel) continue;
     let dx = b.x - a.x, dz = b.z - a.z, d = length(dx, dz);
     const r = a.radius + b.radius;
     if (d >= r) continue;
@@ -488,7 +509,7 @@ export function step(s, dt, input = {}) {
     if (va > 2.0 && b.alive && b.chainCooldown <= 0) { damage(s, b, 1, nx, nz, va * 0.75, 'collision'); a.vx *= 0.55; a.vz *= 0.55; }
     else if (vb > 2.0 && a.alive && a.chainCooldown <= 0) { damage(s, a, 1, -nx, -nz, vb * 0.75, 'collision'); b.vx *= 0.55; b.vz *= 0.55; }
   }
-  for (const e of s.enemies) resolveBody(L, e, e.radius);
+  for (const e of s.enemies) resolveBody(storeyAt(L, e.base), e, e.radius);
 
   for (const ball of s.balls) advanceBall(s, ball, dt);
   s.balls = s.balls.filter(b => !b.destroyed);
@@ -496,27 +517,28 @@ export function step(s, dt, input = {}) {
 
   // 只有已经警觉的僵尸碰到你才会扣心。
   if (s.invul <= 0) for (const e of s.enemies) {
-    if (!e.alive || e.awareness !== 'alert') continue;
+    if (!e.alive || e.awareness !== 'alert' || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
     const dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     if (d >= CONFIG.playerRadius + e.radius) continue;
     const n = d || 1;
     p.vx = dx / n * 3; p.vz = dz / n * 3; e.vx -= dx / n * 2; e.vz -= dz / n * 2;
     s.health--; s.damageTaken++; s.invul = CONFIG.invulnerable;
-    s.events.push({ type: 'hurt', x: p.x, z: p.z, by: e.id });
+    s.events.push({ type: 'hurt', x: p.x, z: p.z, base: p.y, by: e.id });
     break;
   }
   // 身体是实心的：贴上去会互相顶开，不会穿过。
   for (const e of s.enemies) {
-    if (!e.alive) continue;
+    if (!e.alive || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
     let dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     const r = CONFIG.playerRadius + e.radius;
     if (d >= r) continue;
     if (d < 0.001) { dx = 0.001; dz = 0; d = 0.001; }
     const overlap = r - d, nx = dx / d, nz = dz / d;
     p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; e.x -= nx * overlap * 0.15; e.z -= nz * overlap * 0.15;
-    resolveBody(L, e, e.radius);
+    resolveBody(storeyAt(L, e.base), e, e.radius);
   }
-  resolveBody(L, p, CONFIG.playerRadius);
+  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+  p.y = surfaceY(L, p.x, p.z, p.y);
 
   collect(s);
 
