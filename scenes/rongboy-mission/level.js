@@ -96,6 +96,7 @@ export function compileLevel(def) {
       walls, furnitureBoxes: furniture, solids,
       blockers: [...solids.filter(b => b.minY - y < BODY_HEIGHT), ...shared],
       windows: part.windows || [], lamps: part.lamps || [], rugs: part.rugs || [], pictures: part.pictures || [],
+      skylights: part.skylights || [], hangings: part.hangings || [],
     };
   });
   const ground = storeys[0];

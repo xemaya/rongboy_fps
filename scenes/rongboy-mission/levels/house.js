@@ -5,6 +5,21 @@ const garden = { minX: -1.5, maxX: 1.5, minZ: 9.4, maxZ: 11 };
 export default {
   id: 'house',
   name: '家 · 三层楼与花园',
+  look: 'afternoon',
+  // 界面上的文案
+  texts: {
+    short: '家',
+    eyebrow: '第一关 · 家（三层楼与花园）',
+    title: '上阁楼，<br>把毛线篮拿回来。',
+    intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不会再多，也不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
+    how: ['从背后打 伤害 ×2 · 趁它没发现时打 再 ×2', '棉甲僵尸正面很硬，要绕到背后', '手枪弹药无限但要换弹 · 其余的枪和弹药要在屋里捡', '院门边就有一把静电枪：电住它，再绕到背后', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
+    start: '进入花园',
+    hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
+    got: '拿到毛线篮了！楼里被惊动了，快回院门',
+    carry: '带着毛线篮回到院门',
+    won: '带回来了！',
+    lostCarrying: '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。',
+  },
   bounds: { minX: -9, maxX: 9, minZ: -12.5, maxZ: 11 },
   height: 2.8,
   storeyHeight: 3,
@@ -287,7 +302,7 @@ export default {
         { type: 'leaper', x: 3.0, z: 1.4, state: 'asleep', heading: Math.PI / 2 },
       ],
       pickups: [
-        { kind: 'objective', x: 7.8, z: 1.9 },
+        { kind: 'objective', item: 'basket', name: '毛线篮', x: 7.8, z: 1.9 },
         { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
         { kind: 'ammo', weapon: 'scatter', amount: 4, x: 8.2, z: -8.3 },
         { kind: 'ammo', weapon: 'heavy', amount: 1, x: -7.9, z: 2.4 },

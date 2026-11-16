@@ -7,6 +7,7 @@ import { skyMaterial } from '../../engine/kit.js';
 import { mulberry32 } from '../../engine/noise.js';
 import { registerPlush, plush, roomLit, ROOM_LIGHT } from '../../library/surfaces/plush.js';
 import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, hedge, tree, planter, windowUnit, pendantLamp, rug, picture, flower, PETALS } from '../../library/structures/plush.js';
+import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../library/structures/museum.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 
 export const INDOOR_SKY = 0.4;   // 屋里能分到多少天光（环境光按这个比例压暗）
@@ -32,9 +33,21 @@ function pickupModel(k, weapons) {
   if (heart) {
     for (const sign of [-1, 1]) add(new T.SphereGeometry(0.11, 12, 10), woolMaterial(color), sign * 0.075, 0.06, 0);
     add(new T.ConeGeometry(0.155, 0.2, 12), woolMaterial(color), 0, -0.07, 0).rotation.x = Math.PI;
-  } else if (objective) {   // 毛线篮：一只藤篮装着三团毛线
-    add(new T.CylinderGeometry(0.26, 0.2, 0.24, 16), woolMaterial(0xb58a62), 0, -0.04, 0);
-    for (const [x, z, c] of [[-0.1, 0.04, 0xe7836f], [0.11, 0.02, 0x9fc3e0], [0, -0.1, 0xf2d27a]]) add(new T.SphereGeometry(0.11, 12, 10), woolMaterial(c), x, 0.13, z);
+  } else if (objective) {
+    const shiny = (c, e = 0) => new T.MeshStandardMaterial({ color: c, roughness: 0.3, emissive: c, emissiveIntensity: e });
+    if (k.item === 'mask') {          // 黄金面具
+      add(new T.SphereGeometry(0.2, 16, 12), shiny(0xe2b33c, 0.25), 0, 0.02, 0).scale.set(0.85, 1.15, 0.45);
+      for (const x of [-0.07, 0.07]) add(new T.SphereGeometry(0.035, 8, 6), woolMaterial(0x3d342c), x, 0.07, 0.085).scale.set(1.4, 0.6, 0.5);
+      for (const x of [-0.19, 0.19]) add(new T.BoxGeometry(0.07, 0.42, 0.05), woolMaterial(0x4f6fa8), x, 0.0, -0.02);
+    } else if (k.item === 'egg') {    // 恐龙蛋
+      add(new T.SphereGeometry(0.17, 16, 12), woolMaterial(0xf3ead6), 0, 0.03, 0).scale.set(0.85, 1.2, 0.85);
+      for (const [x, y, z] of [[0.09, 0.1, 0.1], [-0.08, 0.0, 0.12], [0.02, -0.08, 0.13], [-0.1, 0.12, -0.08], [0.11, -0.03, -0.09]]) add(new T.SphereGeometry(0.03, 6, 5), woolMaterial(0xb9a07c), x, y + 0.03, z);
+    } else if (k.item === 'gem') {    // 蓝宝石：八面体
+      add(new T.SphereGeometry(0.17, 4, 2), shiny(0x5f9cf0, 1.6), 0, 0.05, 0).scale.y = 1.3;
+    } else {                          // 毛线篮：一只藤篮装着三团毛线
+      add(new T.CylinderGeometry(0.26, 0.2, 0.24, 16), woolMaterial(0xb58a62), 0, -0.04, 0);
+      for (const [x, z, c] of [[-0.1, 0.04, 0xe7836f], [0.11, 0.02, 0x9fc3e0], [0, -0.1, 0xf2d27a]]) add(new T.SphereGeometry(0.11, 12, 10), woolMaterial(c), x, 0.13, z);
+    }
     const glow = add(new T.TorusGeometry(0.36, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffd060, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
   } else {
@@ -45,7 +58,7 @@ function pickupModel(k, weapons) {
     const glow = add(new T.TorusGeometry(0.34, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x7fd8ff, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
   }
-  const text = heart ? '♥ +1' : objective ? '★ 毛线篮' : gun ? `★ ${weapon?.name ?? ''}` : `${weapon?.name ?? ''} +${k.amount}`;
+  const text = heart ? '♥ +1' : objective ? `★ ${k.name || '毛线篮'}` : gun ? `★ ${weapon?.name ?? ''}` : `${weapon?.name ?? ''} +${k.amount}`;
   const sprite = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 384, height: 96, size: 46 }), transparent: true, depthWrite: false }));
   sprite.scale.set(0.72, 0.18, 1); sprite.position.y = 0.42; g.add(sprite);
   g.position.set(k.x, (k.y ?? 0) + 0.55, k.z);
@@ -55,6 +68,12 @@ function pickupModel(k, weapons) {
 
 function furniture(k, M, c) {
   const look = c.look || c.kind;
+  // 博物馆的展品
+  if (c.kind === 'plinth') return look === 'dino' ? dinosaur(k, M, c) : plinth(k, M, c);
+  if (c.kind === 'case') return displayCase(k, M, c);
+  if (c.kind === 'sarcophagus') return sarcophagus(k, M, c);
+  if (look === 'ottoman') return ottoman(k, M, c);
+  if (look === 'reception') return reception(k, M, c);
   if (look === 'hedge') hedge(k, M, c);
   else if (look === 'tree') tree(k, M, c);
   else if (look === 'planter') planter(k, M, c);
@@ -118,7 +137,10 @@ export function buildWorld(cine, level, weapons) {
   const house = level.house, hx = (house.minX + house.maxX) / 2, hz = (house.minZ + house.maxZ) / 2, hw = house.maxX - house.minX, hd = house.maxZ - house.minZ;
   const inTower = (x, z) => !!T0 && x >= T0.minX - 0.01 && x <= T0.maxX + 0.01 && z >= T0.endZ - 0.01 && z <= T0.mouthZ;
   const inHouse = (x, z, pad = 0.01) => (x >= house.minX - pad && x <= house.maxX + pad && z >= house.minZ - pad && z <= house.maxZ) || inTower(x, z);   // 南立面外侧算室外
-  const skyAt = (x, y, z) => (y < H + 0.05 && inHouse(x, z) ? INDOOR_SKY : 1);
+  // 这张图的外观参数：关卡的 theme 盖在默认值（家的样子）上
+  const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false, indoorSky: INDOOR_SKY, actor: INDOOR_ACTOR,
+    roomLight: [1.0, 0.86, 0.68, 1.9], bounce: [0x59636e, 0xffd2a0, 0.45], sheer: [0xfff6e2, 0xffe6bd, 1], ...(level.theme || {}) };
+  const skyAt = (x, y, z) => (y < H + 0.05 && inHouse(x, z) ? TH.indoorSky : 1);
 
   // ---- 材质：织物从材质库烘焙，小硬件（线、纽扣、灯罩、纱帘）用普通材质
   const lib = registerPlush(createMaterialLibrary(cine.renderer, { resolution: 1024 }));
@@ -133,10 +155,19 @@ export function buildWorld(cine, level, weapons) {
   M.button = color => once('b' + color, () => ({ base: buttonBase, color: new T.Color(color) }));
   M.glow = (color, strength) => once('g' + color + ':' + strength, () => { const m = skyMaterial({ color, emissive: color, emissiveIntensity: strength, roughness: 0.9 }); m.userData.noShadow = true; return m; });
   M.sheer = strength => once('s' + strength, () => {
-    const m = skyMaterial({ color: 0xfff6e2, emissive: 0xffe6bd, emissiveIntensity: strength, transparent: true, opacity: 0.66, roughness: 1, side: T.DoubleSide, depthWrite: false });
+    const m = skyMaterial({ color: TH.sheer[0], emissive: TH.sheer[1], emissiveIntensity: strength * TH.sheer[2], transparent: true, opacity: 0.66, roughness: 1, side: T.DoubleSide, depthWrite: false });
     m.userData.noShadow = true; return m;
   });
-  const wall = M('felt', WALL), wood = M('toy_wood'), sun = cine.sunDir;
+  // 玻璃：展柜的四壁和天窗。几乎全透，带一点点自己的亮度，夜里也看得出有一层
+  M.glass = skyMaterial({ color: 0xdff0ff, emissive: 0x9fc8e8, emissiveIntensity: 0.12, transparent: true, opacity: 0.16, roughness: 0.1, side: T.DoubleSide, depthWrite: false });
+  M.glass.userData.noShadow = true;
+  const wall = M('felt', TH.wall), wood = M('toy_wood'), trim = TH.trim ? M('felt', TH.trim) : wood, sun = cine.sunDir;
+  // 从一组矩形里挖掉一个洞（天窗）：每块被洞压到的矩形换成洞四周的四条
+  const minus = (rects, h) => rects.flatMap(r => {
+    if (h.maxX <= r.minX || h.minX >= r.maxX || h.maxZ <= r.minZ || h.minZ >= r.maxZ) return [r];
+    return [{ ...r, maxX: h.minX }, { ...r, minX: h.maxX }, { ...r, minX: h.minX, maxX: h.maxX, maxZ: h.minZ }, { ...r, minX: h.minX, maxX: h.maxX, minZ: h.maxZ }].filter(q => q.maxX - q.minX > 0.02 && q.maxZ - q.minZ > 0.02);
+  });
+  const holes = S => S.skylights.map(q => ({ minX: q.x - q.w / 2, maxX: q.x + q.w / 2, minZ: q.z - q.d / 2, maxZ: q.z + q.d / 2 }));
   const rnd = mulberry32(20261115);
 
   // ================================================================== 每一层
@@ -182,9 +213,9 @@ export function buildWorld(cine, level, weapons) {
     // 门框和门槛
     for (const s of slabs.filter(s => s.lintel)) {
       const kit = facade(s) ? shell : k;
-      for (const sign of [-1, 1]) along(kit, s, wood, 0.08, level.doorHeight, s.t + 0.07, sign > 0 ? s.a1 - 0.04 : s.a0 + 0.04, level.doorHeight / 2, 0, { r: 0.015 });
-      along(kit, s, wood, s.a1 - s.a0, 0.08, s.t + 0.07, (s.a0 + s.a1) / 2, level.doorHeight + 0.04, 0, { r: 0.015 });
-      along(kit, s, wood, s.a1 - s.a0 - 0.16, 0.03, s.t + 0.1, (s.a0 + s.a1) / 2, 0.012, 0, { r: 0.008 });
+      for (const sign of [-1, 1]) along(kit, s, trim, 0.08, level.doorHeight, s.t + 0.07, sign > 0 ? s.a1 - 0.04 : s.a0 + 0.04, level.doorHeight / 2, 0, { r: 0.015 });
+      along(kit, s, trim, s.a1 - s.a0, 0.08, s.t + 0.07, (s.a0 + s.a1) / 2, level.doorHeight + 0.04, 0, { r: 0.015 });
+      along(kit, s, trim, s.a1 - s.a0 - 0.16, 0.03, s.t + 0.1, (s.a0 + s.a1) / 2, 0.012, 0, { r: 0.008 });
     }
     // 窗
     for (const w of windows) {
@@ -193,7 +224,7 @@ export function buildWorld(cine, level, weapons) {
       windowUnit(shell, M, { ...w, t: WT, glow: Math.round((0.35 + facing * 1.5) * 10) / 10, drape: [0xc65a4e, 0x6f93a8, 0xd9a441][(S.index + (w.alongZ ? 0 : 1)) % 3] });
       const outer = w.line + WT / 2;
       const below = ground && S.furnitureBoxes.some(c => c.maxY > 0.46 && c.minZ < w.edge + 0.7 && c.maxZ > w.edge && c.maxX > w.a0 && c.minX < w.a1);
-      if (!w.alongZ && w.inside < 0 && !below) {   // 朝花园的窗外挂花箱（窗下已经靠着长椅之类的就不挂）
+      if (!w.alongZ && w.inside < 0 && !below && level.outdoor.length) {   // 朝花园的窗外挂花箱（窗下已经靠着长椅之类的就不挂）
         shell.soft(M('boards', 0xb98a66), w.w + 0.1, 0.2, 0.22, w.at, w.sill - 0.2, outer + 0.12, { r: 0.03, long: 0 });
         for (let i = 0, n = Math.round(w.w / 0.16); i < n; i++) flower(shell, M, w.at + ((i + 0.5) / n - 0.5) * w.w, w.sill - 0.12, outer + 0.1 + (i % 2) * 0.05, PETALS[Math.floor(rnd() * PETALS.length)], 0.9 + rnd() * 0.5);
       }
@@ -210,19 +241,28 @@ export function buildWorld(cine, level, weapons) {
         const dir = Math.sign((s.alongZ ? cx : cz) - edge), off = (edge - s.line) + dir * (s.edge === undefined ? s.t / 2 : 0), topY = Math.min(0.94, s.y1 - 0.02);
         along(k, s, panel, a1 - a0, topY - 0.1, 0.03, (a0 + a1) / 2, 0.1 + (topY - 0.1) / 2, off + dir * 0.011, { r: 0.012 });
         along(k, s, base, a1 - a0, 0.1, 0.045, (a0 + a1) / 2, 0.05, off + dir * 0.02, { r: 0.012 });
-        if (s.y1 > 1) along(k, s, wood, a1 - a0, 0.045, 0.055, (a0 + a1) / 2, topY + 0.02, off + dir * 0.022, { r: 0.012 });
+        if (s.y1 > 1) along(k, s, trim, a1 - a0, 0.045, 0.055, (a0 + a1) / 2, topY + 0.02, off + dir * 0.022, { r: 0.012 });
       }
       const w = r.maxX - r.minX, d = r.maxZ - r.minZ, alongX = w < d, n = Math.max(1, Math.round((alongX ? d : w) / 2.2));
-      for (let i = 0; i < n; i++) {
+      if (TH.beams) for (let i = 0; i < n; i++) {
         const o = ((i + 0.5) / n - 0.5) * (alongX ? d : w);
         k.soft(wood, alongX ? w - 0.2 : 0.12, 0.13, alongX ? 0.12 : d - 0.2, cx + (alongX ? 0 : o), H - 0.065, cz + (alongX ? o : 0), { r: 0.02, long: alongX ? 0 : 2 });
       }
-      // 每个房间一块天花板：顶点落在屋内，才分得到室内的反射光
-      k.soft(M('felt', CEILING), w, 0.06, d, cx, H + 0.03, cz, { r: 0 });
+      // 每个房间一块天花板（有天窗的挖掉天窗）：顶点落在屋内，才分得到室内的反射光
+      for (const q of holes(S).reduce(minus, [r])) k.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.06, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.03, (q.minZ + q.maxZ) / 2, { r: 0 });
+    }
+    // 天窗：木框、几根窗棂（月光把它们的影子投在地上）、一层玻璃
+    for (const q of holes(S)) {
+      const w = q.maxX - q.minX, d = q.maxZ - q.minZ, cx = (q.minX + q.maxX) / 2, cz = (q.minZ + q.maxZ) / 2, y = H + 0.1;
+      for (const s of [-1, 1]) { shell.soft(trim, w + 0.24, 0.26, 0.12, cx, y, cz + s * (d / 2 + 0.06), { r: 0.02 }); shell.soft(trim, 0.12, 0.26, d, cx + s * (w / 2 + 0.06), y, cz, { r: 0.02 }); }
+      const wide = w >= d, n = Math.max(1, Math.round((wide ? w : d) / 1.1));
+      for (let i = 1; i < n; i++) shell.soft(trim, wide ? 0.06 : w, 0.08, wide ? d : 0.06, cx + (wide ? (i / n - 0.5) * w : 0), y + 0.06, cz + (wide ? 0 : (i / n - 0.5) * d), { r: 0.012 });
+      shell.soft(trim, wide ? w : 0.06, 0.08, wide ? 0.06 : d, cx, y + 0.06, cz, { r: 0.012 });
+      shell.quad(M.glass, [q.minX, y + 0.11, q.minZ], [q.maxX, y + 0.11, q.minZ], [q.maxX, y + 0.11, q.maxZ], [q.minX, y + 0.11, q.maxZ]);
     }
     // 外立面：一层的墙基，层与层之间的腰线，顶层的屋檐（伸出去一截，负责挡住太阳）
     if (ground) for (const s of pieces) if (!s.alongZ && s.line === house.maxZ && s.y0 === 0) along(shell, s, M('boards', 0x9db3a0), s.a1 - s.a0, 0.42, 0.04, (s.a0 + s.a1) / 2, 0.21, s.t / 2 + 0.014, { r: 0.015, long: 0 });
-    if (top) shell.soft(M('felt', CEILING), hw + 1.3, 0.1, hd + 1.3, hx, H + 0.11, hz, { r: 0.03 });
+    if (top) for (const q of holes(S).reduce(minus, [{ minX: hx - hw / 2 - 0.65, maxX: hx + hw / 2 + 0.65, minZ: hz - hd / 2 - 0.65, maxZ: hz + hd / 2 + 0.65 }])) shell.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.1, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.11, (q.minZ + q.maxZ) / 2, { r: 0 });
     else {
       const band = M('boards', 0xc9b48f), y = H + (SH - H) / 2;
       shell.soft(band, hw + 0.56, SH - H + 0.12, 0.1, hx, y, house.maxZ + (ground ? WT / 2 : WT) + 0.03, { r: 0.03, long: 0 });
@@ -239,7 +279,8 @@ export function buildWorld(cine, level, weapons) {
     }
 
     // ---- 室内摆设
-    const lamps = S.lamps.map(l => { const p = pendantLamp(k, M, { x: l.x, z: l.z, ceiling: H, color: l.color ?? 0xffd9a0 }); return { x: p.x, y: p.y + S.y, z: p.z }; });
+    const lamps = S.lamps.map(l => { const p = TH.lamp === 'spot' ? spotLamp(k, M, { x: l.x, z: l.z, ceiling: H }) : pendantLamp(k, M, { x: l.x, z: l.z, ceiling: H, color: l.color ?? 0xffd9a0 }); return { x: p.x, y: p.y + S.y, z: p.z }; });
+    for (const g of S.hangings) (g.kind === 'whale' ? whale : banner)(k, M, { ...g, ceiling: H });
     for (const r of S.rugs) rug(k, M, { ...r, y: inHouse(r.x, r.z) ? 0.026 : 0.012 });
     S.pictures.forEach((p, i) => picture(k, M, { ...p, seed: S.index * 31 + i + 1 }));
     for (const c of S.furnitureBoxes) if (!ground || inHouse(c.x, c.z)) furniture(k, M, c);
@@ -255,7 +296,7 @@ export function buildWorld(cine, level, weapons) {
   const storeys = level.storeys.map(buildStorey);
 
   // ================================================================== 楼梯间：通高的竖井，折返楼梯
-  const tower = new PlushKit({ skyAt: (x, y, z) => (inTower(x, z) && y < level.top ? INDOOR_SKY : 1) });
+  const tower = new PlushKit({ skyAt: (x, y, z) => (inTower(x, z) && y < level.top ? TH.indoorSky : 1) });
   if (T0) {
     const t = T0, tw = t.maxX - t.minX, depth = t.mouthZ - t.endZ, zc = (t.mouthZ + t.endZ) / 2, hgt = level.top - (SH - H), laneW = -t.minX - t.spine, STEPS = 8, dz = t.run / STEPS;
     // 三面墙；北墙在每个半层平台的高度开一扇窗
@@ -322,6 +363,8 @@ export function buildWorld(cine, level, weapons) {
     }
   }
 
+  let chimney = null;
+  if (TH.roof) {
   // ---- 坡屋顶、烟囱（在顶层上面）
   const roofY = (N - 1) * SH, pitch = 0.47, run = hd / 2 + 0.75, rise = run * Math.tan(pitch), slope = run / Math.cos(pitch), eave = roofY + H + 0.16;
   for (const sign of [-1, 1]) {
@@ -329,10 +372,13 @@ export function buildWorld(cine, level, weapons) {
     for (const x of [house.minX - 0.5, house.maxX + 0.5]) far.quad(M('felt', WALL), [x, eave - 0.05, hz], [x, eave - 0.05, hz + sign * run], [x, eave + rise, hz], [x, eave + rise, hz], [[0, 0], [run, 0], [0, rise], [0, rise]], 1, [Math.sign(x - hx), 0, 0]);
   }
   far.cyl(M('felt', tone(ROOF, -0.2)), 0.13, 0.13, hw + 1.7, hx, eave + rise + 0.05, hz, { seg: 10, rz: Math.PI / 2 });
-  const chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
+  chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
   far.soft(M('quilt', 0xb86a55), 0.9, 2.2, 0.9, chimney.x, chimney.top - 1.1, chimney.z, { r: 0.05 });
   far.soft(M('felt', 0xe9dcc0), 1.06, 0.16, 1.06, chimney.x, chimney.top, chimney.z, { r: 0.05 });
 
+  }
+
+  if (G) {
   // ---- 远景：毛毡小山、棒棒糖树（都在围篱外面）
   const hills = [0x9dbb7c, 0x8fb074, 0xa9c487, 0x86a86e];
   for (let i = 0; i < 14; i++) {
@@ -345,17 +391,20 @@ export function buildWorld(cine, level, weapons) {
     far.sphere(M('leaves', rnd() < 0.3 ? 0xd7a35a : rnd() < 0.5 ? 0x8fb56c : 0x7da762), 1.5 * s, x, 3.3 * s, z, { seg: 14, rings: 10, sy: 0.9 });
   }
 
+  }
+
   const fixed = [...k.build({ name: 'garden' }), ...tower.build({ name: 'stairs' }), ...far.build({ name: 'far', cast: false })];
   root.add(...fixed);
 
   // ---- 会动的小东西：烟囱冒的棉花烟、天上的棉花云（一个实例化网格）
   const puffMat = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1, emissive: 0xfff3dd, emissiveIntensity: 0.22 });
   const cloudSpec = [];
-  for (let i = 0; i < 9; i++) {
+  if (!TH.night) for (let i = 0; i < 9; i++) {
     const a = rnd() * Math.PI * 2, dist = 30 + rnd() * 40, y = 18 + rnd() * 10, s = 2.2 + rnd() * 2.2;
     for (let j = 0; j < 5; j++) cloudSpec.push({ a, dist, y: y + (j % 2) * s * 0.25 - (j === 0 ? 0 : s * 0.1), s: s * (j === 2 ? 1 : 0.62 + rnd() * 0.2), dx: (j - 2) * s * 0.75 });
   }
   const puffs = new T.InstancedMesh(new T.SphereGeometry(1, 14, 10), puffMat, cloudSpec.length + 4);
+  puffs.count = cloudSpec.length + (chimney ? 4 : 0); puffs.visible = puffs.count > 0;   // 夜里的博物馆没有云也没有烟囱
   puffs.frustumCulled = false; puffs.castShadow = false; puffs.receiveShadow = false; root.add(puffs);
   const dummy = new T.Object3D();
   function update(time) {
@@ -364,7 +413,7 @@ export function buildWorld(cine, level, weapons) {
       dummy.position.set(hx + Math.cos(a) * c.dist - Math.sin(a) * c.dx, c.y, hz + Math.sin(a) * c.dist + Math.cos(a) * c.dx);
       dummy.scale.set(c.s, c.s * 0.62, c.s * 0.8); dummy.updateMatrix(); puffs.setMatrixAt(i, dummy.matrix);
     });
-    for (let j = 0; j < 4; j++) {
+    if (chimney) for (let j = 0; j < 4; j++) {
       const t = (time * 0.11 + j / 4) % 1, s = 0.28 + t * 0.6;
       dummy.position.set(chimney.x + t * t * 1.8 + Math.sin(time * 0.7 + j) * 0.08, chimney.top + 0.2 + t * 3.2, chimney.z - t * 0.6);
       dummy.scale.setScalar(s * Math.min(1, t * 6) * Math.min(1, (1 - t) * 4)); dummy.updateMatrix(); puffs.setMatrixAt(cloudSpec.length + j, dummy.matrix);
@@ -373,33 +422,38 @@ export function buildWorld(cine, level, weapons) {
   }
   update(0);
 
-  // ---- 灯光：一组朝下的聚光灯（不投影），只点亮玩家所在那一层的吊灯。灯的数量固定，换层只是挪位置，不会重编着色器。
-  const pool = Array.from({ length: Math.max(1, ...storeys.map(s => s.lamps.length)) }, () => {
+  // ---- 灯光：一组朝下的聚光灯（不投影），最多八盏，点亮离玩家最近的那几盏吊灯 / 射灯。
+  // 灯的数量固定，换层、走动只是挪位置和调亮度，不会重编着色器；排在最远的那盏亮度降到零，所以换灯时看不出跳变。
+  const POOL = 8, pool = Array.from({ length: Math.min(POOL, Math.max(1, ...storeys.map(s => s.lamps.length))) }, () => {
     const s = new T.SpotLight(0xffd3a0, 0, 10, 1.3, 0.8, 0.5);   // 衰减放得很缓：灯正下方的头顶不至于过曝
     s.castShadow = false; root.add(s, s.target); return s;
   });
   let floor = -1;
-  // 玩家换层时调用：摆灯，并且只画这一层和上下相邻两层的室内
+  // 玩家换层时：只画这一层和上下相邻两层的室内
   function setFloor(f) {
     if (f === floor) return;
     floor = f;
     storeys.forEach((s, i) => { s.inner.visible = Math.abs(i - f) <= 1; });
+  }
+  function updateLights(x, z) {
+    const lamps = storeys[Math.max(0, floor)].lamps.map(l => ({ l, d: Math.hypot(l.x - x, l.z - z) })).sort((a, b) => a.d - b.d);
+    const cut = lamps.length > pool.length ? lamps[pool.length].d : Infinity;
     pool.forEach((light, i) => {
-      const l = storeys[f].lamps[i];
-      light.intensity = l ? 3.2 : 0;
-      if (l) { light.position.set(l.x, l.y, l.z); light.target.position.set(l.x, l.y - 2.2, l.z); }
+      const it = lamps[i];
+      light.intensity = it ? 3.2 * Math.min(1, (cut - it.d) / 3) : 0;
+      if (it) { light.position.set(it.l.x, it.l.y, it.l.z); light.target.position.set(it.l.x, it.l.y - 2.2, it.l.z); }
     });
   }
-  setFloor(0);
+  setFloor(0); updateLights(level.player.x, level.player.z);
 
   // 屋里的反射光：吊灯和晒到太阳的地板把整间屋子映亮（只作用于见不到天的面，见 library/surfaces/plush.js）
-  ROOM_LIGHT.value.setRGB(1.0, 0.86, 0.68).multiplyScalar(1.9);
-  // 地面反上来的一点暖光，角色和朝下的面靠它不发黑
-  const bounce = new T.HemisphereLight(0x59636e, 0xffd2a0, 0.45); root.add(bounce);
+  ROOM_LIGHT.value.setRGB(TH.roomLight[0], TH.roomLight[1], TH.roomLight[2]).multiplyScalar(TH.roomLight[3]);
+  // 地面反上来的一点光，角色和朝下的面靠它不发黑
+  const bounce = new T.HemisphereLight(TH.bounce[0], TH.bounce[1], TH.bounce[2]); root.add(bounce);
 
   const pickups = new Map();
   for (const p of level.pickups) { const m = pickupModel(p, weapons); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, lights: pool, bounce, roomLight: ROOM_LIGHT, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats() } };
+  return { root, storeys, pickups, lights: pool, bounce, roomLight: ROOM_LIGHT, theme: TH, update, setFloor, updateLights, lib, stats: { tris, meshes: all.length, ...lib.stats() } };
 }

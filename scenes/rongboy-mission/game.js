@@ -67,6 +67,8 @@ export function createGame({ level } = {}) {
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
     health: CONFIG.maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
     charge: 0, charging: false, cooldown: 0, invul: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
+    // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
+    collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
     enemies: [], balls: [], events: [],
     pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false })),
     player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, aimX: 0, aimY: 0, aimZ: -1 },
@@ -524,7 +526,7 @@ function collect(s) {
       if (s.owned[index]) s.ammo[index].reserve += k.amount ?? w.reserve;
       else { s.owned[index] = true; s.ammo[index] = { mag: w.mag, reserve: k.amount ?? w.reserve }; selectWeapon(s, index); }
     } else if (k.kind === 'objective') {
-      s.carrying = true;
+      s.collected++; s.carrying = s.collected >= s.objectives;
       // 拿到东西会惊动周围：alarm 是 true 就是全图，是数字就是这么多米以内（按三维距离，隔着楼板减半）
       const alarm = s.level.mission.alarm;
       if (alarm) for (const e of s.enemies) {
@@ -533,7 +535,7 @@ function collect(s) {
       }
     }
     k.taken = true;
-    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: k.weapon, amount: k.amount, x: k.x, z: k.z, base: k.y ?? 0 });
+    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: k.weapon, amount: k.amount, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
   }
 }
 
@@ -543,7 +545,7 @@ export function missionStatus(s) {
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
-    return { type: 'fetch', carrying: s.carrying, atExit, alive, total: s.total, done: s.carrying && atExit };
+    return { type: 'fetch', carrying: s.carrying, collected: s.collected, needed: s.objectives, atExit, alive, total: s.total, done: s.carrying && atExit };
   }
   return { type: 'clear', alive, total: s.total, done: s.total > 0 && alive === 0 };
 }

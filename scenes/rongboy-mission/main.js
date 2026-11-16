@@ -11,16 +11,18 @@ import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED } from './game.js';
-import { buildWorld, INDOOR_SKY, INDOOR_ACTOR } from './world.js';
+import { buildWorld } from './world.js';
 import { roomLitActor } from '../../library/surfaces/plush.js';
 import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
 import { createArsenalAudio } from './sfx.js';
-import houseDef from './levels/house.js';
+import { LEVELS, ORDER } from './levels/index.js';
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const level = compileLevel(houseDef);
+// 哪张地图：网址里的 ?level=<id>，没有就是第一张。换图是换网址重新加载（场景和光线都是开局时搭好的）。
+const levelId = LEVELS[q.get('level')] ? q.get('level') : ORDER[0];
+const level = compileLevel(LEVELS[levelId]), TX = level.texts;
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
 // 脚下是露天的花园吗（楼上不算）
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
@@ -33,6 +35,21 @@ let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil =
 const handMaterials = new Set();
 const keys = new Set(), errors = [], frameIntervals = [];
 
+// 把这张图的名字和说明写进界面；开始画面上列出所有地图，按数字键换图。
+function applyTexts() {
+  document.title = `Rongboy · ${level.name}`;
+  for (const el of document.querySelectorAll('.sub')) el.textContent = level.name;
+  const intro = $('intro');
+  intro.querySelector('.eyebrow').textContent = TX.eyebrow; intro.querySelector('h1').innerHTML = TX.title; intro.querySelector('p').textContent = TX.intro;
+  intro.querySelector('.how').innerHTML = TX.how.join('<br>');
+  $('result').querySelector('.eyebrow').textContent = level.name;
+  $('objective').textContent = level.mission.title;
+  $('levels').innerHTML = ORDER.map((id, i) => `<span class="${id === levelId ? 'selected' : ''}">${i + 1} ${LEVELS[id].texts.short}</span>`).join('');
+}
+function switchLevel(id) {
+  if (!LEVELS[id] || id === levelId) return;
+  const next = new URLSearchParams(location.search); next.set('level', id); location.search = next.toString();
+}
 function fail(err) {
   const msg = String(err?.stack || err);
   errors.push(msg); $('error').textContent = msg; $('start').textContent = '加载失败';
@@ -42,14 +59,32 @@ addEventListener('unhandledrejection', e => fail(e.reason));
 
 // ---------- 画面 ----------
 
-// 光线：下午四五点的斜阳，从西南方照过来。花园里影子拉得长，阳光穿过西窗、南窗和两扇门落在地板上；
-// 屋里的天光按 INDOOR_SKY 压暗，靠每个房间的吊灯补亮（world.js）。
-const look = cloneLook(LOOKS.clearNoon);
-Object.assign(look.sun, { azimuth: 138, elevation: 30, intensity: 5.2, color: [1, 0.86, 0.66] });
-look.env.intensity = 1.15;
-Object.assign(look.sky, { zenith: [0.16, 0.33, 0.62], mid: [0.36, 0.55, 0.80], midSun: [0.75, 0.70, 0.62], horizon: [0.95, 0.84, 0.66], horizonAway: [0.62, 0.72, 0.84], glow: [1.6, 1.3, 0.9], cloudCover: 0.3, cloudWarm: 0.6 });
-Object.assign(look.air, { sigma: 0.0006, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.65, aoStrength: 0.75 });
-Object.assign(look.grade, { key: 0.17, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.16, saturation: 1.06, contrast: 0.2, sharpen: 0.55 });
+// 光线按关卡取（level.look）。
+// afternoon：下午四五点的斜阳，从西南方照过来。花园里影子拉得长，阳光穿过西窗、南窗和两扇门落在地板上；
+//   屋里的天光压暗，靠每个房间的吊灯补亮（world.js）。
+// night：闭馆后的夜里。"太阳"是东南方高处的月亮，冷色、不强，从天窗和高窗照进来；屋里是偏蓝的环境光加一盏盏暖色射灯。
+//   曝光放宽，让眼睛适应暗处；泛光开大一点，射灯、展柜和电弧会晕开。
+const LOOK_PRESETS = {
+  afternoon() {
+    const look = cloneLook(LOOKS.clearNoon);
+    Object.assign(look.sun, { azimuth: 138, elevation: 30, intensity: 5.2, color: [1, 0.86, 0.66] });
+    look.env.intensity = 1.15;
+    Object.assign(look.sky, { zenith: [0.16, 0.33, 0.62], mid: [0.36, 0.55, 0.80], midSun: [0.75, 0.70, 0.62], horizon: [0.95, 0.84, 0.66], horizonAway: [0.62, 0.72, 0.84], glow: [1.6, 1.3, 0.9], cloudCover: 0.3, cloudWarm: 0.6 });
+    Object.assign(look.air, { sigma: 0.0006, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.65, aoStrength: 0.75 });
+    Object.assign(look.grade, { key: 0.17, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.16, saturation: 1.06, contrast: 0.2, sharpen: 0.55 });
+    return look;
+  },
+  night() {
+    const look = cloneLook(LOOKS.blueHour);
+    Object.assign(look.sun, { azimuth: 52, elevation: 66, intensity: 2.6, color: [0.62, 0.76, 1.0] });
+    look.env.intensity = 1.0;
+    Object.assign(look.sky, { zenith: [0.012, 0.022, 0.06], mid: [0.025, 0.045, 0.11], midSun: [0.06, 0.09, 0.18], horizon: [0.07, 0.11, 0.21], horizonAway: [0.04, 0.06, 0.13], glow: [0.5, 0.6, 0.9], cloudCover: 0.3, cloudWarm: 0 });
+    Object.assign(look.air, { sigma: 0.0004, mist: 0, sunScale: 0.3, aoRadius: 0.3, aoIntensity: 0.6, aoStrength: 0.7 });
+    Object.assign(look.grade, { key: 0.15, minExposure: 1.0, maxExposure: 2.6, adaptTau: 0.9, exposure: 1, bloom: 0.085, flare: 0.02, streak: 0, dirt: 0, ca: 0, grain: 0.005, vignette: 0.2, saturation: 1.08, contrast: 0.2, sharpen: 0.55 });
+    return look;
+  },
+};
+const look = (LOOK_PRESETS[level.look] || LOOK_PRESETS.afternoon)();
 const B = level.bounds;
 // 清晰度：默认用 high 档（内部分辨率不缩、4 倍多重采样），像素预算放到 360 万，Retina 屏按 2 倍像素比渲染；
 // 帧率掉到 45 以下时引擎会自动降内部分辨率。网址加 ?q=medium 或 ?q=low 可以手动降档。
@@ -58,6 +93,7 @@ const cine = createCineRenderer({
   dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
 });
 const world = buildWorld(cine, level, WEAPONS);
+const INDOOR_SKY = world.theme.indoorSky, INDOOR_ACTOR = world.theme.actor;
 // 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
 if (cine.postChain) cine.postChain.enable.volumetrics = false;
 
@@ -459,12 +495,12 @@ function processEvents() {
     else if (e.type === 'pickup') {
       burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6);
       if (e.kind === 'weapon') { sfx2('weapon'); effects.ring({ x: e.x, y: base + 0.8, z: e.z }, 0xffe08a, 1.6, 0.4); } else sfx('switch');
-      say(e.kind === 'weapon' ? `捡到${WEAPONS.find(w => w.id === e.weapon).name}！按 ${WEAPONS.findIndex(w => w.id === e.weapon) + 1} 选它` : e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? '拿到毛线篮了！楼里被惊动了，快回院门' : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
+      say(e.kind === 'weapon' ? `捡到${WEAPONS.find(w => w.id === e.weapon).name}！按 ${WEAPONS.findIndex(w => w.id === e.weapon) + 1} 选它` : e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? (e.needed > 1 ? `${TX.got}${e.name} · ${e.collected} / ${e.needed}` : TX.got) : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
     } else if (e.type === 'hurt') {
       shake = 0.04; sfx('hurt');
       $('hurtFrame').classList.remove('damage'); void $('hurtFrame').offsetWidth; $('hurtFrame').classList.add('damage');
       say('被扑到了！拉开距离', 1);
-    } else if (e.type === 'mission-complete') say(level.mission.type === 'fetch' ? '带回来了！' : '全部清空！', 1.5);
+    } else if (e.type === 'mission-complete') say(level.mission.type === 'fetch' ? TX.won : '全部清空！', 1.5);
     else if (e.type === 'round-end') showResult();
   }
   if (strongest) {
@@ -514,13 +550,14 @@ function shotParams() {
 }
 
 // 开始画面的机位整体往西挪 0.6 米，避开院门边的信箱。
-const menuCamera = new T.Vector3(level.player.x + 1.7, 1.75, level.player.z + 0.78), menuLook = new T.Vector3(level.player.x - 0.8, 0.72, level.player.z - 0.55);
+const stage = level.menu || level.player;   // 开始画面的两个角色站在哪
+const menuCamera = new T.Vector3(stage.x + 1.7, 1.75, stage.z + 0.78), menuLook = new T.Vector3(stage.x - 0.8, 0.72, stage.z - 0.55);
 function cameraFrame(dt) {
   if (mode === 'menu') {
     camera.fov = 40; camera.position.lerp(menuCamera, 0.10); camera.lookAt(menuLook);
     if (menuHero) {
-      menuHero.world.position.set(level.player.x - 1.55, 0, level.player.z - 0.5); menuHero.model.rotation.y = 0.18;
-      menuZombie.world.position.set(level.player.x - 0.05, 0, level.player.z - 0.6); menuZombie.model.rotation.y = -0.06;
+      menuHero.world.position.set(stage.x - 1.55, 0, stage.z - 0.5); menuHero.model.rotation.y = 0.18;
+      menuZombie.world.position.set(stage.x - 0.05, 0, stage.z - 0.6); menuZombie.model.rotation.y = -0.06;
     }
   } else {
     const motion = reduced ? 0.25 : 1, bob = reduced ? 0 : Math.sin(phase * 2) * 0.006;
@@ -552,7 +589,7 @@ function hud() {
     slot.classList.toggle('empty', ammo.mag === 0 && ammo.reserve === 0);
     slot.textContent = `${i + 1} · ${ammo.reserve === Infinity ? ammo.mag : ammo.mag + ammo.reserve}`;
   });
-  $('objective').textContent = status.type === 'fetch' && status.carrying ? '带着毛线篮回到院门' : level.mission.title;
+  $('objective').textContent = status.type !== 'fetch' ? level.mission.title : status.carrying ? TX.carry : status.needed > 1 ? `${level.mission.title} · ${status.collected} / ${status.needed}` : level.mission.title;
   $('enemyCount').textContent = `${status.alive} / ${status.total}`;
   $('timer').textContent = clock(s.time);
   const room = roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.name || '';
@@ -600,7 +637,7 @@ function start() {
   $('intro').hidden = true; $('pausePanel').hidden = true; $('result').hidden = true;
   menuZombie.world.visible = false; menuHero.world.visible = false; fpHero.world.visible = true;
   $('view').focus(); unlock(); syncWeapon();
-  say('毛线篮在三楼的藏宝间 · 楼梯在门厅尽头', 3.5);
+  say(TX.hint, 4);
   updateModels(0);
 }
 function setPause(value) {
@@ -614,11 +651,11 @@ function showResult() {
   mode = 'result'; keys.clear(); down = false;
   const won = s.phase === 'won';
   $('result').hidden = false; $('pausePanel').hidden = true;
-  $('resultTitle').textContent = won ? (level.mission.type === 'fetch' ? '带回来了！' : '清空了！') : '被扑倒了';
+  $('resultTitle').textContent = won ? (level.mission.type === 'fetch' ? TX.won : '清空了！') : '被扑倒了';
   $('resultStars').textContent = won ? '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '再试一次';
   $('resultNote').textContent = won
     ? `受伤 ${s.damageTaken} 次${s.damageTaken <= 1 ? ' ✓' : '（不超过 1 次得一星）'} · 用时 ${clock(s.time)}${s.time <= level.par ? ' ✓' : `（${clock(level.par)} 内得一星）`}`
-    : s.carrying ? '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。' : '被发现的僵尸越多越危险：先打落单的，从背后下手。';
+    : s.carrying ? TX.lostCarrying : '被发现的僵尸越多越危险：先打落单的，从背后下手。';
   $('rKills').textContent = `${s.kills}/${s.total}`; $('rTime').textContent = clock(s.time); $('rSneak').textContent = s.backHits + s.sneakHits;
 }
 function toMenu() {
@@ -638,6 +675,7 @@ addEventListener('keydown', e => {
   if ((k === 'enter' || k === ' ') && e.target?.tagName === 'BUTTON') return;
   if (HELD.includes(k) || k === 'enter') e.preventDefault();
   if (k === 'enter' && ready && !e.repeat) { if (mode === 'menu' || mode === 'result') start(); else if (paused) setPause(false); return; }
+  if (mode === 'menu' && !e.repeat && k.length === 1 && k >= '1' && k <= String(ORDER.length)) { switchLevel(ORDER[Number(k) - 1]); return; }   // 开始画面：数字键换地图
   if (k === 'escape') { if (mode === 'playing') setPause(!paused); return; }
   if (k === 'r' && !e.repeat && ready) {
     if (mode === 'result' || paused) start();          // 暂停或结算时 R 是重开
@@ -701,17 +739,20 @@ function frame(now) {
   else if (mode === 'menu') { animateHero(dt, false); updateFx(dt); }
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y));
+  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); world.updateLights(mode === 'menu' ? stage.x : s.player.x, mode === 'menu' ? stage.z : s.player.z);
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
 
 async function boot() {
+  applyTexts();
   camera.position.copy(menuCamera); camera.lookAt(menuLook);
   actors = await loadFigurines(assetData);
   menuHero = actors.create('scout'); menuZombie = actors.create('walker');
   cine.scene.add(menuHero.world, menuZombie.world);
   for (const name of ['ArmL', 'ArmR']) part(menuZombie, name).rotation.x -= 1.18;
+  // 开始画面的两个角色如果站在屋里（博物馆），也按室内的光来照
+  if (!openAir(stage.x, 0, stage.z)) for (const actor of [menuHero, menuZombie]) for (const m of actor.materials) { m.envMapIntensity = INDOOR_SKY; roomLitActor(m).userData.indoor.value = INDOOR_ACTOR; }
   attachGun(menuHero);
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
@@ -720,7 +761,7 @@ async function boot() {
   cameraFrame(0); resize();
   await cine.warmup();
   ready = true; window.__ready = true;
-  $('start').disabled = false; $('start').textContent = '进入花园'; $('start').focus();
+  $('start').disabled = false; $('start').textContent = TX.start; $('start').focus();
   diagnostics();
 }
 requestAnimationFrame(frame);
@@ -740,7 +781,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); world.updateLights(mode === 'menu' ? stage.x : s.player.x, mode === 'menu' ? stage.z : s.player.z); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },
