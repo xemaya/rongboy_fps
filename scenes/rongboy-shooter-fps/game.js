@@ -1,10 +1,13 @@
 // DOM-free, deterministic woolball combat. X/Z ground plane, metres and seconds.
+import {advanceAction,interruptAction} from './enemy-actions.js';
 import {FEEL} from './feedback.js';
 import {ROOM,COVERS,segmentBox,routeTo,clearPath,freePoint,resolveCover} from './level.js';
-export const CONFIG={halfX:ROOM.halfX,halfZ:ROOM.halfZ,playerSpeed:3.15,enemyRadius:.32,playerRadius:.30,chargeTime:.82,maxAlive:7,enemyHp:6,maxBalls:64,ballHalfX:ROOM.halfX,ballHalfZ:ROOM.halfZ,ceilingY:ROOM.height,ballLife:12,heavyBallLife:15,repeatHitDelay:.18,gravity:.9};
+export const CONFIG={halfX:ROOM.halfX,halfZ:ROOM.halfZ,playerSpeed:3.15,enemyRadius:.32,playerRadius:.30,chargeTime:.82,maxAlive:14,enemyHp:6,maxBalls:48,maxBounces:3,ballHalfX:ROOM.halfX,ballHalfZ:ROOM.halfZ,ceilingY:ROOM.height,ballLife:5,heavyBallLife:6.5,repeatHitDelay:.18,gravity:.9};
 export const ENEMY_TYPES={
  walker:{name:'Hopper',hp:6,radius:.32,height:1.62,scale:1,speed:1.35,hopHeight:.22,hopPeriod:.72,resistance:1},
  runner:{name:'Skipper',hp:4,radius:.28,height:1.43,scale:.88,speed:2.05,hopHeight:.32,hopPeriod:.43,resistance:1.2},
+ weaver:{name:'Weaver',hp:5,radius:.30,height:1.54,scale:.95,speed:1.5,hopHeight:.26,hopPeriod:.60,resistance:1.05},
+ leaper:{name:'Springer',hp:5,radius:.30,height:1.56,scale:.96,speed:1.5,hopHeight:.23,hopPeriod:.70,resistance:.9},
  heavy:{name:'Quiltguard',hp:10,radius:.43,height:1.81,scale:1.12,speed:.88,hopHeight:.12,hopPeriod:1.02,resistance:.38},
 };
 export const WEAPONS=[
@@ -15,8 +18,8 @@ export const WEAPONS=[
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const length=(x,z)=>Math.hypot(x,z);
 function rng(s){s.seed=(Math.imul(s.seed,1664525)+1013904223)>>>0;return s.seed/4294967296;}
-export function createGame({seed=1743,duration=60,covers=COVERS}={}){const s={phase:'playing',seed,time:0,duration,covers,weapon:0,health:3,score:0,kills:0,shots:0,hits:0,bounces:0,repeatHits:0,maxCombo:0,combo:0,lastKill:-10,charge:0,charging:false,cooldown:0,invul:0,spawnIn:3.2,nextId:1,enemies:[],balls:[],events:[],player:{x:0,z:3.5,vx:0,vz:0,aimX:0,aimY:0,aimZ:-1}};spawn(s,0,1.25);spawn(s,-2.15,-.4,'runner');spawn(s,2.05,-2.8,'heavy');return s;}
-export function spawn(s,x,z,type='walker'){const def=ENEMY_TYPES[type]||ENEMY_TYPES.walker;const e={...def,type,id:s.nextId++,x,y:0,z,vx:0,vz:0,hp:def.hp,maxHp:def.hp,alive:true,hit:0,age:0,deathAge:0,heading:0,fallX:0,fallZ:1,chainCooldown:0,reactionAge:10,reactionStrength:0,reactionWeapon:'single',reactionX:0,reactionZ:1,reactionTwist:0,hitDuration:0,navIn:0,route:[],hopPhase:0};resolveCover(e,e.radius,s.covers);s.enemies.push(e);s.events.push({type:'spawn',id:e.id,x:e.x,z:e.z,enemyType:type});return e;}
+export function createGame({seed=1743,duration=60,covers=COVERS}={}){const s={phase:'playing',seed,time:0,duration,covers,weapon:0,health:3,score:0,kills:0,shots:0,hits:0,bounces:0,repeatHits:0,maxCombo:0,combo:0,lastKill:-10,charge:0,charging:false,cooldown:0,invul:0,spawnIn:2.6,wave:1,nextId:1,enemies:[],balls:[],events:[],player:{x:0,z:5.7,vx:0,vz:0,aimX:0,aimY:0,aimZ:-1}};spawn(s,0,3.0);spawn(s,-1.8,1.7,'runner');spawn(s,1.8,-1.7,'heavy');spawn(s,-4.8,1.8,'weaver');spawn(s,2.2,1.4,'leaper');spawn(s,5.05,-1.0);return s;}
+export function spawn(s,x,z,type='walker'){const def=ENEMY_TYPES[type]||ENEMY_TYPES.walker;const e={...def,type,id:s.nextId++,x,y:0,z,vx:0,vz:0,hp:def.hp,maxHp:def.hp,alive:true,hit:0,age:0,deathAge:0,heading:0,fallX:0,fallZ:1,chainCooldown:0,reactionAge:10,reactionStrength:0,reactionWeapon:'single',reactionX:0,reactionZ:1,reactionTwist:0,hitDuration:0,navIn:0,route:[],hopPhase:0,action:'chase',actionAge:0,actionCooldown:1.3+(s.nextId%3)*.25,sideLean:0,moveMultiplier:1};resolveCover(e,e.radius,s.covers);s.enemies.push(e);s.events.push({type:'spawn',id:e.id,x:e.x,z:e.z,enemyType:type});return e;}
 export function selectWeapon(s,index){if(s.phase!=='playing'||!WEAPONS[index]||s.weapon===index)return false;s.weapon=index;s.charging=false;s.charge=0;s.events.push({type:'weapon',weapon:index});return true;}
 export function beginCharge(s){if(s.phase==='playing'&&!s.charging){s.charging=true;s.charge=0;}}
 export function releaseCharge(s,shot=null){if(!s.charging)return false;s.charging=false;const power=clamp((s.charge-.12)/(CONFIG.chargeTime-.12),0,1);s.charge=0;return fire(s,power,shot);}
@@ -27,7 +30,7 @@ export function fire(s,power=0,shot=null){
   if(s.balls.length>=CONFIG.maxBalls)expireBall(s,s.balls.shift());
   const offset=w.count===1?0:(i-1)*(.15-power*.07),ax=dx+rx*offset,az=dz+rz*offset,n=Math.hypot(ax,dy,az),speed=w.speed-(w.id==='single'?power*2:0),effective=w.id==='heavy'?.75+power*.25:power;
   const radius=w.id==='scatter'?.085+power*.035:w.id==='heavy'?.22+power*.06:.10+.15*power;
-  const b={id:s.nextId++,weapon:w.id,x:origin.x,y:origin.y,z:origin.z,dx:ax/n,dy:dy/n,dz:az/n,speed,r:radius,power:effective,impulse:w.push+power*w.chargePush,stun:FEEL[w.id].stun+power*.035,vx:ax/n*speed,vy:dy/n*speed,vz:az/n*speed,age:0,lifetime:w.id==='heavy'?16:power>=.6?CONFIG.heavyBallLife:CONFIG.ballLife,bounceCount:0,enemyHits:0,hitTimes:{},hitCounts:{},destroyed:false};s.balls.push(b);
+  const b={id:s.nextId++,weapon:w.id,x:origin.x,y:origin.y,z:origin.z,dx:ax/n,dy:dy/n,dz:az/n,speed,r:radius,power:effective,impulse:w.push+power*w.chargePush,stun:FEEL[w.id].stun+power*.035,vx:ax/n*speed,vy:dy/n*speed,vz:az/n*speed,age:0,lifetime:w.id==='heavy'?CONFIG.heavyBallLife:power>=.6?CONFIG.heavyBallLife:CONFIG.ballLife,bounceCount:0,enemyHits:0,hitTimes:{},hitCounts:{},maxBounces:CONFIG.maxBounces,destroyed:false};s.balls.push(b);
  }
  s.shots++;s.cooldown=w.cooldown+(w.id==='single'&&power>=.6?.16:0);s.events.push({type:'shot',x:origin.x,z:origin.z,y:origin.y,dx,dy,dz,power,weapon:w.id});return true;
 }
@@ -37,7 +40,7 @@ export function cameraMove(side,forward,yaw){return {x:side*Math.cos(yaw)-forwar
 export function segmentCylinder(ax,ay,az,bx,by,bz,cx,cz,r,minY,maxY){const dx=bx-ax,dz=bz-az,fx=ax-cx,fz=az-cz,A=dx*dx+dz*dz,C=fx*fx+fz*fz-r*r;let lo=0,hi=1;if(A<1e-10){if(C>0)return null;}else{const B=2*(fx*dx+fz*dz),D=B*B-4*A*C;if(D<0)return null;lo=Math.max(0,(-B-Math.sqrt(D))/(2*A));hi=Math.min(1,(-B+Math.sqrt(D))/(2*A));}const dy=by-ay;if(Math.abs(dy)<1e-10){if(ay<minY||ay>maxY)return null;}else{let a=(minY-ay)/dy,b=(maxY-ay)/dy;if(a>b)[a,b]=[b,a];lo=Math.max(lo,a);hi=Math.min(hi,b);}return lo<=hi&&hi>=0&&lo<=1?Math.max(0,lo):null;}
 function knockdown(s,e,dx,dz,source='ball'){if(!e.alive)return;e.alive=false;e.deathAge=0;e.fallX=dx;e.fallZ=dz;s.kills++;s.combo=s.time-s.lastKill<1.6?s.combo+1:1;s.lastKill=s.time;s.maxCombo=Math.max(s.maxCombo,s.combo);s.score+=10+(s.combo-1)*5;s.events.push({type:'knockdown',id:e.id,x:e.x,z:e.z,dx,dz,combo:s.combo,source,weapon:e.reactionWeapon,strength:e.reactionStrength});}
 function damage(s,e,amount,dx,dz,impulse,source='ball',meta={}){
- if(!e.alive)return;e.hp=Math.max(0,e.hp-amount);e.lastHit=s.time;
+ if(!e.alive)return;e.hp=Math.max(0,e.hp-amount);e.lastHit=s.time;if(interruptAction(e))s.events.push({type:'interrupted',id:e.id,x:e.x,z:e.z});
  e.vx+=dx*impulse*e.resistance;e.vz+=dz*impulse*e.resistance;
  const weapon=meta.weapon||(impulse>3?'heavy':'single'),feel=FEEL[weapon]||FEEL.single;
  e.hit=Math.max(e.hit,meta.stun??feel.stun);e.hitDuration=e.hit;e.chainCooldown=.16;
@@ -49,7 +52,7 @@ function damage(s,e,amount,dx,dz,impulse,source='ball',meta={}){
  if(e.hp<=0)knockdown(s,e,dx,dz,source);
 }
 function wall(e,r){if(e.x>CONFIG.halfX-r){e.x=CONFIG.halfX-r;e.vx=-Math.abs(e.vx)*.25;}if(e.x<-CONFIG.halfX+r){e.x=-CONFIG.halfX+r;e.vx=Math.abs(e.vx)*.25;}if(e.z>CONFIG.halfZ-r){e.z=CONFIG.halfZ-r;e.vz=-Math.abs(e.vz)*.25;}if(e.z<-CONFIG.halfZ+r){e.z=-CONFIG.halfZ+r;e.vz=Math.abs(e.vz)*.25;}}
-function expireBall(s,b){if(b.destroyed)return;b.destroyed=true;s.events.push({type:'ball-expired',id:b.id,x:b.x,y:b.y,z:b.z});}
+function expireBall(s,b,reason='lifetime'){if(b.destroyed)return;b.destroyed=true;s.events.push({type:'ball-expired',id:b.id,x:b.x,y:b.y,z:b.z,reason,bounces:b.bounceCount});}
 function syncDirection(b){b.speed=Math.hypot(b.vx,b.vy,b.vz)||1;b.dx=b.vx/b.speed;b.dy=b.vy/b.speed;b.dz=b.vz/b.speed;}
 function advanceBall(s,b,dt){
  b.age+=dt;if(b.age>=b.lifetime){expireBall(s,b);return;}
@@ -80,6 +83,7 @@ function advanceBall(s,b,dt){
   const dot=b.vx*hit.nx+b.vy*hit.ny+b.vz*hit.nz;const retain=hit.e?.98:.985;b.vx=(b.vx-2*dot*hit.nx)*retain;b.vy=(b.vy-2*dot*hit.ny)*retain;b.vz=(b.vz-2*dot*hit.nz)*retain;
   if(hit.kind==='floor')b.vy=Math.max(1.05,b.vy*.88);
   b.bounceCount++;s.bounces++;if(s.time-(b.lastBounceEvent??-1)>.04){b.lastBounceEvent=s.time;s.events.push({type:'bounce',id:b.id,x:b.x,y:b.y,z:b.z,kind:hit.kind,count:b.bounceCount});}
+  if(b.bounceCount>=b.maxBounces)expireBall(s,b,'bounce-limit');
  }
  syncDirection(b);
 }
@@ -90,13 +94,17 @@ export function step(s,dt,input={}){if(s.phase!=='playing')return;dt=clamp(dt,0,
  for(const e of s.enemies){
   const prevPhase=e.hopPhase;e.age+=dt;e.reactionAge+=dt;e.hit=Math.max(0,e.hit-dt);e.chainCooldown=Math.max(0,e.chainCooldown-dt);
   if(!e.alive){e.deathAge+=dt;e.y*=Math.exp(-dt*12);}else{
+   const action=advanceAction(e,dt,p,s.covers,s.events);
    e.hopPhase=((e.age+e.id*.137)%e.hopPeriod)/e.hopPeriod;
-   const flight=clamp(e.hopPhase/.78,0,1);e.y=Math.sin(flight*Math.PI)*e.hopHeight;
-   if(e.hopPhase<prevPhase)s.events.push({type:'land',id:e.id,x:e.x,z:e.z,enemyType:e.type});
-   e.navIn-=dt;if(e.navIn<=0){e.route=routeTo(e,p,e.radius+.025,s.covers);e.navIn=.4;}
-   while(e.route.length&&length(e.x-e.route[0].x,e.z-e.route[0].z)<.04)e.route.shift();
-   const next=clearPath(e,p,e.radius+.025,s.covers)?p:e.route[0];
-   if(next){const dx=next.x-e.x,dz=next.z-e.z,d=length(dx,dz)||1,speed=e.hit<=0?e.speed*(.15+1.55*Math.sin(flight*Math.PI)):0;const travel=Math.min(d,speed*dt);e.x+=dx/d*travel;e.z+=dz/d*travel;if(d>.03&&e.hit<=0)e.heading=Math.atan2(dx,dz);}
+   const flight=clamp(e.hopPhase/.78,0,1);e.y=action? action.y:Math.sin(flight*Math.PI)*e.hopHeight;
+   if(e.hopPhase<prevPhase&&!action)s.events.push({type:'land',id:e.id,x:e.x,z:e.z,enemyType:e.type});
+   if(action){if(e.hit<=0){e.x+=action.x*dt;e.z+=action.z*dt;}}
+   else{
+    e.navIn-=dt;if(e.navIn<=0){e.route=routeTo(e,p,e.radius+.025,s.covers);e.navIn=.4;}
+    while(e.route.length&&length(e.x-e.route[0].x,e.z-e.route[0].z)<.04)e.route.shift();
+    const next=e.action==='sidestep'?{x:e.flankX,z:e.flankZ}:clearPath(e,p,e.radius+.025,s.covers)?p:e.route[0];
+    if(next){const dx=next.x-e.x,dz=next.z-e.z,d=length(dx,dz)||1,speed=e.hit<=0?e.speed*e.moveMultiplier*(.15+1.55*Math.sin(flight*Math.PI)):0;const travel=Math.min(d,speed*dt);e.x+=dx/d*travel;e.z+=dz/d*travel;if(d>.03&&e.hit<=0){const lookX=e.action==='sidestep'?p.x-e.x:dx,lookZ=e.action==='sidestep'?p.z-e.z:dz;e.heading=Math.atan2(lookX,lookZ);}}
+   }
   }
   e.x+=e.vx*dt;e.z+=e.vz*dt;e.vx*=Math.exp(-4.3*dt);e.vz*=Math.exp(-4.3*dt);wall(e,e.radius);resolveCover(e,e.radius,s.covers);
  }
@@ -112,8 +120,12 @@ export function step(s,dt,input={}){if(s.phase!=='playing')return;dt=clamp(dt,0,
  resolveCover(p,CONFIG.playerRadius,s.covers);
  s.spawnIn-=dt;const alive=s.enemies.filter(e=>e.alive).length;
  if(s.spawnIn<=0&&alive<CONFIG.maxAlive&&s.time<s.duration-2){
-  let point=null;for(let attempt=0;attempt<24;attempt++){const side=Math.floor(rng(s)*4);let x=(rng(s)*2-1)*(CONFIG.halfX-.6),z=(rng(s)*2-1)*(CONFIG.halfZ-.6);if(side<2)x=(side===0?-1:1)*(CONFIG.halfX-.6);else z=(side===2?-1:1)*(CONFIG.halfZ-.6);if(length(x-p.x,z-p.z)>3&&freePoint(x,z,.5,s.covers)){point={x,z};break;}}
-  if(point){const n=rng(s),type=n<.27?'runner':n>.74?'heavy':'walker';spawn(s,point.x,point.z,type);}s.spawnIn=alive<2?1.6:3.1;
+  let count=0;const amount=Math.min(3,CONFIG.maxAlive-alive);
+  for(let group=0;group<amount;group++){
+   let point=null;for(let attempt=0;attempt<36;attempt++){const side=Math.floor(rng(s)*4);let x=(rng(s)*2-1)*(CONFIG.halfX-.7),z=(rng(s)*2-1)*(CONFIG.halfZ-.7);if(side<2)x=(side===0?-1:1)*(CONFIG.halfX-.7);else z=(side===2?-1:1)*(CONFIG.halfZ-.7);if(length(x-p.x,z-p.z)>5.5&&freePoint(x,z,.52,s.covers)&&s.enemies.every(e=>!e.alive||length(e.x-x,e.z-z)>1.0)){point={x,z};break;}}
+   if(point){const types=['walker','runner','heavy','weaver','leaper'],type=types[(s.wave+group+Math.floor(rng(s)*3))%types.length];spawn(s,point.x,point.z,type);count++;}
+  }
+  if(count){s.wave++;s.events.push({type:'wave',wave:s.wave,count});}s.spawnIn=alive<6?2.3:3.8;
  }
  if(s.health<=0||s.time>=s.duration){s.phase=s.health<=0?'lost':'won';s.charging=false;s.charge=0;s.events.push({type:'round-end',phase:s.phase});}}
 export function consumeEvents(s){const e=s.events;s.events=[];return e;}

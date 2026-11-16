@@ -1,5 +1,5 @@
 // Shared metre-scale geometry: rendering, navigation, aiming and ricochets use these boxes.
-export const ROOM={halfX:6.1,halfZ:4.6,height:3.65};
+export const ROOM={halfX:9.6,halfZ:7.2,height:3.9};
 export const COVERS=[
  {id:'thread-cabinet',x:0,z:-2.25,w:1.6,d:.72,h:2.35,color:0x778a76,kind:'cabinet'},
  {id:'work-table',x:0,z:.05,w:2.1,d:.82,h:.83,color:0xbb855d,kind:'bench'},
@@ -7,6 +7,13 @@ export const COVERS=[
  {id:'east-cushion',x:3.15,z:-.35,w:1.05,d:1.9,h:.96,color:0xc49960,kind:'cushion'},
  {id:'back-crate',x:-3.5,z:-3.25,w:1.55,d:.8,h:1.12,color:0xad7863,kind:'crate'},
  {id:'near-shelf',x:3.65,z:2.65,w:1.45,d:.7,h:1.8,color:0x9c9d7b,kind:'cabinet'},
+ {id:'cutting-divider',x:-6.55,z:1.15,w:.82,d:3.15,h:2.15,color:0x829b90,kind:'cabinet'},
+ {id:'cutting-table',x:-5.3,z:-3.65,w:2.55,d:1.0,h:.87,color:0xbd9773,kind:'bench'},
+ {id:'west-rolls',x:-7.75,z:-5.8,w:1.55,d:1.05,h:1.25,color:0xa6ac7e,kind:'crate'},
+ {id:'packing-shelf',x:6.5,z:-2.9,w:1.05,d:3.15,h:2.25,color:0x83977c,kind:'cabinet'},
+ {id:'packing-table',x:5.35,z:4.75,w:2.6,d:1.0,h:.84,color:0xb58767,kind:'bench'},
+ {id:'back-cushions',x:3.4,z:-5.55,w:2.5,d:.95,h:.9,color:0xc5a574,kind:'cushion'},
+ {id:'front-crates',x:-4.4,z:5.65,w:1.7,d:1.0,h:1.2,color:0x9c8575,kind:'crate'},
  {id:'near-cushion',x:-2.75,z:2.85,w:1.4,d:.75,h:.7,color:0x9ca77b,kind:'cushion'},
 ].map(c=>({...c,minX:c.x-c.w/2,maxX:c.x+c.w/2,minZ:c.z-c.d/2,maxZ:c.z+c.d/2,minY:0,maxY:c.h}));
 

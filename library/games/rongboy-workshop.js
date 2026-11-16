@@ -30,22 +30,23 @@ export function buildWoolWorkshop(scene,room,covers){
  const g=new T.Group(),inside=new T.Group();scene.add(g,inside);const floor=woolMaterial(0x718575),wall=woolMaterial(0xc8c09e),teal=woolMaterial(0x799386),rust=woolMaterial(0xb57e60),h=room.height,ceilingMat=oat.clone();
  box(g,room.halfX*2+.45,.28,room.halfZ*2+.45,wood,0,-.24,0,.12);box(g,room.halfX*2,.18,room.halfZ*2,floor,0,-.09,0,.06);
  // Large stitched floor panels and small paired route markings keep the floor legible.
- for(let x=-4.8;x<5;x+=2.4)line(g,[[x,.006,-room.halfZ+.15],[x,.006,room.halfZ-.15]],seam,.005);
- for(let z=-3;z<4;z+=2.2)line(g,[[-room.halfX+.14,.006,z],[room.halfX-.14,.006,z]],seam,.005);
- for(const x of [-1.65,1.65])for(let z=-3.4;z<3.9;z+=.42)box(g,.055,.012,.16,oat,x,.015,z,.005);
+ for(let x=-room.halfX+2.0;x<room.halfX;x+=2.4)line(g,[[x,.006,-room.halfZ+.15],[x,.006,room.halfZ-.15]],seam,.005);
+ for(let z=-room.halfZ+1.7;z<room.halfZ;z+=2.2)line(g,[[-room.halfX+.14,.006,z],[room.halfX-.14,.006,z]],seam,.005);
+ for(const x of [-5.05,-1.65,1.65,5.05])for(let z=-room.halfZ+.55;z<room.halfZ-.4;z+=.52)box(g,.055,.012,.16,oat,x,.015,z,.005);
  for(const c of covers){const cover=createWorkshopCover(c);cover.position.set(c.x,0,c.z);inside.add(cover);}
  for(const sign of [-1,1]){
   box(inside,room.halfX*2+.24,h,.18,wall,0,h/2,sign*(room.halfZ+.09));
   box(inside,.18,h,room.halfZ*2,wall,sign*(room.halfX+.09),h/2,0);
   box(inside,room.halfX*2,.70,.045,teal,0,.35,sign*(room.halfZ-.02),.01);
   box(inside,.045,.70,room.halfZ*2,teal,sign*(room.halfX-.02),.35,0,.01);
-  for(let x=-5.6;x<5.8;x+=1.4)box(inside,.09,h,.09,wood,x,h/2,sign*(room.halfZ-.055),.015);
-  for(let z=-3.8;z<4;z+=1.9)box(inside,.09,h,.09,wood,sign*(room.halfX-.055),h/2,z,.015);
+  for(let x=-room.halfX+.5;x<room.halfX;x+=1.8)box(inside,.09,h,.09,wood,x,h/2,sign*(room.halfZ-.055),.015);
+  for(let z=-room.halfZ+.6;z<room.halfZ;z+=2.3)box(inside,.09,h,.09,wood,sign*(room.halfX-.055),h/2,z,.015);
   // Fabric sample panels resemble windows, without introducing false walkable openings.
-  for(const z of [-2.8,1.1]){box(inside,.07,1.3,1.5,oat,sign*(room.halfX-.09),2.2,z,.04);for(const dz of [-.45,0,.45])box(inside,.06,1.16,.28,z<0?teal:rust,sign*(room.halfX-.135),2.2,z+dz,.03);}
+  for(const z of [-5.2,-.5,4.4]){box(inside,.07,1.3,1.5,oat,sign*(room.halfX-.09),2.2,z,.04);for(const dz of [-.45,0,.45])box(inside,.06,1.16,.28,z<0?teal:rust,sign*(room.halfX-.135),2.2,z+dz,.03);}
  }
  box(inside,room.halfX*2+.2,.12,room.halfZ*2+.2,ceilingMat,0,h+.06,0,.015);
- for(const x of [-4,0,4])box(inside,.13,.13,room.halfZ*2,wood,x,h-.11,0,.015);
+ for(const x of [-7.2,-3.6,0,3.6,7.2])box(inside,.13,.13,room.halfZ*2,wood,x,h-.11,0,.015);
+ for(const [x,label,caption]of [[-6.3,'CUTTING BAY','01  /  TAKE THE SIDE LANE'],[6.3,'PACKING BAY','02  /  KEEP ON MOVING']]){const sign=mesh(inside,new T.PlaneGeometry(3.0,.75),new T.MeshStandardMaterial({map:signTexture(label,caption),roughness:1}),x,2.9,-room.halfZ+.11);sign.castShadow=false;}
  const board=mesh(inside,new T.PlaneGeometry(3.8,.95),new T.MeshStandardMaterial({map:signTexture('WOOLWORKS','BOUNCE  /  WEAVE  /  REPEAT'),roughness:1}),0,2.92,-room.halfZ+.105);board.castShadow=false;
  // A cream runner behind the central cabinet makes the two side paths visually distinct.
  box(inside,1.1,.018,1.15,rust,-4.8,.01,-3.5,.02);box(inside,1.1,.018,1.15,teal,4.8,.01,3.5,.02);
@@ -58,6 +59,12 @@ export function dressWalker(actor,type,scale=1){
  if(!template){template=new T.Group();if(type==='runner'){
   const teal=woolMaterial(0x75a9a0),band=mesh(template,new T.TorusGeometry(.385,.046,8,40),teal,0,.59,.015);band.rotation.x=Math.PI/2;band.scale.y=.82;
   for(const sign of [-1,1]){const tail=box(template,.10,.30,.055,teal,sign*.13,.48,-.28,.02);tail.rotation.z=sign*.35;}
+ }else if(type==='weaver'){
+  const plum=woolMaterial(0xa697b4);const collar=mesh(template,new T.TorusGeometry(.22,.072,8,28),plum,0,.55,0);collar.rotation.x=Math.PI/2;collar.scale.y=.75;
+  for(const sign of [-1,1]){const tail=box(template,.12,.43,.055,plum,sign*.08,.34,.23,.025);tail.rotation.z=sign*.28;}
+ }else if(type==='leaper'){
+  const gold=woolMaterial(0xd7ae60);for(const x of [-.15,.15])box(template,.075,.59,.065,gold,x,.32,.225,.02);
+  box(template,.45,.16,.09,gold,0,.47,.23,.04);for(const x of [-.18,.18])box(template,.13,.16,.13,oat,x,.56,.10,.04);
  }else{
   const armor=woolMaterial(0xa56b55);for(const x of [-.17,.17]){box(template,.27,.53,.12,armor,x,.32,.225,.055);for(let j=0;j<3;j++)line(template,[[x-.10,.13+j*.16,.292],[x+.10,.13+j*.16,.292]],seam,.007);}
   for(const sign of [-1,1])box(template,.18,.20,.28,armor,sign*.32,.56,.02,.055);
