@@ -59,7 +59,7 @@ const options = (page) => ({
   bundle: true,
   format: 'iife',
   target: 'es2022',
-  loader: { '.glb': 'binary' },
+  loader: { '.glb': 'binary', '.mp3': 'dataurl' },
   minify: !serve,
   write: false,
   legalComments: 'none',

@@ -1,0 +1,80 @@
+{
+  "shot": "s09",
+  "cast": [
+    "bomber",
+    "archer"
+  ],
+  "plan_job": {
+    "id": "s09",
+    "name": "09-trouble",
+    "f0": 504,
+    "f1": 576,
+    "frames": 72,
+    "duration": 3,
+    "stretch": 1,
+    "sec": 3,
+    "nativeFrames": 73,
+    "cast": [
+      "bomber",
+      "archer"
+    ],
+    "first": "firstframes/s09_source.png",
+    "guide": "guides/s09.mp4"
+  },
+  "variant": "fix",
+  "prompt_source": "/private/tmp/rongboy-intro-ai/jobs/s09_fix.txt",
+  "recipe": {
+    "w": 1024,
+    "h": 576,
+    "sec": 3.0,
+    "steps": 8,
+    "seed": 11
+  },
+  "assets": [
+    {
+      "role": "first",
+      "local": "/private/tmp/rongboy-intro-ai/firstframes/s09_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s09_first_cbd0f7f99ac7cc46.png",
+      "sha256": "cbd0f7f99ac7cc4605fee9b0da8df6ec83f4741092f409ecbad09b1d43d94bf0"
+    },
+    {
+      "role": "guide",
+      "local": "/private/tmp/rongboy-intro-ai/guides/s09.mp4",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4",
+      "sha256": "c336a1899d78e9a6d5e023cf4dd0307bd58d35da3dedce968c0c57b4bce4202f"
+    },
+    {
+      "role": "cast_bomber",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/bomber.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s09_cast_bomber_afc51ccf22f5cedf.png",
+      "sha256": "afc51ccf22f5cedf73a044346d6060f65d88a2c11d74cc1e2357aad0638bac58"
+    },
+    {
+      "role": "cast_archer",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s09_cast_archer_b3cb9c26e363f745.png",
+      "sha256": "b3cb9c26e363f745d267486e09bcd3c1a5cb6022a3e071e170ac6d049383ab84"
+    },
+    {
+      "role": "frame_0",
+      "local": "/private/tmp/rongboy-intro-ai/anchors/s09_f071_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s09_frame_0_7d60ca83c50f7328.png",
+      "sha256": "7d60ca83c50f7328c59adf9bf34d323e2a04d78f9f0098ca9e223fea8d4b735c"
+    }
+  ],
+  "prompt_sha256": "dd1c871877568050e6ed845a1c4071f8a34f9b507a8f9341defd4ec0e31d3fac",
+  "shot_plan_sha256": "b32a5e1595d044150b353e12412672b22b3be04cd1a292584be5b024c6070ca5",
+  "remote_driver_sha256": "3e267e60e6db26b7845bf72901871067bdbf20cdc4b64fe2ce4753d8a792181c",
+  "guides": [
+    {
+      "frame_idx": 72,
+      "resolved_frame_index": 72,
+      "role": "frame_0",
+      "source": "/private/tmp/rongboy-intro-ai/anchors/s09_f071_paint.png"
+    }
+  ],
+  "project_runner_sha256": "1c7fb8fc68c16cfed7be454f05a4b7d0b37b8b83ee7897f6f4e39f2a8b40d1ac",
+  "run_id": "f76c3963b25bdcca",
+  "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca",
+  "output_prefix": "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca"
+}

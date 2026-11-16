@@ -1,0 +1,17 @@
+These credits describe the procedural baseline only. The AI visual version has separate credits in ai/CREDITS.md.
+
+一颗毛球惹的祸 / Rongboy intro
+
+Original game, native Blender figurines and design: xemaya/rongboy_fps and the Rongboy project.
+Source: https://github.com/xemaya/rongboy_fps
+
+Renderer and handcrafted furniture: cine-engine, the game's pinned submodule.
+Source: https://github.com/xemaya/cine-engine
+Three.js: MIT license, https://threejs.org/ (license included in the installed package).
+
+Animation, staging, original score and procedural foley: authored for this film in this project.
+No external recordings, stock footage or generated-image substitutes are used.
+Typography: locally installed Georgia / Songti SC / system serif fallback, rasterized for this film; no font files are redistributed.
+
+Capture and quality-check tooling: Lemo-Opuscar, https://github.com/lemomo-ai/lemo-opuscar ; ffmpeg ; Playwright.
+References inform comic timing, handmade close-ups and character introductions. No reference-game footage, characters, logos or music appears in the film.

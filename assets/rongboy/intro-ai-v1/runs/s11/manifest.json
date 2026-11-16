@@ -1,0 +1,74 @@
+{
+  "config": {
+    "shot": "s11",
+    "cast": [
+      "hero",
+      "bomber",
+      "archer"
+    ],
+    "plan_job": {
+      "id": "s11",
+      "name": "11-your-turn",
+      "f0": 668,
+      "f1": 720,
+      "frames": 52,
+      "duration": 2.1666666666666665,
+      "stretch": 1,
+      "sec": 2.1666666666666665,
+      "nativeFrames": 56,
+      "cast": [
+        "hero",
+        "bomber",
+        "archer"
+      ],
+      "first": "firstframes/s11_source.png",
+      "guide": "guides/s11.mp4"
+    },
+    "recipe": {
+      "w": 1024,
+      "h": 576,
+      "sec": 2.1666666666666665,
+      "steps": 8,
+      "seed": 7
+    },
+    "assets": [
+      {
+        "role": "first",
+        "local": "/private/tmp/rongboy-intro-ai/firstframes/s11_paint.png",
+        "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s11_first_471b2e4d46f8ff48.png",
+        "sha256": "471b2e4d46f8ff4816914a29b4bc9709d01cac302ee1246ba73912883a46384a"
+      },
+      {
+        "role": "guide",
+        "local": "/private/tmp/rongboy-intro-ai/guides/s11.mp4",
+        "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s11_guide_e06ca351a36f21e4.mp4",
+        "sha256": "e06ca351a36f21e472d2588ce8efdc6bcf7fc4850872dc77edd0874cbaa6dfb9"
+      },
+      {
+        "role": "cast_hero",
+        "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s11_cast_hero_375c25192c2feeb7.png",
+        "sha256": "375c25192c2feeb7edcfd8665e7c1b658b073d88189f82a9bc38469c83ddc038"
+      },
+      {
+        "role": "cast_bomber",
+        "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/bomber.png",
+        "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s11_cast_bomber_afc51ccf22f5cedf.png",
+        "sha256": "afc51ccf22f5cedf73a044346d6060f65d88a2c11d74cc1e2357aad0638bac58"
+      },
+      {
+        "role": "cast_archer",
+        "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png",
+        "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s11_cast_archer_b3cb9c26e363f745.png",
+        "sha256": "b3cb9c26e363f745d267486e09bcd3c1a5cb6022a3e071e170ac6d049383ab84"
+      }
+    ],
+    "prompt_sha256": "924bcecd0057ac8446544681dcaea677edaac919f69b846f4c015a26ce686671",
+    "shot_plan_sha256": "b32a5e1595d044150b353e12412672b22b3be04cd1a292584be5b024c6070ca5",
+    "remote_driver_sha256": "a78c6302d51864c1e0398cfb0481292f7969b3cb92c3c6db74593d1274ae41a1",
+    "run_id": "7e742474667c785a",
+    "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s11/7e742474667c785a",
+    "output_prefix": "rongboy-intro-ai-v1-20261116/s11/rgintro_20261116_v1_s11_s7_7e742474667c785a"
+  },
+  "local_dir": "/private/tmp/rongboy-intro-ai/runs/s11/7e742474667c785a"
+}

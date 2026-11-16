@@ -1,0 +1,23 @@
+{
+  "s04": {
+    "sourceStartFrame": 0,
+    "sourceEndFrame": 35,
+    "outputFrames": 44,
+    "reason": "Golden ball disappears after frame 34 in native generation. Use intact prefix and retime continuously to preserve the loaded launcher through this pre-fire shot."
+  },
+  "s09": {
+    "segments": [
+      {
+        "sourceStartFrame": 0,
+        "sourceEndFrame": 27,
+        "outputFrames": 36
+      },
+      {
+        "sourceStartFrame": 52,
+        "sourceEndFrame": 73,
+        "outputFrames": 36
+      }
+    ],
+    "reason": "Even with a last-frame guide, the pan duplicates the archer/window in its middle. Cut from the intact archer prefix to the intact bomber suffix and retime each continuously; preserve the 72-frame reveal beat."
+  }
+}

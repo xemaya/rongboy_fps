@@ -1,0 +1,925 @@
+{
+  "title": "RONGBOY · 一颗毛球惹的祸 — original procedural sound",
+  "seed": 20261116,
+  "duration_s": 30.0,
+  "bpm": 80,
+  "dependencies": [
+    "numpy",
+    "scipy",
+    "soundfile",
+    "ffmpeg (meter / local encoding only)"
+  ],
+  "sources": "All music, room noise and foley synthesized locally in score.py; no third-party audio, external APIs or speech.",
+  "files": {
+    "wav": {
+      "path": "out/mix.wav",
+      "bytes": 8640102,
+      "sha256": "91bde5ec6f1a6a693e4bd5c48099a3e406f2df2ad054e9929fa6b57edd9a540d",
+      "sample_rate_hz": 48000,
+      "channels": 2,
+      "decoded_frames": 1440000,
+      "decoded_duration_s": 30.0,
+      "sample_peak_dbfs": -1.695,
+      "true_peak_dbtp": -1.69,
+      "integrated_lufs": -13.78,
+      "loudness_range_lu": 8.5,
+      "rms_dbfs": -17.129,
+      "crest_factor_db": 15.434,
+      "clipped_samples": 0,
+      "finite": true
+    },
+    "mp3": {
+      "path": "score.mp3",
+      "bytes": 601004,
+      "sha256": "f5f9951e9efa38c9561e23031ef81325c6b9d2cc730806344ba9da13c31b9dbf",
+      "sample_rate_hz": 48000,
+      "channels": 2,
+      "decoded_frames": 1440000,
+      "decoded_duration_s": 30.0,
+      "sample_peak_dbfs": -2.006,
+      "true_peak_dbtp": -1.98,
+      "integrated_lufs": -14.23,
+      "loudness_range_lu": 8.5,
+      "rms_dbfs": -17.573,
+      "crest_factor_db": 15.567,
+      "clipped_samples": 0,
+      "finite": true
+    }
+  },
+  "mastering": {
+    "target_integrated_lufs": -14.0,
+    "target_true_peak_dbtp": -1.7,
+    "process": "38 Hz highpass; two-pass EBU R128 loudnorm; 24-bit PCM. No hard clipper.",
+    "normalization_type": "dynamic",
+    "pre_normalization": {
+      "input_i": -20.33,
+      "input_tp": -1.51,
+      "input_lra": 8.0,
+      "input_thresh": -31.0,
+      "output_i": -13.59,
+      "output_tp": -1.7,
+      "output_lra": 8.5,
+      "output_thresh": -24.24,
+      "normalization_type": "dynamic",
+      "target_offset": -0.41
+    },
+    "mp3_extra_gain_db": 0
+  },
+  "music": {
+    "key": "D major with B minor / G reveal",
+    "note_count": 69,
+    "palette": [
+      "damped wooden-string plucks",
+      "toy glock inharmonic mallet modes",
+      "short harmonic bass plucks",
+      "soft felt wood taps"
+    ],
+    "notes": [
+      {
+        "t": 0.15,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.15,
+        "duration_s": 0.8
+      },
+      {
+        "t": 0.9,
+        "midi": 71,
+        "instrument": "wood",
+        "gain": 0.125,
+        "duration_s": 0.8
+      },
+      {
+        "t": 1.65,
+        "midi": 74,
+        "instrument": "bell",
+        "gain": 0.095,
+        "duration_s": 0.8
+      },
+      {
+        "t": 2.4,
+        "midi": 66,
+        "instrument": "wood",
+        "gain": 0.125,
+        "duration_s": 0.8
+      },
+      {
+        "t": 3.15,
+        "midi": 64,
+        "instrument": "wood",
+        "gain": 0.125,
+        "duration_s": 0.8
+      },
+      {
+        "t": 3.9,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.15,
+        "duration_s": 0.8
+      },
+      {
+        "t": 4.65,
+        "midi": 78,
+        "instrument": "bell",
+        "gain": 0.085,
+        "duration_s": 0.8
+      },
+      {
+        "t": 5.4,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.135,
+        "duration_s": 0.8
+      },
+      {
+        "t": 6.15,
+        "midi": 64,
+        "instrument": "wood",
+        "gain": 0.125,
+        "duration_s": 0.8
+      },
+      {
+        "t": 6.9,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 7.65,
+        "midi": 71,
+        "instrument": "wood",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 8.4,
+        "midi": 73,
+        "instrument": "bell",
+        "gain": 0.085,
+        "duration_s": 0.8
+      },
+      {
+        "t": 9.15,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 9.9,
+        "midi": 76,
+        "instrument": "wood",
+        "gain": 0.115,
+        "duration_s": 0.8
+      },
+      {
+        "t": 10.275,
+        "midi": 73,
+        "instrument": "wood",
+        "gain": 0.085,
+        "duration_s": 0.45
+      },
+      {
+        "t": 0.15,
+        "midi": 50,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 1.65,
+        "midi": 62,
+        "instrument": "wood",
+        "gain": 0.057,
+        "duration_s": 0.55
+      },
+      {
+        "t": 3.15,
+        "midi": 55,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 4.65,
+        "midi": 67,
+        "instrument": "wood",
+        "gain": 0.057,
+        "duration_s": 0.55
+      },
+      {
+        "t": 6.15,
+        "midi": 57,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 7.65,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.057,
+        "duration_s": 0.55
+      },
+      {
+        "t": 9.15,
+        "midi": 59,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.8
+      },
+      {
+        "t": 10.65,
+        "midi": 71,
+        "instrument": "wood",
+        "gain": 0.057,
+        "duration_s": 0.55
+      },
+      {
+        "t": 15.48,
+        "midi": 55,
+        "instrument": "bass",
+        "gain": 0.105,
+        "duration_s": 0.65
+      },
+      {
+        "t": 15.86,
+        "midi": 74,
+        "instrument": "bell",
+        "gain": 0.065,
+        "duration_s": 0.58
+      },
+      {
+        "t": 16.62,
+        "midi": 67,
+        "instrument": "wood",
+        "gain": 0.095,
+        "duration_s": 0.45
+      },
+      {
+        "t": 17.37,
+        "midi": 66,
+        "instrument": "wood",
+        "gain": 0.09,
+        "duration_s": 0.45
+      },
+      {
+        "t": 17.745,
+        "midi": 64,
+        "instrument": "wood",
+        "gain": 0.08,
+        "duration_s": 0.45
+      },
+      {
+        "t": 18.12,
+        "midi": 62,
+        "instrument": "wood",
+        "gain": 0.07,
+        "duration_s": 0.45
+      },
+      {
+        "t": 20.65,
+        "midi": 66,
+        "instrument": "wood",
+        "gain": 0.11,
+        "duration_s": 0.58
+      },
+      {
+        "t": 21.025,
+        "midi": 71,
+        "instrument": "wood",
+        "gain": 0.145,
+        "duration_s": 0.58
+      },
+      {
+        "t": 21.775,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.15,
+        "duration_s": 0.58
+      },
+      {
+        "t": 22.15,
+        "midi": 73,
+        "instrument": "wood",
+        "gain": 0.13,
+        "duration_s": 0.58
+      },
+      {
+        "t": 22.525,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.145,
+        "duration_s": 0.58
+      },
+      {
+        "t": 23.275,
+        "midi": 67,
+        "instrument": "wood",
+        "gain": 0.14,
+        "duration_s": 0.58
+      },
+      {
+        "t": 23.65,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.14,
+        "duration_s": 0.58
+      },
+      {
+        "t": 24.025,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 24.4,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 24.775,
+        "midi": 78,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 25.15,
+        "midi": 76,
+        "instrument": "wood",
+        "gain": 0.15,
+        "duration_s": 0.58
+      },
+      {
+        "t": 25.525,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 25.9,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.14,
+        "duration_s": 0.58
+      },
+      {
+        "t": 26.275,
+        "midi": 78,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 26.65,
+        "midi": 76,
+        "instrument": "wood",
+        "gain": 0.15,
+        "duration_s": 0.58
+      },
+      {
+        "t": 27.025,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.16,
+        "duration_s": 0.58
+      },
+      {
+        "t": 27.4,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.13,
+        "duration_s": 0.58
+      },
+      {
+        "t": 21.025,
+        "midi": 47,
+        "instrument": "bass",
+        "gain": 0.16,
+        "duration_s": 0.68
+      },
+      {
+        "t": 21.775,
+        "midi": 59,
+        "instrument": "wood",
+        "gain": 0.072,
+        "duration_s": 0.45
+      },
+      {
+        "t": 22.525,
+        "midi": 55,
+        "instrument": "bass",
+        "gain": 0.16,
+        "duration_s": 0.68
+      },
+      {
+        "t": 23.275,
+        "midi": 67,
+        "instrument": "wood",
+        "gain": 0.072,
+        "duration_s": 0.45
+      },
+      {
+        "t": 24.025,
+        "midi": 50,
+        "instrument": "bass",
+        "gain": 0.16,
+        "duration_s": 0.68
+      },
+      {
+        "t": 24.775,
+        "midi": 62,
+        "instrument": "wood",
+        "gain": 0.072,
+        "duration_s": 0.45
+      },
+      {
+        "t": 25.525,
+        "midi": 57,
+        "instrument": "bass",
+        "gain": 0.16,
+        "duration_s": 0.68
+      },
+      {
+        "t": 26.275,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.072,
+        "duration_s": 0.45
+      },
+      {
+        "t": 27.775,
+        "midi": 55,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.68
+      },
+      {
+        "t": 28.4,
+        "midi": 57,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.68
+      },
+      {
+        "t": 28.96,
+        "midi": 50,
+        "instrument": "bass",
+        "gain": 0.145,
+        "duration_s": 0.68
+      },
+      {
+        "t": 21.025,
+        "midi": 78,
+        "instrument": "bell",
+        "gain": 0.045,
+        "duration_s": 0.85
+      },
+      {
+        "t": 22.525,
+        "midi": 79,
+        "instrument": "bell",
+        "gain": 0.05,
+        "duration_s": 0.85
+      },
+      {
+        "t": 24.025,
+        "midi": 81,
+        "instrument": "bell",
+        "gain": 0.065,
+        "duration_s": 0.85
+      },
+      {
+        "t": 26.0,
+        "midi": 86,
+        "instrument": "bell",
+        "gain": 0.075,
+        "duration_s": 0.85
+      },
+      {
+        "t": 27.775,
+        "midi": 67,
+        "instrument": "wood",
+        "gain": 0.1,
+        "duration_s": 0.95
+      },
+      {
+        "t": 27.808,
+        "midi": 71,
+        "instrument": "wood",
+        "gain": 0.1,
+        "duration_s": 0.95
+      },
+      {
+        "t": 28.4,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.1,
+        "duration_s": 0.95
+      },
+      {
+        "t": 28.433,
+        "midi": 73,
+        "instrument": "wood",
+        "gain": 0.1,
+        "duration_s": 0.95
+      },
+      {
+        "t": 28.96,
+        "midi": 66,
+        "instrument": "wood",
+        "gain": 0.12,
+        "duration_s": 0.95
+      },
+      {
+        "t": 28.993000000000002,
+        "midi": 69,
+        "instrument": "wood",
+        "gain": 0.12,
+        "duration_s": 0.95
+      },
+      {
+        "t": 29.026,
+        "midi": 74,
+        "instrument": "wood",
+        "gain": 0.12,
+        "duration_s": 0.95
+      },
+      {
+        "t": 28.99,
+        "midi": 86,
+        "instrument": "bell",
+        "gain": 0.063,
+        "duration_s": 0.94
+      }
+    ]
+  },
+  "near_silences": [
+    {
+      "from_s": 10.8,
+      "to_s": 12.1,
+      "music_peak_dbfs": -300.0,
+      "ambience_pre_master_rms_dbfs": -66.99,
+      "retained_foley": [
+        "gasp"
+      ]
+    },
+    {
+      "from_s": 18.6,
+      "to_s": 20.5,
+      "music_peak_dbfs": -300.0,
+      "ambience_pre_master_rms_dbfs": -66.96,
+      "retained_foley": [
+        "cloth"
+      ]
+    }
+  ],
+  "event_coverage": [
+    {
+      "index": 0,
+      "type": "cloth",
+      "requested_t_s": 1.1,
+      "synth_start_s": 1.1,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -15.7
+    },
+    {
+      "index": 1,
+      "type": "cloth",
+      "requested_t_s": 3.9,
+      "synth_start_s": 3.9,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -16.6
+    },
+    {
+      "index": 2,
+      "type": "load",
+      "requested_t_s": 5.6,
+      "synth_start_s": 5.6,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.57,
+      "pan": -0.22,
+      "material": "felt ball compresses, wooden button clicks and seats",
+      "pre_master_peak_dbfs": -7.25
+    },
+    {
+      "index": 3,
+      "type": "door",
+      "requested_t_s": 6.35,
+      "synth_start_s": 6.35,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.73,
+      "pan": -0.64,
+      "material": "small low wooden door hinge with soft latch",
+      "pre_master_peak_dbfs": -15.63
+    },
+    {
+      "index": 4,
+      "type": "step",
+      "requested_t_s": 6.9,
+      "synth_start_s": 6.9,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.3,
+      "pan": -0.57,
+      "material": "soft felt foot compresses into a rug, short sole scuff",
+      "pre_master_peak_dbfs": -12.93
+    },
+    {
+      "index": 5,
+      "type": "step",
+      "requested_t_s": 7.55,
+      "synth_start_s": 7.55,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.3,
+      "pan": -0.42,
+      "material": "soft felt foot compresses into a rug, short sole scuff",
+      "pre_master_peak_dbfs": -12.51
+    },
+    {
+      "index": 6,
+      "type": "step",
+      "requested_t_s": 8.2,
+      "synth_start_s": 8.2,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.3,
+      "pan": -0.25,
+      "material": "soft felt foot compresses into a rug, short sole scuff",
+      "pre_master_peak_dbfs": -12.95
+    },
+    {
+      "index": 7,
+      "type": "step",
+      "requested_t_s": 8.85,
+      "synth_start_s": 8.85,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.3,
+      "pan": -0.08,
+      "material": "soft felt foot compresses into a rug, short sole scuff",
+      "pre_master_peak_dbfs": -12.97
+    },
+    {
+      "index": 8,
+      "type": "cloth",
+      "requested_t_s": 10.15,
+      "synth_start_s": 10.15,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -15.42
+    },
+    {
+      "index": 9,
+      "type": "gasp",
+      "requested_t_s": 11.5,
+      "synth_start_s": 11.5,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.26,
+      "pan": -0.1,
+      "material": "tiny fleece-body squeeze, no vocal sound",
+      "pre_master_peak_dbfs": -25.06
+    },
+    {
+      "index": 10,
+      "type": "shot",
+      "requested_t_s": 12.1,
+      "synth_start_s": 12.1,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.46,
+      "pan": -0.17,
+      "material": "dry wool-ball poof, small pressure thump and short wooden twang",
+      "pre_master_peak_dbfs": -1.34
+    },
+    {
+      "index": 11,
+      "type": "bounce",
+      "requested_t_s": 13.05,
+      "synth_start_s": 13.05,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.27,
+      "pan": -0.7,
+      "material": "short wooden rim knock wrapped in soft ball contact",
+      "pre_master_peak_dbfs": -4.38
+    },
+    {
+      "index": 12,
+      "type": "bounce",
+      "requested_t_s": 13.3,
+      "synth_start_s": 13.3,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.27,
+      "pan": 0.77,
+      "material": "short wooden rim knock wrapped in soft ball contact",
+      "pre_master_peak_dbfs": -5.26
+    },
+    {
+      "index": 13,
+      "type": "hit",
+      "requested_t_s": 14.25,
+      "synth_start_s": 14.25,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.4,
+      "pan": 0.18,
+      "material": "plush-body pock with a small scatter of wool fibres",
+      "pre_master_peak_dbfs": -4.58
+    },
+    {
+      "index": 14,
+      "type": "cushion",
+      "requested_t_s": 14.67,
+      "synth_start_s": 14.67,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.88,
+      "pan": 0.56,
+      "material": "deep sofa-cushion compression, soft spring and fabric settling",
+      "pre_master_peak_dbfs": -5.56
+    },
+    {
+      "index": 15,
+      "type": "wobble",
+      "requested_t_s": 16.5,
+      "synth_start_s": 16.5,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.65,
+      "pan": 0.52,
+      "material": "three short settling spring-plucks in the sofa",
+      "pre_master_peak_dbfs": -16.85
+    },
+    {
+      "index": 16,
+      "type": "cloth",
+      "requested_t_s": 18.8,
+      "synth_start_s": 18.8,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -19.41
+    },
+    {
+      "index": 17,
+      "type": "door",
+      "requested_t_s": 20.5,
+      "synth_start_s": 20.5,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.73,
+      "pan": -0.64,
+      "material": "small low wooden door hinge with soft latch",
+      "pre_master_peak_dbfs": -16.75
+    },
+    {
+      "index": 18,
+      "type": "fuse",
+      "requested_t_s": 22.65,
+      "synth_start_s": 22.65,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.66,
+      "pan": -0.48,
+      "material": "dry twisted yarn rub on the raised soft bomb, no fire",
+      "pre_master_peak_dbfs": -16.62
+    },
+    {
+      "index": 19,
+      "type": "bow",
+      "requested_t_s": 21.65,
+      "synth_start_s": 21.65,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.91,
+      "pan": 0.68,
+      "material": "restrained string tension with short fibre and fingerboard ticks",
+      "pre_master_peak_dbfs": -17.04
+    },
+    {
+      "index": 20,
+      "type": "cloth",
+      "requested_t_s": 25.2,
+      "synth_start_s": 25.2,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -16.61
+    },
+    {
+      "index": 21,
+      "type": "title",
+      "requested_t_s": 26,
+      "synth_start_s": 26.0,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.65,
+      "pan": 0,
+      "material": "small soft wood-and-felt title accent",
+      "pre_master_peak_dbfs": -22.89
+    },
+    {
+      "index": 22,
+      "type": "ready",
+      "requested_t_s": 27.8,
+      "synth_start_s": 27.8,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.62,
+      "pan": 0,
+      "material": "two palms grip the cloth stock and a short wooden readiness click",
+      "pre_master_peak_dbfs": -9.33
+    },
+    {
+      "index": 23,
+      "type": "cloth",
+      "requested_t_s": 29.25,
+      "synth_start_s": 29.25,
+      "sync_error_ms": 0.0,
+      "duration_s": 0.43,
+      "pan": -0.18,
+      "material": "short fleece and soft-palm friction",
+      "pre_master_peak_dbfs": -13.83
+    }
+  ],
+  "segment_measurements": [
+    {
+      "from_s": 0,
+      "to_s": 6.5,
+      "label": "careful loading",
+      "rms_dbfs": -16.69,
+      "sample_peak_dbfs": -1.7
+    },
+    {
+      "from_s": 6.5,
+      "to_s": 10.8,
+      "label": "curious approach",
+      "rms_dbfs": -17.18,
+      "sample_peak_dbfs": -1.74
+    },
+    {
+      "from_s": 10.8,
+      "to_s": 12.1,
+      "label": "first near-silence",
+      "rms_dbfs": -39.14,
+      "sample_peak_dbfs": -17.37
+    },
+    {
+      "from_s": 12.1,
+      "to_s": 15.3,
+      "label": "shot and two ricochets",
+      "rms_dbfs": -20.1,
+      "sample_peak_dbfs": -1.69
+    },
+    {
+      "from_s": 15.3,
+      "to_s": 18.6,
+      "label": "sofa reaction",
+      "rms_dbfs": -21.72,
+      "sample_peak_dbfs": -7.14
+    },
+    {
+      "from_s": 18.6,
+      "to_s": 20.5,
+      "label": "second near-silence",
+      "rms_dbfs": -33.16,
+      "sample_peak_dbfs": -9.51
+    },
+    {
+      "from_s": 20.5,
+      "to_s": 24,
+      "label": "new arrivals",
+      "rms_dbfs": -15.49,
+      "sample_peak_dbfs": -2.22
+    },
+    {
+      "from_s": 24,
+      "to_s": 30,
+      "label": "title and first-person cadence",
+      "rms_dbfs": -14.64,
+      "sample_peak_dbfs": -1.7
+    }
+  ],
+  "spectral_energy": {
+    "20-120_hz_percent": 9.16,
+    "120-500_hz_percent": 51.75,
+    "500-2000_hz_percent": 36.15,
+    "2000-8000_hz_percent": 2.88,
+    "8000-20000_hz_percent": 0.04
+  },
+  "checks": {
+    "exactly_30_seconds_decoded": true,
+    "48k_stereo": true,
+    "true_peak_at_most_minus_1_dbtp": true,
+    "loudness_within_1_lu_of_minus14": true,
+    "no_clipped_or_nonfinite_samples": true,
+    "every_cue_covered": true,
+    "cue_sync_within_one_sample": true,
+    "music_fully_off_in_both_pauses": true
+  },
+  "mp3_duration_note": "MP3 containers include codec padding; the Xing/LAME gapless metadata decodes to exactly 1,440,000 frames (30.000 s)."
+}

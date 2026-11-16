@@ -1,0 +1,63 @@
+{
+  "shot": "s05",
+  "cast": [
+    "hero",
+    "walker"
+  ],
+  "plan_job": {
+    "id": "s05",
+    "name": "05-uh-oh",
+    "f0": 272,
+    "f1": 291,
+    "frames": 19,
+    "duration": 0.7916666666666666,
+    "stretch": 2.2,
+    "sec": 1.7416666666666667,
+    "nativeFrames": 56,
+    "cast": [
+      "hero",
+      "walker"
+    ],
+    "first": "firstframes/s05_source.png",
+    "guide": "guides/s05.mp4"
+  },
+  "recipe": {
+    "w": 1024,
+    "h": 576,
+    "sec": 1.7416666666666667,
+    "steps": 8,
+    "seed": 7
+  },
+  "assets": [
+    {
+      "role": "first",
+      "local": "/private/tmp/rongboy-intro-ai/firstframes/s05_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s05_first_b6c575f8919b0754.png",
+      "sha256": "b6c575f8919b0754cdd984349805a327c85221bce63f42b0f461942784085a53"
+    },
+    {
+      "role": "guide",
+      "local": "/private/tmp/rongboy-intro-ai/guides/s05.mp4",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s05_guide_5bb0458a078d0b21.mp4",
+      "sha256": "5bb0458a078d0b2134ce8cd96987be75bb0c428aa6da253f96337c2ad52d6877"
+    },
+    {
+      "role": "cast_hero",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s05_cast_hero_375c25192c2feeb7.png",
+      "sha256": "375c25192c2feeb7edcfd8665e7c1b658b073d88189f82a9bc38469c83ddc038"
+    },
+    {
+      "role": "cast_walker",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s05_cast_walker_fd5dd13910b6a1c7.png",
+      "sha256": "fd5dd13910b6a1c75795b2a4d63d01ce705e3edc83c30933d42d6fe82d0943aa"
+    }
+  ],
+  "prompt_sha256": "8654b74895bc5a5eb2dbd60059914a7889232973ccaf121a3a22ff193c2af12b",
+  "shot_plan_sha256": "b32a5e1595d044150b353e12412672b22b3be04cd1a292584be5b024c6070ca5",
+  "remote_driver_sha256": "a78c6302d51864c1e0398cfb0481292f7969b3cb92c3c6db74593d1274ae41a1",
+  "run_id": "fd00c5d8ce2dc723",
+  "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s05/fd00c5d8ce2dc723",
+  "output_prefix": "rongboy-intro-ai-v1-20261116/s05/rgintro_20261116_v1_s05_s7_fd00c5d8ce2dc723"
+}

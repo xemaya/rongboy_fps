@@ -1,0 +1,16 @@
+[
+  {
+    "id": "s11",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s11_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/bomber.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint IMAGE 1 as the final FIRST-PERSON 16:9 frame of the same premium photographed needle-felt stop-motion movie. KEEP IMAGE 1's exact eye-height camera, crop, perspective, framing, actor locations and weapon scale. Reference 2 is the explorer's materials/weapon identity, reference 3 the round bomber, reference 4 the lanky archer; reference 5 is ONLY the same room's approved warm felt/wood material and light. Foreground: ONLY the explorer's TWO cream wool MITTEN HANDS and the rear/barrel of his EMPTY cream CLOTH SPOOL LAUNCHER with the far coral rim, pointing AWAY from camera toward the room, exactly as seen from behind in Image 1. No explorer face, hat, head, body or second explorer may appear in this shot. No golden ball in or near the muzzle. Background LEFT: the tall thin long-headed sage X-button archer stands outside the actual window, holding his teal curved bow with a nocked real SHAFTED soft-tip arrow and cream fletching; keep him behind the window and properly occluded by its frame. Background RIGHT: the small-headed round-bellied sage wool bomber stands in the actual doorway and supports ONE orange-brown wool-yarn grenade with a short fuse. These two zombies keep DIFFERENT body plans and their exact canonical sewn X-button faces. No ordinary walker is visible. Do not move the two enemies toward camera or change their sizes. Same door, window/drapes, rug and cabinet, no new furniture or ornaments. Dense wool fibers and handmade stitching, soft imperfect stuffing, tactile cloth floorboards and cushions, golden window key with gentle cool fill, cinematic optical depth and plausible contact shadows. No plastic/smooth CG/clay, no metal firearm redesign, no UI/crosshair, no text/title/logo/watermark. Leave the original upper room space clear for an exact title to be added later in editing."
+    }
+  }
+]

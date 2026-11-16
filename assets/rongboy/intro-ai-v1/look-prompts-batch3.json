@@ -1,0 +1,52 @@
+[
+  {
+    "id": "s07",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s07_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint reference 1 into a finished 16:9 premium practical needle-felt stop-motion film frame. It is the exact BLOCKING CAMERA: keep its camera, crop, perspective, positions, scale, body poses, visible body parts, facing directions and furniture layout. Middle references are character identity masters; LAST reference is the same room's material/lighting master ONLY. Do not import its hero or closed door state into this shot. Real photographed dense wool fibers, softly stuffed sewn puppets, tactile woven cloth and wood, warm honey window light, gentle cool fill, cinematic contrast, believable contact shadows and optical depth. Preserve original facial identities, clothes and distinct anatomy. No plastic/smooth CG/clay, new furniture, extra people, invented decorations, letters, UI, logo or watermark. A character hidden/cropped in source stays hidden/cropped; never turn someone to face camera.\nVISIBLE CAST: original ordinary zombie is SEATED on the peach sofa foreground-right, holding/resting with ONE golden wool pom-pom on his lap. His cloth knees are bent naturally and feet stay in front, cushions softly compressed, no sinking through the sofa. Keep his two mismatched sewn X-button eyes, patched forehead, dark cloth mouth/teeth, brown vest, patched plum trousers. The explorer is partially cropped at far LEFT, as in source, with EMPTY launcher; do not add a second loaded ball to it. Keep this exact seated relaxed pose, same scale and camera. No other zombie, no standing figure added."
+    }
+  },
+  {
+    "id": "s08",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s08_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint reference 1 into a finished 16:9 premium practical needle-felt stop-motion film frame. It is the exact BLOCKING CAMERA: keep its camera, crop, perspective, positions, scale, body poses, visible body parts, facing directions and furniture layout. Middle references are character identity masters; LAST reference is the same room's material/lighting master ONLY. Do not import its hero or closed door state into this shot. Real photographed dense wool fibers, softly stuffed sewn puppets, tactile woven cloth and wood, warm honey window light, gentle cool fill, cinematic contrast, believable contact shadows and optical depth. Preserve original facial identities, clothes and distinct anatomy. No plastic/smooth CG/clay, new furniture, extra people, invented decorations, letters, UI, logo or watermark. A character hidden/cropped in source stays hidden/cropped; never turn someone to face camera.\nVISIBLE CAST: exactly ONE explorer in the close three-quarter reaction framing from reference 1. His short cream cloth/coral-rim launcher is EMPTY now, visible only as in the source lower crop. NO golden pom-pom is visible anywhere, despite the identity master's loaded weapon. Same bead eyes, wool hair, small sewn smile, hat/goggles, scarf, backpack; a gently puzzled checking expression. Keep head direction and camera. No zombie in background, no second face, no extra arms or objects."
+    }
+  },
+  {
+    "id": "s09",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s09_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint reference 1 into a finished 16:9 premium practical needle-felt stop-motion film frame. It is the exact BLOCKING CAMERA: keep its camera, crop, perspective, positions, scale, body poses, visible body parts, facing directions and furniture layout. Middle references are character identity masters; LAST reference is the same room's material/lighting master ONLY. Do not import its hero or closed door state into this shot. Real photographed dense wool fibers, softly stuffed sewn puppets, tactile woven cloth and wood, warm honey window light, gentle cool fill, cinematic contrast, believable contact shadows and optical depth. Preserve original facial identities, clothes and distinct anatomy. No plastic/smooth CG/clay, new furniture, extra people, invented decorations, letters, UI, logo or watermark. A character hidden/cropped in source stays hidden/cropped; never turn someone to face camera.\nFIRST FRAME: only the lanky ARCHER is visible behind the LEFT window, exactly positioned and cropped like source. Preserve the long narrow wool head, mismatched sewn X-buttons, thin torso, bow grip and real SHAFTED soft-tip arrow with fletching. His bow is nocked but not yet fully drawn at this first frame; match the source hand/string pose rather than changing it to the identity photo's fully drawn pose. Keep the actual window bars/drapes and bookshelf edge; no glass obscuring the face. The bomber is still OFF SCREEN to the right and MUST NOT be inserted into this first frame. No explorer, no ordinary walker or golden wool ball. Do not add the full body below the window."
+    }
+  },
+  {
+    "id": "s10",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s10_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint reference 1 into a finished 16:9 premium practical needle-felt stop-motion film frame. It is the exact BLOCKING CAMERA: keep its camera, crop, perspective, positions, scale, body poses, visible body parts, facing directions and furniture layout. Middle references are character identity masters; LAST reference is the same room's material/lighting master ONLY. Do not import its hero or closed door state into this shot. Real photographed dense wool fibers, softly stuffed sewn puppets, tactile woven cloth and wood, warm honey window light, gentle cool fill, cinematic contrast, believable contact shadows and optical depth. Preserve original facial identities, clothes and distinct anatomy. No plastic/smooth CG/clay, new furniture, extra people, invented decorations, letters, UI, logo or watermark. A character hidden/cropped in source stays hidden/cropped; never turn someone to face camera.\nOVER-THE-SHOULDER FIRST FRAME: explorer's back, hat, rucksack and rolled blanket fill the middle foreground exactly as source. His launcher is EMPTY, largely hidden ahead of his body, no gold loaded ball. The lanky archer remains small in the LEFT background window in the exact source location with a real bow and arrow. The round bomber belongs to the right doorway but is behind/occluded by the explorer at this angle; preserve exactly the source's occlusion rather than moving him into open space. Do not add extra visible characters or a second explorer. Keep the same doorway, rug and sofa edge, no on-screen title (added in editing later)."
+    }
+  }
+]

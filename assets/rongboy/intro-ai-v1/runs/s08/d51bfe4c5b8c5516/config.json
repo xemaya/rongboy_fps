@@ -1,0 +1,55 @@
+{
+  "shot": "s08",
+  "cast": [
+    "hero"
+  ],
+  "plan_job": {
+    "id": "s08",
+    "name": "08-check",
+    "f0": 447,
+    "f1": 504,
+    "frames": 57,
+    "duration": 2.375,
+    "stretch": 1,
+    "sec": 2.375,
+    "nativeFrames": 73,
+    "cast": [
+      "hero"
+    ],
+    "first": "firstframes/s08_source.png",
+    "guide": "guides/s08.mp4"
+  },
+  "recipe": {
+    "w": 1024,
+    "h": 576,
+    "sec": 2.375,
+    "steps": 8,
+    "seed": 7
+  },
+  "assets": [
+    {
+      "role": "first",
+      "local": "/private/tmp/rongboy-intro-ai/firstframes/s08_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s08_first_7589f503852d7faf.png",
+      "sha256": "7589f503852d7faf4e94e4eaf863e2bd39d2715e1f5b91957adbbc940dcff010"
+    },
+    {
+      "role": "guide",
+      "local": "/private/tmp/rongboy-intro-ai/guides/s08.mp4",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s08_guide_dedee5e7b1a8ac4f.mp4",
+      "sha256": "dedee5e7b1a8ac4fc6000fdff04d0698a87224589c4a7348d8eb744c466a2c30"
+    },
+    {
+      "role": "cast_hero",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s08_cast_hero_375c25192c2feeb7.png",
+      "sha256": "375c25192c2feeb7edcfd8665e7c1b658b073d88189f82a9bc38469c83ddc038"
+    }
+  ],
+  "prompt_sha256": "dfeb67763529054bbe1deba4ab5fac1c56967dd8e22a8c45e48ce930a854b7b7",
+  "shot_plan_sha256": "b32a5e1595d044150b353e12412672b22b3be04cd1a292584be5b024c6070ca5",
+  "remote_driver_sha256": "a78c6302d51864c1e0398cfb0481292f7969b3cb92c3c6db74593d1274ae41a1",
+  "run_id": "d51bfe4c5b8c5516",
+  "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s08/d51bfe4c5b8c5516",
+  "output_prefix": "rongboy-intro-ai-v1-20261116/s08/rgintro_20261116_v1_s08_s7_d51bfe4c5b8c5516"
+}

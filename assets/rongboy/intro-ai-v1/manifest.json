@@ -1,0 +1,167 @@
+{
+  "version": "v1",
+  "purpose": "Rongboy 30s intro: AI character looks for first-frame repaint and 4090 motion-guided generation",
+  "provider": "built-in image_gen",
+  "status": "rejected_visual_experiment_shelved",
+  "assets": [
+    {
+      "id": "hero",
+      "file": "cast/hero.png",
+      "source": "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-549ccc6e-c7ed-451f-925d-fefb2f066669.png",
+      "sha256": "375c25192c2feeb7edcfd8665e7c1b658b073d88189f82a9bc38469c83ddc038"
+    },
+    {
+      "id": "walker",
+      "file": "cast/walker.png",
+      "source": "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-306299db-4f68-4ad9-85ae-768230d90623.png",
+      "sha256": "fd5dd13910b6a1c75795b2a4d63d01ce705e3edc83c30933d42d6fe82d0943aa"
+    },
+    {
+      "id": "bomber",
+      "file": "cast/bomber.png",
+      "source": "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-8c13325a-3de4-434a-bd3a-4a90262be040.png",
+      "sha256": "afc51ccf22f5cedf73a044346d6060f65d88a2c11d74cc1e2357aad0638bac58"
+    },
+    {
+      "id": "archer",
+      "file": "cast/archer.png",
+      "source": "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-225c2d9e-8a83-4a58-ad7a-eafa0eba57bd.png",
+      "sha256": "b3cb9c26e363f745d267486e09bcd3c1a5cb6022a3e071e170ac6d049383ab84"
+    }
+  ],
+  "invariants": [
+    "Original V2 explorer identity and wardrobe",
+    "Original walker flat mismatched sewn X-button eyes, patched forehead, dark felt mouth and crooked cloth teeth",
+    "Bomber round torso, small head, supported wool grenade and fuse",
+    "Archer lanky body, long head, bow, shafted soft-tip arrow and visible fletching"
+  ],
+  "style_prompt": "Premium practical needle-felt stop-motion puppet photography; dense tactile wool fibers, soft stuffed volumes, tiny handmade asymmetry, sewn cloth edges, warm side key and gentle cool fill on warm ivory seamless background. Keep exact game character identities and distinct anatomies; no plastic, clay, rubber, UI, pedestal, text or watermark. Single full-body character with real hand-to-prop contact.",
+  "firstFrames": [
+    {
+      "id": "s01",
+      "master": "firstframes/s01_paint_master.png",
+      "conditioning": "firstframes/s01_paint.png",
+      "conditioningSha256": "83290dfbde0e74668cdd8e0df72138ddaaa953838743553577e844561b5893af"
+    },
+    {
+      "id": "s02",
+      "master": "firstframes/s02_paint_master.png",
+      "conditioning": "firstframes/s02_paint.png",
+      "conditioningSha256": "5ad67e7476f2b3f56cbbf5d925a8f579c4103fb40b9ee7f34384a9d2bf376297"
+    },
+    {
+      "id": "s03",
+      "master": "firstframes/s03_paint_master.png",
+      "conditioning": "firstframes/s03_paint.png",
+      "conditioningSha256": "6894af341102250938a7e808c3235313ac08f8d4782754c01617475183ca0bf1"
+    },
+    {
+      "id": "s04",
+      "master": "firstframes/s04_paint_master.png",
+      "conditioning": "firstframes/s04_paint.png",
+      "conditioningSha256": "3489b7ad1ebc0d85a17a6675d21e8a2e771aac94e44d1ca0be87cb062cb7c68e"
+    },
+    {
+      "id": "s05",
+      "master": "firstframes/s05_paint_master.png",
+      "conditioning": "firstframes/s05_paint.png",
+      "conditioningSha256": "b6c575f8919b0754cdd984349805a327c85221bce63f42b0f461942784085a53"
+    },
+    {
+      "id": "s06",
+      "master": "firstframes/s06_paint_master.png",
+      "conditioning": "firstframes/s06_paint.png",
+      "conditioningSha256": "9128b8dfdd3b900a3100d035c25f493c82a810bfd4cbf0271af68d15f6295757"
+    },
+    {
+      "id": "s07",
+      "master": "firstframes/s07_paint_master.png",
+      "conditioning": "firstframes/s07_paint.png",
+      "conditioningSha256": "5d6bef9d2d6a0faebd90efbf1ba32bcda653b4142d887c9772e2d11900301994"
+    },
+    {
+      "id": "s08",
+      "master": "firstframes/s08_paint_master.png",
+      "conditioning": "firstframes/s08_paint.png",
+      "conditioningSha256": "7589f503852d7faf4e94e4eaf863e2bd39d2715e1f5b91957adbbc940dcff010"
+    },
+    {
+      "id": "s09",
+      "master": "firstframes/s09_paint_master.png",
+      "conditioning": "firstframes/s09_paint.png",
+      "conditioningSha256": "cbd0f7f99ac7cc4605fee9b0da8df6ec83f4741092f409ecbad09b1d43d94bf0"
+    },
+    {
+      "id": "s10",
+      "master": "firstframes/s10_paint_master.png",
+      "conditioning": "firstframes/s10_paint.png",
+      "conditioningSha256": "14627959e59d8e3a0c6f16280ac0f2da06c099ff0e9299c7955856fb1d3c951c"
+    },
+    {
+      "id": "s11",
+      "master": "firstframes/s11_paint_master.png",
+      "conditioning": "firstframes/s11_paint.png",
+      "conditioningSha256": "471b2e4d46f8ff4816914a29b4bc9709d01cac302ee1246ba73912883a46384a"
+    }
+  ],
+  "motionGuide": "guides/clean-skeleton.mp4",
+  "shotPlan": "shot-plan.json",
+  "nativeVideo": {
+    "width": 1024,
+    "height": 576,
+    "fps": 24
+  },
+  "generation": "Existing 4090 H3 FL2VA F patched workflow, FL2V Turbo 8 step LoRA",
+  "selectedClips": {
+    "s01": "clips/s01_seed11.mp4",
+    "s02": "clips/s02_seed7.mp4",
+    "s03": "clips/s03_seed7.mp4",
+    "s04": "clips/s04_seed7.mp4",
+    "s05": "clips/s05_seed7.mp4",
+    "s06": "clips/s06_seed11.mp4",
+    "s07": "clips/s07_seed7.mp4",
+    "s08": "clips/s08_seed11.mp4",
+    "s09": "clips/s09_seed11.mp4",
+    "s10": "clips/s10_seed7.mp4",
+    "s11": "clips/s11_seed7.mp4"
+  },
+  "editOverrides": {
+    "s04": {
+      "sourceStartFrame": 0,
+      "sourceEndFrame": 35,
+      "outputFrames": 44,
+      "reason": "Golden ball disappears after frame 34 in native generation. Use intact prefix and retime continuously to preserve the loaded launcher through this pre-fire shot."
+    },
+    "s09": {
+      "segments": [
+        {
+          "sourceStartFrame": 0,
+          "sourceEndFrame": 27,
+          "outputFrames": 36
+        },
+        {
+          "sourceStartFrame": 52,
+          "sourceEndFrame": 73,
+          "outputFrames": 36
+        }
+      ],
+      "reason": "Even with a last-frame guide, the pan duplicates the archer/window in its middle. Cut from the intact archer prefix to the intact bomber suffix and retime each continuously; preserve the 72-frame reveal beat."
+    }
+  },
+  "conditionRevisions": {
+    "s06": {
+      "first": "anchors/s06v2_f000_paint.png",
+      "motion": "guides/s06-v2.mp4",
+      "keyframes": {
+        "44": "anchors/s06v2_f044_paint.png",
+        "56": "anchors/s06v2_f056_paint.png",
+        "138": "anchors/s06v2_f138_paint.png"
+      }
+    },
+    "s09": {
+      "endFrame72": "anchors/s09_f071_paint.png",
+      "editorial": "two inserts via edit-overrides.json"
+    }
+  },
+  "disposition": "User passed on the intro. Source, prompts and receipts are archived; generated media and environment snapshots remain local. No game-menu integration."
+}

@@ -11,3 +11,23 @@ assets/rongboy/**/frames/
 assets/rongboy/**/renders/
 assets/rongboy/**/checks/
 assets/rongboy/**/*.blend[0-9]
+
+# Shelved intro experiment: source is versioned; renders stay local
+scenes/rongboy-intro/out/
+scenes/rongboy-intro/stills/
+
+# Rebuildable AI intro conform cache
+assets/rongboy/intro-ai-v1/conformed/
+
+# Local media and environment snapshots for the archived intro experiment
+scenes/rongboy-intro/**/*.mp4
+scenes/rongboy-intro/**/*.jpg
+scenes/rongboy-intro/**/*.png
+assets/rongboy/intro-ai-v1/**/*.mp4
+assets/rongboy/intro-ai-v1/**/*.png
+assets/rongboy/intro-ai-v1/**/*.jpg
+assets/rongboy/intro-ai-v1/**/*.wav
+assets/rongboy/intro-ai-v1/**/*.mp3
+assets/rongboy/intro-ai-v1/**/__pycache__/
+assets/rongboy/intro-ai-v1/runtime-snapshot/
+scenes/rongboy-intro/ai/*.log

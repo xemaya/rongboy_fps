@@ -1,0 +1,53 @@
+[
+  {
+    "id": "s03",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s03_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint the FIRST reference (a procedural film blocking frame) as a finished 16:9 frame from a premium practical needle-felt puppet stop-motion feature. Keep the exact camera/crop, character count, character positions and facing directions, poses, visible body portions, scale, furniture layout and door state of that FIRST image. Subsequent character references lock identity and costume. The LAST image is the same room's approved material/light master ONLY; never copy its character or object STATE into this frame. Real photographed densely matted wool, short stray fibers, soft imperfect stuffing, sewn fabric, real miniature hand-built set, warm honey side light and gentle cool fill, rich tactile shading and optical depth. Not smooth CG/plastic/clay. No new characters, no new props/ornament, no letters, no UI, no logo, no watermark. DO NOT turn a back-facing or side-facing character toward camera. Do not duplicate characters or balls.\nFIRST FRAME: the padded door is slightly ajar and exactly ONE green wool mitten peeks around its RIGHT opening edge; the zombie's head and body are still hidden behind the door. Keep only that visible partial hand, not a full zombie portrait. It comes through the crack beside the door, not through the solid panel. Match the original walker's green felt, sewn fingers and X-button identity for the later video reveal. No explorer boy is visible anywhere. Keep the same close door/frame/wall composition."
+    }
+  },
+  {
+    "id": "s04",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s04_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint the FIRST reference (a procedural film blocking frame) as a finished 16:9 frame from a premium practical needle-felt puppet stop-motion feature. Keep the exact camera/crop, character count, character positions and facing directions, poses, visible body portions, scale, furniture layout and door state of that FIRST image. Subsequent character references lock identity and costume. The LAST image is the same room's approved material/light master ONLY; never copy its character or object STATE into this frame. Real photographed densely matted wool, short stray fibers, soft imperfect stuffing, sewn fabric, real miniature hand-built set, warm honey side light and gentle cool fill, rich tactile shading and optical depth. Not smooth CG/plastic/clay. No new characters, no new props/ornament, no letters, no UI, no logo, no watermark. DO NOT turn a back-facing or side-facing character toward camera. Do not duplicate characters or balls.\nVISIBLE CAST: exactly the explorer at LEFT foreground, viewed mostly from behind with hat, hair, backpack and rolled blanket, and the original ordinary zombie at RIGHT in side view, reaching curious mitten hands toward the explorer's toy launcher. Keep these exact positions and directions. The explorer's launcher is still loaded with ONE golden wool pom-pom, largely occluded in the same way as source. The zombie has the original vest, patchwork trousers, two sewn X-button eyes, dark felt mouth and cloth teeth; no new costume or living eyes. Keep the door ajar, sofa foreground-right, window left, same room layout. Hands must stay anatomically connected and neither figure turns toward camera."
+    }
+  },
+  {
+    "id": "s05",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s05_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint the FIRST reference (a procedural film blocking frame) as a finished 16:9 frame from a premium practical needle-felt puppet stop-motion feature. Keep the exact camera/crop, character count, character positions and facing directions, poses, visible body portions, scale, furniture layout and door state of that FIRST image. Subsequent character references lock identity and costume. The LAST image is the same room's approved material/light master ONLY; never copy its character or object STATE into this frame. Real photographed densely matted wool, short stray fibers, soft imperfect stuffing, sewn fabric, real miniature hand-built set, warm honey side light and gentle cool fill, rich tactile shading and optical depth. Not smooth CG/plastic/clay. No new characters, no new props/ornament, no letters, no UI, no logo, no watermark. DO NOT turn a back-facing or side-facing character toward camera. Do not duplicate characters or balls.\nEXTREME CLOSE-UP FIRST FRAME: the explorer's bead-eyed face, chestnut hair and stitched hat/goggles fill the frame exactly as the source; keep the same intentional crop of hat top and lower face. His tiny embroidered smile and subtle startle remain. At the extreme LEFT border only the very small visible piece of the ordinary zombie's green hand remains; the zombie's head and body must stay OUT OF FRAME. Do not invent a second face. The launcher and ball are below the crop and should not be added in front of the face. Preserve the eye direction and the same close reaction camera."
+    }
+  },
+  {
+    "id": "s06",
+    "args": {
+      "referenced_image_paths": [
+        "/tmp/rongboy-intro-ai/firstframes/s06_source.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+        "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+        "/Users/huanghaibin/.codex/generated_images/01a1d421-8a1f-75c2-bda3-248578c3ac41/exec-ebe6577d-5d28-48c2-9752-30886d400467.png"
+      ],
+      "transparent_background": false,
+      "prompt": "Repaint the FIRST reference (a procedural film blocking frame) as a finished 16:9 frame from a premium practical needle-felt puppet stop-motion feature. Keep the exact camera/crop, character count, character positions and facing directions, poses, visible body portions, scale, furniture layout and door state of that FIRST image. Subsequent character references lock identity and costume. The LAST image is the same room's approved material/light master ONLY; never copy its character or object STATE into this frame. Real photographed densely matted wool, short stray fibers, soft imperfect stuffing, sewn fabric, real miniature hand-built set, warm honey side light and gentle cool fill, rich tactile shading and optical depth. Not smooth CG/plastic/clay. No new characters, no new props/ornament, no letters, no UI, no logo, no watermark. DO NOT turn a back-facing or side-facing character toward camera. Do not duplicate characters or balls.\nRICHOCHET MASTER FIRST FRAME: exactly two puppets at their source positions, explorer on LEFT seen from behind/side and ordinary zombie on RIGHT facing him, low peach sofa foreground-right. The explorer has just accidentally fired: his launcher is EMPTY and there is exactly ONE small golden wool ball just outside its muzzle, at the exact source position. Do not put a second loaded ball in the gun. Keep the full readable room, right wall, back doorframe and ball route space, same wide composition. The zombie is still upright and has not fallen yet. Keep original sewn X-button face, vest and patched trousers; no plush baby redesign, no gore or explosion."
+    }
+  }
+]

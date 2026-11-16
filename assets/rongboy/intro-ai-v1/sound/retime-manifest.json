@@ -1,0 +1,11 @@
+{
+  "originalGenerator": "/Users/huanghaibin/Workspace/games/rongboy_fps/scenes/rongboy-intro/score.py",
+  "generatorSha256": "5484cbb9e1220e185c4bc16b120f5f48540355448232ddfce6e8e535f6bafba8",
+  "changes": [
+    "cushion cue15.0 to14.67 for observed AI landing",
+    "bow cue 22.5 to21.65 for archer insert",
+    "fuse cue 21.4 to22.65 for bomber insert",
+    "soft cloth air cue at29.25 for incoming toy grenade"
+  ],
+  "music": "same original composition, instruments, seed and pauses"
+}

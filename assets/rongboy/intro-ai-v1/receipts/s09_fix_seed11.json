@@ -1,0 +1,386 @@
+{
+  "phase": "completed",
+  "shot": "s09",
+  "seed": 11,
+  "variant": "fix",
+  "run_id": "f76c3963b25bdcca",
+  "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca",
+  "submission_attempted": true,
+  "prompt_ids": [
+    "99d97f2b-55cc-427b-8c96-b69d7d6940fd"
+  ],
+  "outputs": [
+    "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca_00001_.mp4"
+  ],
+  "created": 1794833254.250245,
+  "submission_attempted_at": 1794833310.371208,
+  "remote_start": {
+    "phase": "runner_started",
+    "shot": "s09",
+    "at": 1794833311.3644512,
+    "port": 8189,
+    "gpu": 1,
+    "queue_checks": [
+      {
+        "port": 8188,
+        "running": 1,
+        "pending": 0,
+        "reserved_by_project": true,
+        "at": 1794833311.18706
+      },
+      {
+        "port": 8189,
+        "running": 0,
+        "pending": 0,
+        "reserved_by_project": false,
+        "at": 1794833311.189339
+      }
+    ],
+    "argv": [
+      "/home/huanghaibin/envs/comfy/bin/python",
+      "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/h3run-multiguide.py",
+      "--receipt",
+      "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/h3-receipt.json",
+      "--port",
+      "8189",
+      "--prompt-file",
+      "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/prompt.txt",
+      "--unet",
+      "minimax_h3_fl2va_pruned_fp8_scaled.safetensors",
+      "--lora",
+      "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors:1",
+      "--first",
+      "rgintro_20261116_v1_s09_first_cbd0f7f99ac7cc46.png",
+      "--refvideo",
+      "rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4",
+      "--w",
+      "1024",
+      "--h",
+      "576",
+      "--sec",
+      "3.0",
+      "--steps",
+      "8",
+      "--seed",
+      "11",
+      "--sampler",
+      "res_multistep",
+      "--scheduler",
+      "simple",
+      "--prefix",
+      "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca",
+      "--ref",
+      "rgintro_20261116_v1_s09_cast_bomber_afc51ccf22f5cedf.png",
+      "--ref",
+      "rgintro_20261116_v1_s09_cast_archer_b3cb9c26e363f745.png",
+      "--guide",
+      "72:rgintro_20261116_v1_s09_frame_0_7d60ca83c50f7328.png"
+    ],
+    "config_sha256": "f38f73d550247c233da032d11f53751463725edf6e6eb7d2c4c9702735b2e3a1",
+    "h3run_sha256": "1c7fb8fc68c16cfed7be454f05a4b7d0b37b8b83ee7897f6f4e39f2a8b40d1ac",
+    "output_prefix": "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca",
+    "guides": [
+      {
+        "frame_idx": 72,
+        "resolved_frame_index": 72,
+        "role": "frame_0",
+        "source": "/private/tmp/rongboy-intro-ai/anchors/s09_f071_paint.png"
+      }
+    ],
+    "pid": 3477007
+  },
+  "remote_status": {
+    "run_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca",
+    "launcher": {
+      "phase": "runner_started",
+      "shot": "s09",
+      "at": 1794833311.3644512,
+      "port": 8189,
+      "gpu": 1,
+      "queue_checks": [
+        {
+          "port": 8188,
+          "running": 1,
+          "pending": 0,
+          "reserved_by_project": true,
+          "at": 1794833311.18706
+        },
+        {
+          "port": 8189,
+          "running": 0,
+          "pending": 0,
+          "reserved_by_project": false,
+          "at": 1794833311.189339
+        }
+      ],
+      "argv": [
+        "/home/huanghaibin/envs/comfy/bin/python",
+        "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/h3run-multiguide.py",
+        "--receipt",
+        "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/h3-receipt.json",
+        "--port",
+        "8189",
+        "--prompt-file",
+        "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s09/f76c3963b25bdcca/prompt.txt",
+        "--unet",
+        "minimax_h3_fl2va_pruned_fp8_scaled.safetensors",
+        "--lora",
+        "minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors:1",
+        "--first",
+        "rgintro_20261116_v1_s09_first_cbd0f7f99ac7cc46.png",
+        "--refvideo",
+        "rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4",
+        "--w",
+        "1024",
+        "--h",
+        "576",
+        "--sec",
+        "3.0",
+        "--steps",
+        "8",
+        "--seed",
+        "11",
+        "--sampler",
+        "res_multistep",
+        "--scheduler",
+        "simple",
+        "--prefix",
+        "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca",
+        "--ref",
+        "rgintro_20261116_v1_s09_cast_bomber_afc51ccf22f5cedf.png",
+        "--ref",
+        "rgintro_20261116_v1_s09_cast_archer_b3cb9c26e363f745.png",
+        "--guide",
+        "72:rgintro_20261116_v1_s09_frame_0_7d60ca83c50f7328.png"
+      ],
+      "config_sha256": "f38f73d550247c233da032d11f53751463725edf6e6eb7d2c4c9702735b2e3a1",
+      "h3run_sha256": "1c7fb8fc68c16cfed7be454f05a4b7d0b37b8b83ee7897f6f4e39f2a8b40d1ac",
+      "output_prefix": "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca",
+      "guides": [
+        {
+          "frame_idx": 72,
+          "resolved_frame_index": 72,
+          "role": "frame_0",
+          "source": "/private/tmp/rongboy-intro-ai/anchors/s09_f071_paint.png"
+        }
+      ],
+      "pid": 3477007
+    },
+    "h3": {
+      "token": "99d97f2b-55cc-427b-8c96-b69d7d6940fd",
+      "prompt_id": "99d97f2b-55cc-427b-8c96-b69d7d6940fd",
+      "port": 8189,
+      "phase": "completed",
+      "created": 1794833311.438469,
+      "outputs": [
+        "rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4",
+        "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca_00001_.mp4"
+      ],
+      "finished": 1794833509.8914819
+    },
+    "history": {
+      "status": {
+        "status_str": "success",
+        "completed": true,
+        "messages": [
+          [
+            "execution_start",
+            {
+              "prompt_id": "99d97f2b-55cc-427b-8c96-b69d7d6940fd",
+              "timestamp": 1794833311750
+            }
+          ],
+          [
+            "execution_cached",
+            {
+              "nodes": [
+                "1",
+                "2",
+                "3",
+                "4",
+                "5",
+                "18",
+                "20"
+              ],
+              "prompt_id": "99d97f2b-55cc-427b-8c96-b69d7d6940fd",
+              "timestamp": 1794833311873
+            }
+          ],
+          [
+            "execution_success",
+            {
+              "prompt_id": "99d97f2b-55cc-427b-8c96-b69d7d6940fd",
+              "timestamp": 1794833506993
+            }
+          ]
+        ]
+      },
+      "files": [
+        {
+          "path": "rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4",
+          "type": "input"
+        },
+        {
+          "path": "rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca_00001_.mp4",
+          "type": "output"
+        }
+      ]
+    }
+  },
+  "last_readback": 1794833530.2812412,
+  "delivery": {
+    "video": "/private/tmp/rongboy-intro-ai/clips/s09_seed11.mp4",
+    "contact_sheet": "/private/tmp/rongboy-intro-ai/clips/s09_seed11_contact.png",
+    "sha256": "9a1bac2a5908f77d8080f2442efeb61c5976fd1a1eae59aa7378c01f4ec80dd2",
+    "remote_video": "/data/app/huanghaibin/output/rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca_00001_.mp4",
+    "native_frames": 73,
+    "native_fps": 24,
+    "video_duration": 3.0416666666666665,
+    "target_edit_frames": 72,
+    "stretch": 1,
+    "full_decode": "passed",
+    "contact_frames": [
+      0,
+      36,
+      72
+    ],
+    "media_info": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.64001f",
+          "width": 1024,
+          "height": 576,
+          "coded_width": 1024,
+          "coded_height": 576,
+          "has_b_frames": 2,
+          "pix_fmt": "yuv420p",
+          "level": 31,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "iec61966-2-1",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1",
+          "time_base": "1/12288",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 37376,
+          "duration": "3.041667",
+          "bit_rate": "6615315",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "73",
+          "extradata_size": 48,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "mime_codec_string": "mp4a.40.2",
+          "sample_fmt": "fltp",
+          "sample_rate": "32000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "initial_padding": 1024,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/32000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 97333,
+          "duration": "3.041656",
+          "bit_rate": "128555",
+          "nb_frames": "97",
+          "extradata_size": 5,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler"
+          }
+        }
+      ],
+      "format": {
+        "filename": "/private/tmp/rongboy-intro-ai/clips/s09_seed11.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "3.041667",
+        "size": "2574174",
+        "bit_rate": "6770429",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "prompt": "{\"1\": {\"class_type\": \"UNETLoader\", \"inputs\": {\"unet_name\": \"minimax_h3_fl2va_pruned_fp8_scaled.safetensors\", \"weight_dtype\": \"default\"}}, \"2\": {\"class_type\": \"LoraLoaderModelOnly\", \"inputs\": {\"model\": [\"1\", 0], \"lora_name\": \"minimax_h3_fl2v_turbo_8step_v1.0_comfyui_bf16.safetensors\", \"strength_model\": 1.0}}, \"3\": {\"class_type\": \"CLIPLoaderGGUFMiniMaxH3\", \"inputs\": {\"clip_name\": \"qwen3-vl-32b-ultra-heretic-minimax-h3-q6_k.gguf\", \"vision_name\": \"qwen3vl_32b_minimax_h3_visual_bf16.safetensors\"}}, \"4\": {\"class_type\": \"VAELoader\", \"inputs\": {\"vae_name\": \"minimax_h3_video_vae_fp16.safetensors\"}}, \"5\": {\"class_type\": \"VAELoader\", \"inputs\": {\"vae_name\": \"minimax_h3_audio_vae_fp32.safetensors\"}}, \"6\": {\"class_type\": \"LoadImage\", \"inputs\": {\"image\": \"rgintro_20261116_v1_s09_cast_bomber_afc51ccf22f5cedf.png\"}, \"is_changed\": [\"afc51ccf22f5cedf73a044346d6060f65d88a2c11d74cc1e2357aad0638bac58\"]}, \"7\": {\"class_type\": \"LoadImage\", \"inputs\": {\"image\": \"rgintro_20261116_v1_s09_cast_archer_b3cb9c26e363f745.png\"}, \"is_changed\": [\"b3cb9c26e363f745d267486e09bcd3c1a5cb6022a3e071e170ac6d049383ab84\"]}, \"8\": {\"class_type\": \"LoadVideo\", \"inputs\": {\"file\": \"rgintro_20261116_v1_s09_guide_c336a1899d78e9a6.mp4\"}, \"is_changed\": [1794831409.9218595]}, \"9\": {\"class_type\": \"Video Slice\", \"inputs\": {\"video\": [\"8\", 0], \"start_time\": 0.0, \"duration\": 15.0, \"strict_duration\": false}}, \"10\": {\"class_type\": \"GetVideoComponents\", \"inputs\": {\"video\": [\"9\", 0]}}, \"11\": {\"class_type\": \"MiniMaxH3ReferenceToVideo\", \"inputs\": {\"clip\": [\"3\", 0], \"vae\": [\"4\", 0], \"audio_vae\": [\"5\", 0], \"prompt\": \"The FIRST and LAST frames show opposite ends of ONE camera pan across the SAME physical needle-felt living room. Preserve both guide frames exactly and move between them like <Video 1>. One rectangular WINDOW is permanently on the LEFT wall; one rectangular DOORWAY is permanently to its RIGHT. A blank woven wood plaque remains on the wall BETWEEN them. Window never becomes a door and door never becomes a window. Camera pans smoothly right across this fixed wall, revealing the existing doorway. Keep all geometry rigid and at the same scale, with natural camera parallax; no set transformations.\\nExactly two distinct puppets: <Picture 1> is the round-bellied small-headed sage bomber with short plum legs, holding ONE ochre yarn grenade and short yarn fuse in his mitten; <Picture 2> is the very tall thin lanky sage archer with a pear-shaped head, long plum legs and teal bow. Both have their own two sewn X-button eyes and crooked felt teeth. The archer starts in the LEFT window, nocks and slowly draws a real SHAFTED soft-tip arrow and string; he remains there throughout, moving out of frame LEFT only because of the camera pan. The bomber stands still in the RIGHT doorway, starts out of frame, and is smoothly REVEALED as the camera reaches him, raising the supported wool grenade. Doorway has a plain cool blue outdoor background, as the last guide. Neither releases his weapon.\\nUse the detailed wool/material/lighting from the first and last guide frames throughout: warm honey key, short flyaway fibers, stitched felt, stuffing, soft shadows. Preserve proportions and identities. No explorer, no ordinary zombie, no new gold projectile, no new objects or pictures, no cuts, no text, captions, logos or watermark. Sound: soft diegetic cloth and bow tension only, no speech, no music. non_diegetic_music: None.\", \"width\": 1024, \"height\": 576, \"length\": 73, \"ref_image_size\": \"match\", \"ref_images.ref_image_0\": [\"6\", 0], \"ref_images.ref_image_1\": [\"7\", 0], \"ref_videos.ref_video_0\": [\"10\", 0], \"ref_video_audios.ref_video_audio_0\": [\"10\", 1]}}, \"12\": {\"class_type\": \"LoadImage\", \"inputs\": {\"image\": \"rgintro_20261116_v1_s09_first_cbd0f7f99ac7cc46.png\"}, \"is_changed\": [\"cbd0f7f99ac7cc4605fee9b0da8df6ec83f4741092f409ecbad09b1d43d94bf0\"]}, \"13\": {\"class_type\": \"MiniMaxH3AddGuide\", \"inputs\": {\"positive\": [\"11\", 0], \"vae\": [\"4\", 0], \"latent\": [\"11\", 1], \"image\": [\"12\", 0], \"frame_idx\": 0}}, \"14\": {\"class_type\": \"LoadImage\", \"inputs\": {\"image\": \"rgintro_20261116_v1_s09_frame_0_7d60ca83c50f7328.png\"}, \"is_changed\": [\"7d60ca83c50f7328c59adf9bf34d323e2a04d78f9f0098ca9e223fea8d4b735c\"]}, \"15\": {\"class_type\": \"MiniMaxH3AddGuide\", \"inputs\": {\"positive\": [\"13\", 0], \"vae\": [\"4\", 0], \"latent\": [\"11\", 1], \"image\": [\"14\", 0], \"frame_idx\": 72}}, \"16\": {\"class_type\": \"MiniMaxH3MotionContext\", \"inputs\": {\"conditioning\": [\"15\", 0], \"vae\": [\"4\", 0], \"latent\": [\"11\", 1], \"context_length\": \"22\", \"audio_context_length\": 24}}, \"17\": {\"class_type\": \"BasicGuider\", \"inputs\": {\"model\": [\"2\", 0], \"conditioning\": [\"16\", 0]}}, \"18\": {\"class_type\": \"BasicScheduler\", \"inputs\": {\"model\": [\"2\", 0], \"scheduler\": \"simple\", \"steps\": 8, \"denoise\": 1.0}}, \"19\": {\"class_type\": \"RandomNoise\", \"inputs\": {\"noise_seed\": 11}}, \"20\": {\"class_type\": \"KSamplerSelect\", \"inputs\": {\"sampler_name\": \"res_multistep\"}}, \"21\": {\"class_type\": \"SamplerCustomAdvanced\", \"inputs\": {\"noise\": [\"19\", 0], \"guider\": [\"17\", 0], \"sampler\": [\"20\", 0], \"sigmas\": [\"18\", 0], \"latent_image\": [\"11\", 1]}}, \"22\": {\"class_type\": \"VAEDecode\", \"inputs\": {\"samples\": [\"21\", 0], \"vae\": [\"4\", 0]}}, \"23\": {\"class_type\": \"VAEDecodeAudio\", \"inputs\": {\"samples\": [\"21\", 0], \"vae\": [\"5\", 0]}}, \"24\": {\"class_type\": \"MiniMaxH3MotionContextTrim\", \"inputs\": {\"images\": [\"22\", 0], \"trim_frames\": [\"16\", 1], \"audio\": [\"23\", 0], \"fps\": 24.0, \"match_tail\": true}}, \"25\": {\"class_type\": \"CreateVideo\", \"inputs\": {\"images\": [\"24\", 0], \"fps\": 24.0, \"audio\": [\"24\", 1]}}, \"26\": {\"class_type\": \"SaveVideo\", \"inputs\": {\"video\": [\"25\", 0], \"filename_prefix\": \"rongboy-intro-ai-v1-20261116/s09/rgintro_20261116_v1_s09_s11_f76c3963b25bdcca\", \"format\": \"auto\", \"format.codec\": \"auto\"}}}",
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  }
+}

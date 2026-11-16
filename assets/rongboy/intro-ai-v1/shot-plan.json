@@ -1,0 +1,196 @@
+{
+  "version": "v1",
+  "source": "scenes/rongboy-intro/rongboy-intro.mp4",
+  "guideRevision": "title-free; clear reaction camera; reveal camera avoids hero; enemies revealed only at shot 9",
+  "duration": 30,
+  "fps": 24,
+  "frames": 720,
+  "jobs": [
+    {
+      "id": "s01",
+      "name": "01-home",
+      "f0": 0,
+      "f1": 84,
+      "frames": 84,
+      "duration": 3.5,
+      "stretch": 1,
+      "sec": 3.5,
+      "nativeFrames": 90,
+      "cast": [
+        "hero"
+      ],
+      "first": "firstframes/s01_source.png",
+      "guide": "guides/s01.mp4"
+    },
+    {
+      "id": "s02",
+      "name": "02-load",
+      "f0": 84,
+      "f1": 156,
+      "frames": 72,
+      "duration": 3,
+      "stretch": 1,
+      "sec": 3,
+      "nativeFrames": 73,
+      "cast": [
+        "hero"
+      ],
+      "first": "firstframes/s02_source.png",
+      "guide": "guides/s02.mp4"
+    },
+    {
+      "id": "s03",
+      "name": "03-curious",
+      "f0": 156,
+      "f1": 228,
+      "frames": 72,
+      "duration": 3,
+      "stretch": 1,
+      "sec": 3,
+      "nativeFrames": 73,
+      "cast": [
+        "walker"
+      ],
+      "first": "firstframes/s03_source.png",
+      "guide": "guides/s03.mp4"
+    },
+    {
+      "id": "s04",
+      "name": "04-reach",
+      "f0": 228,
+      "f1": 272,
+      "frames": 44,
+      "duration": 1.8333333333333333,
+      "stretch": 1,
+      "sec": 1.8333333333333333,
+      "nativeFrames": 56,
+      "cast": [
+        "hero",
+        "walker"
+      ],
+      "first": "firstframes/s04_source.png",
+      "guide": "guides/s04.mp4"
+    },
+    {
+      "id": "s05",
+      "name": "05-uh-oh",
+      "f0": 272,
+      "f1": 291,
+      "frames": 19,
+      "duration": 0.7916666666666666,
+      "stretch": 2.2,
+      "sec": 1.7416666666666667,
+      "nativeFrames": 56,
+      "cast": [
+        "hero",
+        "walker"
+      ],
+      "first": "firstframes/s05_source.png",
+      "guide": "guides/s05.mp4"
+    },
+    {
+      "id": "s06",
+      "name": "06-ricochet",
+      "f0": 291,
+      "f1": 368,
+      "frames": 77,
+      "duration": 3.2083333333333335,
+      "stretch": 2,
+      "sec": 6.416666666666667,
+      "nativeFrames": 158,
+      "cast": [
+        "hero",
+        "walker"
+      ],
+      "first": "firstframes/s06_source.png",
+      "guide": "guides/s06.mp4",
+      "note": "The ricochet and landing master is generated in 2x slow motion, then conformed to original frames."
+    },
+    {
+      "id": "s07",
+      "name": "07-soft-landing",
+      "f0": 368,
+      "f1": 447,
+      "frames": 79,
+      "duration": 3.2916666666666665,
+      "stretch": 1,
+      "sec": 3.2916666666666665,
+      "nativeFrames": 90,
+      "cast": [
+        "hero",
+        "walker"
+      ],
+      "first": "firstframes/s07_source.png",
+      "guide": "guides/s07.mp4"
+    },
+    {
+      "id": "s08",
+      "name": "08-check",
+      "f0": 447,
+      "f1": 504,
+      "frames": 57,
+      "duration": 2.375,
+      "stretch": 1,
+      "sec": 2.375,
+      "nativeFrames": 73,
+      "cast": [
+        "hero"
+      ],
+      "first": "firstframes/s08_source.png",
+      "guide": "guides/s08.mp4"
+    },
+    {
+      "id": "s09",
+      "name": "09-trouble",
+      "f0": 504,
+      "f1": 576,
+      "frames": 72,
+      "duration": 3,
+      "stretch": 1,
+      "sec": 3,
+      "nativeFrames": 73,
+      "cast": [
+        "bomber",
+        "archer"
+      ],
+      "first": "firstframes/s09_source.png",
+      "guide": "guides/s09.mp4"
+    },
+    {
+      "id": "s10",
+      "name": "10-ready",
+      "f0": 576,
+      "f1": 668,
+      "frames": 92,
+      "duration": 3.8333333333333335,
+      "stretch": 1,
+      "sec": 3.8333333333333335,
+      "nativeFrames": 107,
+      "cast": [
+        "hero",
+        "bomber",
+        "archer"
+      ],
+      "first": "firstframes/s10_source.png",
+      "guide": "guides/s10.mp4"
+    },
+    {
+      "id": "s11",
+      "name": "11-your-turn",
+      "f0": 668,
+      "f1": 720,
+      "frames": 52,
+      "duration": 2.1666666666666665,
+      "stretch": 1,
+      "sec": 2.1666666666666665,
+      "nativeFrames": 56,
+      "cast": [
+        "hero",
+        "bomber",
+        "archer"
+      ],
+      "first": "firstframes/s11_source.png",
+      "guide": "guides/s11.mp4"
+    }
+  ]
+}

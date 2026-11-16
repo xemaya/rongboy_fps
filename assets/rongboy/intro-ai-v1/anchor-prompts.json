@@ -1,0 +1,46 @@
+{
+  "s09_end": {
+    "prompt": "Repaint IMAGE 1 into premium practical needle-felt stop-motion photography, using IMAGE 2 as the exact shared room/material/light finish, IMAGE 3 as the bomber identity and IMAGE 4 as the archer identity. IMAGE 1 is the mandatory camera/framing/geometry authority. Keep every object's exact screen position, framing, crop, scale and orientation. This is the END of the same camera pan that began at IMAGE 2, not a different room. At RIGHT in the single rectangular DOORWAY stands the distinct small-headed, very round-bellied sage bomber with short plum legs, mismatched flat X-sewn buttons and felt teeth; a real mitten supports an ochre yarn-wrapped grenade with short yarn fuse. The leftmost edge contains ONLY the tiny cropped portion of the archer/left window visible in IMAGE 1. Keep the big blank wood plaque on the wall between window and door, and the sage quilted lower wall. Doorway has a plain cool blue outdoor background: do not insert any window, window bars or curtains into that doorway. Preserve the visible room layout precisely. Warm honey side light, detailed dense soft wool, flyaway fibers, stitched edges, stuffed volume, tactile cloth and contact shadows, same colors/finish as IMAGE 2. No explorer, no walker, no gold projectile, no text or logos. Single 16:9 film frame.",
+    "referenced_image_paths": [
+      "/tmp/rongboy-intro-ai/anchors/s09_f071_source.png",
+      "/tmp/rongboy-intro-ai/firstframes/s09_paint_master.png",
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/bomber.png",
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/archer.png"
+    ]
+  },
+  "s06_first": {
+    "prompt": "Repaint IMAGE 1 as a premium practical needle-felt stop-motion FILM FRAME. IMAGE 1 strictly controls camera, composition, all object positions, body orientation, scale, crops and room geometry. IMAGE 2 controls the exact cozy room colors/materials and warm honey lighting. IMAGE 3 is the explorer character identity, IMAGE 4 is the original ordinary zombie identity. Keep the NEW MORE FRONTAL camera of IMAGE 1 exactly; do not use the oblique camera from IMAGE 2. Exactly two puppets: oat-faced explorer LEFT with sand safari hat, plain round brass/brown goggles, glossy black bead eyes, chestnut wool hair, mustard scarf, canvas jacket, olive shorts, brown boots and sage backpack; ordinary sage zombie RIGHT with oval repaired head, two flat mismatched sewn X-button eyes, felt crooked teeth, chestnut vest and plum patchwork long trousers. The explorer faces the zombie. Their exact side poses are as IMAGE 1. The peach SOFA is large and centered in the bottom foreground, backs toward the puppets; match it exactly. Doorway centered in back, window/bookshelf left, cabinet and quilted wall right. The launcher has JUST fired: muzzle now empty. The single small golden wool ball is initially hidden in the space between their hands/bodies exactly as IMAGE 1; do not add a visible second ball. Real wool fibers, fluffy edges, hand-sewn cloth, warm side light, soft stuffing and real contact shadows, same craftsmanship as IMAGE 2. No plastic, smooth clay, text, caption, logo or watermark. Single 16:9 frame.",
+    "referenced_image_paths": [
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f000_source.png",
+      "/tmp/rongboy-intro-ai/firstframes/s06_paint_master.png",
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png"
+    ],
+    "transparent_background": false
+  },
+  "s06_bounce1": {
+    "prompt": "Edit IMAGE 1 into another time sample of the EXACT SAME locked-camera film shot. Preserve its room geometry, furniture, sizes, screen positions, explorer LEFT and ordinary zombie RIGHT, their exact poses/clothes/identities, colors, lighting and dense fluffy needle-felt finish. IMAGE 2 is the old procedural time sample, used only to understand the ball action, not to replace the camera, room finish or puppet poses of IMAGE 1. Everything stays as IMAGE 1 except ONE small airborne golden wool pom-pom. This is the FIRST ricochet: put the single small golden felt ball TOUCHING the RIGHT VERTICAL UPRIGHT of the BACK DOORFRAME. That upright is at x≈69% of IMAGE 1 width. Ball center at x≈69%, y≈40% of image height. The ball is about 2.1% of image width in diameter: a small marble-sized pompom, much smaller than either puppet's hand. Slightly squash its RIGHT surface against the wood upright; one tiny loose wool tuft can show the soft contact. It is NOT inside the doorway, not above the zombie and not in anyone's hand. The empty launcher remains empty. No second ball, no path line or arrow, no drawn diagram, no text, no camera change. Keep the warm practical stop-motion photograph and every original object unchanged. One 16:9 film frame.",
+    "referenced_image_paths": [
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f000_paint_master.png",
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f044_source.png"
+    ],
+    "transparent_background": false
+  },
+  "s06_bounce2": {
+    "prompt": "Edit IMAGE 1 into another time sample of the EXACT SAME locked-camera film shot. Preserve its room geometry, furniture, sizes, screen positions, explorer LEFT and ordinary zombie RIGHT, their exact poses/clothes/identities, colors, lighting and dense fluffy needle-felt finish. IMAGE 2 is the old procedural time sample, used only to understand the ball action, not to replace the camera, room finish or puppet poses of IMAGE 1. Everything stays as IMAGE 1 except ONE small airborne golden wool pom-pom. This is the SECOND ricochet after the ball has traveled farther RIGHT: put the single small golden felt ball TOUCHING the room's RIGHT SIDE WALL above the right-hand wooden cabinet. Ball center at x≈80% of IMAGE 1 width, y≈40% of image height, just above the cabinet top and to the RIGHT of the doorway. It must clearly contact that wool-covered side wall, with a tiny compressed patch and just a few loose wool fibers; warm contact shadow. The ball is about 2.1% of image width in diameter: a small marble-sized pompom, much smaller than either puppet's hand. The empty launcher stays empty, puppets stay still and have not been hit yet. No second ball, no path line, arrow, diagram, text or camera change. Preserve warm practical stop-motion photography and every original object. One 16:9 film frame.",
+    "referenced_image_paths": [
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f000_paint_master.png",
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f056_source.png"
+    ],
+    "transparent_background": false
+  },
+  "s06_seat": {
+    "prompt": "Edit IMAGE 1 into the LATER SEATED POSE from IMAGE 2, keeping EXACTLY the locked camera, room geometry, furniture position, scale, framing, warm light, wool finish and the explorer LEFT from IMAGE 1. IMAGE 2 controls only the ordinary zombie's new pose/location on the sofa and the ball. IMAGE 3 supplies his exact original sage zombie identity. Remove the old standing zombie from his former spot; there is exactly ONE explorer and ONE ordinary zombie total. Now place that same zombie SEATED in the middle of the peach sofa in the bottom foreground, facing camera with naturally folded knees and two green feet forward. The sofa's real seat cushion supports his pelvis and thighs and compresses under his weight; no floating and no body sinking through the cushion. Match the spatial pose in IMAGE 2, while preserving the sofa/camera from IMAGE 1. He has the original oval repaired sage head, large ochre left X-sewn button and small charcoal right X-sewn button, irregular crooked cream felt teeth, chestnut open vest, plum patchwork trousers and green feet. He holds ONE honey-gold wool pompom resting on his lap, diameter about 5% of image width; it is closer to camera now. The explorer stands behind LEFT, remains in the exact original outfit and position, holding the EMPTY cream/coral cloth launcher with dark hollow muzzle. No airborne ball or extra ball. Dense practical needle-felt photography, fluffy edges, fabric stitches, stuffing, contact shadows, same room style as IMAGE 1. No other characters, text, logos or camera changes. One 16:9 film frame.",
+    "referenced_image_paths": [
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f000_paint_master.png",
+      "/tmp/rongboy-intro-ai/anchors/s06v2_f138_source.png",
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png"
+    ],
+    "transparent_background": false
+  }
+}

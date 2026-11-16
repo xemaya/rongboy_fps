@@ -1,0 +1,109 @@
+{
+  "shot": "s06",
+  "cast": [
+    "hero",
+    "walker"
+  ],
+  "plan_job": {
+    "id": "s06",
+    "name": "06-ricochet",
+    "f0": 291,
+    "f1": 368,
+    "frames": 77,
+    "duration": 3.2083333333333335,
+    "stretch": 2,
+    "sec": 6.416666666666667,
+    "nativeFrames": 158,
+    "cast": [
+      "hero",
+      "walker"
+    ],
+    "first": "firstframes/s06_source.png",
+    "guide": "guides/s06.mp4",
+    "note": "The ricochet and landing master is generated in 2x slow motion, then conformed to original frames."
+  },
+  "variant": "fix",
+  "prompt_source": "/private/tmp/rongboy-intro-ai/jobs/s06_fix.txt",
+  "source_overrides": {
+    "first": "/tmp/rongboy-intro-ai/anchors/s06v2_f000_paint.png",
+    "motion": "/tmp/rongboy-intro-ai/guides/s06-v2.mp4"
+  },
+  "recipe": {
+    "w": 1024,
+    "h": 576,
+    "sec": 6.416666666666667,
+    "steps": 8,
+    "seed": 11
+  },
+  "assets": [
+    {
+      "role": "first",
+      "local": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f000_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_first_75f0ad0c50d04d15.png",
+      "sha256": "75f0ad0c50d04d15ffdc2f9960c96677e4ce4e314f8bcb1db9e0bc89ca766424"
+    },
+    {
+      "role": "guide",
+      "local": "/private/tmp/rongboy-intro-ai/guides/s06-v2.mp4",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_guide_c51af63862943a7d.mp4",
+      "sha256": "c51af63862943a7d75379a8231130da07f7a563bf936cb3ec12f9bbee5e70ed0"
+    },
+    {
+      "role": "cast_hero",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/hero.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_cast_hero_375c25192c2feeb7.png",
+      "sha256": "375c25192c2feeb7edcfd8665e7c1b658b073d88189f82a9bc38469c83ddc038"
+    },
+    {
+      "role": "cast_walker",
+      "local": "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/intro-ai-v1/cast/walker.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_cast_walker_fd5dd13910b6a1c7.png",
+      "sha256": "fd5dd13910b6a1c75795b2a4d63d01ce705e3edc83c30933d42d6fe82d0943aa"
+    },
+    {
+      "role": "frame_0",
+      "local": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f044_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_frame_0_28311538e3529bf2.png",
+      "sha256": "28311538e3529bf202825d9be53548b3e61ea4600b78897954c69316dcca9afc"
+    },
+    {
+      "role": "frame_1",
+      "local": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f056_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_frame_1_54a2201875adbb62.png",
+      "sha256": "54a2201875adbb624b681b09a8d9af096b521e67233589820c67551bfc8be62c"
+    },
+    {
+      "role": "frame_2",
+      "local": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f138_paint.png",
+      "remote": "/data/app/huanghaibin/input/rgintro_20261116_v1_s06_frame_2_f0a4ba1389bb9558.png",
+      "sha256": "f0a4ba1389bb9558068ac067f7a82af7b1c8a7ac861addbc04c94696ead5c060"
+    }
+  ],
+  "prompt_sha256": "ea4eee93991bce210ef938ea5e2b9a3387068e83be8e12b8a93b7044db13a8b8",
+  "shot_plan_sha256": "b32a5e1595d044150b353e12412672b22b3be04cd1a292584be5b024c6070ca5",
+  "remote_driver_sha256": "3e267e60e6db26b7845bf72901871067bdbf20cdc4b64fe2ce4753d8a792181c",
+  "guides": [
+    {
+      "frame_idx": 44,
+      "resolved_frame_index": 44,
+      "role": "frame_0",
+      "source": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f044_paint.png"
+    },
+    {
+      "frame_idx": 56,
+      "resolved_frame_index": 56,
+      "role": "frame_1",
+      "source": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f056_paint.png"
+    },
+    {
+      "frame_idx": 138,
+      "resolved_frame_index": 138,
+      "role": "frame_2",
+      "source": "/private/tmp/rongboy-intro-ai/anchors/s06v2_f138_paint.png"
+    }
+  ],
+  "project_runner_sha256": "1c7fb8fc68c16cfed7be454f05a4b7d0b37b8b83ee7897f6f4e39f2a8b40d1ac",
+  "run_id": "b011c16f36567c76",
+  "remote_dir": "/data/app/huanghaibin/rongboy-intro-ai-v1-20261116/s06/b011c16f36567c76",
+  "output_prefix": "rongboy-intro-ai-v1-20261116/s06/rgintro_20261116_v1_s06_s11_b011c16f36567c76"
+}

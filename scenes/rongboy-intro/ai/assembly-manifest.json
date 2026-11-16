@@ -1,0 +1,348 @@
+{
+  "version": "v1",
+  "duration": 30,
+  "fps": 24,
+  "frames": 720,
+  "deliverySize": [
+    1920,
+    1080
+  ],
+  "nativeGenerationSize": [
+    1024,
+    576
+  ],
+  "upscale": "ffmpeg Lanczos; no synthesized detail or frame interpolation",
+  "audio": "Original 30-second procedural score reused; landing/bow/fuse foley retimed to the two-part reveal and one soft cloth cue added for the incoming grenade; all generated shot audio muted",
+  "title": "RONGBOY / 一颗毛球惹的祸; rasterized exact typography, 26–30s",
+  "scoreSha256": "91bde5ec6f1a6a693e4bd5c48099a3e406f2df2ad054e9929fa6b57edd9a540d",
+  "shots": [
+    {
+      "shot": "s01",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s01_seed11.mp4",
+      "sourceSha256": "cdfb7511354c71cd3d3bdf8d185f9e6b4ee2fc2bb5fe1a036846e3dd0153e1f1",
+      "sourceFrames": 90,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 84,
+      "timelineStart": 0,
+      "timelineEnd": 84,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s02",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s02_seed7.mp4",
+      "sourceSha256": "d86807e1033543bb349ef7dff387cc19a5f4b591642f3f0caaa08b88f2c1ff36",
+      "sourceFrames": 73,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 72,
+      "timelineStart": 84,
+      "timelineEnd": 156,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s03",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s03_seed7.mp4",
+      "sourceSha256": "03ce2051a34fccd1e64861b3e93c3a70f8bd4eaafb66321b36c6c9275ec93628",
+      "sourceFrames": 73,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 72,
+      "timelineStart": 156,
+      "timelineEnd": 228,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s04",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s04_seed7.mp4",
+      "sourceSha256": "df7a5bfc3f80ef6f59f99ad8ec32f7ebaa06ceabc0f86a4a2824eb54b958dd70",
+      "sourceFrames": 56,
+      "stretch": 0.7954545454545454,
+      "editOverride": {
+        "sourceStartFrame": 0,
+        "sourceEndFrame": 35,
+        "outputFrames": 44,
+        "reason": "Golden ball disappears after frame 34 in native generation. Use intact prefix and retime continuously to preserve the loaded launcher through this pre-fire shot."
+      },
+      "targetFrames": 44,
+      "timelineStart": 228,
+      "timelineEnd": 272,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s05",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s05_seed7.mp4",
+      "sourceSha256": "c20efa74ebafa9b5cb5baef3cd85e130fcf77733580d504ae9607632af297c76",
+      "sourceFrames": 56,
+      "stretch": 2.2,
+      "editOverride": null,
+      "targetFrames": 19,
+      "timelineStart": 272,
+      "timelineEnd": 291,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s06",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s06_seed11.mp4",
+      "sourceSha256": "c59b5960eb1cd4af5641de5c092f4a08784158b1b859becb304182bb3e1ac4e9",
+      "sourceFrames": 158,
+      "stretch": 2,
+      "editOverride": null,
+      "targetFrames": 77,
+      "timelineStart": 291,
+      "timelineEnd": 368,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s07",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s07_seed7.mp4",
+      "sourceSha256": "64007dec73a58b1ee16b218e3d06eb93f3cf752cbb6d82f28345dbe26bae1228",
+      "sourceFrames": 90,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 79,
+      "timelineStart": 368,
+      "timelineEnd": 447,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s08",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s08_seed11.mp4",
+      "sourceSha256": "2afbadb34c85d5a7c50eb1c21abd7041f7d57609ade9128a0fb8103c72c44465",
+      "sourceFrames": 73,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 57,
+      "timelineStart": 447,
+      "timelineEnd": 504,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s09",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s09_seed11.mp4",
+      "sourceSha256": "9a1bac2a5908f77d8080f2442efeb61c5976fd1a1eae59aa7378c01f4ec80dd2",
+      "sourceFrames": 73,
+      "stretch": 1,
+      "editOverride": {
+        "segments": [
+          {
+            "sourceStartFrame": 0,
+            "sourceEndFrame": 27,
+            "outputFrames": 36
+          },
+          {
+            "sourceStartFrame": 52,
+            "sourceEndFrame": 73,
+            "outputFrames": 36
+          }
+        ],
+        "reason": "Even with a last-frame guide, the pan duplicates the archer/window in its middle. Cut from the intact archer prefix to the intact bomber suffix and retime each continuously; preserve the 72-frame reveal beat."
+      },
+      "targetFrames": 72,
+      "timelineStart": 504,
+      "timelineEnd": 576,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s10",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s10_seed7.mp4",
+      "sourceSha256": "f13fb7c130926261f72a085af22cc9633670f707b986880b0d36bb640a9a6e22",
+      "sourceFrames": 107,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 92,
+      "timelineStart": 576,
+      "timelineEnd": 668,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    },
+    {
+      "shot": "s11",
+      "source": "/private/tmp/rongboy-intro-ai/clips/s11_seed7.mp4",
+      "sourceSha256": "f291570be42885588043f8c32872f1a7bff624a028d4fa784fe86ba52b3ca854",
+      "sourceFrames": 56,
+      "stretch": 1,
+      "editOverride": null,
+      "targetFrames": 52,
+      "timelineStart": 668,
+      "timelineEnd": 720,
+      "nativeSize": [
+        1024,
+        576
+      ]
+    }
+  ],
+  "final": {
+    "sha256": "347f575e9fb005a5141de32e9743e3fcb1cfc909c5bc14fa9fb4ce69a0ed4fb7",
+    "bytes": 38496909,
+    "probe": {
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "h264",
+          "codec_long_name": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10",
+          "profile": "High",
+          "codec_type": "video",
+          "codec_tag_string": "avc1",
+          "codec_tag": "0x31637661",
+          "mime_codec_string": "avc1.640028",
+          "width": 1920,
+          "height": 1080,
+          "coded_width": 1920,
+          "coded_height": 1080,
+          "has_b_frames": 2,
+          "sample_aspect_ratio": "1:1",
+          "display_aspect_ratio": "16:9",
+          "pix_fmt": "yuv420p",
+          "level": 40,
+          "color_range": "tv",
+          "color_space": "bt709",
+          "color_transfer": "iec61966-2-1",
+          "color_primaries": "bt709",
+          "chroma_location": "left",
+          "field_order": "progressive",
+          "is_avc": "true",
+          "nal_length_size": "4",
+          "id": "0x1",
+          "r_frame_rate": "24/1",
+          "avg_frame_rate": "24/1",
+          "time_base": "1/12288",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 368640,
+          "duration": "30.000000",
+          "bit_rate": "10064716",
+          "bits_per_raw_sample": "8",
+          "nb_frames": "720",
+          "extradata_size": 51,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "VideoHandler",
+            "encoder": "Lavc63.1.102 libx264"
+          }
+        },
+        {
+          "index": 1,
+          "codec_name": "aac",
+          "codec_long_name": "AAC (Advanced Audio Coding)",
+          "profile": "LC",
+          "codec_type": "audio",
+          "codec_tag_string": "mp4a",
+          "codec_tag": "0x6134706d",
+          "mime_codec_string": "mp4a.40.2",
+          "sample_fmt": "fltp",
+          "sample_rate": "48000",
+          "channels": 2,
+          "channel_layout": "stereo",
+          "bits_per_sample": 0,
+          "initial_padding": 1024,
+          "id": "0x2",
+          "r_frame_rate": "0/0",
+          "avg_frame_rate": "0/0",
+          "time_base": "1/48000",
+          "start_pts": 0,
+          "start_time": "0.000000",
+          "duration_ts": 1440000,
+          "duration": "30.000000",
+          "bit_rate": "195055",
+          "nb_frames": "1408",
+          "extradata_size": 5,
+          "disposition": {
+            "default": 1,
+            "dub": 0,
+            "original": 0,
+            "comment": 0,
+            "lyrics": 0,
+            "karaoke": 0,
+            "forced": 0,
+            "hearing_impaired": 0,
+            "visual_impaired": 0,
+            "clean_effects": 0,
+            "attached_pic": 0,
+            "timed_thumbnails": 0,
+            "non_diegetic": 0,
+            "captions": 0,
+            "descriptions": 0,
+            "metadata": 0,
+            "dependent": 0,
+            "still_image": 0,
+            "multilayer": 0
+          },
+          "tags": {
+            "language": "und",
+            "handler_name": "SoundHandler"
+          }
+        }
+      ],
+      "format": {
+        "filename": "/private/tmp/rongboy-intro-ai/delivery/rongboy-intro-ai-v1.mp4",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "nb_stream_groups": 0,
+        "format_name": "mov,mp4,m4a,3gp,3g2,mj2",
+        "format_long_name": "QuickTime / MOV",
+        "start_time": "0.000000",
+        "duration": "30.000000",
+        "size": "38496909",
+        "bit_rate": "10265842",
+        "probe_score": 100,
+        "tags": {
+          "major_brand": "isom",
+          "minor_version": "512",
+          "compatible_brands": "isomiso2avc1mp41",
+          "encoder": "Lavf63.1.102"
+        }
+      }
+    }
+  }
+}

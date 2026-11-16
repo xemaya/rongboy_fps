@@ -1,0 +1,13 @@
+import fs from 'node:fs';import path from 'node:path';import {execFileSync} from 'node:child_process';
+import * as esbuild from '/Users/huanghaibin/Workspace/games/rongboy_fps/node_modules/esbuild/lib/main.js';
+const repo='/Users/huanghaibin/Workspace/games/rongboy_fps',base='/tmp/rongboy-intro-ai';
+const entry=path.join(base,'guide-entry.js');
+fs.writeFileSync(entry,`import {SHOTS} from '${repo}/scenes/rongboy-intro/timeline.js';\nimport '${repo}/scenes/rongboy-intro/main.js';\nconst reaction=SHOTS.find(s=>s.id==='05-uh-oh');reaction.from.p=[.15,1.50,1.0];reaction.to.p=[.10,1.48,.98];\nconst reveal=SHOTS.find(s=>s.id==='09-trouble');reveal.from.p[2]=0;reveal.to.p[2]=.25;\n`);
+const result=await esbuild.build({entryPoints:[entry],bundle:true,format:'iife',target:'es2022',loader:{'.glb':'binary','.mp3':'dataurl'},minify:true,write:false,plugins:[{name:'clean-guide-reveal',setup(build){build.onLoad({filter:/\/scenes\/rongboy-intro\/cast\.js$/},args=>({contents:fs.readFileSync(args.path,'utf8').replace('s.t>=20.5','s.t>=21.0'),loader:'js',resolveDir:path.dirname(args.path)}));}}]});
+let html=fs.readFileSync(path.join(repo,'scenes/rongboy-intro/index.html'),'utf8').replace('#title{position:absolute;','#title{display:none!important;position:absolute;').replace('/*__BUNDLE__*/',()=>result.outputFiles[0].text.replace(/<\/script/g,'<\\/script'));
+fs.writeFileSync(path.join(base,'guide-page/index.html'),html);
+const {SHOTS}=await import(path.join(repo,'scenes/rongboy-intro/timeline.js'));
+const who=[['hero'],['hero'],['walker'],['hero','walker'],['hero'],['hero','walker'],['hero','walker'],['hero'],['bomber','archer'],['hero','bomber','archer'],['hero','bomber','archer']];
+const jobs=SHOTS.map((s,i)=>{const f0=Math.ceil(s.T0*24-1e-7),f1=Math.ceil(s.T1*24-1e-7),frames=f1-f0,stretch=frames<29?2.2:1,sec=frames/24*stretch,x=Math.max(5,Math.round(sec*24)),native=x+(5-x%17+17)%17;return{id:'s'+String(i+1).padStart(2,'0'),name:s.id,f0,f1,frames,duration:frames/24,stretch,sec,nativeFrames:native,cast:who[i],first:`firstframes/s${String(i+1).padStart(2,'0')}_source.png`,guide:`guides/s${String(i+1).padStart(2,'0')}.mp4`};});
+fs.writeFileSync(path.join(base,'shot-plan.json'),JSON.stringify({version:'v1',source:'scenes/rongboy-intro/rongboy-intro.mp4',guideRevision:'title-free; clear reaction camera; reveal camera avoids hero; enemies revealed only at shot 9',duration:30,fps:24,frames:720,jobs},null,2));
+console.log('BUNDLED_CLEAN_GUIDE',jobs.length);
