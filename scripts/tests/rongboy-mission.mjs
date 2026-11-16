@@ -231,8 +231,9 @@ test('the quilt-armoured zombie shrugs off frontal hits and must be flanked', ()
 
 test('each weapon has its own ricochet budget', () => {
   for (const [index, w] of WEAPONS.entries()) {
+    if (w.kind) continue;   // 电弧和手雷不是弹跳的毛球
     const s = createGame({ level: flat({ bounds: { minX: -2, maxX: 2, minZ: -2, maxZ: 2 }, player: { x: 0, z: 0 } }) });
-    selectWeapon(s, index); fire(s, 0, { origin: { x: 0, y: 1.2, z: 0 }, direction: { x: 1, y: 0, z: 0.3 } });
+    s.owned[index] = true; selectWeapon(s, index); fire(s, 0, { origin: { x: 0, y: 1.2, z: 0 }, direction: { x: 1, y: 0, z: 0.3 } });
     let end = null;
     for (let i = 0; i < 600 && !end; i++) { step(s, 1 / 120); end = consumeEvents(s).find(e => e.type === 'ball-expired'); }
     assert.equal(end.reason, 'bounce-limit', w.id);
@@ -340,6 +341,125 @@ test('once roused, all three floors find their way down to the player without ge
     assert.ok(freePoint(house, e.x, e.z, e.radius - 0.02), `${e.type} ended inside a solid`);
     assert.ok(Number.isFinite(e.x + e.z + e.vx + e.vz + e.y));
   }
+});
+
+// ---------- 后四把武器 ----------
+
+// 给一局空地加上指定的枪并换到手里。
+function armed(id, extra) {
+  const s = game(extra), index = WEAPONS.findIndex(w => w.id === id);
+  s.owned[index] = true; selectWeapon(s, index);
+  return s;
+}
+const aimEast = { origin: { x: -1.4, y: 0.9, z: 0 }, direction: { x: 1, y: 0, z: 0 } };
+
+test('new guns have to be found: an unowned weapon cannot be selected, picking one up equips it', () => {
+  const s = game({ pickups: [{ kind: 'weapon', weapon: 'stun', amount: 4, x: 0, z: 0 }, { kind: 'weapon', weapon: 'stun', amount: 2, x: 3, z: 0 }] });
+  const stun = WEAPONS.findIndex(w => w.id === 'stun');
+  assert.deepEqual(s.owned.slice(0, 3), [true, true, true]);
+  assert.equal(selectWeapon(s, stun), false, 'not owned yet');
+  s.player.x = 0; run(s, 0.1);
+  assert.ok(s.owned[stun] && s.weapon === stun, 'picked up and in hand');
+  assert.deepEqual(s.ammo[stun], { mag: WEAPONS[stun].mag, reserve: 4 });
+  s.player.x = 3; run(s, 0.1);
+  assert.equal(s.ammo[stun].reserve, 6, 'a second one is just ammunition');
+  assert.deepEqual(createGame({ level: house }).owned.map((o, i) => o && WEAPONS[i].id).filter(Boolean), ['single', 'scatter', 'heavy', 'yarn']);
+});
+
+test('static gun: freezes its target, the arc jumps to neighbours, and a frozen zombie cannot bite', () => {
+  const s = armed('stun'), w = WEAPONS[s.weapon];
+  const a = spawn(s, { x: 2, z: 0 }), b = spawn(s, { x: 3.6, z: 0.8 }), c = spawn(s, { x: 5.2, z: 0 }), far = spawn(s, { x: 9, z: 6 });
+  assert.ok(fire(s, 0, aimEast));
+  const zapEvent = consumeEvents(s).find(e => e.type === 'zap');
+  assert.deepEqual(zapEvent.struck, [a.id, b.id, c.id], 'first target, then two hops');
+  assert.equal(zapEvent.points.length, 4);
+  assert.ok(a.stun > 2 && b.stun > 2 && c.stun > 2 && far.stun === 0);
+  assert.equal(a.hp, a.maxHp - 1, 'barely any damage');
+  const before = { x: a.x, z: a.z };
+  s.player.x = a.x - 0.5; s.player.z = a.z;
+  run(s, 1.5);
+  assert.ok(Math.hypot(a.x - before.x, a.z - before.z) < 0.35, 'it stays put while stunned');
+  assert.equal(s.health, CONFIG.maxHealth, 'and does not hurt on contact');
+  run(s, 2.5);
+  assert.ok(a.stun === 0 && s.health < CONFIG.maxHealth, 'the stun wears off');
+  // 电弧被墙挡住；棉甲定身时间短；被电住时挨打算偷袭
+  const walled = armed('stun', { furniture: [{ id: 'wall', kind: 'cabinet', x: 0, z: 0, w: 0.4, d: 3, h: 2.4 }] });
+  const hidden = spawn(walled, { x: 2, z: 0 });
+  fire(walled, 0, aimEast);
+  assert.equal(hidden.stun, 0);
+  const t = armed('stun'), heavy = spawn(t, { type: 'heavy', x: 2, z: 0, heading: WEST });
+  fire(t, 0, aimEast);
+  assert.ok(heavy.stun > 1 && heavy.stun < w.stun * 0.7);
+  selectWeapon(t, 0); run(t, 0.6); consumeEvents(t);   // 等静电枪的冷却过去，棉甲还定着
+  assert.ok(heavy.stun > 0.5);
+  const hp = heavy.hp; shootAt(t, heavy);
+  assert.equal(hp - heavy.hp, 2, 'front armour halves the pistol to 1, the stun doubles it back');
+});
+
+test('sewing machine gun: holding the trigger fires a stream until the magazine runs dry', () => {
+  const s = armed('sewing'), w = WEAPONS[s.weapon];
+  const e = spawn(s, { type: 'heavy', x: 3, z: 0, heading: EAST });
+  e.hp = e.maxHp = 99;
+  assert.ok(beginCharge(s));
+  run(s, 1);
+  assert.ok(s.shots >= 10 && s.shots <= 12, `about ${Math.round(1 / w.cooldown)} shots a second (${s.shots})`);
+  assert.ok(e.hp < 99 - 6, 'most of them land at three metres');
+  releaseCharge(s); const fired = s.shots;
+  run(s, 0.5);
+  assert.equal(s.shots, fired, 'letting go stops it');
+  beginCharge(s); run(s, 4);
+  assert.ok(s.shots > w.mag, 'it reloads by itself and carries on');
+  assert.ok(s.ammo[s.weapon].reserve < w.reserve);
+  const dirs = new Set(s.balls.map(b => b.dz.toFixed(3)));
+  assert.ok(dirs.size > 1 || s.balls.length < 2, 'the stream has some spread');
+});
+
+test('knitting needle: flies straight, goes through three zombies in a row and stops in the wall', () => {
+  const s = armed('needle'), w = WEAPONS[s.weapon];
+  const row = [2, 3.2, 4.4, 5.6].map(x => spawn(s, { x, z: 0, state: 'idle', heading: EAST }));
+  fire(s, 0, aimEast);
+  let y = [];
+  for (let i = 0; i < 60; i++) { step(s, 1 / 120); for (const b of s.balls) y.push(b.y); }
+  assert.deepEqual(row.map(e => e.maxHp - e.hp > 0), [true, true, true, false], `pierce ${w.pierce} then stop`);
+  assert.ok(row[0].alive === false, 'back + unaware: one needle is enough');
+  assert.ok(Math.max(...y) - Math.min(...y) < 0.02, 'no drop');
+  const t = armed('needle'); spawn(t, { x: 8, z: 8 });
+  fire(t, 0, aimEast); run(t, 1);
+  const end = consumeEvents(t).filter(e => e.type === 'ball-expired');
+  assert.equal(end.length, 1); assert.ok(end[0].x > 9.5, 'it reaches the far wall and stays there');
+  // 蓄满（举枪瞄准）伤害更高
+  const c = armed('needle'), target = spawn(c, { x: 6, z: 0, heading: WEST });
+  target.hp = target.maxHp = 99; c.health = 1e9;
+  fire(c, 0, aimEast); run(c, 0.8);
+  assert.equal(99 - target.hp, w.damage, 'a quick shot');
+  beginCharge(c); run(c, CONFIG.chargeTime + 0.05); releaseCharge(c, aimEast); run(c, 0.3);
+  assert.equal(99 - target.hp, w.damage * 2 + w.chargeDamage, 'an aimed one hits harder');
+});
+
+test('yarn grenade: bounces, bursts after its fuse, hurts and tangles what it can see', () => {
+  const s = armed('yarn', { furniture: [{ id: 'wall', kind: 'cabinet', x: 4.0, z: 0, w: 0.4, d: 2, h: 2.4 }] }), w = WEAPONS[s.weapon];
+  const near = spawn(s, { x: 2.0, z: 0.9 }), edge = spawn(s, { x: 3.2, z: -1.8 }), hidden = spawn(s, { x: 4.8, z: 0 }), far = spawn(s, { x: 8, z: -6 });
+  for (const e of [near, edge, hidden, far]) e.awareness = 'idle';
+  fire(s, 0, { origin: { x: -1.4, y: 1.0, z: 0 }, direction: { x: 1, y: 0.1, z: 0 } });
+  run(s, w.fuse - 0.1);
+  assert.equal(s.balls.length, 1, 'still rolling');
+  assert.ok(s.bounces >= 1);
+  run(s, 0.3);
+  const boom = consumeEvents(s).find(e => e.type === 'explode');
+  assert.ok(boom && s.balls.length === 0);
+  assert.ok(Math.hypot(boom.x - near.x, boom.z - near.z) < w.blast);
+  assert.ok(near.maxHp - near.hp >= w.minDamage && near.tangle > 3, 'caught in the blast');
+  assert.equal(hidden.hp, hidden.maxHp, 'the cabinet shields what is behind it');
+  assert.ok(far.hp === far.maxHp && far.tangle === 0);
+  // 被缠住的走得慢
+  const slow = game(), fast = game();
+  const a = spawn(slow, { x: 6, z: 0 }), b = spawn(fast, { x: 6, z: 0 });
+  a.tangle = 3; run(slow, 2); run(fast, 2);
+  assert.ok(6 - a.x < (6 - b.x) * 0.5, `tangled ${(6 - a.x).toFixed(2)} m vs free ${(6 - b.x).toFixed(2)} m`);
+  // 直接砸中：不等引信
+  const direct = armed('yarn'), hit = spawn(direct, { x: 1.2, z: 0 });
+  fire(direct, 0, aimEast); run(direct, 0.4);
+  assert.ok(hit.hp < hit.maxHp && direct.balls.length === 0);
 });
 
 // ---------- 楼层与楼梯 ----------

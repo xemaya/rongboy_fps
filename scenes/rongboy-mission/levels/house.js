@@ -15,6 +15,8 @@ export default {
   // 任务：上到阁楼的藏宝间拿回毛线篮，再带回院门。拿起它会惊动 alarm 米以内的僵尸（隔着楼板减半：差不多是整个三楼，加上正下方的一两只）。
   // 想改回"清空全部"只要换成 { type: 'clear', title: '清空整栋房子里的僵尸' }。
   mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 13, exit: garden },
+  // 开局带的枪；静电枪、缝纫机枪、毛衣针要在屋里捡（pickups 里 kind: 'weapon'）。
+  arsenal: ['single', 'scatter', 'heavy', 'yarn'],
   // 折返楼梯：西边一跑往北上到半层平台，东边一跑往南上到上一层。
   stairs: { minX: -1.4, maxX: 1.4, mouthZ: -9, landingZ: -11.2, endZ: -12.5 },
 
@@ -138,6 +140,9 @@ export default {
     { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
     { kind: 'heart', amount: 1, x: -8.3, z: 2.4 },
     { kind: 'heart', amount: 1, x: 1.0, z: -6.6 },
+    { kind: 'weapon', weapon: 'stun', amount: 4, x: -1.4, z: 9.0 },      // 静电枪：就在院门边，开局就能拿
+    { kind: 'weapon', weapon: 'sewing', amount: 48, x: 5.6, z: -6.5 },   // 缝纫机枪：书房，棉甲僵尸睡在旁边
+    { kind: 'ammo', weapon: 'yarn', amount: 1, x: -8.3, z: -6.3 },
   ],
   upper: [
     // ---------------------------------------------------------------- 二层：主卧、浴室、儿童房、游戏室
@@ -219,6 +224,9 @@ export default {
         { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
         { kind: 'heart', amount: 1, x: -2.4, z: -3.9 },
         { kind: 'ammo', weapon: 'scatter', amount: 2, x: 2.3, z: 0.9 },
+        { kind: 'weapon', weapon: 'needle', amount: 6, x: -8.2, z: -2.3 },   // 毛衣针：主卧
+        { kind: 'weapon', weapon: 'stun', amount: 4, x: 0.9, z: 1.2 },
+        { kind: 'ammo', weapon: 'yarn', amount: 1, x: 2.6, z: -8.3 },
       ],
     },
     // ---------------------------------------------------------------- 三层（阁楼）：储藏间、缝纫间、藏宝间
@@ -283,6 +291,8 @@ export default {
         { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
         { kind: 'ammo', weapon: 'scatter', amount: 4, x: 8.2, z: -8.3 },
         { kind: 'ammo', weapon: 'heavy', amount: 1, x: -7.9, z: 2.4 },
+        { kind: 'ammo', weapon: 'sewing', amount: 24, x: 3.0, z: -4.4 },
+        { kind: 'ammo', weapon: 'yarn', amount: 1, x: -2.4, z: -8.3 },
       ],
     },
   ],

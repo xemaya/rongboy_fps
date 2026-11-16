@@ -24,7 +24,7 @@ function label(text, { width = 512, height = 128, size = 64, ink = '#4d5c47', pa
 }
 
 function pickupModel(k, weapons) {
-  const g = new T.Group(), heart = k.kind === 'heart', objective = k.kind === 'objective';
+  const g = new T.Group(), heart = k.kind === 'heart', objective = k.kind === 'objective', gun = k.kind === 'weapon';
   const weapon = weapons.find(w => w.id === k.weapon);
   const color = heart ? 0xd9705f : objective ? 0xe9bf65 : weapon?.color ?? 0xf3dfa5;
   const body = new T.Group(); g.add(body);
@@ -41,7 +41,11 @@ function pickupModel(k, weapons) {
     add(new T.BoxGeometry(0.3, 0.2, 0.22), woolMaterial(0xb58a62), 0, -0.02, 0);
     for (const x of [-0.08, 0.08]) add(new T.SphereGeometry(0.075, 10, 8), woolMaterial(color), x, 0.12, 0);
   }
-  const text = heart ? '♥ +1' : objective ? '★ 毛线篮' : `${weapon?.name ?? ''} +${k.amount}`;
+  if (gun) {   // 一把枪：底下一圈光
+    const glow = add(new T.TorusGeometry(0.34, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x7fd8ff, emissiveIntensity: 2.5 }), 0, -0.2, 0);
+    glow.rotation.x = Math.PI / 2;
+  }
+  const text = heart ? '♥ +1' : objective ? '★ 毛线篮' : gun ? `★ ${weapon?.name ?? ''}` : `${weapon?.name ?? ''} +${k.amount}`;
   const sprite = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 384, height: 96, size: 46 }), transparent: true, depthWrite: false }));
   sprite.scale.set(0.72, 0.18, 1); sprite.position.y = 0.42; g.add(sprite);
   g.position.set(k.x, (k.y ?? 0) + 0.55, k.z);

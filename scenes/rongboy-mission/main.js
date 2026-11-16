@@ -10,9 +10,11 @@ import assetData from '../rongboy-shooter-fps/models.js';
 import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
-  cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES } from './game.js';
+  cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED } from './game.js';
 import { buildWorld, INDOOR_SKY, INDOOR_ACTOR } from './world.js';
 import { roomLitActor } from '../../library/surfaces/plush.js';
+import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
+import { createArsenalAudio } from './sfx.js';
 import houseDef from './levels/house.js';
 
 const $ = id => document.getElementById(id);
@@ -27,7 +29,7 @@ let s = createGame({ level });
 let mode = 'menu', ready = false, paused = false, down = false;
 let actors, menuHero, menuZombie, fpHero, gun, loadedBall;
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
-let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', handSky = 1;
+let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', handSky = 1, zoom = 0;
 const handMaterials = new Set();
 const keys = new Set(), errors = [], frameIntervals = [];
 
@@ -63,14 +65,12 @@ const camera = cine.camera, ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0)
 const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), target = new T.Vector3(0, 0.75, -1);
 const enemyModels = new Map(), ballModels = new Map();
 const ballTemplate = createWoolBall();
-const ballTemplates = WEAPONS.map(w => {
-  const o = ballTemplate.clone(true);
-  o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.setHex(w.color); } });
-  return o;
-});
+const ballTemplates = projectileModels(WEAPONS, ballTemplate);
+const effects = createEffects(cine.scene);
+const feelOf = id => { const w = WEAPONS.find(v => v.id === id); return w?.feel || id; };   // 后坐力、受击声借用前三把里的哪一把
 
-// 绒絮粒子：一个实例化网格，上限 112 颗。
-const FX_MAX = 112, fx = [], dummy = new T.Object3D(), tint = new T.Color();
+// 绒絮粒子：一个实例化网格，上限 360 颗（毛球拖尾和爆炸要用不少）。
+const FX_MAX = 360, fx = [], dummy = new T.Object3D(), tint = new T.Color();
 const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }), FX_MAX);
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 cine.scene.add(fxMesh);
@@ -81,6 +81,11 @@ function burst(x, z, n = 10, force = 1, color = 0xf0dfba, y = 0.55) {
     const a = Math.random() * Math.PI * 2;
     fx.push({ x, y, z, floor, vx: Math.cos(a) * force, vz: Math.sin(a) * force, vy: 0.6 + Math.random() * 1.3, age: 0, life: 0.45 + Math.random() * 0.25, r: 0.025 + Math.random() * 0.035, color });
   }
+}
+// 毛球身后掉的一粒绒絮：几乎不动，慢慢落下、变小
+function trail(x, y, z, color, r) {
+  if (fx.length >= FX_MAX) fx.shift();
+  fx.push({ x, y, z, floor: Math.max(0, Math.floor((y + 0.25) / SH)) * SH + 0.035, vx: (Math.random() - 0.5) * 0.25, vz: (Math.random() - 0.5) * 0.25, vy: 0.25, age: 0, life: 0.32 + Math.random() * 0.16, r: r * (0.6 + Math.random() * 0.5), color });
 }
 function updateFx(dt) {
   for (let i = fx.length - 1; i >= 0; i--) {
@@ -99,8 +104,9 @@ function updateFx(dt) {
 
 // ---------- 声音与提示 ----------
 
-let sound = true, audio = null, soundBus = null, lastBounceSound = 0;
-function unlock() { if (!sound) return; audio ??= new AudioContext(); soundBus ??= createWoolAudio(audio); audio.resume(); }
+let sound = true, audio = null, soundBus = null, arsenalBus = null, lastBounceSound = 0;
+function unlock() { if (!sound) return; audio ??= new AudioContext(); soundBus ??= createWoolAudio(audio); arsenalBus ??= createArsenalAudio(audio); audio.resume(); }
+function sfx2(kind, options = {}) { if (sound && audio && audio.state === 'running') arsenalBus.play(kind, options); }
 function sfx(kind, options = {}) { if (sound && audio && audio.state === 'running') soundBus.play(kind, options); }
 function say(text, seconds = 1.2) { $('toast').textContent = text; toastUntil = performance.now() + seconds * 1000; }
 const part = (a, n) => a.parts.get(n);
@@ -108,7 +114,7 @@ const part = (a, n) => a.parts.get(n);
 // ---------- 第一人称的手和枪 ----------
 
 function attachGun(a) {
-  const weapon = createWeaponKit();
+  const weapon = extendWeaponKit(createWeaponKit(), WEAPONS);
   weapon.position.set(0, 0.24, 0.40);
   (part(a, 'CTRL / body') || a.model).add(weapon);
   const ball = ballTemplate.clone(true); ball.position.z = 0.65; weapon.add(ball);
@@ -125,6 +131,14 @@ function makeHandsOnly(a) {
   });
 }
 function syncWeapon() { if (fpHero) for (const a of [fpHero, menuHero]) a.gun.userData.variants.forEach((v, i) => { v.visible = i === s.weapon; }); }
+// 手里这把枪上会动的小零件：电火花跳、缝纫机手轮转、手雷打空了线团不见
+function animateGun(hero, dt) {
+  const v = hero.gun.userData.variants[s.weapon], u = v?.userData, w = WEAPONS[s.weapon];
+  if (!u) return;
+  if (u.spark) { const k = 0.7 + Math.random() * 0.6; u.spark.scale.setScalar(s.ammo[s.weapon].mag > 0 ? k : 0.01); }
+  if (u.wheel) u.wheel.rotation.x += dt * (s.trigger && !s.reloading ? 26 : 1.5);
+  if (u.round) { u.round.visible = s.ammo[s.weapon].mag > 0 && !s.reloading; u.round.rotation.y += dt * 1.5; u.fuse.scale.setScalar(s.charging ? 1 + Math.sin(s.time * 30) * 0.4 : 0.6); }
+}
 
 function animateHero(dt, moving) {
   const hero = mode === 'menu' ? menuHero : fpHero;
@@ -151,7 +165,8 @@ function animateHero(dt, moving) {
   if (head) head.rotation.x -= recoil.pitch.x * 0.1;
   if (pack) pack.rotation.x += Math.sin(phase * 0.8) * 0.018 * speed - recoil.pitch.x * 0.1;
   hero.gun.position.set(recoil.side.x * motion, 0.24 + recoil.up.x * motion - reload * 0.16, 0.40 - recoil.back.x * motion);
-  hero.loaded.visible = s.charging || mode === 'menu';
+  hero.loaded.visible = (s.charging && s.weapon < 3) || mode === 'menu';   // 只有前三把是往筒里装毛球
+  animateGun(hero, dt);
   hero.loaded.scale.setScalar(0.12 + charge * 0.18); hero.loaded.rotation.y += dt * 2;
   if (mode !== 'menu') {
     camera.updateMatrixWorld(true);
@@ -289,6 +304,25 @@ function updateEnemy(e, a) {
     a.tell.scale.setScalar(1.65 - Math.min(1, e.actionAge / 0.48) * 0.65);
   }
   a.flash(response.flash * 0.7);
+  // 被电住：浑身发蓝、发抖，身上窜着小电弧
+  if (e.stun > 0) {
+    const pulse = 0.5 + 0.5 * Math.sin(s.time * 38 + e.id);
+    for (const m of a.materials) m.emissive?.setRGB(0.04 + 0.10 * pulse, 0.22 + 0.25 * pulse, 0.42 + 0.35 * pulse);
+    a.model.position.x += Math.sin(s.time * 71 + e.id) * 0.012; a.model.position.z += Math.cos(s.time * 83) * 0.012;
+    a.tilt.rotation.z += Math.sin(s.time * 57 + e.id) * 0.03;
+    if (Math.random() < 0.5) effects.crackle(e.x, e.y, e.z, e.radius, e.height);
+    if (distance < 8 && Math.random() < 0.08) sfx2('crackle', { strength: 0.5 });
+  }
+  // 被毛线缠住：身上绕着几圈线
+  if (e.tangle > 0 && !a.tangle) {
+    a.tangle = new T.Group();
+    [0xd9a6e0, 0xf2d27a, 0x9fc3e0].forEach((color, i) => {
+      const ring = new T.Mesh(new T.TorusGeometry(e.radius * 1.12, 0.03, 6, 22), new T.MeshStandardMaterial({ color, roughness: 1 }));
+      ring.rotation.set(Math.PI / 2 + (i - 1) * 0.28, 0, i * 0.9); ring.position.y = e.height * (0.3 + i * 0.22); ring.castShadow = false; a.tangle.add(ring);
+    });
+    a.world.add(a.tangle);
+  }
+  if (a.tangle) { a.tangle.visible = e.tangle > 0; a.tangle.rotation.y = s.time * 1.3; a.tangle.scale.setScalar(Math.min(1, e.tangle / 0.4)); a.tangle.position.y = e.base - e.y; }
 }
 
 // 从眼睛到僵尸的头、身体两侧、脚各连一条线，任一条不被挡就算看得见。
@@ -333,7 +367,7 @@ function updateModels(dt) {
   for (const b of s.balls) {
     let o = ballModels.get(b.id);
     if (!o) {
-      o = ballTemplates[Math.max(0, WEAPONS.findIndex(w => w.id === b.weapon))].clone(true); o.userData.ownMaterials = [];
+      o = ballTemplates[Math.max(0, WEAPONS.findIndex(w => w.id === b.weapon))].clone(true); o.userData.ownMaterials = []; o.userData.trail = 0; o.userData.fuse = o.getObjectByName('fuse') || null;
       o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; o.userData.ownMaterials.push(m.material); } });
       ballModels.set(b.id, o); cine.scene.add(o);
     }
@@ -342,7 +376,15 @@ function updateModels(dt) {
     const nearFade = Math.max(0, Math.min(1, (o.position.distanceTo(camera.position) - b.r - 0.30) / 0.6));
     for (const m of o.userData.ownMaterials) { m.opacity = nearFade * nearFade; m.depthWrite = nearFade > 0.98; }
     o.scale.setScalar(b.r * Math.min(1, Math.max(0, (b.lifetime - b.age) / 0.45)));
-    o.rotation.x += dt * b.speed * 2; o.rotation.z += dt * 3;
+    if (o.userData.oriented) o.lookAt(b.x + b.dx, b.y + b.dy, b.z + b.dz);   // 针顺着飞行方向
+    else { o.rotation.x += dt * b.speed * 2; o.rotation.z += dt * 3; }
+    if (o.userData.fuse) o.userData.fuse.scale.setScalar(0.7 + 0.6 * Math.abs(Math.sin(b.age * (8 + b.age * 14))));   // 引信越闪越快
+    // 拖尾：毛球身后掉一路绒絮，手雷掉火星；连发的小纽扣和针不掉
+    o.userData.trail -= dt;
+    if (o.userData.trail <= 0 && nearFade > 0.5 && b.weapon !== 'sewing' && b.weapon !== 'needle') {
+      o.userData.trail = b.fuse ? 0.05 : b.weapon === 'heavy' ? 0.022 : 0.035;
+      trail(b.x, b.y, b.z, b.fuse ? 0xffd27a : WEAPONS.find(w => w.id === b.weapon).color, b.r * (b.weapon === 'heavy' ? 0.5 : 0.42));
+    }
   }
   for (const k of s.pickups) {
     const o = world.pickups.get(k.id);
@@ -355,7 +397,7 @@ function clearModels() {
   for (const a of enemyModels.values()) { a.world.removeFromParent(); for (const m of a.materials) m.dispose(); }
   enemyModels.clear();
   for (const o of ballModels.values()) { o.removeFromParent(); for (const m of o.userData.ownMaterials) m.dispose(); }
-  ballModels.clear(); fx.length = 0;
+  ballModels.clear(); fx.length = 0; effects.clear();
 }
 
 // ---------- 事件 → 反馈 ----------
@@ -369,16 +411,33 @@ function processEvents() {
     else if (e.type === 'reload') { sfx('switch'); }
     else if (e.type === 'reloaded') { sfx('switch'); }
     else if (e.type === 'dry') { say(`${WEAPONS[s.weapon].name}没弹药了 · 按 1 换回手枪`, 1.6); sfx('switch'); }
+    else if (e.type === 'zap') {
+      // 电弧：从枪口到第一只，再一只只跳过去
+      effects.zap(e.points); sfx2('zap');
+      for (const p of e.points.slice(1)) burst(p.x, p.z, 6, 0.9, 0xbfeaff, p.y);
+      if (e.struck.length > 1) say(`电住了 ${e.struck.length} 只`, 1);
+    } else if (e.type === 'explode') {
+      // 毛线团炸开：光球、一地彩色线头、镜头震一下
+      effects.boom(e, e.radius, 0xe6b8f0); sfx2('boom', { strength: Math.min(1.2, 6 / Math.max(3, Math.hypot(e.x - s.player.x, e.z - s.player.z))) });
+      for (const color of [0xd9a6e0, 0xf2d27a, 0x9fc3e0, 0xe7836f, 0xf6efe0]) burst(e.x, e.z, 14, 2.6, color, e.y + 0.2);
+      if (Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) shake = Math.max(shake, 0.03);
+      if (e.struck.length) say(`缠住了 ${e.struck.length} 只`, 1.1);
+    }
     else if (e.type === 'interrupted') say('打断了扑击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
     else if (e.type === 'alert') { if (near(9)) { say(`${ENEMY_TYPES[e.enemyType].name}发现你了！`, 1.1); sfx('hurt'); } }
     else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, base + 0.04); }
     else if (e.type === 'shot') {
-      kickRecoil(recoil, e.weapon, e.power);
-      burst(e.x, e.z, e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : 4, e.weapon === 'heavy' ? 0.85 : 0.45, WEAPONS.find(w => w.id === e.weapon).color, e.y ?? 0.8);
-      sfx('shot', { weapon: e.weapon, power: e.power });
+      const w = WEAPONS.find(v => v.id === e.weapon), light = e.weapon === 'sewing';
+      kickRecoil(recoil, feelOf(e.weapon), light ? -2.2 : e.weapon === 'stun' ? -1 : e.power);   // 负的力度 = 更轻的一下
+      burst(e.x, e.z, e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : light ? 1 : 4, e.weapon === 'heavy' ? 0.85 : 0.45, w.color, e.y ?? 0.8);
+      // 枪口闪光：一小团光，顺带把周围照亮一下；越重的枪越大
+      effects.muzzle(e, e.weapon === 'stun' ? 0x9fdcff : 0xffe2b0, e.weapon === 'heavy' ? 1.1 : e.weapon === 'scatter' ? 0.8 : light ? 0.32 : 0.5, e.weapon === 'heavy' ? 9 : light ? 2.5 : 5);
+      if (e.weapon === 'sewing') sfx2('stitch'); else if (e.weapon === 'needle') sfx2('needle'); else if (e.weapon === 'yarn') sfx2('throw'); else if (e.weapon !== 'stun') sfx('shot', { weapon: e.weapon, power: e.power });
     } else if (e.type === 'hit') {
       burst(e.contactX ?? e.x, e.contactZ ?? e.z, e.heavy ? 14 : e.weapon === 'scatter' ? 4 : 7, e.heavy ? 1.4 : 0.85, e.heavy ? 0xe6c5a8 : 0xe7ddbc, e.contactY ?? 0.75);
+      // 命中光圈：带加成的更大、偏金色
+      if (e.source === 'ball') effects.ring({ x: e.contactX ?? e.x, y: e.contactY ?? base + 0.8, z: e.contactZ ?? e.z }, e.back || e.sneak ? 0xffd27a : 0xfff0d8, e.heavy ? 1.2 : e.back || e.sneak ? 0.8 : 0.5, e.heavy ? 0.26 : 0.18);
       if (e.source === 'ball') {
         bonus = e.back && e.sneak ? '偷袭后背 ×3' : e.back ? '打中后背 ×2' : e.sneak ? '偷袭 ×2' : '';
         if (bonus) say(`${bonus} · -${e.amount}`, 1);
@@ -386,14 +445,21 @@ function processEvents() {
       }
       if (!strongest || e.strength > strongest.strength) strongest = e;
     } else if (e.type === 'knockdown') {
-      shake = Math.max(shake, e.weapon === 'heavy' ? 0.018 : 0.007); hitMarkerTime = 0.24; hitMarkerKind = 'kill'; sfx('kill', { weapon: e.weapon });
+      shake = Math.max(shake, e.weapon === 'heavy' ? 0.018 : 0.007); hitMarkerTime = 0.24; hitMarkerKind = 'kill'; sfx('kill', { weapon: feelOf(e.weapon) });
       if (e.left > 0) say(`${e.source === 'collision' ? '撞倒一只' : bonus || '击倒'} · 还剩 ${e.left} 只`, 1.3);
     } else if (e.type === 'bounce') {
       if (performance.now() - lastBounceSound > 90) { sfx('bounce', { weapon: e.weapon }); lastBounceSound = performance.now(); }
-    } else if (e.type === 'ball-expired') burst(e.x, e.z, 4, 0.25, 0xeadbb9, e.y);
+    } else if (e.type === 'ball-expired') {
+      if (e.reason !== 'explode') burst(e.x, e.z, 4, 0.25, 0xeadbb9, e.y);
+      if (e.weapon === 'needle' && e.reason === 'bounce-limit' && e.normal) {
+        // 针扎在墙上：事件里的方向还是它飞来时的方向（碰到墙的这一帧还没来得及改）
+        effects.stick(e, { x: e.dx, y: e.dy, z: e.dz }); sfx2('thunk', { strength: Math.min(1, 5 / Math.max(2, Math.hypot(e.x - s.player.x, e.z - s.player.z))) });
+      } else if (e.reason === 'bounce-limit' || e.reason === 'range') effects.spark(e, 0xfff0d8, 0.35);
+    }
     else if (e.type === 'pickup') {
-      burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6); sfx('switch');
-      say(e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? '拿到毛线篮了！楼里被惊动了，快回院门' : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
+      burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6);
+      if (e.kind === 'weapon') { sfx2('weapon'); effects.ring({ x: e.x, y: base + 0.8, z: e.z }, 0xffe08a, 1.6, 0.4); } else sfx('switch');
+      say(e.kind === 'weapon' ? `捡到${WEAPONS.find(w => w.id === e.weapon).name}！按 ${WEAPONS.findIndex(w => w.id === e.weapon) + 1} 选它` : e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? '拿到毛线篮了！楼里被惊动了，快回院门' : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
     } else if (e.type === 'hurt') {
       shake = 0.04; sfx('hurt');
       $('hurtFrame').classList.remove('damage'); void $('hurtFrame').offsetWidth; $('hurtFrame').classList.add('damage');
@@ -404,7 +470,7 @@ function processEvents() {
   if (strongest) {
     const e = strongest, dist = Math.hypot(e.x - s.player.x, e.z - s.player.z);
     const pan = ((e.x - s.player.x) * Math.cos(yaw) - (e.z - s.player.z) * Math.sin(yaw)) / Math.max(2, dist);
-    sfx('hit', { weapon: e.weapon, strength: Math.min(1.15, 3.5 / Math.max(2, dist)), pan });
+    sfx('hit', { weapon: feelOf(e.weapon), strength: Math.min(1.15, 3.5 / Math.max(2, dist)), pan });
     if (hitMarkerKind !== 'kill' || hitMarkerTime < 0.1) { hitMarkerTime = e.heavy ? 0.20 : 0.12; hitMarkerKind = e.heavy ? 'heavy' : ''; }
   }
 }
@@ -458,7 +524,10 @@ function cameraFrame(dt) {
     }
   } else {
     const motion = reduced ? 0.25 : 1, bob = reduced ? 0 : Math.sin(phase * 2) * 0.006;
-    camera.fov = 65 + recoil.fov.x * motion;
+    // 毛衣针按住是举枪瞄准：镜头拉近
+    const aiming = s.charging && WEAPONS[s.weapon].zoom ? Math.min(1, s.charge / 0.35) : 0;
+    zoom += (aiming - zoom) * Math.min(1, dt * 14);
+    camera.fov = 65 - 31 * zoom + recoil.fov.x * motion;
     camera.rotation.order = 'YXZ';
     camera.rotation.set(pitch + recoil.camera.x * motion, yaw, Math.sin(s.time * 49) * shake * motion);
     camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
@@ -478,6 +547,7 @@ function hud() {
   $('ammo').classList.toggle('low', a.mag === 0);
   WEAPONS.forEach((weapon, i) => {
     const slot = $('weapon' + i), ammo = s.ammo[i];
+    slot.hidden = !s.owned[i];
     slot.classList.toggle('selected', i === s.weapon);
     slot.classList.toggle('empty', ammo.mag === 0 && ammo.reserve === 0);
     slot.textContent = `${i + 1} · ${ammo.reserve === Infinity ? ammo.mag : ammo.mag + ammo.reserve}`;
@@ -495,7 +565,7 @@ function hud() {
   $('chargeFill').style.width = (s.reloading ? reloading : charging) * 100 + '%';
   $('charge').classList.toggle('full', !s.reloading && charging > 0.95);
   $('charge').classList.toggle('reloading', s.reloading);
-  $('chargeLabel').textContent = s.reloading ? '换弹中…' : charging > 0.95 ? '松开空格 · 发射大毛球' : s.charging ? '蓄力中…' : a.mag === 0 ? '没弹药了' : '空格射击 · 按住蓄力';
+  $('chargeLabel').textContent = s.reloading ? '换弹中…' : a.mag === 0 ? '没弹药了' : w.auto ? '按住空格连发' : w.zoom ? (s.charging ? (charging > 0.95 ? '瞄稳了 · 松开射出' : '瞄准中…') : '按住空格瞄准 · 松开射出') : w.kind === 'grenade' ? (s.charging ? '松开扔出 · 按得越久越远' : '空格扔出 · 按住扔得更远') : w.kind === 'zap' ? '空格放电' : charging > 0.95 ? '松开空格 · 发射大毛球' : s.charging ? '蓄力中…' : '空格射击 · 按住蓄力';
   $('reticle').hidden = mode !== 'playing' || paused; $('reticle').style.scale = 1 + Math.min(0.35, recoil.back.x * 0.65);
   $('hitMarker').hidden = mode !== 'playing' || paused || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind; $('hitMarker').style.opacity = Math.min(1, hitMarkerTime * 18); $('hitMarker').style.scale = 1 + Math.min(0.35, hitMarkerTime);
@@ -505,10 +575,10 @@ function hud() {
 function snapshot() {
   return {
     mode, paused, phase: s.phase, time: s.time, health: s.health, stars: s.stars, kills: s.kills, total: s.total, alive: aliveCount(s),
-    weapon: WEAPONS[s.weapon].id, ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
+    weapon: WEAPONS[s.weapon].id, owned: WEAPONS.filter((w, i) => s.owned[i]).map(w => w.id), ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, y: s.player.y, z: s.player.z }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
-    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, x: e.x, y: e.base, z: e.z, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
   };
 }
@@ -575,8 +645,11 @@ addEventListener('keydown', e => {
     return;
   }
   if (mode !== 'playing' || paused) return;
-  if (!e.repeat && (['1', '2', '3'].includes(k) || k === 'q')) {
-    if (selectWeapon(s, k === 'q' ? (s.weapon + 1) % WEAPONS.length : Number(k) - 1)) { down = false; keys.delete(' '); processEvents(); }
+  if (!e.repeat && ((k.length === 1 && k >= '1' && k <= String(WEAPONS.length)) || k === 'q')) {
+    let index = Number(k) - 1;
+    if (k === 'q') { index = s.weapon; do index = (index + 1) % WEAPONS.length; while (!s.owned[index]); }   // Q：换到下一把手里有的
+    if (k !== 'q' && !s.owned[index]) say(`还没捡到${WEAPONS[index].name}`, 1);
+    else if (selectWeapon(s, index)) { if (down) releaseCharge(s); down = false; keys.delete(' '); processEvents(); }
     return;
   }
   if (!HELD.includes(k)) return;
@@ -602,15 +675,17 @@ $('sound').onclick = () => {
 
 // 推进一段游戏时间：固定 1/120 秒步长，画面帧率不影响结果。
 function advance(dt) {
-  yaw += ((keys.has('arrowleft') ? 1 : 0) - (keys.has('arrowright') ? 1 : 0)) * dt * 1.15;
-  pitch = Math.max(-0.78, Math.min(0.72, pitch + ((keys.has('arrowup') ? 1 : 0) - (keys.has('arrowdown') ? 1 : 0)) * dt * 0.85));
+  const turn = 1 - 0.6 * zoom;   // 瞄准时转得慢，好对准
+  yaw += ((keys.has('arrowleft') ? 1 : 0) - (keys.has('arrowright') ? 1 : 0)) * dt * 1.15 * turn;
+  pitch = Math.max(-0.78, Math.min(0.72, pitch + ((keys.has('arrowup') ? 1 : 0) - (keys.has('arrowdown') ? 1 : 0)) * dt * 0.85 * turn));
   cameraFrame(0); aim();
   const move = cameraMove((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0), (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0), yaw);
   const input = { x: move.x, z: move.z, aimX: lookDir.x, aimY: lookDir.y, aimZ: lookDir.z };
+  if (s.trigger) input.shot = shotParams();   // 连发枪：每一发都从当前的枪口出去
   acc += dt;
   while (acc >= 1 / 120) { step(s, 1 / 120, input); acc -= 1 / 120; }
   stepRecoil(recoil, dt); hitMarkerTime = Math.max(0, hitMarkerTime - dt);
-  processEvents(); updateModels(dt); cameraFrame(0); updateFx(dt);
+  processEvents(); updateModels(dt); cameraFrame(dt); updateFx(dt); effects.update(dt);
 }
 function resize() { cine.resize(); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize);
@@ -655,7 +730,7 @@ boot().catch(fail);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },   // 仅供调试：直接读写战斗状态
-  cine, world,
+  cine, world, effects,
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图
   snapshot, start,
   advance(seconds, held = []) {
