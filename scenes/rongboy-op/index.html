@@ -1,0 +1,25 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rongboy · 开场</title><style>
+:root{color-scheme:dark;--ink:#343e2d;--paper:#f0e5ca;--rust:#aa6549}*{box-sizing:border-box}
+html,body{height:100%}body{margin:0;background:#000;color:var(--paper);font-family:Georgia,'Songti SC','Noto Serif CJK SC',serif;overflow:hidden;display:grid;place-items:center}
+#view{display:block;outline:none}#view[hidden],#film[hidden]{display:none}
+#film{display:block;width:min(100vw,177.78vh);height:min(100vh,56.25vw);background:#000}
+#gate{position:fixed;inset:0;z-index:5;display:grid;place-items:center;background:#1d2219;cursor:pointer;text-align:center}
+#gate[hidden],#skip[hidden],#press[hidden],#loading[hidden]{display:none}
+.brand{font-size:44px;font-weight:700;letter-spacing:10px;margin-bottom:26px}
+.brand small{display:block;font-size:15px;letter-spacing:6px;font-weight:400;color:#a9b094;margin-top:10px}
+#loading,#press{font-size:16px;letter-spacing:3px;color:#c9c3a6}
+#press b{display:inline-block;border:1px dashed #8d9478;border-radius:8px;padding:9px 18px;font-weight:400;animation:nudge 1.6s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateY(-4px);border-color:#d9d2b0}}
+@media(prefers-reduced-motion:reduce){#press b{animation:none}}
+#skip{position:fixed;right:22px;bottom:18px;z-index:4;font:12px Verdana,sans-serif;letter-spacing:1.5px;color:#f0e5cab0;background:#0006;border:1px solid #f0e5ca40;border-radius:6px;padding:7px 12px;cursor:pointer}
+#skip:hover{color:#fff;border-color:#f0e5caa0}
+#fade{position:fixed;inset:0;z-index:6;background:#000;opacity:0;pointer-events:none;transition:opacity .35s}#fade.on{opacity:1}
+#err{position:fixed;left:12px;bottom:12px;right:12px;z-index:9;margin:0;font:12px/1.5 Menlo,monospace;color:#ffb4a0;white-space:pre-wrap;pointer-events:none}
+</style></head><body>
+<canvas id="view" tabindex="0" aria-label="Rongboy 开场片"></canvas>
+<video id="film" hidden playsinline preload="auto" aria-label="Rongboy 开场片"></video>
+<div id="gate"><div><div class="brand">RONGBOY<small>绒仔 · 开场</small></div><div id="loading">正在准备…</div><div id="press" hidden><b>按任意键开始</b></div></div></div>
+<button id="skip" hidden>跳过 · Esc</button>
+<div id="fade"></div>
+<pre id="err"></pre>
+<script>/*__BUNDLE__*/</script></body></html>

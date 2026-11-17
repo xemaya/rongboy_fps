@@ -5,7 +5,7 @@
 //   node scripts/build.mjs --serve --port 5192 [page]   same, on a fixed port
 // A page is a folder with main.js + index.html: scenes/<name>/ or tools/<name>/ (tools/showcase).
 import * as esbuild from 'esbuild';
-import { readFile, writeFile, rename, mkdir, readdir, stat } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir, readdir, stat, copyFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
@@ -51,6 +51,13 @@ async function emit(page, js) {
   const body = full.slice(full.indexOf('<body>') + 6, full.lastIndexOf('</body>'));
   const fragment = head.replace('</title>', '</title>\n<meta name="claude:viewport-fit-sides" content="cover">') + body;
   await atomicWrite(outFile.replace(/\.html$/, '.fragment.html'), fragment);
+  // A page may list extra files to place next to it (copy.json: ["assets/.../file", ...], paths from the repo root),
+  // e.g. the opening film's pre-rendered mp4. Missing files are skipped: the page has to cope without them.
+  const copyList = path.join(page.dir, 'copy.json');
+  if (existsSync(copyList)) for (const rel of JSON.parse(await readFile(copyList, 'utf8'))) {
+    const from = path.join(root, rel);
+    if (existsSync(from)) await copyFile(from, path.join(root, 'dist', path.basename(rel)));
+  }
   console.log(`[build] ${path.relative(root, outFile)}  ${(Buffer.byteLength(js) / 1024).toFixed(0)} kB of script`);
 }
 
@@ -59,7 +66,7 @@ const options = (page) => ({
   bundle: true,
   format: 'iife',
   target: 'es2022',
-  loader: { '.glb': 'binary' },
+  loader: { '.glb': 'binary', '.mp3': 'binary' },
   minify: !serve,
   write: false,
   legalComments: 'none',
@@ -97,6 +104,13 @@ if (serve) {
     try {
       const file = path.join(root, 'dist', path.basename(name));
       const html = await readFile(file);
+      // dist/ also holds the opening film's mp4: answer range requests so the <video> element can seek
+      if (file.endsWith('.mp4')) {
+        const m = /bytes=(\d*)-(\d*)/.exec(req.headers.range || ''), a = m && m[1] ? +m[1] : 0, b = m && m[2] ? Math.min(+m[2], html.length - 1) : html.length - 1;
+        res.writeHead(m ? 206 : 200, { 'content-type': 'video/mp4', 'accept-ranges': 'bytes', 'content-length': b - a + 1, ...(m ? { 'content-range': `bytes ${a}-${b}/${html.length}` } : {}) });
+        res.end(html.subarray(a, b + 1));
+        return;
+      }
       res.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' });
       res.end(html);
     } catch {

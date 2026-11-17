@@ -145,7 +145,8 @@ export function buildWorld(cine, level, weapons) {
   // lampPower / lampRange / lampColor：每盏灯烘焙进光照体积时的亮度、照多远、颜色；skyGain：从窗和天窗进来的天光的倍数；
   // lightBounces：反射几次；lightBleed：反射光带多少表面的颜色；lightAmbient：屋里暗部的底色（[r, g, b]）；
   // sunBounce：晒到太阳的地面往回反多少光（1 是照实算；玩具的颜色都很亮，照实算室外会发白）
-  const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false,
+  // facadeTrim：朝花园那面外墙加不加装饰（百叶、窗楣、墙角包边、檐口的小方块、雨棚的花边）。只有“家”默认开。
+  const TH = { wall: WALL, ceiling: CEILING, trim: null, beams: true, roof: true, lamp: 'pendant', night: false, facadeTrim: level.id === 'house',
     lampPower: 7, lampRange: 9, lampColor: 0xfff4e6, skyGain: 5, lightGain: 1, lightBounces: 4, lightBleed: 0.5, lightAmbient: null, sunBounce: 0.45, bounce: [0x59636e, 0xffd2a0, 0.4], sheer: [0xfff6e2, 0xffe6bd, 1], ...(level.theme || {}) };
   if (!built) TH.roof = false;
 
@@ -175,8 +176,10 @@ export function buildWorld(cine, level, weapons) {
 
   // ================================================================== 每一层
   // shell：外墙、窗、层间腰线（一直画，从花园看得到）；inner：地面、内墙、家具、灯（只画玩家所在层和上下相邻的层）
+  const facadeDeco = new PlushKit();
   function buildStorey(S) {
     const shell = new PlushKit(), k = new PlushKit(), top = S.index === N - 1, ground = S.index === 0;
+    const deco = new PlushKit();   // 外立面上的小装饰：一直画，但不投影（阴影那一趟已经很重）
     const indoor = S.rooms.filter(r => !r.outdoor && !r.tower);
     for (const r of indoor) {
       const w = r.maxX - r.minX, d = r.maxZ - r.minZ;
@@ -212,13 +215,41 @@ export function buildWorld(cine, level, weapons) {
     }
     const facade = s => s.outside || (!s.alongZ && s.line === house.maxZ);   // 朝外的墙归 shell
     const along = (kit, s, mat, len, h, thick, a, y, across, o) => kit.soft(mat, s.alongZ ? thick : len, h, s.alongZ ? len : thick, s.alongZ ? s.line + across : a, y, s.alongZ ? a : s.line + across, o);
-    for (const s of pieces) along(facade(s) ? shell : k, s, wall, s.a1 - s.a0, s.y1 - s.y0, s.t, (s.a0 + s.a1) / 2, (s.y0 + s.y1) / 2, 0, { r: 0.012 });
+    // 朝外的墙是一段段拼起来的（窗洞上下、门楣各是一块）：不倒圆角，拼缝才看不出来；内墙保留一点圆角
+    for (const s of pieces) along(facade(s) ? shell : k, s, wall, s.a1 - s.a0, s.y1 - s.y0, s.t, (s.a0 + s.a1) / 2, (s.y0 + s.y1) / 2, 0, { r: facade(s) ? 0 : 0.012 });
     // 门框和门槛
     for (const s of slabs.filter(s => s.lintel)) {
       const kit = facade(s) ? shell : k;
       for (const sign of [-1, 1]) along(kit, s, trim, 0.08, level.doorHeight, s.t + 0.07, sign > 0 ? s.a1 - 0.04 : s.a0 + 0.04, level.doorHeight / 2, 0, { r: 0.015 });
       along(kit, s, trim, s.a1 - s.a0, 0.08, s.t + 0.07, (s.a0 + s.a1) / 2, level.doorHeight + 0.04, 0, { r: 0.015 });
       along(kit, s, trim, s.a1 - s.a0 - 0.16, 0.03, s.t + 0.1, (s.a0 + s.a1) / 2, 0.012, 0, { r: 0.008 });
+    }
+    // ---- 朝花园那面外墙的装饰（TH.facadeTrim）。都贴着墙：离地 2.2 米以下凸出不超过 0.12 米，不加碰撞盒。
+    const trimOn = TH.facadeTrim && built, fz = house.maxZ + (southOutside ? WT : WT / 2);   // fz：这一层南墙的外表面
+    const sage = M('boards', 0x9db3a0), slatMat = M('felt', tone(0x9db3a0, -0.16)), cream = M('felt', TH.ceiling), bandMat = M('boards', 0xc9b48f);
+    const doors = slabs.filter(s => s.lintel && !s.alongZ && s.line === house.maxZ);
+    // 百叶要让开的东西：门框、门边的壁灯、别的窗、墙角
+    const busy = [[-Infinity, house.minX + 0.22], [house.maxX - 0.22, Infinity]];
+    for (const s of doors) { const lamp = (s.a0 + s.a1) / 2 + (s.a1 - s.a0 + 0.7) / 2 + 0.1; busy.push([s.a0 - 0.1, s.a1 + 0.1], [lamp - 0.12, lamp + 0.12]); }
+    for (const w of windows) if (!w.alongZ && w.inside < 0) busy.push([w.a0 - 0.6, w.a1 + 0.6, w]);
+    // 一扇窗的窗套：两边的百叶（地方不够就不装）、上面的窗楣；没挂花箱的窗下面加一条窗台
+    function windowTrim(w, hasBox) {
+      const hh = w.head - w.sill, want = Math.min(0.46, Math.max(0.34, w.w * 0.26));
+      const room = side => {   // 这一侧从窗框往外到最近的东西有多宽
+        const from = w.at + side * (w.w / 2 + 0.075); let gap = Infinity;
+        for (const b of busy) { if (b[2] === w) continue; const d = side > 0 ? b[0] - from : from - b[1]; if (d > -0.5) gap = Math.min(gap, Math.max(0, d)); }
+        return gap;
+      };
+      const sw = Math.min(want, room(-1) - 0.08, room(1) - 0.08), shutters = sw >= 0.26;
+      if (shutters) for (const side of [-1, 1]) {
+        const x = w.at + side * (w.w / 2 + 0.075 + sw / 2), n = Math.max(3, Math.round((hh - 0.14) / 0.115));
+        deco.soft(sage, sw, hh + 0.05, 0.035, x, (w.sill + w.head) / 2, fz + 0.0175, { r: 0.012, long: 1 });
+        for (let i = 0; i < n; i++) deco.box(slatMat, sw - 0.1, 0.06, 0.014, x, w.sill + 0.07 + (i + 0.5) * (hh - 0.14) / n, fz + 0.045, { rx: 0.5 });
+      }
+      const W = w.w + 0.3 + (shutters ? sw * 2 : 0);
+      deco.soft(cream, W, 0.1, 0.07, w.at, w.head + 0.125, fz + 0.035, { r: 0.02, long: 0 });
+      deco.soft(bandMat, W + 0.1, 0.045, 0.11, w.at, w.head + 0.197, fz + 0.055, { r: 0.015, long: 0 });
+      if (!hasBox) deco.soft(bandMat, w.w + 0.3, 0.06, 0.1, w.at, w.sill - 0.1, fz + 0.05, { r: 0.02, long: 0 });
     }
     // 窗
     for (const w of windows) {
@@ -227,6 +258,7 @@ export function buildWorld(cine, level, weapons) {
       windowUnit(shell, M, { ...w, t: WT, glow: Math.round((0.35 + facing * 1.5) * 10) / 10, drape: [0xc65a4e, 0x6f93a8, 0xd9a441][(S.index + (w.alongZ ? 0 : 1)) % 3] });
       const outer = w.line + WT / 2;
       const below = ground && S.furnitureBoxes.some(c => c.maxY > 0.46 && c.minZ < w.edge + 0.7 && c.maxZ > w.edge && c.maxX > w.a0 && c.minX < w.a1);
+      if (trimOn && !w.alongZ && w.inside < 0) windowTrim(w, !below && level.outdoor.length > 0);
       if (!w.alongZ && w.inside < 0 && !below && level.outdoor.length) {   // 朝花园的窗外挂花箱（窗下已经靠着长椅之类的就不挂）
         shell.soft(M('boards', 0xb98a66), w.w + 0.1, 0.2, 0.22, w.at, w.sill - 0.2, outer + 0.12, { r: 0.03, long: 0 });
         for (let i = 0, n = Math.round(w.w / 0.16); i < n; i++) flower(shell, M, w.at + ((i + 0.5) / n - 0.5) * w.w, w.sill - 0.12, outer + 0.1 + (i % 2) * 0.05, PETALS[Math.floor(rnd() * PETALS.length)], 0.9 + rnd() * 0.5);
@@ -273,11 +305,31 @@ export function buildWorld(cine, level, weapons) {
       for (const sx of [-1, 1]) shell.soft(band, 0.1, SH - H + 0.12, hd + 0.5, hx + sx * (hw / 2 + WT + 0.03), y, hz + 0.05, { r: 0.03, long: 2 });
       shell.soft(M('felt', WALL), hw + 0.4, SH - H - 0.07, hd + 0.2, hx, y, hz + 0.1, { r: 0 });   // 楼板本身：从楼梯口看过去是实心的（上下各让开一点，不和天花板、地板同面）
     }
+    if (trimOn) {
+      // 墙角包边：每层一根方木，两个面各凸出 0.05 米
+      for (const sx of [-1, 1]) deco.soft(bandMat, 0.26, H, 0.26, hx + sx * (hw / 2 + WT - 0.08), H / 2, fz - 0.08, { r: 0.04, long: 1 });
+      if (!top) {   // 腰线加厚：上沿压一条盖板，下沿一条细线脚
+        const y = H + (SH - H) / 2, hb = (SH - H + 0.12) / 2, bz = house.maxZ + (ground ? WT / 2 : WT) + 0.03;
+        deco.soft(bandMat, hw + 0.72, 0.06, 0.2, hx, y + hb, bz + 0.03, { r: 0.02, long: 0 });
+        deco.soft(cream, hw + 0.6, 0.05, 0.06, hx, y - hb + 0.01, bz + 0.05, { r: 0.02, long: 0 });
+      } else {      // 檐口：屋檐底下一条饰带，带上一排小方块；两侧山墙只有饰带
+        deco.soft(bandMat, hw + WT * 2 + 0.14, 0.26, 0.07, hx, H - 0.1, fz + 0.035, { r: 0.02, long: 0 });
+        for (const sx of [-1, 1]) deco.soft(bandMat, 0.07, 0.26, hd + WT + 0.1, hx + sx * (hw / 2 + WT + 0.035), H - 0.1, hz + 0.05, { r: 0.02, long: 2 });
+        for (let i = 0, n = Math.round((hw + 0.3) / 0.42); i < n; i++) deco.soft(cream, 0.17, 0.12, 0.13, hx + ((i + 0.5) / n - 0.5) * (hw + 0.3), H + 0.0, fz + 0.135, { r: 0.02 });
+      }
+    }
     // 两处入口上方的雨棚和壁灯
-    if (ground) for (const s of slabs.filter(s => s.lintel && !s.alongZ && s.line === house.maxZ)) {
+    if (ground) for (const s of doors) {
       const x = (s.a0 + s.a1) / 2, w = s.a1 - s.a0 + 0.7, z = house.maxZ + WT / 2;
-      shell.soft(M('gingham', 0xc65a4e), w, 0.06, 1.0, x, 2.42, z + 0.45, { r: 0.02, rx: 0.32 });
-      for (const sx of [-1, 1]) shell.soft(wood, 0.06, 0.06, 0.8, x + sx * (w / 2 - 0.08), 2.26, z + 0.4, { r: 0.012, rx: 0.32 });
+      // 有装饰的版本：雨棚抬高、放平一点，前沿挂一条波浪花边（花边最低处离地 2.23 米，人和僵尸都从底下过）
+      const ay = trimOn ? 2.5 : 2.42, tilt = trimOn ? 0.26 : 0.32, armY = trimOn ? 2.44 : 2.26;
+      shell.soft(M('gingham', 0xc65a4e), w, 0.06, 1.0, x, ay, z + 0.45, { r: 0.02, rx: tilt });
+      for (const sx of [-1, 1]) shell.soft(wood, 0.06, 0.06, 0.8, x + sx * (w / 2 - 0.08), armY, z + 0.4, { r: 0.012, rx: tilt });
+      if (trimOn) {
+        const n = Math.round(w / 0.22), r = w / n / 2, strip = 0.05, outline = [[-w / 2, 0], [w / 2, 0], [w / 2, -strip]];
+        for (let i = n - 1; i >= 0; i--) for (let j = 1; j <= 8; j++) { const a = -Math.PI * j / 8; outline.push([-w / 2 + (2 * i + 1) * r + Math.cos(a) * r, -strip + Math.sin(a) * r]); }
+        deco.extrude(M('gingham', 0xc65a4e), outline, 0.025, new T.Matrix4().makeTranslation(x, ay - 0.5 * Math.sin(tilt) + 0.02, z + 0.45 + 0.5 * Math.cos(tilt) + 0.005), { uv: 1 });
+      }
       shell.soft(wood, 0.1, 0.16, 0.1, x + w / 2 + 0.1, 1.86, z + 0.05, { r: 0.02 });
       shell.sphere(M.glow(0xffd9a0, 2.2), 0.09, x + w / 2 + 0.1, 1.72, z + 0.1, { seg: 10, rings: 8 });
       lampList.push({ p: [x + w / 2 + 0.1, 1.72, z + 0.25], color: 0xffd9a0, power: TH.lampPower * 0.25, range: 4 });
@@ -297,6 +349,7 @@ export function buildWorld(cine, level, weapons) {
       k.soft(M('quilt', 0xc65a4e), x1 - x0 - 0.2, 0.6, 0.04, (x0 + x1) / 2, 0.5, z, { r: 0.02 });
     }
     const group = (kit, name) => { const g = new T.Group(); g.position.y = S.y; g.add(...kit.build({ name: name + S.index })); root.add(g); return g; };
+    facadeDeco.merge(deco, 0, S.y, 0);   // 各层的装饰并成一组网格：每种材质只多一次绘制
     return { shell: group(shell, 'shell'), inner: group(k, 'inner'), lamps };
   }
   const storeys = level.storeys.map(buildStorey);
@@ -403,7 +456,7 @@ export function buildWorld(cine, level, weapons) {
 
   }
 
-  const fixed = [...k.build({ name: 'garden' }), ...tower.build({ name: 'stairs' }), ...far.build({ name: 'far', cast: false })];
+  const fixed = [...k.build({ name: 'garden' }), ...tower.build({ name: 'stairs' }), ...far.build({ name: 'far', cast: false }), ...facadeDeco.build({ name: 'facade', cast: false })];
   root.add(...fixed);
 
   // ---- 会动的小东西：烟囱冒的棉花烟、天上的棉花云（一个实例化网格）

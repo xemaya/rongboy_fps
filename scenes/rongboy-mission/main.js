@@ -1,7 +1,9 @@
 // Rongboy 任务制试玩：家 · 三层楼与花园。第一人称、纯键盘。
 // 战斗规则在 game.js，关卡几何在 level.js；这里只管画面、声音、输入和 HUD。
 import * as T from 'three';
-import { createCineRenderer, LOOKS, QUALITY, cloneLook } from '../../cine-engine/engine/index.js';
+import { createCineRenderer, QUALITY } from '../../cine-engine/engine/index.js';
+import { createGovernor } from './governor.js';
+import { LOOK_PRESETS } from './looks.js';
 import { loadFigurines, createWoolBall } from '../../library/games/rongboy-runtime.js';
 import { dressWalker, createWeaponKit } from '../../library/games/rongboy-workshop.js';
 import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-shooter-fps/feedback.js';
@@ -19,6 +21,7 @@ import { trainingDef } from './levels/training.js';
 import { ATTACKS, attackCue } from './attacks.js';
 import { applyAttackPose } from './attack-pose.js';
 import { createCombatFx } from './combat-fx.js';
+import { createMenu, createMenuToy } from './menu.js';
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
@@ -34,7 +37,9 @@ const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
-let mode = 'menu', ready = false, paused = false, down = false;
+let mode = 'menu', ready = false, paused = false, down = false;   // mode：menu 主界面 / depart 出发的过渡 / playing / result
+let menu = null, toy = null, departT = 0;
+const DEPART = 1.25, onMenu = () => mode === 'menu' || mode === 'depart';
 let actors, menuHero, menuZombie, fpHero, gun, loadedBall;
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', zoom = 0;
@@ -44,69 +49,61 @@ const keys = new Set(), errors = [], frameIntervals = [];
 function applyTexts() {
   document.title = `Rongboy · ${level.name}`;
   for (const el of document.querySelectorAll('.sub')) el.textContent = level.name;
-  const intro = $('intro');
-  intro.querySelector('.eyebrow').textContent = TX.eyebrow; intro.querySelector('h1').innerHTML = TX.title; intro.querySelector('p').textContent = TX.intro;
-  intro.querySelector('.how').innerHTML = TX.how.join('<br>');
+  $('brief').textContent = training
+    ? (practiceType ? `${ATTACKS[practiceType].name}：${ATTACKS[practiceType].counter}。本场共 ${s.total} 个目标。` : '九类僵尸各有攻击。看懂预告再动手：瞄准线、爆圈、吸引扇区。')
+    : `${TX.short} · ${level.mission.title}`;
+  $('pauseHow').innerHTML = (TX.how || []).join('<br>');
   $('result').querySelector('.eyebrow').textContent = level.name;
   $('objective').textContent = level.mission.title;
-  $('levels').innerHTML = ORDER.map((id, i) => `<span class="${id === levelId ? 'selected' : ''}">${i + 1} ${LEVELS[id].texts.short}</span>`).join('');
+  // 主界面的几项。试战场是另一张图，从那里可以回来。
+  const items = training
+    ? [{ id: 'start', label: '进入试战' }, { id: 'zombies', label: '图鉴' }, { id: 'home', label: '回主界面' }]
+    : [{ id: 'start', label: '出发' }, { id: 'level', label: '地图', pick: TX.short }, { id: 'zombies', label: '图鉴' }, { id: 'training', label: '试战场' }];
+  menu = createMenu($('menu'), items, { onActivate: activate });
 }
+function activate(item) {
+  if (item.id === 'start') depart();
+  else if (item.id === 'level') cycleLevel(1);
+  else if (item.id === 'zombies') location.href = 'rongboy-zombies.html?v=cast-v5';
+  else if (item.id === 'training') location.href = 'rongboy-mission.html?level=training';
+  else if (item.id === 'home') location.href = 'rongboy-mission.html';
+}
+function cycleLevel(d) { if (!training) switchLevel(ORDER[(ORDER.indexOf(levelId) + d + ORDER.length) % ORDER.length]); }
 function switchLevel(id) {
   if (!LEVELS[id] || id === levelId) return;
-  const next = new URLSearchParams(location.search); next.set('level', id); location.search = next.toString();
+  const next = new URLSearchParams(location.search); next.set('level', id); next.delete('from'); location.search = next.toString();
 }
 function fail(err) {
   const msg = String(err?.stack || err);
-  errors.push(msg); $('error').textContent = msg; $('start').textContent = '加载失败';
+  errors.push(msg); $('error').textContent = msg; $('menuKeys').textContent = '加载失败';
 }
 addEventListener('error', e => fail(e.error || e.message));
 addEventListener('unhandledrejection', e => fail(e.reason));
 
 // ---------- 画面 ----------
 
-// 光线按关卡取（level.look）。
-// afternoon：下午四五点的斜阳，从西南方照过来。花园里影子拉得长，阳光穿过西窗、南窗和两扇门落在地板上；
-//   屋里的天光压暗，靠每个房间的吊灯补亮（world.js）。
-// night：闭馆后的夜里。"太阳"是东南方高处的月亮，冷色、不强，从天窗和高窗照进来；屋里是偏蓝的环境光加一盏盏暖色射灯。
-//   曝光放宽，让眼睛适应暗处；泛光开大一点，射灯、展柜和电弧会晕开。
-const LOOK_PRESETS = {
-  afternoon() {
-    const look = cloneLook(LOOKS.clearNoon);
-    Object.assign(look.sun, { azimuth: 138, elevation: 30, intensity: 5.2, color: [1, 0.86, 0.66] });
-    look.env.intensity = 1.15;
-    Object.assign(look.sky, { zenith: [0.16, 0.33, 0.62], mid: [0.36, 0.55, 0.80], midSun: [0.75, 0.70, 0.62], horizon: [0.95, 0.84, 0.66], horizonAway: [0.62, 0.72, 0.84], glow: [1.6, 1.3, 0.9], cloudCover: 0.3, cloudWarm: 0.6 });
-    Object.assign(look.air, { sigma: 0.0006, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.65, aoStrength: 0.75 });
-    Object.assign(look.grade, { key: 0.17, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.16, saturation: 1.06, contrast: 0.2, sharpen: 0.55 });
-    return look;
-  },
-  // morning：上学路上的晴天上午。太阳在东南方，照亮教学楼的正面和整个操场；天更蓝、更饱和一点，颜色像蜡笔盒。
-  morning() {
-    const look = cloneLook(LOOKS.clearNoon);
-    Object.assign(look.sun, { azimuth: 56, elevation: 46, intensity: 5.6, color: [1, 0.94, 0.82] });
-    look.env.intensity = 1.25;
-    Object.assign(look.sky, { zenith: [0.14, 0.36, 0.72], mid: [0.34, 0.6, 0.9], midSun: [0.6, 0.74, 0.9], horizon: [0.82, 0.9, 0.96], horizonAway: [0.62, 0.78, 0.94], glow: [1.4, 1.35, 1.2], cloudCover: 0.22, cloudWarm: 0.2 });
-    Object.assign(look.air, { sigma: 0.0005, mist: 0, sunScale: 0.4, aoRadius: 0.3, aoIntensity: 0.6, aoStrength: 0.7 });
-    Object.assign(look.grade, { key: 0.18, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.14, saturation: 1.12, contrast: 0.18, sharpen: 0.55 });
-    return look;
-  },
-  night() {
-    const look = cloneLook(LOOKS.blueHour);
-    Object.assign(look.sun, { azimuth: 52, elevation: 66, intensity: 2.6, color: [0.62, 0.76, 1.0] });
-    look.env.intensity = 1.0;
-    Object.assign(look.sky, { zenith: [0.012, 0.022, 0.06], mid: [0.025, 0.045, 0.11], midSun: [0.06, 0.09, 0.18], horizon: [0.07, 0.11, 0.21], horizonAway: [0.04, 0.06, 0.13], glow: [0.5, 0.6, 0.9], cloudCover: 0.3, cloudWarm: 0 });
-    Object.assign(look.air, { sigma: 0.0004, mist: 0, sunScale: 0.3, aoRadius: 0.3, aoIntensity: 0.6, aoStrength: 0.7 });
-    Object.assign(look.grade, { key: 0.15, minExposure: 1.0, maxExposure: 2.6, adaptTau: 0.9, exposure: 1, bloom: 0.085, flare: 0.02, streak: 0, dirt: 0, ca: 0, grain: 0.005, vignette: 0.2, saturation: 1.08, contrast: 0.2, sharpen: 0.55 });
-    return look;
-  },
-};
+// 光线按关卡取（level.look），预设在 looks.js（开场片也用同一份）。
 const look = (LOOK_PRESETS[level.look] || LOOK_PRESETS.afternoon)();
 const B = level.bounds;
-// 清晰度：默认用 high 档（内部分辨率不缩、4 倍多重采样），像素预算放到 360 万，Retina 屏按 2 倍像素比渲染；
-// 帧率掉到 45 以下时引擎会自动降内部分辨率。网址加 ?q=medium 或 ?q=low 可以手动降档。
+// 清晰度：先保光影，再保分辨率，目标 30 帧。调节器在 governor.js（为什么不用引擎自带的，也写在那里），引擎自带的关掉了。
+// 分三档，每档有自己的像素数范围；第 0 档的光影和导出视频时一样（4 倍抗锯齿、环境遮蔽、16 次采样的软阴影），只动像素数：
+const LOOKS = [
+  { q: { ...QUALITY.high }, min: 0.55e6, max: 3.6e6 },                  // Retina 原生是 360 万像素；最低相当于 990×557
+  { q: { ...QUALITY.medium, scale: 1 }, min: 0.4e6, max: 1.0e6 },       // 2 倍抗锯齿，环境遮蔽还在
+  { q: { ...QUALITY.low, scale: 1 }, min: 0.25e6, max: 1.0e6 },         // 最后才关抗锯齿和环境遮蔽
+];
+const fixedQuality = QUALITY[q.get('q')] || null, governed = !fixedQuality && q.get('dynres') !== '0';   // 网址加 ?q=medium / ?q=low 手动定档；?dynres=0 固定在第 0 档的最高像素数
+const governor = createGovernor(LOOKS, { start: governed ? 1.6e6 : LOOKS[0].max });   // 从 160 万像素起步，头几秒里自己往上或往下找
 const cine = createCineRenderer({
-  canvas: $('view'), look, quality: QUALITY[q.get('q')] || { ...QUALITY.high, pixels: 3.6e6 }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 45,
-  dynamicResolution: q.get('dynres') !== '0', shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
+  canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[0].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
+  dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
 });
+// 每帧把帧间隔喂给调节器。窗口不在前台时浏览器会把出帧压到很慢，那种帧间隔说明不了显卡快慢，不喂。
+function govern(now, elapsed) {
+  if (!governed || document.hidden || (document.hasFocus && !document.hasFocus())) return;
+  const r = Math.min(devicePixelRatio || 1, 2), next = governor.feed(now, elapsed, innerWidth * r * innerHeight * r);
+  if (next) cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
+}
 const world = buildWorld(cine, level, WEAPONS);
 // 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
 if (cine.postChain) cine.postChain.enable.volumetrics = false;
@@ -165,6 +162,17 @@ const part = (a, n) => a.parts.get(n);
 
 // ---------- 第一人称的手和枪 ----------
 
+// 手和枪以眼睛为中心整体缩小到 FP_SCALE 倍（大小、离眼睛的距离一起缩）：屏幕上的样子不变，
+// 但最远的枪口离眼睛只有 0.28 米，比玩家的碰撞半径（0.30 米）短，贴着墙站也伸不进墙里。
+// 出球点仍按没缩小时的位置算（同一条视线上，远 1/FP_SCALE 倍），玩法不变。
+const FP_SCALE = 0.3;
+const fpAim = new T.Vector3();
+// 枪该指向哪：瞄准点跟着缩到眼前，枪的朝向就和没缩小时一模一样
+function fpAimPoint(distance) {
+  if (distance > 0.85) return fpAim.copy(target).sub(camera.position).multiplyScalar(FP_SCALE).add(camera.position);
+  return fpAim.copy(camera.position).addScaledVector(lookDir, 3 * FP_SCALE);
+}
+
 function attachGun(a) {
   const weapon = extendWeaponKit(createWeaponKit(), WEAPONS);
   weapon.position.set(0, 0.24, 0.40);
@@ -193,9 +201,9 @@ function animateGun(hero, dt) {
 }
 
 function animateHero(dt, moving) {
-  const hero = mode === 'menu' ? menuHero : fpHero;
+  const hero = onMenu() ? menuHero : fpHero;
   hero.reset();
-  const heading = mode === 'menu' ? 0.18 : Math.PI;
+  const heading = onMenu() ? (toy ? toy.heroHeading : 0.18) : Math.PI;
   hero.model.rotation.y = heading;
   const side = (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0), fwd = (keys.has('s') ? 1 : 0) - (keys.has('w') ? 1 : 0), speed = Math.hypot(side, fwd);
   if (moving && speed > 0) phase += dt * 10.5;
@@ -205,9 +213,6 @@ function animateHero(dt, moving) {
     const arm = part(hero, 'CTRL / arm ' + sign);
     if (arm) { arm.rotation.x -= 1.05; arm.rotation.z -= sign * 0.43; }
   }
-  // 手和枪跟着所在的地方变亮变暗：屋里只有一部分天光。
-  if (mode !== 'menu') {
-  }
   const charge = s.charging ? s.charge / CONFIG.chargeTime : 0, motion = reduced ? 0.5 : 1;
   // 换弹时把枪压低，换完再抬起来。
   const w = WEAPONS[s.weapon], reload = s.reloading ? Math.sin(Math.min(1, 1 - s.reload / w.reload) * Math.PI) : 0;
@@ -215,13 +220,13 @@ function animateHero(dt, moving) {
   if (head) head.rotation.x -= recoil.pitch.x * 0.1;
   if (pack) pack.rotation.x += Math.sin(phase * 0.8) * 0.018 * speed - recoil.pitch.x * 0.1;
   hero.gun.position.set(recoil.side.x * motion, 0.24 + recoil.up.x * motion - reload * 0.16, 0.40 - recoil.back.x * motion);
-  hero.loaded.visible = (s.charging && s.weapon < 3) || mode === 'menu';   // 只有前三把是往筒里装毛球
+  hero.loaded.visible = (s.charging && s.weapon < 3) || onMenu();   // 只有前三把是往筒里装毛球
   animateGun(hero, dt);
   hero.loaded.scale.setScalar(0.12 + charge * 0.18); hero.loaded.rotation.y += dt * 2;
-  if (mode !== 'menu') {
+  if (!onMenu()) {
     camera.updateMatrixWorld(true);
     const distance = aim();
-    hero.gun.lookAt(distance > 0.85 ? target : camera.position.clone().addScaledVector(lookDir, 3));
+    hero.gun.lookAt(fpAimPoint(distance));
     hero.gun.rotateX(-recoil.pitch.x * motion + reload * 0.55); hero.gun.rotateZ(recoil.roll.x * motion);
     for (const sign of [-1, 1]) {
       const arm = part(hero, 'CTRL / arm ' + sign);
@@ -379,6 +384,65 @@ function updateEnemy(e, a) {
   if (a.tangle) { a.tangle.visible = e.tangle > 0; a.tangle.rotation.y = s.time * 1.3; a.tangle.scale.setScalar(Math.min(1, e.tangle / 0.4)); a.tangle.position.y = e.base - e.y; }
 }
 
+// ---------- 僵尸的手不插墙 ----------
+// 追人的时候手往前伸，比碰撞半径长（跳跳前伸 0.59 米对半径 0.32，守墓巨像 1.5 对 0.62），贴着墙或家具就插进去了。
+// 这里只改画面：摆完姿势以后，沿着每条手臂放三个球去碰 level.solids，碰到了就把这条手臂往垂手的姿势收，收到刚好不碰为止。
+// 碰撞、寻路、攻击判定都不变。
+const ARM_PROBES = new Map(), ARM_PAD = 0.05;   // ARM_PAD：留的余量（米），补上平滑带来的滞后
+const armM = new T.Matrix4(), armV = new T.Vector3(), armPosed = new T.Euler();
+// 每个兵种的每条手臂量一次：从肩到最远的顶点是手臂的轴，靠外那一段的粗细是球的半径
+function armProbe(e, a, name) {
+  const key = e.type + ':' + name; let probe = ARM_PROBES.get(key);
+  if (probe) return probe;
+  const arm = part(a, name), inv = new T.Matrix4(), tip = new T.Vector3(), pts = []; let L = 0;
+  a.world.updateWorldMatrix(true, true); inv.copy(arm.matrixWorld).invert();
+  arm.traverse(m => {
+    if (!m.isMesh || m.userData.fuzz) return;
+    const pos = m.geometry.attributes.position, local = new T.Matrix4().multiplyMatrices(inv, m.matrixWorld), stride = Math.max(1, Math.floor(pos.count / 800));
+    for (let i = 0; i < pos.count; i += stride) { const v = new T.Vector3().fromBufferAttribute(pos, i).applyMatrix4(local); pts.push(v); if (v.length() > L) { L = v.length(); tip.copy(v); } }
+  });
+  const axis = tip.clone().normalize(); let r = 0.02;
+  for (const v of pts) { const t = v.dot(axis); if (t > 0.55 * L) r = Math.max(r, Math.sqrt(Math.max(0, v.lengthSq() - t * t))); }
+  r = Math.min(r, L * 0.45);
+  probe = { r, L, points: [0.45, 0.75, 1].map(f => axis.clone().multiplyScalar(Math.max(0, L - r) * f)) };
+  ARM_PROBES.set(key, probe); return probe;
+}
+function tuckArms(e, a, dt) {
+  const R = e.radius + 1.6, near = [];
+  for (const c of level.solids) if (e.x > c.minX - R && e.x < c.maxX + R && e.z > c.minZ - R && e.z < c.maxZ + R && c.maxY > e.base + 0.25 && c.minY < e.base + e.height * 0.95) near.push(c);
+  const B = storeyAt(level, e.base).bounds;   // 这一层的外沿（外墙、花园的篱笆）不在 solids 里，单独查
+  const first = !a.tuck; a.tuck ??= [1, 1];
+  ['ArmL', 'ArmR'].forEach((name, i) => {
+    const arm = part(a, name); if (!arm) return;
+    const rest = a.rest.get(name).r; let k = 1;
+    if (near.length || e.x - R < B.minX || e.x + R > B.maxX || e.z - R < B.minZ || e.z + R > B.maxZ) {
+      const probe = armProbe(e, a, name); armPosed.copy(arm.rotation);
+      arm.parent.updateWorldMatrix(true, false);
+      // 手臂收到 f（1 是原姿势，0 是垂手）时碰不碰得到东西。蹦起来的高度不算：按整段跳跃扫过的范围查，不然每蹦一下手就抖一下。
+      const hits = f => {
+        arm.rotation.set(rest.x + (armPosed.x - rest.x) * f, rest.y + (armPosed.y - rest.y) * f, rest.z + (armPosed.z - rest.z) * f); arm.updateMatrix();
+        armM.multiplyMatrices(arm.parent.matrixWorld, arm.matrix);
+        const rr = probe.r * armM.getMaxScaleOnAxis() + ARM_PAD, hop = e.y - e.base;
+        for (const q of probe.points) {
+          armV.copy(q).applyMatrix4(armM); const lo = armV.y - hop, hi = lo + (e.hopHeight || 0);
+          if (armV.x - rr < B.minX || armV.x + rr > B.maxX || armV.z - rr < B.minZ || armV.z + rr > B.maxZ) return true;
+          for (const c of near) {
+            const dx = Math.max(c.minX - armV.x, 0, armV.x - c.maxX), dz = Math.max(c.minZ - armV.z, 0, armV.z - c.maxZ), dy = Math.max(c.minY - hi, 0, lo - c.maxY);
+            if (dx * dx + dy * dy + dz * dz < rr * rr) return true;
+          }
+        }
+        return false;
+      };
+      if (hits(1)) { let lo = 0, hi = 1; for (let n = 0; n < 5; n++) { const mid = (lo + hi) / 2; if (hits(mid)) hi = mid; else lo = mid; } k = lo; }
+      arm.rotation.copy(armPosed);
+    }
+    // 收得快、放得慢，中间平滑过渡
+    a.tuck[i] = first ? k : a.tuck[i] + (k - a.tuck[i]) * Math.min(1, dt * (k < a.tuck[i] ? 20 : 5));
+    const f = a.tuck[i];
+    if (f < 0.999) arm.rotation.set(rest.x + (arm.rotation.x - rest.x) * f, rest.y + (arm.rotation.y - rest.y) * f, rest.z + (arm.rotation.z - rest.z) * f);
+  });
+}
+
 // 从眼睛到僵尸的头、身体两侧、脚各连一条线，任一条不被挡就算看得见。
 function canSee(e) {
   const eye = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
@@ -414,6 +478,7 @@ function updateModels(dt) {
     a.blob.position.y = 0.05 - hop; a.blob.scale.setScalar(e.radius * 3.4 * (1 - Math.min(0.5, hop * 0.6)));
     a.model.traverse(m => { if (m.userData.fuzz) m.visible = distance < 8.5; });
     updateEnemy(e, a);
+    if (e.alive && !window.__rb.noArmTuck) tuckArms(e, a, dt);
     if (!e.alive && e.deathAge > 0.78 && !a.poof) { a.poof = true; burst(e.x, e.z, 20, 0.95, 0xddd7b5, e.base + 0.55); }
   }
   const ballIds = new Set(s.balls.map(b => b.id));
@@ -574,8 +639,8 @@ function aim() {
 function shotParams() {
   cameraFrame(0); camera.updateMatrixWorld(true);
   const distance = aim();
-  gun.lookAt(distance > 0.85 ? target : camera.position.clone().addScaledVector(lookDir, 3)); gun.updateWorldMatrix(true, false);
-  muzzleWorld.copy(gun.localToWorld(new T.Vector3(0, 0, gun.userData.muzzleZ || 0.63)));
+  gun.lookAt(fpAimPoint(distance)); gun.updateWorldMatrix(true, false);
+  muzzleWorld.copy(gun.localToWorld(new T.Vector3(0, 0, gun.userData.muzzleZ || 0.63))).sub(camera.position).multiplyScalar(1 / FP_SCALE).add(camera.position);   // 换算回没缩小时的枪口
   const m = muzzleWorld, pad = 0.29;
   const blocked = level.solids.some(c => m.x > c.minX - pad && m.x < c.maxX + pad && m.z > c.minZ - pad && m.z < c.maxZ + pad && m.y > c.minY - pad && m.y < c.maxY + pad);
   if (blocked || target.clone().sub(m).dot(lookDir) < 0.08 || !inBounds(level, m.x, m.z, 0.12)) m.copy(camera.position).addScaledVector(lookDir, 0.02);
@@ -583,16 +648,16 @@ function shotParams() {
   return { origin: { x: m.x, y: m.y, z: m.z }, direction: { x: direction.x, y: direction.y, z: direction.z } };
 }
 
-// 开始画面的机位整体往西挪 0.6 米，避开院门边的信箱。
-const stage = level.menu || level.player;   // 开始画面的两个角色站在哪
-const menuCamera = new T.Vector3(stage.x + 1.7, 1.75, stage.z + 0.78), menuLook = new T.Vector3(stage.x - 0.8, 0.72, stage.z - 0.55);
+// 主界面的机位：两个角色站在画面右半边（左边留给标题和菜单）。出发时镜头从这里推到出生点，变成第一人称。
+const stage = level.menu || level.player;   // 主界面的两个角色站在哪
+const menuCamera = new T.Vector3(stage.x + 1.7, 1.75, stage.z + 0.78), menuLook = new T.Vector3(stage.x - 1.4, 0.8, stage.z - 0.19);
+const startYaw = level.player.yaw || 0, startEye = new T.Vector3(level.player.x, EYE, level.player.z), startLook = new T.Vector3(level.player.x - Math.sin(startYaw) * 4, EYE, level.player.z - Math.cos(startYaw) * 4);
+const menuAt = new T.Vector3();
 function cameraFrame(dt) {
-  if (mode === 'menu') {
-    camera.fov = 40; camera.position.lerp(menuCamera, 0.10); camera.lookAt(menuLook);
-    if (menuHero) {
-      menuHero.world.position.set(stage.x - 1.55, 0, stage.z - 0.5); menuHero.model.rotation.y = 0.18;
-      menuZombie.world.position.set(stage.x - 0.05, 0, stage.z - 0.6); menuZombie.model.rotation.y = -0.06;
-    }
+  if (onMenu()) {
+    const k = mode === 'depart' ? Math.min(1, departT / DEPART) : 0, e = k * k * (3 - 2 * k);
+    if (mode === 'menu') camera.position.lerp(menuCamera, 0.10); else camera.position.lerpVectors(menuCamera, startEye, e);
+    camera.fov = 40 + (65 - 40) * e; camera.lookAt(menuAt.lerpVectors(menuLook, startLook, e));
   } else {
     const motion = reduced ? 0.25 : 1, bob = reduced ? 0 : Math.sin(phase * 2) * 0.006;
     // 毛衣针按住是举枪瞄准：镜头拉近
@@ -602,7 +667,7 @@ function cameraFrame(dt) {
     camera.rotation.order = 'YXZ';
     camera.rotation.set(pitch + recoil.camera.x * motion, yaw, Math.sin(s.time * 49) * shake * motion);
     camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
-    if (fpHero) { fpHero.world.position.set(0.30 + Math.sin(phase) * 0.004, -0.76 - Math.abs(Math.sin(phase)) * 0.004, -0.52); fpHero.model.rotation.y = Math.PI; }
+    if (fpHero) { fpHero.world.position.set(0.30 + Math.sin(phase) * 0.004, -0.76 - Math.abs(Math.sin(phase)) * 0.004, -0.52).multiplyScalar(FP_SCALE); fpHero.model.rotation.y = Math.PI; }
   }
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
   shake = Math.max(0, shake - dt * 0.6);
@@ -657,7 +722,7 @@ function snapshot() {
 }
 function diagnostics() {
   $('diagnostics').dataset.state = JSON.stringify(snapshot());
-  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
+  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), tier: governor.tier, pixels: Math.round(governor.pixels), frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
   $('diagnostics').dataset.ready = ready ? 'true' : 'false';
   if (q.has('debug')) $('diagnostics').textContent = `${cine.stats().quality} · ${cine.stats().calls} draws · ${s.balls.length} balls`;
 }
@@ -666,15 +731,26 @@ function diagnostics() {
 
 function start() {
   if (!ready) return;
-  frameIntervals.length = 0; clearModels(); keys.clear(); down = false; paused = false; phase = 0; acc = 0;
+  frameIntervals.length = 0; clearModels(); keys.clear(); down = false; paused = false; phase = 0; acc = 0; toy.reset();
   recoil = createRecoil(); hitMarkerTime = 0; hitMarkerKind = ''; shake = 0; yaw = level.player.yaw || 0; pitch = 0; lastRoom = '';
   s = createGame({ level }); mode = 'playing';
-  document.body.classList.remove('menu', 'paused');
+  document.body.classList.remove('menu', 'paused', 'leaving');
   $('intro').hidden = true; $('pausePanel').hidden = true; $('result').hidden = true;
   menuZombie.world.visible = false; menuHero.world.visible = false; fpHero.world.visible = true;
   $('view').focus(); unlock(); syncWeapon();
   say(TX.hint, 4);
   updateModels(0);
+}
+// 出发：菜单淡出，僵尸被惊醒蹦到一边，镜头推到出生点；到位就是第一人称
+function depart() {
+  if (!ready || mode !== 'menu') return;
+  mode = 'depart'; departT = 0; document.body.classList.add('leaving'); unlock(); sfx('switch');
+}
+// 主界面按空格：朝睡着的那只打一颗毛球
+function toyShoot() {
+  if (!ready || mode !== 'menu') return;
+  unlock(); menuHero.world.updateMatrixWorld(true);
+  if (toy.shoot(menuHero.gun.localToWorld(new T.Vector3(0, 0, 0.63)))) { kickRecoil(recoil, 'single', 0.5); sfx('shot', { weapon: 'single', power: 0 }); }
 }
 function setPause(value) {
   if (mode !== 'playing') return;
@@ -695,11 +771,13 @@ function showResult() {
   $('rKills').textContent = `${s.kills}/${s.total}`; $('rTime').textContent = clock(s.time); $('rSneak').textContent = s.backHits + s.sneakHits;
 }
 function toMenu() {
-  clearModels(); mode = 'menu'; paused = false;
-  document.body.classList.add('menu'); document.body.classList.remove('paused');
+  clearModels(); mode = 'menu'; paused = false; toy.reset(); recoil = createRecoil();
+  document.body.classList.add('menu'); document.body.classList.remove('paused', 'leaving');
   $('intro').hidden = false; $('result').hidden = true; $('pausePanel').hidden = true;
-  menuHero.world.visible = true; menuZombie.world.visible = true; fpHero.world.visible = false; keys.clear();
+  menuHero.world.visible = true; menuZombie.world.visible = true; fpHero.world.visible = false; keys.clear(); menu.layout(); hidePickups();
 }
+// 主界面上不摆拾取物（它们头顶的名牌会挡在两个角色中间）；开局时 updateModels 会把没捡的再亮出来
+function hidePickups() { for (const o of world.pickups.values()) o.visible = false; }
 
 // ---------- 输入：纯键盘，不需要鼠标 ----------
 
@@ -710,8 +788,19 @@ addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if ((k === 'enter' || k === ' ') && ['BUTTON','A'].includes(e.target?.tagName)) return;
   if (HELD.includes(k) || k === 'enter') e.preventDefault();
-  if (k === 'enter' && ready && !e.repeat) { if (mode === 'menu' || mode === 'result') start(); else if (paused) setPause(false); return; }
-  if (mode === 'menu' && !e.repeat && k.length === 1 && k >= '1' && k <= String(ORDER.length)) { switchLevel(ORDER[Number(k) - 1]); return; }   // 开始画面：数字键换地图
+  if (k === 'enter' && ready && !e.repeat) { if (mode === 'menu') menu.activate(); else if (mode === 'result') start(); else if (paused) setPause(false); return; }
+  if (mode === 'menu') {
+    // 主界面：W / S（或上下键）选，A / D（或左右键）换地图，数字键直接选地图，空格打一球
+    if (e.repeat) return;
+    if (k === 'w' || k === 'arrowup') menu.move(-1);
+    else if (k === 's' || k === 'arrowdown') menu.move(1);
+    else if (k === 'a' || k === 'arrowleft') cycleLevel(-1);
+    else if (k === 'd' || k === 'arrowright') cycleLevel(1);
+    else if (k === ' ') toyShoot();
+    else if (!training && k.length === 1 && k >= '1' && k <= String(ORDER.length)) switchLevel(ORDER[Number(k) - 1]);
+    return;
+  }
+  if (mode === 'depart') return;
   if (k === 'escape') { if (mode === 'playing') setPause(!paused); return; }
   if (k === 'r' && !e.repeat && ready) {
     if (mode === 'result' || paused) start();          // 暂停或结算时 R 是重开
@@ -738,7 +827,7 @@ addEventListener('keyup', e => {
 addEventListener('blur', () => { if (mode === 'playing' && !paused) setPause(true); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'playing' && !paused && !q.has('test')) setPause(true); });
 $('expand').onclick = () => { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch(() => {}); };
-$('start').onclick = start; $('again').onclick = start; $('restart').onclick = () => { if (ready) start(); };
+$('again').onclick = start; $('restart').onclick = () => { if (ready) start(); };
 $('resume').onclick = () => setPause(false); $('pause').onclick = () => setPause(!paused); $('back').onclick = toMenu;
 $('sound').onclick = () => {
   sound = !sound; $('sound').textContent = sound ? '声音 开' : '声音 关'; $('sound').setAttribute('aria-pressed', sound);
@@ -769,35 +858,42 @@ function frame(now) {
   const elapsed = now - last, dt = Math.min(0.05, elapsed / 1000);
   last = now;
   if (!ready) { cine.frame(dt); return; }
+  govern(now, elapsed);
   if (mode === 'playing' && !paused) { frameIntervals.push(elapsed); if (frameIntervals.length > 180) frameIntervals.shift(); }
   cameraFrame(dt);
   if (mode === 'playing' && !paused && !window.__rb.hold) advance(dt);
-  else if (mode === 'menu') { animateHero(dt, false); updateFx(dt); }
+  else if (onMenu()) {
+    if (mode === 'depart') { departT += dt; toy.depart(Math.min(1, departT / DEPART)); }
+    stepRecoil(recoil, dt); animateHero(dt, false); toy.update(dt); updateFx(dt); effects.update(dt);
+    if (mode === 'depart' && departT >= DEPART) start();
+  }
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y));
+  world.setFloor(onMenu() ? 0 : floorIndex(level, s.player.y));
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
 
+if (q.get('from') === 'op') document.body.classList.add('from-op');
 async function boot() {
   applyTexts();
   camera.position.copy(menuCamera); camera.lookAt(menuLook);
   actors = await loadFigurines(assetData);
   menuHero = actors.create('scout'); menuZombie = actors.create(training&&practiceType?practiceType:'walker');
   cine.scene.add(menuHero.world, menuZombie.world);
-  for (const name of ['ArmL', 'ArmR']) part(menuZombie, name).rotation.x -= 1.18;
-  if(training&&practiceType)applyAttackPose({type:practiceType,action:'chase',actionAge:0,age:0,guardBroken:0},menuZombie);
   attachGun(menuHero);
+  const toyBall = ballTemplate.clone(true); world.light(toyBall); cine.scene.add(toyBall);
+  toy = createMenuToy({ stage, hero: menuHero, zombie: menuZombie, ball: toyBall, mood: moodMaterial, part, sfx, burst, ring: (pos, color, size, life) => effects.ring(pos, color, size, life) });
   fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
   for (const actor of [menuHero, menuZombie, fpHero]) world.light(actor.world);
-  camera.add(fpHero.world); fpHero.world.visible = false;
+  camera.add(fpHero.world); fpHero.world.scale.setScalar(FP_SCALE); fpHero.world.visible = false;
   cameraFrame(0); resize();
   await cine.warmup();
   ready = true; window.__ready = true;
-  $('start').disabled = false; $('start').textContent = training ? '进入试战' : TX.start; $('start').focus();
-  if(training){document.title='Rongboy · '+level.name;$('intro').querySelector('.eyebrow').textContent=level.name;$('intro').querySelector('h1').innerHTML='看懂预告，<br>再动手。';$('intro').querySelector('p').textContent=practiceType?ATTACKS[practiceType].name+'：'+ATTACKS[practiceType].counter+'。本场共 '+s.total+' 个目标。':'九类僵尸各有攻击。看瞄准线、爆圈、吸引扇区，优先处理召唤源；援兵开局就有限定。';document.querySelector('.sub').textContent=level.name;$('result').querySelector('.eyebrow').textContent=level.name;$('intro').querySelector('.how').innerHTML='WASD 移动 · 方向键 瞄准<br>空格射击 / 蓄力 · R 换弹<br>1 / 2 / 3 选枪，棉被炮或蓄力可打断强攻击<br>3 颗心 · 用掩体挡箭和吸引';}
+  $('menuKeys').innerHTML = '<b>W</b><b>S</b> 选' + (training ? '' : ' · <b>A</b><b>D</b> 换地图') + ' · <b>Enter</b> 确定 · <b>空格</b> 打一球试试';
+  menu.layout(); hidePickups();
+  document.body.classList.remove('from-op');   // 从开场片过来：黑场淡入
   diagnostics();
 }
 requestAnimationFrame(frame);
@@ -807,9 +903,13 @@ boot().catch(fail);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },   // 仅供调试：直接读写战斗状态
-  cine, world, effects,
+  cine, world, effects, governor,
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图
   snapshot, start,
+  get menu() { return menu; }, get toy() { return toy; }, depart, toyShoot,
+  get enemyModels() { return enemyModels; }, armProbes: ARM_PROBES, noArmTuck: false,   // 调试：noArmTuck 为 true 时不收手（对比用）
+  // 主界面按真实时间走 seconds 秒（面板隐藏时不出帧，用它看小场景的动作）
+  menuAdvance(seconds) { for (let t = 0; t < seconds; t += 1 / 60) { if (mode === 'depart') { departT += 1 / 60; toy.depart(Math.min(1, departT / DEPART)); } stepRecoil(recoil, 1 / 60); cameraFrame(1 / 60); if (onMenu()) { animateHero(1 / 60, false); toy.update(1 / 60); } updateFx(1 / 60); effects.update(1 / 60); if (mode === 'depart' && departT >= DEPART) start(); } return mode; },
   advance(seconds, held = []) {
     keys.clear(); for (const k of held) keys.add(k);
     for (let t = 0; t < seconds; t += 1 / 60) advance(1 / 60);
@@ -817,7 +917,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') animateHero(0, false); else updateModels(0); world.setFloor(mode === 'menu' ? 0 : floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { cameraFrame(0); if (mode !== 'playing') { animateHero(0, false); if (onMenu()) toy.update(0); } else updateModels(0); world.setFloor(onMenu() ? 0 : floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

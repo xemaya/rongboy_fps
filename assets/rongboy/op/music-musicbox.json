@@ -1,0 +1,12 @@
+{
+  "model": "music-3.0",
+  "prompt": "Starts as a sleepy music box lullaby with glockenspiel and soft snoring-like low woodwind, slow and gentle. After about 20 seconds tiptoeing pizzicato joins and builds curiosity. Then a comedic pause and a bright bouncy romp with ukulele, marimba, claps, whistling melody and toy drums around 112 BPM, energetic and fun. Final seconds: sudden hush, mysterious tremolo, one big friendly final chord. Instrumental only, no vocals, no singing. Cozy handmade felt-and-yarn toy world, whimsical, warm, cute but mischievous. About one minute long.",
+  "extra_info": {
+    "music_duration": 53342,
+    "music_sample_rate": 44100,
+    "music_channel": 2,
+    "bitrate": 256000,
+    "music_size": 1708920
+  },
+  "trace_id": "074a485974b782e85b8f327f5b1958ad"
+}

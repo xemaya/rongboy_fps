@@ -70,5 +70,101 @@ export function buildWoolArena(scene){const group=new T.Group();scene.add(group)
  // Merge all static meshes per material, preserving authoring shape and UV.
  group.updateMatrixWorld(true);const by=new Map();group.traverse(o=>{if(!o.isMesh)return;const g=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(o.matrixWorld);if(!by.has(o.material))by.set(o.material,[]);by.get(o.material).push(g);});group.clear();for(const [m,gs]of by){const g=mergeGeometries(gs,false),o=new T.Mesh(g,m);o.castShadow=o.receiveShadow=true;group.add(o);for(const q of gs)q.dispose();}return group;
 }
-export function createWoolBall(){const g=new T.Group(),mat=woolMaterial(0xf3dfa5),core=new T.Mesh(new T.SphereGeometry(1,16,12),mat);g.add(core);const yarn=new T.MeshStandardMaterial({color:0xe4c989,roughness:1});const points=[];for(let i=0;i<=120;i++){const t=i/120*Math.PI*8,phi=i/120*Math.PI;points.push([Math.cos(t)*Math.sin(phi)*1.015,Math.cos(phi)*1.015,Math.sin(t)*Math.sin(phi)*1.015]);}g.add(stroke(points,yarn,.035));const vertices=[];let seed=41;const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);for(let i=0;i<180;i++){const y=rnd()*2-1,a=rnd()*Math.PI*2,r=Math.sqrt(1-y*y),p=new T.Vector3(Math.cos(a)*r,y,Math.sin(a)*r),tip=p.clone().multiplyScalar(1.05+rnd()*.12),side=p.clone().cross(new T.Vector3(.2,.7,.4)).normalize().multiplyScalar(.012);vertices.push(...p.clone().sub(side).toArray(),...p.clone().add(side).toArray(),...tip.toArray());}const geo=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(vertices,3));geo.computeVertexNormals();g.add(new T.Mesh(geo,new T.MeshStandardMaterial({color:0xf5e5bd,roughness:1,side:T.DoubleSide})));return g;}
+// 毛线团：一颗球，表面是一层压一层的毛线（一张算出来的贴图：颜色 + 法线），最上面那一把线和一截松开的线头是真的几何体，所以轮廓不是光溜溜的圆。
+// 贴图是浅灰色的，换颜色只改材质的 color（游戏里每把枪的球颜色不同）。旧版是"球 + 一圈螺旋线 + 180 根突刺"，远看像个刺球。
+const YARN_SW=.112;   // 一股线的宽度（弧度）
+let yarnCache=null;
+function yarnLayers(){
+ let seed=20261116;const rnd=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296);
+ const layers=[];
+ for(let k=0;k<13;k++){
+  const y=rnd()*2-1,a=rnd()*Math.PI*2,r=Math.sqrt(1-y*y),ax=new T.Vector3(Math.cos(a)*r,y,Math.sin(a)*r);
+  if(k===12)ax.set(.38,.55,.74).normalize();   // 最上面那一把：固定朝向，和真几何体的那几圈对上
+  const b=new T.Vector3(.31,.87,.38).cross(ax).normalize(),c=ax.clone().cross(b);
+  const n=k===0?Math.ceil(Math.PI/YARN_SW):k===12?4:3+Math.floor(rnd()*4);   // 这一把有几股；最底下那层铺满整颗球
+  layers.push({ax,b,c,n,w:n*YARN_SW/2,off:k===0?0:k===12?.06:(rnd()-.5)*.5,tw:(rnd()<.5?-1:1)*(40+Math.floor(rnd()*8)),tone:.94+rnd()*.12});
+ }
+ return layers;
+}
+function yarnTextures(){
+ if(yarnCache)return yarnCache;
+ const W=1024,H=512,L=yarnLayers(),K=L.length,height=new Float32Array(W*H),shade=new Float32Array(W*H);
+ const hash=(a,b)=>{let h=(Math.imul(a+1,374761393)^Math.imul(b+7,668265263))>>>0;h=Math.imul(h^(h>>>13),1274126177)>>>0;return(h>>>8)/16777216;};
+ for(let j=0;j<H;j++){
+  const phi=(j+.5)/H*Math.PI,sy=Math.cos(phi),sr=Math.sin(phi);
+  for(let i=0;i<W;i++){
+   const th=(i+.5)/W*Math.PI*2,dx=-Math.cos(th)*sr,dz=Math.sin(th)*sr;
+   let k=0,tt=0,ao=1;
+   for(let q=K-1;q>=0;q--){
+    const l=L[q],t=Math.asin(Math.max(-1,Math.min(1,dx*l.ax.x+sy*l.ax.y+dz*l.ax.z)))-l.off,e=Math.abs(t)-l.w;
+    if(e<0){k=q;tt=t;break;}
+    if(e<.075)ao*=.5+.5*(e/.075);   // 被上面那一把压着的边：暗一点
+   }
+   const l=L[k],s=(tt+l.w)/YARN_SW,n=Math.floor(s),u=(s-n)*2-1,prof=Math.sqrt(Math.max(0,1-u*u));
+   const along=Math.atan2(dx*l.b.x+sy*l.b.y+dz*l.b.z,dx*l.c.x+sy*l.c.y+dz*l.c.z),ply=.5+.5*Math.sin(along*l.tw+u*2.6);   // 每股线自己拧的那道斜纹
+   height[j*W+i]=k/K*.55+prof*.45+ply*.035;
+   shade[j*W+i]=(.56+.44*Math.pow(prof,.7))*(.9+.1*ply)*(.8+.2*k/(K-1))*l.tone*(.95+.1*hash(k,n))*ao;
+  }
+ }
+ const mk=()=>{const c=document.createElement('canvas');c.width=W;c.height=H;return c;};
+ const cc=mk(),cx=cc.getContext('2d'),ci=cx.createImageData(W,H),nc=mk(),nx=nc.getContext('2d'),ni=nx.createImageData(W,H);
+ const AMP=5.5;   // 法线的夸张程度：一股线看着大约是半圆
+ for(let j=0;j<H;j++){
+  const sr=Math.max(.06,Math.sin((j+.5)/H*Math.PI)),jn=Math.max(0,j-1),js=Math.min(H-1,j+1);
+  for(let i=0;i<W;i++){
+   const o=(j*W+i)*4,v=Math.max(0,Math.min(255,shade[j*W+i]*262));
+   ci.data[o]=ci.data[o+1]=ci.data[o+2]=v;ci.data[o+3]=255;
+   const de=(height[j*W+(i+1)%W]-height[j*W+(i+W-1)%W])/(2*(Math.PI*2/W)*sr),dn=(height[jn*W+i]-height[js*W+i])/((js-jn)*Math.PI/H);
+   let gx=-de*YARN_SW*AMP*.5,gy=-dn*YARN_SW*AMP*.5;const g=Math.hypot(gx,gy);if(g>1.6){gx*=1.6/g;gy*=1.6/g;}
+   const inv=1/Math.hypot(gx,gy,1);
+   ni.data[o]=(gx*inv*.5+.5)*255;ni.data[o+1]=(gy*inv*.5+.5)*255;ni.data[o+2]=(inv*.5+.5)*255;ni.data[o+3]=255;
+  }
+ }
+ cx.putImageData(ci,0,0);nx.putImageData(ni,0,0);
+ const map=new T.CanvasTexture(cc);map.colorSpace=T.SRGBColorSpace;map.wrapS=T.RepeatWrapping;map.anisotropy=4;
+ const normalMap=new T.CanvasTexture(nc);normalMap.wrapS=T.RepeatWrapping;normalMap.anisotropy=4;
+ // 真几何体那几圈线用的小贴图：一道道斜纹，顺着线拧
+ const pc=document.createElement('canvas');pc.width=pc.height=64;const px=pc.getContext('2d');px.fillStyle='#fff';px.fillRect(0,0,64,64);
+ px.strokeStyle='rgba(120,112,100,.3)';px.lineWidth=9;for(let d=-64;d<128;d+=32){px.beginPath();px.moveTo(d,0);px.lineTo(d+64,64);px.stroke();}
+ const ply=new T.CanvasTexture(pc);ply.colorSpace=T.SRGBColorSpace;ply.wrapS=ply.wrapT=T.RepeatWrapping;ply.repeat.set(16,1);
+ return yarnCache={map,normalMap,ply,top:L[K-1]};
+}
+export function createWoolBall(){
+ const g=new T.Group(),tex=yarnTextures(),top=tex.top;
+ const mat=woolMaterial(0xf3dfa5);mat.map=tex.map;mat.bumpMap=null;mat.normalMap=tex.normalMap;mat.normalScale=new T.Vector2(1,1);
+ g.add(new T.Mesh(new T.SphereGeometry(1,36,22),mat));
+ // 最上面那一把线：五圈真的圆环，贴着球面，和贴图里最上层那一把是同一个位置
+ const parts=[],q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,0,1),top.ax),R=1.004,tube=YARN_SW*.56;
+ for(let n=0;n<top.n;n++){
+  const a=top.off-top.w+(n+.5)*YARN_SW,ring=new T.TorusGeometry(Math.cos(a)*R,tube,5,30);
+  ring.translate(0,0,Math.sin(a)*R);ring.applyQuaternion(q);parts.push(ring);
+ }
+ // 松开的线头：从最上面那一把的边上翘起来，打半个卷
+ const tail=[],e0=top.off+top.w+YARN_SW*.2;
+ for(let i=0;i<=9;i++){const k=i/9,ang=1.1+k*1.5,lift=1+Math.sin(k*Math.PI*.9)*.2+k*.1,a=e0+k*.16;tail.push(new T.Vector3(Math.cos(ang)*Math.cos(a)*lift,Math.sin(ang)*Math.cos(a)*lift,Math.sin(a)*lift).applyQuaternion(q));}
+ const tg=new T.TubeGeometry(new T.CatmullRomCurve3(tail),18,tube*.9,5,false),uv=tg.attributes.uv;for(let i=0;i<uv.count;i++)uv.setX(i,uv.getX(i)*.3);parts.push(tg);
+ const yarn=woolMaterial(0xf3dfa5);yarn.map=tex.ply;yarn.bumpMap=tex.ply;yarn.bumpScale=.004;
+ g.add(new T.Mesh(mergeGeometries(parts),yarn));
+ return g;
+}
 export function createLauncher(){const group=new T.Group(),cream=woolMaterial(0xd9c88f),rust=woolMaterial(0xad684a),dark=new T.MeshStandardMaterial({color:0x473c2e,roughness:.8}),wood=new T.MeshStandardMaterial({color:0x906641,roughness:.8});const cylinder=(r,len,mat,z)=>{const o=new T.Mesh(new T.CylinderGeometry(r,r,len,24),mat);o.rotation.x=Math.PI/2;o.position.z=z;group.add(o);return o;};cylinder(.235,.51,cream,.08);cylinder(.245,.055,rust,.35);cylinder(.18,.04,dark,.384);cylinder(.13,.045,cream,.407);const base=new T.Mesh(new RoundedBoxGeometry(.42,.19,.30,3,.05),wood);base.position.set(0,-.12,-.06);group.add(base);for(const s of [-1,1]){const grip=new T.Mesh(new T.SphereGeometry(.10,10,8),rust);grip.position.set(s*.26,-.04,0);group.add(grip);}group.traverse(o=>{if(o.isMesh)o.castShadow=o.receiveShadow=true;});return group;}
+
+// 绒仔帽子底下的头发。原模型的头发只有露在帽檐外面的那一圈，帽子压着的头顶是肤色的——帽子一弹起来（开场片里他靠帽子做表情）就露出光头。
+// 这里在头顶补一块发顶：比头骨略大的半个椭球，下沿埋进原来那圈头发里；表面有几道浅浅的发绺。颜色和材质取自头本身，光照和毛绒质感一致。
+export function addScoutHair(actor){
+ const head=actor.parts&&actor.parts.get('CTRL / head');if(!head||head.userData.hairCap)return null;
+ const base=head.children.find(m=>m.isMesh&&!m.userData.fuzz&&m.geometry.attributes.color);if(!base)return null;
+ const src=base.geometry.attributes.color;let dark=0,lum=9;   // 头上最深的顶点色就是头发
+ for(let i=0;i<src.count;i+=7){const l=src.getX(i)+src.getY(i)+src.getZ(i);if(l<lum){lum=l;dark=i;}}
+ const hair=[src.getX(dark),src.getY(dark),src.getZ(dark)];
+ const g=new T.SphereGeometry(1,36,12,0,Math.PI*2,0,Math.PI*.42),p=g.attributes.position,c=new Float32Array(p.count*3);
+ for(let i=0;i<p.count;i++){
+  const x=p.getX(i),y=p.getY(i),z=p.getZ(i),a=Math.atan2(z,x),rim=1-y;   // 越靠近下沿发绺越明显，头顶是平的
+  const s=1+.035*rim*Math.sin(a*7+y*4)+.02*rim*Math.sin(a*13+1.7);
+  p.setXYZ(i,x*.545*s,.28+y*.47+.012*rim*Math.sin(a*7+y*4),-.035+z*.42*s);
+  const k=.86+.14*Math.sin(a*7+y*4+1.2)*rim;c[i*3]=hair[0]*k;c[i*3+1]=hair[1]*k;c[i*3+2]=hair[2]*k;
+ }
+ g.setAttribute('color',new T.BufferAttribute(c,3));g.computeVertexNormals();
+ const cap=new T.Mesh(g,base.material);cap.castShadow=base.castShadow;cap.receiveShadow=base.receiveShadow;cap.name='hair-cap';
+ head.add(cap);head.userData.hairCap=cap;return cap;
+}

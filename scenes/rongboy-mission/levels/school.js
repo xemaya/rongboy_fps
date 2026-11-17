@@ -16,6 +16,7 @@ export default {
   doorHeight: 2.05,
   par: 420,
   player: { x: 0, z: 11.2, yaw: 0 },
+  menu: { x: 0, z: 10.6 },   // 主界面的两个角色站在校门里、积木墙前面
   arsenal: ['single', 'scatter', 'heavy', 'yarn'],
   mission: { type: 'clear', title: '把学校里的僵尸全部清走' },
   theme: {

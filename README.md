@@ -11,14 +11,15 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 13 套检查
+npm test                                                # 15 套检查
 ```
 
 已经克隆但 `cine-engine/` 是空的：`git submodule update --init`。
 
 | 页面 | 内容 |
 |---|---|
-| `dist/rongboy-mission.html` | 任务版，主体。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
+| `dist/rongboy-op.html` | 开场片《嘘——》（64 秒）。从这里进游戏：按任意键开始，Esc 跳过，播完进主界面。默认放事先渲好的 `rongboy-op.mp4`，加 `?live=1` 实时渲染 |
+| `dist/rongboy-mission.html` | 任务版，主体，打开是主界面（W / S 选，A / D 换地图，Enter 确定，空格朝睡着的僵尸打一球）。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
 | `dist/rongboy-zombies.html` | 九类僵尸手办图鉴 |
 | `dist/rongboy-figures.html` | 主角和僵尸的手办预览 |
 | `dist/rongboy-shooter-fps.html` | 工坊版：60 秒生存，任务版的前身 |
@@ -30,18 +31,31 @@ npm test                                                # 13 套检查
 
 ```
 cine-engine/            引擎子模块：渲染管线、Kit、形状工具、光照体积，以及毛绒 / 博物馆 / 学校零件库
-scenes/rongboy-mission/ 任务版：关卡数据、规则、场景搭建、画面和输入。设计和验证记录在 DESIGN.md
+scenes/rongboy-mission/ 任务版：关卡数据、规则、场景搭建、画面和输入，主界面在 menu.js。设计和验证记录在 DESIGN.md
+scenes/rongboy-op/      开场片：分镜和走位（film.js）、摆手办的工具、片名卡、声音。用的是任务版的场景、手办、枪和特效
 scenes/rongboy-shooter-fps/  工坊版；任务版复用它的手办模型、声音和受击反馈
 scenes/rongboy/、scenes/rongboy-shooter/   早期样板
 tools/rongboy-zombies/、tools/rongboy-figures/   图鉴和手办预览页
 library/games/          游戏自己的三维零件：手办运行时、武器和掩体、僵尸名录和姿势
-assets/rongboy/         Blender 源文件和导出的 GLB（构建时内嵌进页面）
+assets/rongboy/         Blender 源文件和导出的 GLB（构建时内嵌进页面）；op/ 里是开场片的配乐和渲好的 mp4
 scripts/blender/        生成和导出手办的 Blender 脚本
-scripts/build.mjs       打包；scripts/tests/ 检查
+scripts/build.mjs       打包；scripts/tests/ 检查；scripts/op/ 生成配乐、导出开场片
 vendor/combo-hopper/    跳棋样板用的原规则快照，见其中的 PROVENANCE.md
 docs/figures.md         手办造型的规则和检查记录
+docs/op-design.md       开场片和主界面：准则、分镜表、对照检查、怎么改和怎么导出
 docs/readme-before-split.md   拆分前 cine-engine 的 README 里关于 Rongboy 的几节（各版本手办、图鉴、试战场的说明）
 ```
+
+## 开场片
+
+每一帧都由引擎画，没有用生视频模型。配乐是 MiniMax 生成的（`scripts/op/music.mjs`，要 `MINIMAX_API_KEY`），音效是程序合成的。
+
+```bash
+npm run build
+scripts/op/export.sh          # 逐帧渲成 assets/rongboy/op/rongboy-op.mp4，约五分钟；要 ego-browser 和 ffmpeg
+```
+
+改分镜、换配乐、看某一刻的画面，见 `docs/op-design.md` 第 3.5 节。
 
 ## 和引擎的分工
 
@@ -67,5 +81,8 @@ git add cine-engine && git commit
 ## 已知状态
 
 - 没有人完整打通过任何一张图，数值都是初值。
+- 开场片没有人看过成片、听过声音（做的时候只能看静帧）；主界面的小场景和出发过渡也只看过静帧。
+- 清晰度调节器换成了游戏自己的（`scenes/rongboy-mission/governor.js`）：目标 30 帧，先减像素数、保住抗锯齿和环境遮蔽，画面轻了会加回去。逻辑有模拟测试（`scripts/tests/rongboy-governor.mjs`），**但没有在前台窗口里实际跑过**：自动化用的浏览器窗口在后台，出帧被压到每秒一帧，量不了。在 Intel Mac（Radeon Pro 5300M，Retina 屏）上按同步测速推算，重的画面会停在约 100 万像素（1300×740 上下）、30 帧。测量和原因见 `scenes/rongboy-mission/DESIGN.md` 的"清晰度调节"。
+- 手里的枪贴墙不再插进去；追人的僵尸贴墙时会把手收回来（只改画面）。没管的：僵尸的头比碰撞半径大，正对墙时脸还会蹭进墙；侧身贴墙时垂着的手也可能碰到墙。
 - 画面检查是在不出帧的隐藏面板里用同步推进的入口做的（`window.__rb`，见 `scenes/rongboy-mission/main.js` 末尾）；实时手感和帧率要在前台窗口确认。
 - 九类僵尸里，爬行者、持盾者、炸弹客、弓手和两个首领目前只在试战庭院出现，三张地图里还没摆。

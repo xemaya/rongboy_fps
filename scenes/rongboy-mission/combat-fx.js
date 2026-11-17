@@ -7,7 +7,8 @@ const arrowTemplate=new T.Group(),shaftMat=new T.MeshStandardMaterial({color:0x8
 const shaft=new T.Mesh(new T.CylinderGeometry(.011,.011,.44,8),shaftMat);shaft.rotation.x=Math.PI/2;arrowTemplate.add(shaft);const tip=new T.Mesh(new T.SphereGeometry(.04,10,8),tipMat);tip.position.z=.25;tip.scale.z=2;arrowTemplate.add(tip);
 for(const angle of [0,Math.PI/2]){const feather=new T.Mesh(new T.BoxGeometry(.11,.012,.12),tailMat);feather.position.z=-.17;feather.rotation.z=angle;arrowTemplate.add(feather);}
 const forward=new T.Vector3(0,0,1),velocity=new T.Vector3(),bombTemplate=createWoolBall();
-bombTemplate.children[0].material.color.setHex(0xbb8d60);bombTemplate.children[1].material.color.setHex(0xe8d9b7);bombTemplate.children[2].material.color.setHex(0xc8a579);
+// 炸弹客的线团：球芯深一点，缠在外面的线浅一点。按网格的先后顺序上色，不依赖毛球由几个零件拼成。
+{const tint=[0xbb8d60,0xe8d9b7,0xc8a579];let i=0;bombTemplate.traverse(m=>{if(!m.isMesh)return;m.material=m.material.clone();m.material.color.setHex(tint[Math.min(i++,tint.length-1)]);});}
 const fuse=new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(0,1,0),new T.Vector3(.1,1.3,0),new T.Vector3(0,1.5,.05)]),8,.045,5,false),shaftMat);bombTemplate.add(fuse);
 export function createCombatFx(scene){
  const tells=new Map(),shots=new Map(),bombs=new Map(),bursts=[];
