@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import houseDef from '../../scenes/rongboy-mission/levels/house.js';
 import { compileLevel, clearPath, freePoint, lineOfSight, routeTo, navRadius, roomAt, resolveBody, surfaceY, storeyAt, floorIndex, navGoal } from '../../scenes/rongboy-mission/level.js';
 import { createGame, spawn, fire, beginCharge, releaseCharge, step, consumeEvents, selectWeapon, startReload, emitNoise, ballDamage,
-  missionStatus, aliveCount, cameraMove, CONFIG, WEAPONS, ENEMY_TYPES } from '../../scenes/rongboy-mission/game.js';
+  missionStatus, aliveCount, cameraMove, CONFIG, WEAPONS, ENEMY_TYPES, PISTOL, GRENADE, secondOf, grenades, swapWeapon, offeredWeapon, exchangeWeapon,
+  beginThrow, releaseThrow, throwGrenade } from '../../scenes/rongboy-mission/game.js';
+import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
+import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -181,7 +184,7 @@ const shootAt = (s, e) => { assert.equal(fire(s), true); run(s, 0.6); return e; 
 const shootFromBehind = (s, e) => { assert.equal(fire(s, 0, { origin: { x: e.x + 1.2, y: 0.8, z: e.z }, direction: { x: -1, y: 0, z: 0 } }), true); run(s, 0.6); return e; };
 
 test('weapons deal different damage, and it falls off with distance', () => {
-  for (const [index, expected] of [[0, 2], [2, 5]]) {
+  for (const [index, expected] of [[0, WEAPONS[0].damage], [2, Math.min(ENEMY_TYPES.walker.hp, WEAPONS[2].damage)]]) {   // 棉被炮一炮放倒跳跳
     const s = game(); selectWeapon(s, index);
     const e = spawn(s, { x: 0.5, z: 0, heading: WEST }); shootAt(s, e);
     assert.equal(e.maxHp - e.hp, expected, WEAPONS[index].id);
@@ -226,7 +229,7 @@ test('the quilt-armoured zombie shrugs off frontal hits and must be flanked', ()
   const back = game(); const b = spawn(back, { type: 'heavy', x: 0.6, z: 0, heading: WEST }); shootFromBehind(back, b);
   assert.equal(b.maxHp - b.hp, 4);
   const cannon = game(); selectWeapon(cannon, 2); const c = spawn(cannon, { type: 'heavy', x: 0.6, z: 0, heading: WEST }); shootAt(cannon, c);
-  assert.equal(c.maxHp - c.hp, 2);
+  assert.equal(c.maxHp - c.hp, Math.floor(WEAPONS[2].damage * ENEMY_TYPES.heavy.armor));
 });
 
 test('each weapon has its own ricochet budget', () => {
@@ -249,15 +252,17 @@ test('magazines empty, reload takes time, reserves run out, and the starter gun 
   run(s, WEAPONS[0].reload + 0.05);
   assert.equal(s.ammo[0].mag, 6); assert.equal(s.ammo[0].reserve, Infinity);
 
-  selectWeapon(s, 2);
+  selectWeapon(s, 2); s.ammo[2] = { mag: 1, reserve: 1 };   // 只剩两发
   assert.equal(fire(s), true); run(s, WEAPONS[2].cooldown + WEAPONS[2].reload + 0.1);
   assert.deepEqual(s.ammo[2], { mag: 1, reserve: 0 });
-  assert.equal(fire(s), true); run(s, 1);
-  assert.equal(s.reloading, false); consumeEvents(s);
-  assert.equal(fire(s), false);
-  assert.ok(consumeEvents(s).some(e => e.type === 'dry'));
+  consumeEvents(s); assert.equal(fire(s), true); run(s, 1);
+  // 特殊枪彻底打空：自动换回手枪，不让人对着空枪按扳机
+  assert.equal(s.reloading, false); assert.equal(s.weapon, 0, 'an empty special gun hands back to the pistol');
+  assert.ok(consumeEvents(s).some(e => e.type === 'weapon' && e.weapon === 0));
+  assert.equal(selectWeapon(s, 2), true); assert.equal(fire(s), false, 'still empty when picked again');
+  assert.ok(consumeEvents(s).some(e => e.type === 'dry')); assert.equal(s.weapon, 0);
 
-  selectWeapon(s, 1); fire(s); run(s, 0.6);
+  s.ammo[1] = { mag: 2, reserve: 4 }; selectWeapon(s, 1); fire(s); run(s, 0.6);
   assert.equal(startReload(s), true); run(s, 0.5); selectWeapon(s, 0);
   assert.equal(s.reloading, false); selectWeapon(s, 1);
   assert.equal(s.ammo[1].mag, 1, 'switching away cancels a reload');
@@ -279,7 +284,7 @@ test('charging still works: one bigger, harder-hitting ball on release', () => {
 test('pickups: ammo goes to the right reserve, a heart is left alone at full health', () => {
   const s = game({ pickups: [{ kind: 'ammo', weapon: 'heavy', amount: 2, x: -2, z: 0 }, { kind: 'heart', amount: 1, x: -2, z: 0.2 }] });
   step(s, 1 / 120);
-  assert.equal(s.ammo[2].reserve, 3); assert.equal(s.pickups[0].taken, true); assert.equal(s.pickups[1].taken, false);
+  assert.equal(s.ammo[2].reserve, WEAPONS[2].reserve + 2); assert.equal(s.pickups[0].taken, true); assert.equal(s.pickups[1].taken, false);
   s.health = 1; step(s, 1 / 120);
   assert.equal(s.health, 2); assert.equal(s.pickups[1].taken, true);
 });
@@ -335,7 +340,9 @@ test('once roused, all three floors find their way down to the player without ge
   for (const e of s.enemies) e.awareness = 'alert';
   s.health = 1e9;
   run(s, 150);
-  const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > 6 || e.base > 0.01);
+  // 弓手和炸弹客会停在自己的射程里，不贴上来
+  const near = e => (e.type === 'archer' || e.type === 'bomber' ? ATTACKS[e.type].range : 6);
+  const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > near(e) || e.base > 0.01);
   assert.deepEqual(lost.map(e => `${e.type}@${e.x.toFixed(1)},${e.base.toFixed(1)},${e.z.toFixed(1)}`), []);
   for (const e of s.enemies) {
     assert.ok(freePoint(house, e.x, e.z, e.radius - 0.02), `${e.type} ended inside a solid`);
@@ -348,23 +355,61 @@ test('once roused, all three floors find their way down to the player without ge
 // 给一局空地加上指定的枪并换到手里。
 function armed(id, extra) {
   const s = game(extra), index = WEAPONS.findIndex(w => w.id === id);
-  s.owned[index] = true; selectWeapon(s, index);
+  s.owned[index] = true; s.ammo[index] = { mag: WEAPONS[index].mag, reserve: WEAPONS[index].reserve }; selectWeapon(s, index);   // 测试里直接塞到手上
   return s;
 }
 const aimEast = { origin: { x: -1.4, y: 0.9, z: 0 }, direction: { x: 1, y: 0, z: 0 } };
 
-test('new guns have to be found: an unowned weapon cannot be selected, picking one up equips it', () => {
-  const s = game({ pickups: [{ kind: 'weapon', weapon: 'stun', amount: 4, x: 0, z: 0 }, { kind: 'weapon', weapon: 'stun', amount: 2, x: 3, z: 0 }] });
-  const stun = WEAPONS.findIndex(w => w.id === 'stun');
-  assert.deepEqual(s.owned.slice(0, 3), [true, true, true]);
+test('two guns in hand: the pistol stays, the other one is swapped on purpose, and the dropped gun keeps its ammo', () => {
+  const s = game({ arsenal: ['single'], pickups: [{ kind: 'weapon', weapon: 'stun', amount: 4, x: 0, z: 0 }, { kind: 'weapon', weapon: 'stun', amount: 2, x: 3, z: 0 }, { kind: 'weapon', weapon: 'needle', amount: 6, x: 6, z: 0 }, { kind: 'ammo', x: 9, z: 0 }] });
+  const stun = WEAPONS.findIndex(w => w.id === 'stun'), needle = WEAPONS.findIndex(w => w.id === 'needle');
+  assert.equal(secondOf(s), -1); assert.equal(swapWeapon(s), false, 'nothing to swap to yet');
   assert.equal(selectWeapon(s, stun), false, 'not owned yet');
   s.player.x = 0; run(s, 0.1);
-  assert.ok(s.owned[stun] && s.weapon === stun, 'picked up and in hand');
+  assert.ok(s.owned[stun] && s.weapon === stun, 'the empty second slot takes it straight away');
   assert.deepEqual(s.ammo[stun], { mag: WEAPONS[stun].mag, reserve: 4 });
+  assert.equal(swapWeapon(s), true); assert.equal(s.weapon, PISTOL); assert.equal(swapWeapon(s), true); assert.equal(s.weapon, stun);
   s.player.x = 3; run(s, 0.1);
-  assert.equal(s.ammo[stun].reserve, 6, 'a second one is just ammunition');
-  assert.deepEqual(createGame({ level: house }).owned.map((o, i) => o && WEAPONS[i].id).filter(Boolean), ['single', 'scatter', 'heavy', 'yarn']);
+  assert.equal(s.ammo[stun].reserve, 6, 'a second one of the same gun is just ammunition');
+  // 另一把枪：走上去不会自动换
+  s.player.x = 6; run(s, 0.1);
+  assert.equal(secondOf(s), stun); assert.equal(s.pickups[2].taken, false); assert.equal(offeredWeapon(s), s.pickups[2]);
+  fire(s, 0, { origin: { x: 6, y: 1.2, z: 5 }, direction: { x: 0, y: 0, z: 1 } }); const left = { ...s.ammo[stun] };
+  assert.equal(exchangeWeapon(s), true);
+  assert.equal(secondOf(s), needle); assert.equal(s.weapon, needle); assert.equal(s.owned[stun], false);
+  assert.deepEqual(s.ammo[needle], { mag: WEAPONS[needle].mag, reserve: 6 });
+  assert.deepEqual([s.pickups[2].weapon, s.pickups[2].mag, s.pickups[2].amount, s.pickups[2].taken], ['stun', left.mag, left.reserve, false], 'the old gun lies there with what was left in it');
+  assert.equal(exchangeWeapon(s), true, 'and can be taken back');
+  assert.deepEqual(s.ammo[stun], left); assert.equal(secondOf(s), stun);
+  // 弹药包不记种类：补的是手里那把特殊枪
+  s.player.x = 9; run(s, 0.1);
+  assert.equal(s.ammo[stun].reserve, left.reserve + WEAPONS[stun].pack); assert.equal(s.pickups[3].taken, true);
+  const bare = game({ arsenal: ['single'], pickups: [{ kind: 'ammo', x: 0, z: 0 }] }); bare.player.x = 0; run(bare, 0.1);
+  assert.equal(bare.pickups[0].taken, false, 'with only the pistol an ammo pack stays on the floor');
 });
+
+test('the yarn grenade has its own key: it is thrown without leaving the gun in hand', () => {
+  const s = game({ arsenal: ['single', 'scatter', 'yarn'] }), yarn = WEAPONS[GRENADE];
+  assert.equal(grenades(s), yarn.mag + yarn.reserve); assert.equal(secondOf(s), 1);
+  const before = grenades(s), mag = s.ammo[0].mag;
+  assert.equal(beginThrow(s), true); run(s, 0.05); assert.equal(releaseThrow(s), true);
+  assert.equal(s.weapon, 0); assert.equal(s.ammo[0].mag, mag, 'the pistol magazine is untouched');
+  assert.equal(grenades(s), before - 1); assert.equal(s.balls.at(-1).weapon, 'yarn');
+  assert.equal(beginThrow(s), false, 'a short pause between throws'); run(s, yarn.cooldown + 0.05);
+  // 换弹的时候也能扔
+  for (let i = 0; i < 6; i++) { fire(s); run(s, WEAPONS[0].cooldown + 0.02); }
+  assert.equal(s.reloading, true); assert.equal(throwGrenade(s), true); assert.equal(grenades(s), before - 2);
+  run(s, 2); consumeEvents(s);
+  assert.equal(beginThrow(s), false); assert.ok(consumeEvents(s).some(e => e.type === 'dry' && e.weapon === 'yarn'));
+  const none = game({ arsenal: ['single'], pickups: [{ kind: 'ammo', weapon: 'yarn', amount: 1, x: 0, z: 0 }] });
+  assert.equal(grenades(none), 0); none.player.x = 0; run(none, 0.1); assert.equal(grenades(none), 1);
+  // 正式地图：开局都是手枪加一把，外加手雷
+  for (const id of ORDER) {
+    const g = createGame({ level: compileLevel(LEVELS[id]) }), guns = g.owned.map((o, i) => o && WEAPONS[i].id).filter(Boolean);
+    assert.deepEqual(guns, ['single', 'scatter', 'yarn'], id);
+  }
+});
+
 
 test('static gun: freezes its target, the arc jumps to neighbours, and a frozen zombie cannot bite', () => {
   const s = armed('stun'), w = WEAPONS[s.weapon];
@@ -398,7 +443,7 @@ test('static gun: freezes its target, the arc jumps to neighbours, and a frozen 
 
 test('sewing machine gun: holding the trigger fires a stream until the magazine runs dry', () => {
   const s = armed('sewing'), w = WEAPONS[s.weapon];
-  const e = spawn(s, { type: 'heavy', x: 3, z: 0, heading: EAST });
+  const e = spawn(s, { type: 'walker', x: 3, z: 0, heading: EAST });   // 不用棉甲：小纽扣从正面打不动它（见 rongboy-fun.mjs）
   e.hp = e.maxHp = 99;
   assert.ok(beginCharge(s));
   run(s, 1);

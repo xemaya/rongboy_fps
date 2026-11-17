@@ -20,7 +20,7 @@ export default {
   par: 600,
   player: { x: 0, z: 11.2, yaw: 0 },
   menu: { x: 0, z: 9.4 },   // 开始画面里两个角色站在门厅中间，背后是大厅里的恐龙
-  arsenal: ['single', 'scatter', 'heavy', 'yarn'],
+  arsenal: ['single', 'scatter', 'yarn'],
   mission: { type: 'fetch', title: '找回三件被拿走的展品，送回恐龙面前', alarm: 8, exit: front },
   // 外观：浅色石墙，没有木梁和坡屋顶，灯是贴着天花板的射灯；屋里的环境光是偏蓝的月色。
   theme: {
@@ -34,7 +34,7 @@ export default {
     eyebrow: '第二关 · 博物馆（奇妙夜）',
     title: '闭馆之后，<br>把展品找回来。',
     intro: '夜里的博物馆被 27 只僵尸占了，三件展品被它们拿走：埃及厅的黄金面具、自然厅的恐龙蛋、珍宝馆的蓝宝石。木乃伊、头骨和恐龙骨架都只是展品，不用怕。三件都找到后，送回中央大厅的恐龙面前。',
-    how: ['从背后打 伤害 ×2 · 趁它没发现时打 再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心 · 受伤少、10 分钟内送回可得三星'],
+    how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：棉被炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药包在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心 · 受伤少、10 分钟内送回可得三星'],
     start: '走进博物馆',
     hint: '面具在西边的埃及厅 · 恐龙蛋在东边的自然厅 · 蓝宝石在东北角的珍宝馆',
     got: '找到了！',
@@ -164,35 +164,35 @@ export default {
     // 门厅：售票台后面睡着一只，开局碰不到
     { type: 'walker', x: 2.6, z: 8.0, state: 'asleep', heading: Math.PI },
     // 中央大厅
-    { type: 'walker', x: -3.0, z: -3.0, state: 'idle', heading: Math.PI / 2, patrol: [[3.0, -3.0], [-3.0, -3.0]] },
+    { type: 'archer', x: -3.0, z: -3.0, state: 'idle', heading: 0, patrol: [[3.0, -3.0], [-3.0, -3.0]] },   // 中央大厅北头：大厅里的展台能挡箭
     { type: 'leaper', x: -3.2, z: 4.4, state: 'idle', heading: Math.PI, patrol: [[-3.2, -1.2], [-3.2, 4.4]] },
     { type: 'leaper', x: 3.4, z: 2.4, state: 'asleep', heading: -Math.PI / 2 },
     // 埃及厅
     { type: 'heavy', x: -11.4, z: -0.8, state: 'idle', heading: Math.PI / 2 },
-    { type: 'walker', x: -12.0, z: 4.9, state: 'asleep', heading: Math.PI / 2 },
+    { type: 'bomber', x: -12.0, z: 4.9, state: 'asleep', heading: Math.PI / 2 },
     { type: 'leaper', x: -7.0, z: -2.4, state: 'idle', heading: 0, patrol: [[-7.0, 3.6], [-7.0, -2.4]] },
     { type: 'leaper', x: -10.2, z: -2.0, state: 'asleep', heading: 0 },
     { type: 'walker', x: -8.6, z: 4.6, state: 'asleep', heading: Math.PI },
     // 自然厅
     { type: 'leaper', x: 6.4, z: -1.6, state: 'idle', heading: Math.PI / 2, patrol: [[12.0, -1.6], [6.4, -1.6]] },
-    { type: 'walker', x: 11.8, z: 3.0, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'archer', x: 11.8, z: 3.0, state: 'idle', heading: -Math.PI / 2 },
     { type: 'heavy', x: 7.0, z: 2.6, state: 'asleep', heading: Math.PI / 2 },
     { type: 'leaper', x: 11.6, z: 5.0, state: 'idle', heading: -Math.PI / 2 },
     // 画廊
     { type: 'walker', x: -12.5, z: -5.2, state: 'idle', heading: Math.PI / 2, patrol: [[-3.2, -5.2], [-12.5, -5.2]] },
     { type: 'leaper', x: -12.8, z: -11.2, state: 'asleep', heading: Math.PI / 2 },
     { type: 'walker', x: -5.0, z: -10.6, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'leaper', x: -9.0, z: -10.6, state: 'idle', heading: 0 },
+    { type: 'bomber', x: -9.0, z: -10.6, state: 'idle', heading: 0 },
     // 北走廊
-    { type: 'walker', x: 0, z: -7.0, state: 'idle', heading: 0 },
+    { type: 'shielded', x: 0, z: -7.0, state: 'idle', heading: 0 },   // 北走廊：正面过不去
     // 珍宝馆
     { type: 'heavy', x: 8.5, z: -5.6, state: 'idle', heading: -Math.PI / 2 },
     { type: 'walker', x: 12.8, z: -10.4, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'leaper', x: 3.4, z: -6.0, state: 'idle', heading: Math.PI, patrol: [[3.4, -10.6], [3.4, -6.0]] },
-    { type: 'leaper', x: 12.8, z: -6.4, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'shielded', x: 12.8, z: -6.4, state: 'idle', heading: -Math.PI / 2 },
     // 纪念品店
     { type: 'walker', x: -12.0, z: 7.2, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'leaper', x: -6.4, z: 10.4, state: 'idle', heading: -Math.PI / 2 },
+    { type: 'archer', x: -6.4, z: 10.4, state: 'idle', heading: -Math.PI / 2 },
     // 咖啡厅
     { type: 'walker', x: 5.6, z: 10.9, state: 'asleep', heading: Math.PI / 2 },
     { type: 'leaper', x: 11.2, z: 11.0, state: 'asleep', heading: -Math.PI / 2 },
@@ -208,10 +208,10 @@ export default {
     { kind: 'weapon', weapon: 'needle', amount: 6, x: -13.2, z: -5.0 },
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: 13.2, z: 11.4 },
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: -13.3, z: 5.0 },
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: 4.3, z: 1.2 },
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: -3.0, z: -11.2 },
-    { kind: 'ammo', weapon: 'heavy', amount: 2, x: 13.3, z: -11.3 },
-    { kind: 'ammo', weapon: 'sewing', amount: 24, x: 5.9, z: -1.2 },
+    { kind: 'ammo', x: 4.3, z: 1.2 },
+    { kind: 'ammo', x: -3.0, z: -11.2 },
+    { kind: 'weapon', weapon: 'heavy', amount: 3, x: 13.3, z: -11.3 },
+    { kind: 'ammo', x: 5.9, z: -1.2 },
     { kind: 'heart', amount: 1, x: 0, z: -10.4 },
     { kind: 'heart', amount: 1, x: -5.0, z: 10.8 },
   ],

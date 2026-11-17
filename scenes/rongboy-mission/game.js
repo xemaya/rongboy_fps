@@ -5,7 +5,7 @@
 import { FEEL } from '../rongboy-shooter-fps/feedback.js';
 import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, storeyAt, surfaceY, navGoal, inStairs } from './level.js';
 import { advanceAction, interruptAction } from './actions.js';
-import {SPECIAL_TYPES} from './attacks.js';
+import {SPECIAL_TYPES,ARROW_SPEED} from './attacks.js';
 import {launchBomb,advanceBombs} from './bombs.js';
 import {advanceSpecial,interruptSpecial,contactAttack,onSpecialDeath} from './special-enemies.js';
 
@@ -37,30 +37,34 @@ export const ENEMY_TYPES = {
 };
 
 // damage 在 range 以内是全额，之后线性衰减，到 2×range 降为 minDamage；飞过 maxRange 就散掉。
-// noise 是开枪声能惊动僵尸的距离（隔墙减半）。reserve 为 Infinity 表示备弹无限。
+// noise 是开枪声能惊动僵尸的距离（隔墙减半）。reserve 为 Infinity 表示备弹无限。pack 是捡一个弹药包补多少备弹。
 export const WEAPONS = [
-  { id: 'single', name: '线轴手枪', tag: '均衡 · 备弹无限', count: 1, damage: 2, chargeDamage: 1, range: 9, minDamage: 1, maxRange: 22,
-    mag: 6, reserve: Infinity, reload: 1.15, cooldown: 0.26, speed: 13, bounces: 2, noise: 5.5, push: 1.8, chargePush: 3.6, color: 0xf3dfa5 },
-  { id: 'scatter', name: '绒球霰弹', tag: '近战 · 三球齐发', count: 3, damage: 2, chargeDamage: 0, range: 4, minDamage: 1, maxRange: 11,
-    mag: 2, reserve: 4, reload: 1.7, cooldown: 0.55, speed: 12, bounces: 1, noise: 8, push: 0.72, chargePush: 0.55, color: 0xabc8bd },
-  { id: 'heavy', name: '棉被炮', tag: '重击 · 弹药稀少', count: 1, damage: 5, chargeDamage: 0, range: 12, minDamage: 3, maxRange: 24,
-    mag: 1, reserve: 1, reload: 2.0, cooldown: 0.5, speed: 10, bounces: 3, noise: 12, push: 9.2, chargePush: 3.6, color: 0xd6a789 },
+  { id: 'single', short: '手枪', name: '线轴手枪', tag: '兜底 · 备弹无限', count: 1, damage: 2, chargeDamage: 1, range: 6, minDamage: 1, maxRange: 22,
+    mag: 6, reserve: Infinity, reload: 1.15, cooldown: 0.36, speed: 13, bounces: 2, noise: 5.5, push: 1.8, chargePush: 3.6, color: 0xf3dfa5 },
+  { id: 'scatter', short: '霰弹', name: '绒球霰弹', tag: '贴脸 · 一枪倒', count: 3, fan: 0.11, damage: 2, chargeDamage: 0, range: 4, minDamage: 1, maxRange: 11,
+    mag: 2, reserve: 6, pack: 4, reload: 1.7, cooldown: 0.55, speed: 12, bounces: 1, noise: 8, push: 0.72, chargePush: 0.55, color: 0xabc8bd },
+  { id: 'heavy', short: '棉被炮', name: '棉被炮', tag: '一炮一个 · 破盾', count: 1, damage: 7, chargeDamage: 0, range: 12, minDamage: 4, maxRange: 24,
+    mag: 1, reserve: 3, pack: 2, reload: 2.0, cooldown: 0.5, speed: 10, bounces: 3, noise: 12, push: 9.2, chargePush: 3.6, color: 0xd6a789 },
   // 以下四把要在关卡里捡到（或者关卡的 arsenal 里写上）。feel：后坐力和受击手感借用前三把里的哪一把。
   // 静电枪：一道电弧，打中就把僵尸定住 stun 秒，还会跳到 chainRange 米内的另外 chain 只身上。几乎不伤血，很安静。
-  { id: 'stun', name: '静电枪', tag: '定身 · 电弧会跳', kind: 'zap', feel: 'single', count: 1, damage: 1, minDamage: 1, range: 7.5, stun: 2.6, chain: 2, chainRange: 2.8,
-    mag: 4, reserve: 4, reload: 1.8, cooldown: 0.55, noise: 3.5, color: 0x8fd8f0 },
+  { id: 'stun', short: '静电枪', name: '静电枪', tag: '定住一小群', kind: 'zap', feel: 'single', count: 1, damage: 1, minDamage: 1, range: 7.5, stun: 2.6, chain: 2, chainRange: 2.8,
+    mag: 4, reserve: 4, pack: 4, reload: 1.8, cooldown: 0.55, noise: 3.5, color: 0x8fd8f0 },
   // 缝纫机枪：按住连发的小纽扣，单发伤害低、有散布、不反弹。
-  { id: 'sewing', name: '缝纫机枪', tag: '连发 · 按住扫射', auto: true, feel: 'single', count: 1, damage: 1, chargeDamage: 0, range: 7, minDamage: 1, maxRange: 15,
-    mag: 24, reserve: 48, reload: 1.7, cooldown: 0.085, speed: 19, bounces: 0, spread: 0.05, radius: 0.055, noise: 6, push: 0.45, chargePush: 0, color: 0xe7836f },
+  { id: 'sewing', short: '缝纫机', name: '缝纫机枪', tag: '按住扫射 · 清一群', auto: true, feel: 'single', count: 1, damage: 1, chargeDamage: 0, range: 7, minDamage: 1, maxRange: 15,
+    mag: 32, reserve: 64, pack: 32, reload: 1.7, cooldown: 0.085, speed: 19, bounces: 0, spread: 0.05, radius: 0.055, noise: 6, push: 0.45, chargePush: 0, color: 0xe7836f },
   // 毛衣针：又直又快，一针能穿过 pierce 只僵尸再扎进墙里。按住是举枪瞄准（镜头拉近），蓄满伤害更高。
-  { id: 'needle', name: '毛衣针', tag: '穿透 · 按住瞄准', zoom: true, feel: 'heavy', count: 1, damage: 4, chargeDamage: 3, range: 22, minDamage: 3, maxRange: 40,
-    mag: 3, reserve: 6, reload: 2.1, cooldown: 0.7, speed: 34, bounces: 0, pierce: 2, straight: true, radius: 0.05, noise: 7, push: 2.2, chargePush: 1.4, color: 0xcfd6d8 },
+  { id: 'needle', short: '毛衣针', name: '毛衣针', tag: '打远处 · 扎穿棉甲', zoom: true, feel: 'heavy', count: 1, damage: 4, chargeDamage: 4, range: 22, minDamage: 3, maxRange: 40,
+    mag: 3, reserve: 6, pack: 3, reload: 2.1, cooldown: 0.7, speed: 34, bounces: 0, pierce: 2, pierceArmor: true, straight: true, radius: 0.05, noise: 7, push: 2.2, chargePush: 1.4, color: 0xcfd6d8 },
   // 毛线团手雷：抛出去弹几下，fuse 秒后（或者直接砸中僵尸时）炸开：blast 米内掉血、被推开，并被毛线缠住 tangle 秒走不快。按住扔得更远。
-  { id: 'yarn', name: '毛线团手雷', tag: '炸开 · 缠住一片', kind: 'grenade', feel: 'scatter', count: 1, damage: 4, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
+  { id: 'yarn', short: '毛线团', name: '毛线团手雷', tag: '炸开 · 缠住一片', kind: 'grenade', feel: 'scatter', count: 1, damage: 4, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
     blast: 2.6, tangle: 4, fuse: 1.5, mag: 1, reserve: 1, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.16, noise: 14, push: 5, chargePush: 0, color: 0xd9a6e0 },
 ];
 export const TANGLE_SPEED = 0.35;   // 被毛线缠住时的移动速度倍率
 const weaponIndex = id => WEAPONS.findIndex(w => w.id === id);
+// 手里两把：手枪固定（PISTOL），另一把可换（secondOf）；手雷不占手，单独一个键扔（GRENADE）。准则见 docs/fun-design.md 第 3 节。
+export const PISTOL = 0, GRENADE = weaponIndex('yarn');
+export const secondOf = s => s.owned.findIndex((own, i) => own && i !== PISTOL && i !== GRENADE);
+export const grenades = s => s.ammo[GRENADE].mag + s.ammo[GRENADE].reserve;
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const length = (x, z) => Math.hypot(x, z);
@@ -73,13 +77,14 @@ export function createGame({ level } = {}) {
     // 开局带哪些枪：关卡的 arsenal（武器 id 列表），不写就是最早的三把。其余的要捡。
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
     health: CONFIG.maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
-    charge: 0, charging: false, cooldown: 0, invul: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
+    charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
     enemies: [], balls: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
     pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false })),
-    player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, aimX: 0, aimY: 0, aimZ: -1 },
+    player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
+  if (!s.owned[GRENADE]) s.ammo[GRENADE] = { mag: 0, reserve: 0 };   // 关卡没给手雷：一颗都没有，捡到才有
   for (const e of level.enemies || []) spawn(s, e);
   return s;
 }
@@ -114,6 +119,13 @@ export function selectWeapon(s, index) {
   return true;
 }
 
+// Q：在手枪和另一把之间来回换
+export function swapWeapon(s) {
+  const second = secondOf(s);
+  if (second < 0) return false;
+  return selectWeapon(s, s.weapon === PISTOL ? second : PISTOL);
+}
+
 export function startReload(s) {
   const w = WEAPONS[s.weapon], a = s.ammo[s.weapon];
   if (s.phase !== 'playing' || s.reloading || a.mag >= w.mag || a.reserve <= 0) return false;
@@ -132,8 +144,15 @@ function finishReload(s) {
 function canShoot(s) {
   if (s.phase !== 'playing' || s.reloading) return false;
   if (s.ammo[s.weapon].mag > 0) return true;
-  if (!startReload(s)) s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id });
+  if (!startReload(s)) { s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id }); backToPistol(s); }
   return false;
+}
+
+// 特殊枪彻底打空了：自动换回手枪，不让人对着空枪按扳机
+function backToPistol(s) {
+  const a = s.ammo[s.weapon];
+  if (s.weapon === PISTOL || !s.owned[PISTOL] || a.mag > 0 || a.reserve > 0) return false;
+  return selectWeapon(s, PISTOL);
 }
 
 // 按下扳机。连发枪按住就一直打（在 step 里出弹）；其余的是开始蓄力，松开才发射。
@@ -154,14 +173,14 @@ export function releaseCharge(s, shot = null) {
 }
 
 // shot 可以给出实际枪口位置和方向（表现层算出来的）；不给就按玩家朝向从身前发射。
-export function fire(s, power = 0, shot = null) {
-  if (s.cooldown > 0 || !canShoot(s)) return false;
-  power = clamp(power, 0, 1);
-  const w = WEAPONS[s.weapon], p = s.player;
-  const dir = shot?.direction || { x: p.aimX, y: p.aimY || 0, z: p.aimZ };
+function muzzle(s, shot) {
+  const p = s.player, dir = shot?.direction || { x: p.aimX, y: p.aimY || 0, z: p.aimZ };
   const m = Math.hypot(dir.x, dir.y, dir.z) || 1, dx = dir.x / m, dy = dir.y / m, dz = dir.z / m;
-  const origin = shot?.origin || { x: p.x + dx * 0.63, y: p.y + 0.76, z: p.z + dz * 0.63 };
-  if (w.kind === 'zap') return zap(s, w, origin, { x: dx, y: dy, z: dz }, power);
+  return { origin: shot?.origin || { x: p.x + dx * 0.63, y: p.y + 0.76, z: p.z + dz * 0.63 }, dx, dy, dz };
+}
+
+// 把 w 这把枪的一次发射变成飞出去的毛球（不管弹药和冷却）
+function launch(s, w, power, origin, dx, dy, dz) {
   const flat = Math.hypot(dx, dz) || 1, rx = -dz / flat, rz = dx / flat;
   // 开枪声会立刻惊动目标，所以"偷袭"按开枪那一刻算：当时还没察觉的僵尸，这一枪打中它仍有加成。
   const quiet = s.enemies.filter(e => e.alive && e.enabled && unaware(e)).map(e => e.id);
@@ -169,7 +188,7 @@ export function fire(s, power = 0, shot = null) {
     if (s.balls.length >= CONFIG.maxBalls) expireBall(s, s.balls.shift());
     // 散布：霰弹是固定的扇形；连发枪每发朝左右、上下各偏一点（由发数决定，不用随机数，结果可重现）
     const jitter = w.spread ? [Math.sin(s.shots * 12.9898) * 43758.5453, Math.sin(s.shots * 78.233) * 12543.123].map(v => (v - Math.floor(v) - 0.5) * 2 * w.spread) : [0, 0];
-    const offset = (w.count === 1 ? 0 : (i - (w.count - 1) / 2) * (0.15 - power * 0.07)) + jitter[0];
+    const offset = (w.count === 1 ? 0 : (i - (w.count - 1) / 2) * ((w.fan ?? 0.15) - power * 0.07)) + jitter[0];
     const ax = dx + rx * offset, ay = dy + jitter[1], az = dz + rz * offset, n = Math.hypot(ax, ay, az);
     const speed = w.speed - (w.id === 'single' ? power * 2 : 0) + (w.kind === 'grenade' ? power * 4.5 : 0);
     const effective = w.id === 'heavy' ? 0.75 + power * 0.25 : power;
@@ -179,14 +198,48 @@ export function fire(s, power = 0, shot = null) {
       vx: ax / n * speed, vy: ay / n * speed + (w.kind === 'grenade' ? 2.2 : 0), vz: az / n * speed, dx: ax / n, dy: ay / n, dz: az / n, speed,
       damage: w.damage + (power >= 0.6 ? w.chargeDamage : 0), minDamage: w.minDamage, range: w.range, maxRange: w.maxRange,
       impulse: w.push + power * w.chargePush, stun: FEEL[w.feel || w.id].stun + power * 0.035,
-      pierce: w.pierce || 0, passed: {}, straight: !!w.straight, fuse: w.fuse || 0,
+      pierce: w.pierce || 0, pierceArmor: !!w.pierceArmor, passed: {}, straight: !!w.straight, fuse: w.fuse || 0,
       age: 0, travel: 0, lifetime: CONFIG.ballLife, bounceCount: 0, maxBounces: w.bounces, enemyHits: 0, hitTimes: {}, destroyed: false, quiet,
     });
   }
+}
+
+export function fire(s, power = 0, shot = null) {
+  if (s.cooldown > 0 || !canShoot(s)) return false;
+  power = clamp(power, 0, 1);
+  const w = WEAPONS[s.weapon], { origin, dx, dy, dz } = muzzle(s, shot);
+  if (w.kind === 'zap') return zap(s, w, origin, { x: dx, y: dy, z: dz }, power);
+  launch(s, w, power, origin, dx, dy, dz);
   s.ammo[s.weapon].mag--;
   s.shots++;
   s.cooldown = w.cooldown + (w.id === 'single' && power >= 0.6 ? 0.16 : 0);
   s.events.push({ type: 'shot', x: origin.x, y: origin.y, z: origin.z, dx, dy, dz, power, weapon: w.id });
+  emitNoise(s, origin.x, origin.z, w.noise, origin.y);
+  return true;
+}
+
+// 手雷：不占手，按 E 直接扔（按住扔得更远）。手里拿着哪把枪、是不是在换弹都不影响。
+export function beginThrow(s) {
+  if (s.phase !== 'playing' || s.lobbing || s.lobCooldown > 0) return false;
+  if (grenades(s) <= 0) { s.events.push({ type: 'dry', weapon: 'yarn' }); return false; }
+  s.lobbing = true; s.lob = 0;
+  return true;
+}
+export function releaseThrow(s, shot = null) {
+  if (!s.lobbing) return false;
+  s.lobbing = false;
+  const power = clamp((s.lob - 0.12) / (CONFIG.chargeTime - 0.12), 0, 1);
+  s.lob = 0;
+  return throwGrenade(s, power, shot);
+}
+export function throwGrenade(s, power = 0, shot = null) {
+  const w = WEAPONS[GRENADE], a = s.ammo[GRENADE];
+  if (s.phase !== 'playing' || s.lobCooldown > 0 || grenades(s) <= 0) return false;
+  const { origin, dx, dy, dz } = muzzle(s, shot);
+  launch(s, w, clamp(power, 0, 1), origin, dx, dy, dz);
+  if (a.reserve > 0) a.reserve--; else a.mag--;
+  s.shots++; s.lobCooldown = w.cooldown;
+  s.events.push({ type: 'shot', x: origin.x, y: origin.y, z: origin.z, dx, dy, dz, power, weapon: w.id, thrown: true });
   emitNoise(s, origin.x, origin.z, w.noise, origin.y);
   return true;
 }
@@ -359,7 +412,7 @@ function knockdown(s, e, dx, dz, source) {
 function damage(s, e, amount, dx, dz, impulse, source = 'ball', meta = {}) {
   if (!e.alive || !e.enabled) return;
   e.hp = Math.max(0, e.hp - amount);
-  if (SPECIAL_TYPES.has(e.type) ? interruptSpecial(e, meta) : interruptAction(e)) s.events.push({ type: 'interrupted', id: e.id, ...at(e), enemyType: e.type });
+  if (SPECIAL_TYPES.has(e.type) ? interruptSpecial(e, { ...meta, amount }) : interruptAction(e)) s.events.push({ type: 'interrupted', id: e.id, ...at(e), enemyType: e.type });
   if (unaware(e)) notice(s, e, 0, 'hit');
   else if (e.awareness === 'waking') e.wake = Math.min(e.wake, CONFIG.wakeHit);
   e.vx += dx * impulse * e.resistance; e.vz += dz * impulse * e.resistance;
@@ -390,11 +443,11 @@ function ballHit(s, b, e, incoming) {
     e.guardBroken = 1.8; interruptSpecial(e, { weapon: 'heavy' }); s.events.push({ type: 'guard-break', id: e.id, ...at(e) });
   }
   let amount = ballDamage(b);
-  if (e.armor && !back) amount = Math.max(1, Math.floor(amount * e.armor));
+  if (e.armor && !back && !b.pierceArmor) amount = Math.floor(amount * e.armor);   // 正面减半、向下取整：小纽扣和飞远了的手枪球（1 点）打不动；毛衣针扎得穿
   amount *= 1 + (back ? 1 : 0) + (sneak ? 1 : 0);
   b.hitTimes[e.id] = s.time; b.enemyHits++;
   s.hits++; if (back) s.backHits++; if (sneak) s.sneakHits++;
-  damage(s, e, amount, dx, dz, b.impulse, 'ball', { ballId: b.id, weapon: b.weapon, stun: b.stun, charged:b.power>=.6, back, sneak, armored: !!e.armor && !back, contactX: b.x, contactY: b.y, contactZ: b.z });
+  damage(s, e, amount, dx, dz, b.impulse, 'ball', { ballId: b.id, weapon: b.weapon, stun: b.stun, charged:b.power>=.6, back, sneak, armored: !!e.armor && !back && !b.pierceArmor, contactX: b.x, contactY: b.y, contactZ: b.z });
 }
 
 // ---------- 毛球 ----------
@@ -432,11 +485,11 @@ export function hurtPlayer(s,enemy,source='contact'){
  const dx=s.player.x-enemy.x,dz=s.player.z-enemy.z,n=Math.hypot(dx,dz)||1;
  s.health=Math.max(0,s.health-1);s.damageTaken++;s.invul=CONFIG.invulnerable;if(source!=='contact'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
  if(source==='contact'&&enemy.type==='crawler')s.slowUntil=Math.max(s.slowUntil,s.time+1.3);
- s.events.push({type:'hurt',x:s.player.x,z:s.player.z,base:s.player.y,by:enemy.id,source});return true;
+ s.events.push({type:'hurt',x:s.player.x,z:s.player.z,base:s.player.y,by:enemy.id,source,fromX:enemy.x,fromZ:enemy.z,health:s.health});return true;
 }
 function launchEnemyProjectile(s,e,target){
  if(s.enemyShots.length>=32)s.enemyShots.shift();const muzzle=e.muzzle||{y:Math.min(1.15,e.height*.63),forward:.46,side:-.22},y=e.y+muzzle.y;
- const b={id:s.nextId++,owner:e.id,x:e.x+Math.sin(e.heading)*muzzle.forward+Math.cos(e.heading)*muzzle.side,y,z:e.z+Math.cos(e.heading)*muzzle.forward-Math.sin(e.heading)*muzzle.side,r:.085,age:0,life:2.8,destroyed:false};const mx=target.x-b.x,my=target.y-b.y,mz=target.z-b.z,m=Math.hypot(mx,my,mz)||1;b.vx=mx/m*7.5;b.vy=my/m*7.5;b.vz=mz/m*7.5;s.enemyShots.push(b);s.events.push({type:'enemy-shot',id:b.id,x:b.x,y,z:b.z});
+ const b={id:s.nextId++,owner:e.id,x:e.x+Math.sin(e.heading)*muzzle.forward+Math.cos(e.heading)*muzzle.side,y,z:e.z+Math.cos(e.heading)*muzzle.forward-Math.sin(e.heading)*muzzle.side,r:.085,age:0,life:2.8,destroyed:false};const mx=target.x-b.x,my=target.y-b.y,mz=target.z-b.z,m=Math.hypot(mx,my,mz)||1;b.vx=mx/m*ARROW_SPEED;b.vy=my/m*ARROW_SPEED;b.vz=mz/m*ARROW_SPEED;s.enemyShots.push(b);s.events.push({type:'enemy-shot',id:b.id,x:b.x,y,z:b.z});
 }
 const attackApi={hurt:hurtPlayer,knockdown,projectile:launchEnemyProjectile,bomb:launchBomb};
 function advanceEnemyShot(s,b,dt){
@@ -554,19 +607,24 @@ function collect(s) {
   const p = s.player;
   for (const k of s.pickups) {
     if (k.taken || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
+    let got = null;   // 弹药包：实际补给了哪把枪、多少（界面提示用）
     if (k.kind === 'heart') {
       if (s.health >= CONFIG.maxHealth) continue;
       s.health = Math.min(CONFIG.maxHealth, s.health + k.amount);
     } else if (k.kind === 'ammo') {
-      const index = WEAPONS.findIndex(w => w.id === k.weapon);
+      // 弹药包不记种类：补的是手里那把特殊枪（没带特殊枪就先留在地上）。写了 weapon 的是指定给那把枪的；手雷是加一颗。
+      const index = k.weapon ? weaponIndex(k.weapon) : secondOf(s);
       if (index < 0) continue;
-      s.ammo[index].reserve += k.amount;
+      got = { weapon: WEAPONS[index].id, amount: k.amount ?? WEAPONS[index].pack ?? WEAPONS[index].mag };
+      s.ammo[index].reserve += got.amount;
+      if (index === GRENADE) s.owned[GRENADE] = true;
     } else if (k.kind === 'weapon') {
-      // 捡到一把枪：没有就装备上并换到手里，已经有了就只加备弹
-      const index = weaponIndex(k.weapon), w = WEAPONS[index];
+      const index = weaponIndex(k.weapon), w = WEAPONS[index], second = secondOf(s);
       if (index < 0) continue;
-      if (s.owned[index]) s.ammo[index].reserve += k.amount ?? w.reserve;
-      else { s.owned[index] = true; s.ammo[index] = { mag: w.mag, reserve: k.amount ?? w.reserve }; selectWeapon(s, index); }
+      if (index === GRENADE) { s.ammo[index].reserve += k.amount ?? 1; s.owned[index] = true; }
+      else if (s.owned[index]) s.ammo[index].reserve += (k.amount ?? w.reserve) + (k.mag ?? 0);   // 已经有这把：只加备弹
+      else if (second < 0) { s.owned[index] = true; s.ammo[index] = { mag: k.mag ?? w.mag, reserve: k.amount ?? w.reserve }; selectWeapon(s, index); }   // 第二把还空着：直接装备
+      else continue;   // 手里已经有另一把：留在地上，走近了按键才换（exchangeWeapon）
     } else if (k.kind === 'objective') {
       s.collected++; s.carrying = s.collected >= s.objectives;
       // 拿到东西会惊动周围：alarm 是 true 就是全图，是数字就是这么多米以内（按三维距离，隔着楼板减半）
@@ -577,8 +635,36 @@ function collect(s) {
       }
     }
     k.taken = true;
-    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: k.weapon, amount: k.amount, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
+    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: got?.weapon ?? k.weapon, amount: got?.amount ?? k.amount, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
   }
+}
+
+// 脚边有没有一把可以换的枪（手里已经有另一把特殊枪时，捡枪要按键确认）
+export function offeredWeapon(s) {
+  const p = s.player, second = secondOf(s);
+  if (s.phase !== 'playing' || second < 0) return null;
+  let best = null, nearest = CONFIG.pickupRadius * 1.25;
+  for (const k of s.pickups) {
+    if (k.taken || k.kind !== 'weapon' || Math.abs((k.y ?? 0) - p.y) > 1) continue;
+    const index = weaponIndex(k.weapon), d = length(k.x - p.x, k.z - p.z);
+    if (index < 0 || index === GRENADE || s.owned[index] || d > nearest) continue;
+    nearest = d; best = k;
+  }
+  return best;
+}
+// 换枪：手里的特殊枪连同剩下的弹药放在原地，拿起地上那把。放下的那把还能再换回来。
+export function exchangeWeapon(s) {
+  const k = offeredWeapon(s);
+  if (!k) return false;
+  const old = secondOf(s), index = weaponIndex(k.weapon), w = WEAPONS[index], left = s.ammo[old];
+  s.owned[old] = false; s.owned[index] = true;
+  s.ammo[index] = { mag: k.mag ?? w.mag, reserve: k.amount ?? w.reserve };
+  k.weapon = WEAPONS[old].id; k.mag = left.mag; k.amount = left.reserve;
+  s.ammo[old] = { mag: 0, reserve: 0 };
+  if (s.weapon === old) s.weapon = PISTOL;   // 先回到手枪，再换到新枪（selectWeapon 会清掉蓄力和换弹）
+  selectWeapon(s, index);
+  s.events.push({ type: 'exchange', id: k.id, weapon: w.id, dropped: k.weapon, x: k.x, z: k.z, base: k.y ?? 0 });   // 排在"换到手里"之后：界面上留下的是这一条提示
+  return true;
 }
 
 // 任务：clear = 清空所有僵尸；fetch = 拿到目标物后回到出口区域。
@@ -593,7 +679,7 @@ export function missionStatus(s) {
 }
 
 function finish(s, phase) {
-  s.phase = phase; s.charging = false; s.charge = 0;
+  s.phase = phase; s.charging = false; s.charge = 0; s.lobbing = false; s.lob = 0;
   // 一星通关，受伤不超过一次再加一星，在标准时间内完成再加一星。
   s.stars = phase === 'won' ? 1 + (s.damageTaken <= 1 ? 1 : 0) + (s.time <= (s.level.par ?? Infinity) ? 1 : 0) : 0;
   s.events.push({ type: 'round-end', phase, stars: s.stars });
@@ -608,9 +694,11 @@ export function step(s, dt, input = {}) {
   s.time += dt;
   s.cooldown = Math.max(0, s.cooldown - dt);
   s.invul = Math.max(0, s.invul - dt);
+  s.lobCooldown = Math.max(0, s.lobCooldown - dt);
   if (s.charging) s.charge = Math.min(CONFIG.chargeTime, s.charge + dt);
+  if (s.lobbing) s.lob = Math.min(CONFIG.chargeTime, s.lob + dt);
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }
-  else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0) startReload(s);   // 打空自动换弹
+  else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0 && !startReload(s)) backToPistol(s);   // 打空自动换弹；彻底没弹药就换回手枪
 
   let mx = input.x || 0, mz = input.z || 0;
   const m = length(mx, mz);
@@ -620,6 +708,7 @@ export function step(s, dt, input = {}) {
     if (n > 0.01) { p.aimX = input.aimX / n; p.aimY = (input.aimY || 0) / n; p.aimZ = input.aimZ / n; }
   }
   const moveSpeed=CONFIG.playerSpeed*(s.slowUntil>s.time?.62:1);
+  const fromX = p.x, fromZ = p.z;
   p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
   p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
   resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
@@ -689,6 +778,9 @@ export function step(s, dt, input = {}) {
   }
   resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
   p.y = surfaceY(L, p.x, p.z, p.y);
+
+  // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
+  if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }
 
   collect(s);
 

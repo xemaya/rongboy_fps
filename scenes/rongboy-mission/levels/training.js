@@ -17,6 +17,8 @@ export function trainingDef(requested=null){
    {id:'east-cushion',kind:'sofa',x:6,z:-5,w:2.1,d:1,h:.7,color:0xa697b4},
   ],
   enemies:single?[{type:kind,x:0,z:kind==='boss-leech'?-1:-2.2,state:'alert',heading:0}]:ZOMBIE_ROSTER.map((s,i)=>({type:s.id,x:[-7,0,7][i%3],z:[4.5,-1,-8][Math.floor(i/3)],state:'idle',heading:0})),
-  pickups:[{kind:'ammo',weapon:'scatter',amount:8,x:-2.7,z:5.5},{kind:'ammo',weapon:'heavy',amount:5,x:2.7,z:5.5},{kind:'heart',amount:1,x:-9.5,z:-.5},{kind:'heart',amount:1,x:9.5,z:-.5}],
+  arsenal:['single','scatter','yarn'],
+  // 四把特殊枪摆在出生点旁边，随便换着试；弹药包管够
+  pickups:[...['heavy','stun','sewing','needle'].map((weapon,i)=>({kind:'weapon',weapon,x:[-4.2,-1.4,1.4,4.2][i],z:single?6.8:9.3})),{kind:'ammo',x:-2.7,z:5.5},{kind:'ammo',x:2.7,z:5.5},{kind:'ammo',x:-8.5,z:8.5},{kind:'ammo',x:8.5,z:8.5},{kind:'ammo',weapon:'yarn',amount:2,x:0,z:single?8.4:11.0},{kind:'heart',amount:1,x:-9.5,z:-.5},{kind:'heart',amount:1,x:9.5,z:-.5}],
  };
 }

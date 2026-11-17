@@ -12,7 +12,8 @@ import assetData from '../rongboy-shooter-fps/models.js';
 import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
-  cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED } from './game.js';
+  cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED,
+  PISTOL, GRENADE, secondOf, grenades, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow } from './game.js';
 import { buildWorld } from './world.js';
 import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
 import { createArsenalAudio } from './sfx.js';
@@ -37,12 +38,13 @@ const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
-let mode = 'menu', ready = false, paused = false, down = false;   // mode：menu 主界面 / depart 出发的过渡 / playing / result
+let mode = 'menu', ready = false, paused = false, down = false, lobDown = false;   // mode：menu 主界面 / depart 出发的过渡 / playing / result
 let menu = null, toy = null, departT = 0;
 const DEPART = 1.25, onMenu = () => mode === 'menu' || mode === 'depart';
 let actors, menuHero, menuZombie, fpHero, gun, loadedBall;
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', zoom = 0;
+let hurtRoll = 0, hurtPitch = 0, lastHealth = CONFIG.maxHealth, nextBeat = 0, offerShown = '';   // 挨打时镜头偏的那一下；心跳声；换枪提示
 const keys = new Set(), errors = [], frameIntervals = [];
 
 // 把这张图的名字和说明写进界面；开始画面上列出所有地图，按数字键换图。
@@ -162,8 +164,27 @@ const part = (a, n) => a.parts.get(n);
 
 // ---------- 第一人称的手和枪 ----------
 
-// 手和枪以眼睛为中心整体缩小到 FP_SCALE 倍（大小、离眼睛的距离一起缩）：屏幕上的样子不变，
-// 但最远的枪口离眼睛只有 0.28 米，比玩家的碰撞半径（0.30 米）短，贴着墙站也伸不进墙里。
+// 手和枪永远画在场景前面，不会被墙、楼梯、窗帘挡住或切开。做法是行业里通用的那种：画手和枪的时候把深度压到最靠前的
+// 一小段（FP_DEPTH），场景里离眼睛 4 厘米以外的东西都排在它后面；手和枪自己内部的前后关系不变。
+// 之前只靠缩小（下面的 FP_SCALE），算的是"玩家离碰撞盒至少 0.30 米"，余量只有 2 厘米，而且楼梯的斜面、窗帘、门框这些
+// 不在碰撞盒里的东西管不到，所以走楼梯和贴墙时还是会穿。缩小仍然留着：手和枪的光照取的是眼前这一点的，不会取到墙里去。
+// 代价：僵尸贴到脸上时，枪也画在它前面。
+const FP_DEPTH = 0.1, fpErasers = [];
+function drawInFront(root) {
+  const gl = cine.renderer.getContext(), meshes = [];
+  root.traverse(o => { if (o.isMesh) meshes.push(o); });
+  // 画完以后，再把手和枪占的那些像素的深度改写成"无穷远"：不然环境遮蔽会以为眼前 4 厘米处有东西，
+  // 在贴近的墙上围着枪抹一圈黑。改写放在最后（所有透明物体之后），所以不影响别的东西和枪的前后关系。
+  const erase = new T.MeshBasicMaterial({ colorWrite: false, depthFunc: T.AlwaysDepth, depthWrite: true, transparent: true });
+  for (const o of meshes) {
+    o.onBeforeRender = () => { if (window.__rb.gunInFront) gl.depthRange(0, FP_DEPTH); };
+    o.onAfterRender = () => gl.depthRange(0, 1);
+    const e = new T.Mesh(o.geometry, erase); e.renderOrder = 1e6; e.frustumCulled = false; e.castShadow = e.receiveShadow = false;
+    e.onBeforeRender = () => gl.depthRange(1, 1); e.onAfterRender = () => gl.depthRange(0, 1);
+    o.add(e); fpErasers.push(e);
+  }
+}
+// 手和枪以眼睛为中心整体缩小到 FP_SCALE 倍（大小、离眼睛的距离一起缩）：屏幕上的样子不变。
 // 出球点仍按没缩小时的位置算（同一条视线上，远 1/FP_SCALE 倍），玩法不变。
 const FP_SCALE = 0.3;
 const fpAim = new T.Vector3();
@@ -234,6 +255,7 @@ function animateHero(dt, moving) {
     }
   }
   hero.flash(s.invul > 0 ? 0.4 + Math.sin(s.time * 24) * 0.25 : 0);
+  for (const e of fpErasers) e.visible = window.__rb.gunInFront;
 }
 
 // ---------- 僵尸 ----------
@@ -542,10 +564,15 @@ function processEvents() {
     else if(e.type==='yarn-blast'){burst(e.x,e.z,30,1.8,0xd5b58a,.7);sfx('kill');}
     else if(e.type==='ground-slam'){shake=Math.max(shake,.018);burst(e.x,e.z,20,1.3,0xe0c58e,.15);sfx('kill');}
     else if(e.type==='drain'){say('被吸取了 · 侧移或找掩体',1.2);}
-    else if (e.type === 'weapon') { say(WEAPONS[e.weapon].name, 1); syncWeapon(); sfx('switch'); }
+    else if (e.type === 'weapon') { say(WEAPONS[e.weapon].name, 1); syncWeapon(); sfx2('swap'); }
+    else if (e.type === 'exchange') {
+      // 换枪：地上那一格变成放下的那把
+      world.refreshPickup(s.pickups.find(k => k.id === e.id)); sfx2('weapon'); effects.ring({ x: e.x, y: e.base + 0.8, z: e.z }, 0xffe08a, 1.6, 0.4);
+      say(`换成${WEAPONS.find(w => w.id === e.weapon).name} · ${WEAPONS.find(w => w.id === e.dropped).name}放在这儿了`, 1.6);
+    }
     else if (e.type === 'reload') { sfx('switch'); }
     else if (e.type === 'reloaded') { sfx('switch'); }
-    else if (e.type === 'dry') { say(`${WEAPONS[s.weapon].name}没弹药了 · 按 1 换回手枪`, 1.6); sfx('switch'); }
+    else if (e.type === 'dry') { say(e.weapon === 'yarn' ? '毛线团用完了' : `${WEAPONS.find(w => w.id === e.weapon).name}打空了 · 换回手枪`, 1.4); sfx('switch'); }
     else if (e.type === 'zap') {
       // 电弧：从枪口到第一只，再一只只跳过去
       effects.zap(e.points); sfx2('zap');
@@ -594,10 +621,10 @@ function processEvents() {
     else if (e.type === 'pickup') {
       burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6);
       if (e.kind === 'weapon') { sfx2('weapon'); effects.ring({ x: e.x, y: base + 0.8, z: e.z }, 0xffe08a, 1.6, 0.4); } else sfx('switch');
-      say(e.kind === 'weapon' ? `捡到${WEAPONS.find(w => w.id === e.weapon).name}！按 ${WEAPONS.findIndex(w => w.id === e.weapon) + 1} 选它` : e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? (e.needed > 1 ? `${TX.got}${e.name} · ${e.collected} / ${e.needed}` : TX.got) : `${WEAPONS.find(w => w.id === e.weapon).name}弹药 +${e.amount}`, 1.4);
+      const got = WEAPONS.find(w => w.id === e.weapon);
+      say(e.kind === 'weapon' ? (e.weapon === 'yarn' ? `毛线团 +${e.amount ?? 1} · 按 E 扔` : `捡到${got.name}！Q 在两把之间换`) : e.kind === 'heart' ? '捡到棉花包 · ♥ +1' : e.kind === 'objective' ? (e.needed > 1 ? `${TX.got}${e.name} · ${e.collected} / ${e.needed}` : TX.got) : e.weapon === 'yarn' ? `毛线团 +${e.amount} · 按 E 扔` : `${got.name}弹药 +${e.amount}`, 1.4);
     } else if (e.type === 'hurt') {
-      shake = 0.04; sfx('hurt');
-      $('hurtFrame').classList.remove('damage'); void $('hurtFrame').offsetWidth; $('hurtFrame').classList.add('damage');
+      hurtFeedback(e);
       say(e.source === 'arrow' ? '被绒球箭击中！' : e.source === 'ground-slam' ? '震地！退离范围' : e.source === 'bomb-blast' || e.source === 'yarn-blast' ? '线团爆开了！' : e.source === 'leech-drain' ? '被吸取了！' : '被扑到了！拉开距离', 1);
     } else if (e.type === 'mission-complete') say(level.mission.type === 'fetch' ? TX.won : '全部清空！', 1.5);
     else if (e.type === 'round-end') showResult();
@@ -608,6 +635,45 @@ function processEvents() {
     sfx('hit', { weapon: feelOf(e.weapon), strength: Math.min(1.15, 3.5 / Math.max(2, dist)), pan });
     if (hitMarkerKind !== 'kill' || hitMarkerTime < 0.1) { hitMarkerTime = e.heavy ? 0.20 : 0.12; hitMarkerKind = e.heavy ? 'heavy' : ''; }
   }
+}
+
+// ---------- 受伤 ----------
+// 一次挨打回答三个问题（docs/fun-design.md 第 4 节）：挨打了吗（整屏边缘的玫红）、从哪边来的（那一侧更亮 + 一段指向来源的弧 +
+// 从那一侧飞出来的棉絮）、还剩多少（碎掉的那颗心；只剩一颗时边缘持续脉动、有心跳声）。镜头只朝反方向轻轻偏一下，不抖。
+const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+function hurtFeedback(e) {
+  // 来源相对镜头的方位：0 是正前方，正值在右边
+  const vx = (e.fromX ?? s.player.x) - s.player.x, vz = (e.fromZ ?? s.player.z) - s.player.z;
+  const a = Math.hypot(vx, vz) < 0.01 ? 0 : Math.atan2(vx * Math.cos(yaw) - vz * Math.sin(yaw), -vx * Math.sin(yaw) - vz * Math.cos(yaw));
+  const side = $('hurtSide'), arc = $('hurtArc');
+  side.style.setProperty('--hx', (50 + 50 * Math.sin(a)).toFixed(1) + '%'); side.style.setProperty('--hy', (50 - 50 * Math.cos(a)).toFixed(1) + '%');
+  arc.style.setProperty('--a', (a * 180 / Math.PI).toFixed(1) + 'deg');
+  restart($('hurtFrame'), 'damage'); restart(side, 'on'); restart(arc, 'on');
+  cottonBurst(a);
+  const k = reduced ? 0.25 : 1;
+  hurtRoll = -0.035 * Math.sin(a) * k; hurtPitch = 0.022 * Math.cos(a) * k;   // 朝挨打的反方向偏一下
+  sfx('hurt'); sfx2('ouch', { pan: Math.sin(a) * 0.6 });
+}
+// 棉絮：绒仔是布偶，挨打漏的是棉花。从挨打的那一侧屏幕边缘飞出几团，往里飘一小段再落下去，不到画面中间。
+function cottonBurst(a) {
+  const box = $('cotton'), W = innerWidth, H = innerHeight, unit = Math.min(W, H) / 100;
+  const ex = W * (0.5 + 0.5 * Math.sin(a)), ey = H * (0.5 - 0.5 * Math.cos(a)), inX = W / 2 - ex, inY = H / 2 - ey, n = Math.hypot(inX, inY) || 1;
+  for (let i = 0; i < (reduced ? 4 : 10); i++) {
+    const el = document.createElement('i'), size = (2.4 + Math.random() * 3.8) * unit, spread = (Math.random() - 0.5) * 0.5;
+    const x0 = ex - inY / n * spread * W - size / 2, y0 = ey + inX / n * spread * H - size / 2, go = (8 + Math.random() * 17) * unit;
+    const x1 = x0 + inX / n * go + (Math.random() - 0.5) * 8 * unit, y1 = y0 + inY / n * go, fall = (6 + Math.random() * 12) * unit, turn = (Math.random() - 0.5) * 220;
+    el.style.width = el.style.height = size + 'px'; box.appendChild(el);
+    el.animate([
+      { transform: `translate(${x0}px,${y0}px) scale(.35) rotate(0deg)`, opacity: 0 },
+      { transform: `translate(${(x0 + x1) / 2}px,${(y0 + y1) / 2}px) scale(1) rotate(${turn * 0.5}deg)`, opacity: 1, offset: 0.28 },
+      { transform: `translate(${x1}px,${y1 + fall}px) scale(.8) rotate(${turn}deg)`, opacity: 0 },
+    ], { duration: 950 + Math.random() * 650, easing: 'cubic-bezier(.2,.6,.4,1)' }).onfinish = () => el.remove();
+  }
+}
+function clearHurt() {
+  hurtRoll = hurtPitch = 0; lastHealth = CONFIG.maxHealth; document.body.classList.remove('danger');
+  for (const id of ['hurtFrame', 'hurtSide', 'hurtArc']) $(id).classList.remove('damage', 'on');
+  $('cotton').replaceChildren();
 }
 
 // ---------- 瞄准与镜头 ----------
@@ -665,12 +731,13 @@ function cameraFrame(dt) {
     zoom += (aiming - zoom) * Math.min(1, dt * 14);
     camera.fov = 65 - 31 * zoom + recoil.fov.x * motion;
     camera.rotation.order = 'YXZ';
-    camera.rotation.set(pitch + recoil.camera.x * motion, yaw, Math.sin(s.time * 49) * shake * motion);
+    camera.rotation.set(pitch + recoil.camera.x * motion + hurtPitch, yaw, Math.sin(s.time * 49) * shake * motion + hurtRoll);
     camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
     if (fpHero) { fpHero.world.position.set(0.30 + Math.sin(phase) * 0.004, -0.76 - Math.abs(Math.sin(phase)) * 0.004, -0.52).multiplyScalar(FP_SCALE); fpHero.model.rotation.y = Math.PI; }
   }
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
   shake = Math.max(0, shake - dt * 0.6);
+  const settle = Math.exp(-dt * 8); hurtRoll *= settle; hurtPitch *= settle;   // 挨打偏的那一下，约 0.4 秒回正
 }
 
 // ---------- HUD ----------
@@ -682,13 +749,18 @@ function hud() {
   $('weaponName').textContent = w.name; $('weaponTag').textContent = w.tag;
   $('ammo').textContent = `${a.mag} / ${a.reserve === Infinity ? '∞' : a.reserve}`;
   $('ammo').classList.toggle('low', a.mag === 0);
-  WEAPONS.forEach((weapon, i) => {
-    const slot = $('weapon' + i), ammo = s.ammo[i];
-    slot.hidden = !s.owned[i];
-    slot.classList.toggle('selected', i === s.weapon);
-    slot.classList.toggle('empty', ammo.mag === 0 && ammo.reserve === 0);
-    slot.textContent = `${i + 1} · ${ammo.reserve === Infinity ? ammo.mag : ammo.mag + ammo.reserve}`;
-  });
+  // 手里两把（Q 换）和手雷（E）
+  const second = secondOf(s), slotText = i => { const m = s.ammo[i]; return m.reserve === Infinity ? `${m.mag}/∞` : `${m.mag}+${m.reserve}`; };
+  $('slotA').classList.toggle('selected', s.weapon === PISTOL); $('slotAAmmo').textContent = slotText(PISTOL);
+  $('slotB').classList.toggle('selected', s.weapon !== PISTOL); $('slotB').classList.toggle('empty', second < 0 || s.ammo[second].mag + s.ammo[second].reserve === 0);
+  $('slotBName').textContent = second < 0 ? '空着' : WEAPONS[second].short; $('slotBAmmo').textContent = second < 0 ? '' : slotText(second);
+  $('nadeCount').textContent = '×' + grenades(s); $('slotG').classList.toggle('empty', grenades(s) === 0);
+  // 脚边有一把可以换的枪：提示按 F
+  const offer = mode === 'playing' && !paused ? offeredWeapon(s) : null, offerKey = offer ? offer.id + ':' + offer.weapon : '';
+  if (offerKey !== offerShown) {
+    offerShown = offerKey; $('swapPrompt').hidden = !offer;
+    if (offer) $('swapPrompt').innerHTML = `<kbd>F</kbd> 换成 <b>${WEAPONS.find(v => v.id === offer.weapon).name}</b> <small>放下${WEAPONS[second].name}</small>`;
+  }
   $('objective').textContent = status.type !== 'fetch' ? level.mission.title : status.carrying ? TX.carry : status.needed > 1 ? `${level.mission.title} · ${status.collected} / ${status.needed}` : level.mission.title;
   $('enemyCount').textContent = `${status.alive} / ${status.total}`;
   $('timer').textContent = clock(s.time);
@@ -696,13 +768,20 @@ function hud() {
   $('room').textContent = room;
   if (mode === 'playing' && room && room !== lastRoom) { if (lastRoom) say(room, 0.9); lastRoom = room; }
   const hearts = Math.max(0, Math.min(CONFIG.maxHealth, s.health));
-  $('hearts').textContent = '♥'.repeat(hearts) + '♡'.repeat(CONFIG.maxHealth - hearts);
-  $('hearts').setAttribute('aria-label', `${s.health} 颗心`);
+  if (hearts !== lastHealth) {
+    // 掉的那颗心碎一下；只剩一颗时整屏边缘持续脉动
+    [...$('hearts').children].forEach((el, i) => { el.className = i < hearts ? 'on' : 'off'; el.textContent = i < hearts ? '♥' : '♡'; if (i >= hearts && i < lastHealth) restart(el, 'pop'); });
+    $('hearts').setAttribute('aria-label', `${s.health} 颗心`); lastHealth = hearts;
+  }
+  const danger = mode === 'playing' && s.phase === 'playing' && hearts === 1;
+  document.body.classList.toggle('danger', danger);
+  if (danger && !paused && performance.now() > nextBeat) { nextBeat = performance.now() + 1100; sfx2('beat', { strength: 0.8 }); }
   const charging = s.charging ? s.charge / CONFIG.chargeTime : 0, reloading = s.reloading ? 1 - s.reload / w.reload : 0;
-  $('chargeFill').style.width = (s.reloading ? reloading : charging) * 100 + '%';
+  const lobbing = s.lobbing ? s.lob / CONFIG.chargeTime : 0;
+  $('chargeFill').style.width = (s.lobbing ? lobbing : s.reloading ? reloading : charging) * 100 + '%';
   $('charge').classList.toggle('full', !s.reloading && charging > 0.95);
   $('charge').classList.toggle('reloading', s.reloading);
-  $('chargeLabel').textContent = s.reloading ? '换弹中…' : a.mag === 0 ? '没弹药了' : w.auto ? '按住空格连发' : w.zoom ? (s.charging ? (charging > 0.95 ? '瞄稳了 · 松开射出' : '瞄准中…') : '按住空格瞄准 · 松开射出') : w.kind === 'grenade' ? (s.charging ? '松开扔出 · 按得越久越远' : '空格扔出 · 按住扔得更远') : w.kind === 'zap' ? '空格放电' : charging > 0.95 ? '松开空格 · 发射大毛球' : s.charging ? '蓄力中…' : '空格射击 · 按住蓄力';
+  $('chargeLabel').textContent = s.lobbing ? '松开 E 扔出毛线团 · 按得越久越远' : s.reloading ? '换弹中…' : a.mag === 0 ? '没弹药了' : w.auto ? '按住空格连发' : w.zoom ? (s.charging ? (charging > 0.95 ? '瞄稳了 · 松开射出' : '瞄准中…') : '按住空格瞄准 · 松开射出') : w.kind === 'grenade' ? (s.charging ? '松开扔出 · 按得越久越远' : '空格扔出 · 按住扔得更远') : w.kind === 'zap' ? '空格放电' : charging > 0.95 ? '松开空格 · 发射大毛球' : s.charging ? '蓄力中…' : '空格射击 · 按住蓄力';
   $('reticle').hidden = mode !== 'playing' || paused; $('reticle').style.scale = 1 + Math.min(0.35, recoil.back.x * 0.65);
   $('hitMarker').hidden = mode !== 'playing' || paused || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind; $('hitMarker').style.opacity = Math.min(1, hitMarkerTime * 18); $('hitMarker').style.scale = 1 + Math.min(0.35, hitMarkerTime);
@@ -712,7 +791,7 @@ function hud() {
 function snapshot() {
   return {
     mode, paused, phase: s.phase, time: s.time, health: s.health, stars: s.stars, kills: s.kills, total: s.total, alive: aliveCount(s),
-    weapon: WEAPONS[s.weapon].id, owned: WEAPONS.filter((w, i) => s.owned[i]).map(w => w.id), ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
+    weapon: WEAPONS[s.weapon].id, second: WEAPONS[secondOf(s)]?.id || null, grenades: grenades(s), offer: offeredWeapon(s)?.weapon || null, owned: WEAPONS.filter((w, i) => s.owned[i]).map(w => w.id), ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, y: s.player.y, z: s.player.z }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
     enemies: s.enemies.map(e => ({ id: e.id, type: e.type, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
@@ -731,8 +810,9 @@ function diagnostics() {
 
 function start() {
   if (!ready) return;
-  frameIntervals.length = 0; clearModels(); keys.clear(); down = false; paused = false; phase = 0; acc = 0; toy.reset();
+  frameIntervals.length = 0; clearModels(); keys.clear(); down = false; lobDown = false; paused = false; phase = 0; acc = 0; toy.reset(); clearHurt();
   recoil = createRecoil(); hitMarkerTime = 0; hitMarkerKind = ''; shake = 0; yaw = level.player.yaw || 0; pitch = 0; lastRoom = '';
+  for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
   s = createGame({ level }); mode = 'playing';
   document.body.classList.remove('menu', 'paused', 'leaving');
   $('intro').hidden = true; $('pausePanel').hidden = true; $('result').hidden = true;
@@ -754,7 +834,7 @@ function toyShoot() {
 }
 function setPause(value) {
   if (mode !== 'playing') return;
-  paused = value; keys.clear(); down = false; s.charging = false; s.charge = 0;
+  paused = value; keys.clear(); down = false; lobDown = false; s.charging = false; s.charge = 0; s.lobbing = false; s.lob = 0;
   if (loadedBall) loadedBall.visible = false;
   document.body.classList.toggle('paused', paused); $('pausePanel').hidden = !paused; $('pause').textContent = paused ? '继续' : '暂停';
   if (!paused) { last = performance.now(); $('view').focus(); unlock(); }
@@ -771,7 +851,7 @@ function showResult() {
   $('rKills').textContent = `${s.kills}/${s.total}`; $('rTime').textContent = clock(s.time); $('rSneak').textContent = s.backHits + s.sneakHits;
 }
 function toMenu() {
-  clearModels(); mode = 'menu'; paused = false; toy.reset(); recoil = createRecoil();
+  clearModels(); mode = 'menu'; paused = false; toy.reset(); recoil = createRecoil(); clearHurt();
   document.body.classList.add('menu'); document.body.classList.remove('paused', 'leaving');
   $('intro').hidden = false; $('result').hidden = true; $('pausePanel').hidden = true;
   menuHero.world.visible = true; menuZombie.world.visible = true; fpHero.world.visible = false; keys.clear(); menu.layout(); hidePickups();
@@ -808,13 +888,16 @@ addEventListener('keydown', e => {
     return;
   }
   if (mode !== 'playing' || paused) return;
-  if (!e.repeat && ((k.length === 1 && k >= '1' && k <= String(WEAPONS.length)) || k === 'q')) {
-    let index = Number(k) - 1;
-    if (k === 'q') { index = s.weapon; do index = (index + 1) % WEAPONS.length; while (!s.owned[index]); }   // Q：换到下一把手里有的
-    if (k !== 'q' && !s.owned[index]) say(`还没捡到${WEAPONS[index].name}`, 1);
+  // Q：在手枪和另一把之间换（1、2 也行）。E：扔毛线团，按住扔得更远。F：换脚边的枪。
+  if (k === 'q' || k === '1' || k === '2') {
+    if (e.repeat) return;
+    const second = secondOf(s), index = k === 'q' ? (s.weapon === PISTOL ? second : PISTOL) : k === '1' ? PISTOL : second;
+    if (index < 0) say('第二把枪还空着 · 屋里能捡到', 1.2);
     else if (selectWeapon(s, index)) { if (down) releaseCharge(s); down = false; keys.delete(' '); processEvents(); }
     return;
   }
+  if (k === 'e') { if (!e.repeat && !lobDown) { unlock(); lobDown = beginThrow(s); processEvents(); } return; }
+  if (k === 'f') { if (!e.repeat) { unlock(); if (exchangeWeapon(s)) { if (down) releaseCharge(s); down = false; keys.delete(' '); } processEvents(); } return; }
   if (!HELD.includes(k)) return;
   keys.add(k);
   if (k === ' ' && !e.repeat && !down) { down = true; unlock(); beginCharge(s); processEvents(); }
@@ -823,6 +906,7 @@ addEventListener('keyup', e => {
   const k = e.key.toLowerCase();
   keys.delete(k);
   if (k === ' ' && down) { down = false; if (mode === 'playing' && !paused) releaseCharge(s, shotParams()); }
+  if (k === 'e' && lobDown) { lobDown = false; if (mode === 'playing' && !paused) { releaseThrow(s, shotParams()); processEvents(); } }
 });
 addEventListener('blur', () => { if (mode === 'playing' && !paused) setPause(true); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'playing' && !paused && !q.has('test')) setPause(true); });
@@ -888,6 +972,7 @@ async function boot() {
   gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
   for (const actor of [menuHero, menuZombie, fpHero]) world.light(actor.world);
   camera.add(fpHero.world); fpHero.world.scale.setScalar(FP_SCALE); fpHero.world.visible = false;
+  if (!q.has('nofront')) drawInFront(fpHero.world);   // ?nofront=1：关掉，对比用
   cameraFrame(0); resize();
   await cine.warmup();
   ready = true; window.__ready = true;
@@ -904,6 +989,8 @@ boot().catch(fail);
 window.__rb = {
   get state() { return s; },   // 仅供调试：直接读写战斗状态
   cine, world, effects, governor,
+  hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },   // 调试：只演一遍受伤的画面，不扣心
+  gunInFront: true,   // 调试：false 时手和枪照普通物体画（对比穿模用）
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图
   snapshot, start,
   get menu() { return menu; }, get toy() { return toy; }, depart, toyShoot,

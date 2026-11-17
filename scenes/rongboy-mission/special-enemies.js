@@ -1,7 +1,7 @@
 // New enemy attacks. All damage/activation is routed back through the deterministic game API.
 // Multi-storey: heights are measured from the enemy's own floor (e.base); S is that floor's storey (walls and
 // furniture to path around). Attacks only start when the player stands on the same flat floor (see chase()).
-import {ATTACKS,SPECIAL_TYPES} from './attacks.js';
+import {ATTACKS,SPECIAL_TYPES,ARROW_SPEED,RANGED_GAP} from './attacks.js';
 import {clearPath,freePoint,lineOfSight} from './level.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const still={x:0,z:0,y:0};
@@ -12,6 +12,8 @@ export function interruptSpecial(e,meta={}){
  const heavy=meta.weapon==='heavy'||meta.charged;
  const vulnerable=['crawler-windup','crawler-strike','archer-aim','bomber-throw'].includes(e.action);
  const strong=['shield-windup','shield-charge','warden-windup','warden-call','leech-windup','leech-pull'].includes(e.action);
+ // 打断要打得够疼：1 点的小伤害（小纽扣、6 米外的手枪球）断不了拉弓和举弹，得靠近打，或者用够劲的枪
+ if(vulnerable&&!heavy&&(meta.amount??2)<2)return false;
  if(!vulnerable&&!(strong&&heavy))return false;
  recovery(e,e.type==='boss-warden'||e.type==='boss-leech'?2.8:1.8);e.interrupted=true;return true;
 }
@@ -37,16 +39,22 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
  }
  if(['crawler-windup','shield-windup','bomber-throw','archer-aim','warden-windup','warden-call','leech-windup'].includes(e.action)){
   // Ranged aim tracks briefly, then locks, leaving a visible dodge window.
-  if(e.action==='archer-aim'&&e.actionAge<.35){e.aimX=p.x;e.aimZ=p.z;e.heading=Math.atan2(p.x-e.x,p.z-e.z);}
+  // 锁定前一直跟着，并算足提前量：你照原样一直走，箭正好到。提前点被墙挡住就瞄你本人。锁定后不再动：这时换方向、停下都躲得开。
+  if(e.action==='archer-aim'&&e.actionAge<a.windup-a.lock){
+   // 提前的时间 = 锁定到出手的那一小段 + 箭飞过去的时间（按提前点的距离再算一遍）
+   let t=a.lock+d/ARROW_SPEED;t=a.lock+Math.hypot(p.x+(p.mvx||0)*t-e.x,p.z+(p.mvz||0)*t-e.z)/ARROW_SPEED;t*=a.lead;
+   const lead={x:p.x+(p.mvx||0)*t,z:p.z+(p.mvz||0)*t},aim=visible(s,e,lead)?lead:p;
+   e.aimX=aim.x;e.aimZ=aim.z;e.heading=Math.atan2(aim.x-e.x,aim.z-e.z);
+  }
   if(e.actionAge<a.windup)return still;
   if(e.action==='crawler-windup'||e.action==='shield-windup'){
    const target={x:e.aimX,z:e.aimZ};if(!clearPath(S,e,target,e.radius+.025,true)){recovery(e,1.2);return still;}
    const n=Math.hypot(target.x-e.x,target.z-e.z)||1;e.attackX=(target.x-e.x)/n;e.attackZ=(target.z-e.z)/n;set(e,e.type==='crawler'?'crawler-strike':'shield-charge');return still;
   }
-  if(e.action==='bomber-throw'){api.bomb(s,e,{x:e.aimX,z:e.aimZ});recovery(e,a.cooldown);return still;}
+  if(e.action==='bomber-throw'){api.bomb(s,e,{x:e.aimX,z:e.aimZ});s.rangedGate=s.time+RANGED_GAP;recovery(e,a.cooldown);return still;}
   if(e.action==='warden-call'){activateReserve(s,e,api,S);recovery(e,a.cooldown);return still;}
   if(e.action==='archer-aim'){
-   if(visible(s,e,{x:e.aimX,z:e.aimZ}))api.projectile(s,e,{x:e.aimX,y:(e.base||0)+1.0,z:e.aimZ});recovery(e,a.cooldown);s.events.push({type:'archer-release',id:e.id,x:e.x,z:e.z});return still;
+   if(visible(s,e,{x:e.aimX,z:e.aimZ}))api.projectile(s,e,{x:e.aimX,y:(e.base||0)+1.0,z:e.aimZ});s.rangedGate=s.time+RANGED_GAP;recovery(e,a.cooldown);s.events.push({type:'archer-release',id:e.id,x:e.x,z:e.z});return still;
   }
   if(e.action==='warden-windup'){
    s.events.push({type:'ground-slam',id:e.id,x:e.x,z:e.z,base:e.base||0,radius:a.radius});if(d<a.radius&&los)api.hurt(s,e,'ground-slam');e.attackCount++;recovery(e,a.cooldown);return still;
@@ -63,13 +71,15 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
  if(e.hit>0)return null;
  if(los)e.heading=Math.atan2(dx,dz);
  const ready=e.actionCooldown<=0;
+ // 远程出手要排队：别的弓手或炸弹客正在蓄势、或者上一次出手刚过，就先等着
+ const rangedFree=s.time>=(s.rangedGate||0)&&!s.enemies.some(o=>o!==e&&o.alive&&o.enabled&&(o.action==='archer-aim'||o.action==='bomber-throw'));
  const begin=action=>{set(e,action);e.aimX=p.x;e.aimZ=p.z;s.events.push({type:'attack-windup',id:e.id,enemyType:e.type,action,x:e.x,z:e.z});return still;};
  if(e.type==='crawler'&&ready&&d<a.range&&los)return begin('crawler-windup');
  if(e.type==='shielded'&&ready&&e.guardBroken<=0&&d<a.range&&d>1.0&&los)return begin('shield-windup');
- if(e.type==='bomber'&&los){if(d<2.8)return {x:-dx/d*.8,z:-dz/d*.8,y:0};if(ready&&d<a.range)return begin('bomber-throw');if(d<a.range)return still;}
+ if(e.type==='bomber'&&los){if(d<2.8)return {x:-dx/d*.8,z:-dz/d*.8,y:0};if(ready&&rangedFree&&d<a.range)return begin('bomber-throw');if(d<a.range)return still;}
  if(e.type==='archer'&&los){
   if(d<2.5){const tx=e.x-dx/d*.5,tz=e.z-dz/d*.5;if(freePoint(S,tx,tz,e.radius))return {x:-dx/d*.9,z:-dz/d*.9,y:0};}
-  if(ready&&d<a.range)return begin('archer-aim');if(d<a.range)return still;
+  if(ready&&rangedFree&&d<a.range)return begin('archer-aim');if(d<a.range)return still;
  }
  if(e.type==='boss-warden'){
   if(ready&&e.attackCount%3===2&&s.enemies.some(o=>o.alive&&!o.enabled&&o.reserveOf===e.id)&&los&&d<10){e.attackCount++;return begin('warden-call');}

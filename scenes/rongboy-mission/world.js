@@ -56,7 +56,7 @@ function pickupModel(k, weapons) {
     const glow = add(new T.TorusGeometry(0.34, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x7fd8ff, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
   }
-  const text = heart ? '♥ +1' : objective ? `★ ${k.name || '毛线篮'}` : gun ? `★ ${weapon?.name ?? ''}` : `${weapon?.name ?? ''} +${k.amount}`;
+  const text = heart ? '♥ +1' : objective ? `★ ${k.name || '毛线篮'}` : gun ? `★ ${weapon?.name ?? ''}` : weapon ? `${weapon.name} +${k.amount}` : '弹药包';   // 不写 weapon 的弹药包：补手里那把特殊枪
   const sprite = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 384, height: 96, size: 46 }), transparent: true, depthWrite: false }));
   sprite.scale.set(0.72, 0.18, 1); sprite.position.y = 0.42; g.add(sprite);
   g.position.set(k.x, (k.y ?? 0) + 0.55, k.z);
@@ -521,7 +521,13 @@ export function buildWorld(cine, level, weapons) {
 
   const pickups = new Map();
   for (const p of level.pickups) { const m = light(pickupModel(p, weapons)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
+  // 换枪以后，地上那一格变成放下的那把：重做它的模型和名牌
+  const refreshPickup = (k) => {
+    const old = pickups.get(k.id);
+    if (old) { old.removeFromParent(); old.traverse(o => { o.geometry?.dispose?.(); if (o.isSprite) { o.material.map?.dispose(); o.material.dispose(); } }); }
+    const m = light(pickupModel(k, weapons)); pickups.set(k.id, m); root.add(m); return m;
+  };
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
+  return { root, storeys, pickups, refreshPickup, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
 }

@@ -11,7 +11,7 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 15 套检查
+npm test                                                # 16 套检查
 ```
 
 已经克隆但 `cine-engine/` 是空的：`git submodule update --init`。
@@ -25,7 +25,7 @@ npm test                                                # 15 套检查
 | `dist/rongboy-shooter-fps.html` | 工坊版：60 秒生存，任务版的前身 |
 | `dist/rongboy-shooter.html`、`dist/rongboy.html` | 更早的斜俯视射击和跳棋样板，留作对照 |
 
-操作：WASD 移动，方向键转向和抬头低头，空格射击（按住：蓄力 / 连发 / 瞄准），数字键选枪，Q 轮换，R 换弹，Esc 暂停。
+操作：WASD 移动，方向键转向和抬头低头，空格射击（按住：蓄力 / 连发 / 瞄准），Q 在两把枪之间换，E 扔毛线团（按住扔得更远），F 换脚边的枪，R 换弹，Esc 暂停。
 
 ## 目录
 
@@ -83,6 +83,7 @@ git add cine-engine && git commit
 - 没有人完整打通过任何一张图，数值都是初值。
 - 开场片没有人看过成片、听过声音（做的时候只能看静帧）；主界面的小场景和出发过渡也只看过静帧。
 - 清晰度调节器换成了游戏自己的（`scenes/rongboy-mission/governor.js`）：目标 30 帧，先减像素数、保住抗锯齿和环境遮蔽，画面轻了会加回去。逻辑有模拟测试（`scripts/tests/rongboy-governor.mjs`），**但没有在前台窗口里实际跑过**：自动化用的浏览器窗口在后台，出帧被压到每秒一帧，量不了。在 Intel Mac（Radeon Pro 5300M，Retina 屏）上按同步测速推算，重的画面会停在约 100 万像素（1300×740 上下）、30 帧。测量和原因见 `scenes/rongboy-mission/DESIGN.md` 的"清晰度调节"。
-- 手里的枪贴墙不再插进去；追人的僵尸贴墙时会把手收回来（只改画面）。没管的：僵尸的头比碰撞半径大，正对墙时脸还会蹭进墙；侧身贴墙时垂着的手也可能碰到墙。
+- 第一人称的手和枪永远画在场景前面，不会再被墙、楼梯、窗帘吞掉（上一轮只靠缩小，没解决）；追人的僵尸贴墙时会把手收回来（只改画面）。没管的：僵尸的头比碰撞半径大，正对墙时脸还会蹭进墙；侧身贴墙时垂着的手也可能碰到墙。
 - 画面检查是在不出帧的隐藏面板里用同步推进的入口做的（`window.__rb`，见 `scenes/rongboy-mission/main.js` 末尾）；实时手感和帧率要在前台窗口确认。
-- 九类僵尸里，爬行者、持盾者、炸弹客、弓手和两个首领目前只在试战庭院出现，三张地图里还没摆。
+- 九类僵尸里，弓手、炸弹客、持盾者已经摆进三张地图；爬行者和两个首领仍只在试战庭院出现。
+- 2026-11-16 按玩法准则（`docs/fun-design.md`）改了一轮：手里两把枪（Q 换）加单独一个键的手雷、每把枪只管一件事、弓手会算提前量、受伤有方向和棉絮。数值是按枪表和两个机器人（`scripts/tests/rongboy-fun.mjs`）定的初值，**没有人实际玩过这一版**；受伤的动画和声音只看过静帧。

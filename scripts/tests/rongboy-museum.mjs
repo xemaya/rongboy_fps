@@ -2,6 +2,7 @@
 //   node scripts/tests/rongboy-museum.mjs
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/museum.js';
+import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
 import { compileLevel, clearPath, freePoint, routeTo, navRadius, roomAt, lineOfSight } from '../../scenes/rongboy-mission/level.js';
 import { createGame, step, fire, consumeEvents, missionStatus, CONFIG, WEAPONS, ENEMY_TYPES } from '../../scenes/rongboy-mission/game.js';
@@ -147,7 +148,8 @@ test('once roused, everyone finds the player in the central hall', () => {
   s.player.x = 0; s.player.z = 5.0;
   for (const e of s.enemies) e.awareness = 'alert';
   run(s, 90);
-  const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > 6.5);
+  const near = e => (e.type === 'archer' || e.type === 'bomber' ? ATTACKS[e.type].range : 6.5);   // 弓手和炸弹客停在自己的射程里
+  const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > near(e));
   assert.deepEqual(lost.map(e => `${e.type}@${e.x.toFixed(1)},${e.z.toFixed(1)}`), []);
   for (const e of s.enemies) assert.ok(freePoint(L, e.x, e.z, e.radius - 0.02) && Number.isFinite(e.x + e.z + e.y), `${e.type} ended inside a solid`);
 });

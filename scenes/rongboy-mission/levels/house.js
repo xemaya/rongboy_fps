@@ -12,7 +12,7 @@ export default {
     eyebrow: '第一关 · 家（三层楼与花园）',
     title: '上阁楼，<br>把毛线篮拿回来。',
     intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不会再多，也不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
-    how: ['从背后打 伤害 ×2 · 趁它没发现时打 再 ×2', '棉甲僵尸正面很硬，要绕到背后', '手枪弹药无限但要换弹 · 其余的枪和弹药要在屋里捡', '院门边就有一把静电枪：电住它，再绕到背后', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
+    how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：棉被炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
     start: '进入花园',
     hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
     got: '拿到毛线篮了！楼里被惊动了，快回院门',
@@ -30,8 +30,8 @@ export default {
   // 任务：上到阁楼的藏宝间拿回毛线篮，再带回院门。拿起它会惊动 alarm 米以内的僵尸（隔着楼板减半：差不多是整个三楼，加上正下方的一两只）。
   // 想改回"清空全部"只要换成 { type: 'clear', title: '清空整栋房子里的僵尸' }。
   mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 13, exit: garden },
-  // 开局带的枪；静电枪、缝纫机枪、毛衣针要在屋里捡（pickups 里 kind: 'weapon'）。
-  arsenal: ['single', 'scatter', 'heavy', 'yarn'],
+  // 开局带的：手枪、一把特殊枪（霰弹）、手雷。手里只拿得下两把，其余的特殊枪在屋里（pickups 里 kind: 'weapon'），走到跟前按 F 换。
+  arsenal: ['single', 'scatter', 'yarn'],
   // 折返楼梯：西边一跑往北上到半层平台，东边一跑往南上到上一层。
   stairs: { minX: -1.4, maxX: 1.4, mouthZ: -9, landingZ: -11.2, endZ: -12.5 },
 
@@ -127,10 +127,10 @@ export default {
     // 花园
     { type: 'walker', x: -4.5, z: 5.5, state: 'idle', heading: Math.PI / 2, patrol: [[3.5, 5.5], [-4.5, 5.5]] },
     { type: 'leaper', x: -7.6, z: 5.0, state: 'asleep', heading: 0 },
-    { type: 'walker', x: 7.0, z: 7.6, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'archer', x: 7.6, z: 4.6, state: 'idle', heading: -Math.PI / 2 },   // 第一只弓手：花园东北角，单独一只；站在院门口它看不见你（超过 8 米），绕过树篱才会被它发现
     // 门厅：第一只背对正门，给玩家一次从背后下手的机会
     { type: 'walker', x: 0, z: -0.5, state: 'idle', heading: Math.PI },
-    { type: 'leaper', x: 0.3, z: -5.6, state: 'asleep', heading: 0 },
+    { type: 'archer', x: 0.3, z: -5.6, state: 'idle', heading: 0 },   // 门厅尽头：一条直廊，两边的房门就是掩体
     // 客厅
     { type: 'leaper', x: -5.4, z: 1.8, state: 'idle', heading: Math.PI, patrol: [[-5.4, -2.1], [-5.4, 1.8]] },
     { type: 'walker', x: -7.6, z: -2.3, state: 'asleep', heading: Math.PI / 2 },
@@ -149,10 +149,10 @@ export default {
   ],
 
   pickups: [
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: 5.4, z: 9.6 },
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: -2.0, z: -7.6 },
-    { kind: 'ammo', weapon: 'heavy', amount: 2, x: 2.2, z: 2.4 },
-    { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
+    { kind: 'ammo', x: 5.4, z: 9.6 },
+    { kind: 'ammo', x: -2.0, z: -7.6 },
+    { kind: 'weapon', weapon: 'heavy', amount: 3, x: 2.2, z: 2.4 },
+    { kind: 'ammo', x: 8.3, z: -8.3 },
     { kind: 'heart', amount: 1, x: -8.3, z: 2.4 },
     { kind: 'heart', amount: 1, x: 1.0, z: -6.6 },
     { kind: 'weapon', weapon: 'stun', amount: 4, x: -1.4, z: 9.0 },      // 静电枪：就在院门边，开局就能拿
@@ -225,20 +225,20 @@ export default {
         { type: 'walker', x: 0, z: 1.0, state: 'idle', heading: Math.PI, patrol: [[0, -6.0], [0, 1.0]] },
         { type: 'heavy', x: -5.4, z: 1.2, state: 'asleep', heading: Math.PI / 2 },
         { type: 'leaper', x: -3.0, z: -1.2, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.0, -1.6], [-3.0, -1.2]] },
-        { type: 'walker', x: -6.0, z: 2.3, state: 'asleep', heading: Math.PI },
+        { type: 'archer', x: -6.0, z: 2.3, state: 'idle', heading: Math.PI },
         { type: 'leaper', x: -5.6, z: -7.2, state: 'asleep', heading: 0 },
         { type: 'leaper', x: -3.0, z: -4.2, state: 'idle', heading: -Math.PI / 2, patrol: [[-7.2, -4.2], [-3.0, -4.2]] },
         { type: 'leaper', x: 4.0, z: 2.2, state: 'asleep', heading: Math.PI },
-        { type: 'walker', x: 6.6, z: -0.6, state: 'idle', heading: -Math.PI / 2, patrol: [[3.0, -1.4], [6.6, -0.6]] },
+        { type: 'bomber', x: 6.6, z: -0.6, state: 'idle', heading: -Math.PI / 2, patrol: [[3.0, -1.4], [6.6, -0.6]] },   // 第一只炸弹客：儿童房
         { type: 'walker', x: 3.2, z: -7.6, state: 'asleep', heading: Math.PI / 2 },
         { type: 'heavy', x: 7.4, z: -4.9, state: 'idle', heading: -Math.PI / 2 },
-        { type: 'leaper', x: 3.4, z: -5.0, state: 'asleep', heading: 0 },
+        { type: 'bomber', x: 3.4, z: -5.0, state: 'asleep', heading: 0 },
       ],
       pickups: [
-        { kind: 'ammo', weapon: 'scatter', amount: 4, x: -2.2, z: 2.4 },
-        { kind: 'ammo', weapon: 'heavy', amount: 2, x: 8.3, z: -8.3 },
+        { kind: 'ammo', x: -2.2, z: 2.4 },
+        { kind: 'ammo', x: 8.3, z: -8.3 },
         { kind: 'heart', amount: 1, x: -2.4, z: -3.9 },
-        { kind: 'ammo', weapon: 'scatter', amount: 2, x: 2.3, z: 0.9 },
+        { kind: 'ammo', x: 2.3, z: 0.9 },
         { kind: 'weapon', weapon: 'needle', amount: 6, x: -8.2, z: -2.3 },   // 毛衣针：主卧
         { kind: 'weapon', weapon: 'stun', amount: 4, x: 0.9, z: 1.2 },
         { kind: 'ammo', weapon: 'yarn', amount: 1, x: 2.6, z: -8.3 },
@@ -291,22 +291,22 @@ export default {
         { id: 'treasure-crate', kind: 'crate', x: 5.2, z: 0.2, w: 1.0, d: 1.0, h: 1.0, color: 0xc0a078 },
       ],
       enemies: [
-        { type: 'walker', x: 0, z: 1.4, state: 'idle', heading: Math.PI, patrol: [[0, -5.5], [0, 1.4]] },
+        { type: 'shielded', x: 0, z: 1.4, state: 'idle', heading: Math.PI, patrol: [[0, -5.5], [0, 1.4]] },   // 第一只持盾者：走廊里绕不到背后，要用棉被炮、蓄力球或者反弹
         { type: 'leaper', x: -3.2, z: -7.6, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.4, -7.4], [-3.2, -7.6]] },
         { type: 'walker', x: -6.6, z: -4.4, state: 'asleep', heading: Math.PI / 2 },
-        { type: 'walker', x: -3.4, z: 2.0, state: 'asleep', heading: Math.PI },
-        { type: 'leaper', x: -6.6, z: -1.4, state: 'asleep', heading: Math.PI / 2 },
+        { type: 'archer', x: -3.4, z: 2.0, state: 'idle', heading: Math.PI },
+        { type: 'bomber', x: -6.6, z: -1.4, state: 'asleep', heading: Math.PI / 2 },
         { type: 'leaper', x: 3.4, z: -6.9, state: 'idle', heading: Math.PI / 2, patrol: [[7.4, -7.2], [3.4, -6.9]] },
-        { type: 'walker', x: 7.2, z: -4.0, state: 'asleep', heading: -Math.PI / 2 },
+        { type: 'shielded', x: 7.2, z: -4.0, state: 'idle', heading: -Math.PI / 2 },
         { type: 'heavy', x: 6.6, z: -0.8, state: 'idle', heading: -Math.PI / 2 },
         { type: 'leaper', x: 3.0, z: 1.4, state: 'asleep', heading: Math.PI / 2 },
       ],
       pickups: [
         { kind: 'objective', item: 'basket', name: '毛线篮', x: 7.8, z: 1.9 },
         { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
-        { kind: 'ammo', weapon: 'scatter', amount: 4, x: 8.2, z: -8.3 },
-        { kind: 'ammo', weapon: 'heavy', amount: 1, x: -7.9, z: 2.4 },
-        { kind: 'ammo', weapon: 'sewing', amount: 24, x: 3.0, z: -4.4 },
+        { kind: 'ammo', x: 8.2, z: -8.3 },
+        { kind: 'ammo', x: -7.9, z: 2.4 },
+        { kind: 'ammo', x: 3.0, z: -4.4 },
         { kind: 'ammo', weapon: 'yarn', amount: 1, x: -2.4, z: -8.3 },
       ],
     },

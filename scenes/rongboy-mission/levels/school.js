@@ -17,7 +17,7 @@ export default {
   par: 420,
   player: { x: 0, z: 11.2, yaw: 0 },
   menu: { x: 0, z: 10.6 },   // 主界面的两个角色站在校门里、积木墙前面
-  arsenal: ['single', 'scatter', 'heavy', 'yarn'],
+  arsenal: ['single', 'scatter', 'yarn'],
   mission: { type: 'clear', title: '把学校里的僵尸全部清走' },
   theme: {
     wall: 0xfff0c4, ceiling: 0xfffaf0, roofColor: 0xef7b6b, beams: false, yard: 'playground', rainbow: true,
@@ -28,7 +28,7 @@ export default {
     eyebrow: '第三关 · 学校（三间教室和小操场）',
     title: '上课铃响之前，<br>把僵尸请出去。',
     intro: '操场上、走廊里、三间教室里一共 20 只僵尸，不会再多。把它们全部击倒就过关。它们有的睡着，有的在巡逻，还没发现你。',
-    how: ['从背后打 伤害 ×2 · 趁它没发现时打 再 ×2', '校门边有一把静电枪 · 缝纫机枪在美术教室，毛衣针在科学教室', '积木墙和滑梯能挡住视线，储物柜后面可以躲', '3 颗心 · 受伤少、7 分钟内清完可得三星'],
+    how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：棉被炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '校门边有一把静电枪 · 缝纫机枪在美术教室，毛衣针在科学教室', '积木墙和滑梯能挡住视线，储物柜后面可以躲', '3 颗心 · 受伤少、7 分钟内清完可得三星'],
     start: '走进校门',
     hint: '积木墙挡着你 · 从左边或右边绕出去',
     won: '清空了！',
@@ -115,26 +115,26 @@ export default {
     { type: 'walker', x: -6.0, z: 4.2, state: 'idle', heading: Math.PI / 2, patrol: [[6.0, 4.2], [-6.0, 4.2]] },
     { type: 'leaper', x: -10.6, z: 4.6, state: 'asleep', heading: Math.PI / 2 },
     { type: 'walker', x: 10.6, z: 10.8, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'leaper', x: 10.6, z: 6.4, state: 'idle', heading: Math.PI },
-    { type: 'leaper', x: -6.4, z: 9.8, state: 'asleep', heading: Math.PI / 2 },
+    { type: 'archer', x: 10.6, z: 6.4, state: 'idle', heading: -Math.PI / 2 },   // 操场东头：滑梯和积木墙能挡箭
+    { type: 'bomber', x: -6.4, z: 9.8, state: 'asleep', heading: Math.PI / 2 },
     // 走廊
     { type: 'walker', x: -10.0, z: -1.0, state: 'idle', heading: Math.PI / 2, patrol: [[10.0, -1.0], [-10.0, -1.0]] },
-    { type: 'leaper', x: 11.2, z: -1.4, state: 'idle', heading: -Math.PI / 2 },
+    { type: 'archer', x: 11.2, z: -1.4, state: 'idle', heading: -Math.PI / 2 },   // 走廊东头：一条直廊，教室门是掩体
     { type: 'heavy', x: -11.3, z: -1.3, state: 'asleep', heading: Math.PI / 2 },
     // 一班教室
     { type: 'walker', x: -7.5, z: -6.68, state: 'asleep', heading: -Math.PI / 2 },
     { type: 'heavy', x: -10.2, z: -3.8, state: 'idle', heading: Math.PI / 2 },
     { type: 'leaper', x: -5.0, z: -4.9, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'leaper', x: -10.2, z: -8.2, state: 'idle', heading: 0 },
+    { type: 'shielded', x: -10.2, z: -8.2, state: 'idle', heading: 0 },
     // 美术教室
     { type: 'leaper', x: -2.4, z: -3.6, state: 'idle', heading: Math.PI / 2, patrol: [[2.4, -3.6], [-2.4, -3.6]] },
     { type: 'walker', x: 2.0, z: -7.3, state: 'asleep', heading: Math.PI },
     { type: 'walker', x: -1.8, z: -7.6, state: 'asleep', heading: 0 },
-    { type: 'leaper', x: 0, z: -7.6, state: 'idle', heading: 0 },
+    { type: 'bomber', x: 0, z: -7.6, state: 'idle', heading: 0 },
     // 科学教室
     { type: 'heavy', x: 10.7, z: -6.6, state: 'idle', heading: -Math.PI / 2 },
     { type: 'walker', x: 5.6, z: -4.0, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'leaper', x: 10.6, z: -3.2, state: 'asleep', heading: -Math.PI / 2 },
+    { type: 'shielded', x: 10.6, z: -3.2, state: 'idle', heading: -Math.PI / 2 },
     { type: 'leaper', x: 5.6, z: -8.4, state: 'idle', heading: Math.PI / 2, patrol: [[10.2, -8.4], [5.6, -8.4]] },
   ],
 
@@ -144,10 +144,10 @@ export default {
     { kind: 'weapon', weapon: 'needle', amount: 6, x: 11.3, z: -6.2 },
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: -4.0, z: -0.9 },
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: 11.0, z: 8.4 },
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: -11.3, z: -3.3 },
-    { kind: 'ammo', weapon: 'scatter', amount: 4, x: -10.6, z: 8.2 },
-    { kind: 'ammo', weapon: 'heavy', amount: 2, x: 5.0, z: -8.6 },
-    { kind: 'ammo', weapon: 'sewing', amount: 24, x: 4.0, z: -0.9 },
+    { kind: 'ammo', x: -11.3, z: -3.3 },
+    { kind: 'ammo', x: -10.6, z: 8.2 },
+    { kind: 'weapon', weapon: 'heavy', amount: 3, x: 5.0, z: -8.6 },
+    { kind: 'ammo', x: 4.0, z: -0.9 },
     { kind: 'heart', amount: 1, x: 3.3, z: -3.5 },
     { kind: 'heart', amount: 1, x: -11.0, z: 6.0 },
   ],

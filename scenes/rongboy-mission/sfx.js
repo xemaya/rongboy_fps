@@ -45,6 +45,12 @@ export function createArsenalAudio(ctx) {
     } else if (kind === 'boom') {    // 毛线团炸开：闷闷的一声，然后一把线散开
       tone(0, 150, 38, 0.5, 0.3); tone(0.005, 300, 70, 0.22, 0.12, 'triangle'); hiss(0, 0.4, 0.3, 700, 'lowpass');
       hiss(0.04, 0.5, 0.12, 2600, 'bandpass', 0.6); for (const d of [0.1, 0.16, 0.24, 0.33]) tone(d, 520 + Math.random() * 500, 300, 0.09, 0.025, 'triangle');
+    } else if (kind === 'ouch') {    // 挨打：闷的一下，加一声布撕开
+      tone(0, 170, 62, 0.22, 0.3); tone(0, 330, 140, 0.12, 0.1, 'triangle'); hiss(0.01, 0.16, 0.2, 2400, 'bandpass', 0.8); hiss(0.05, 0.22, 0.09, 5200, 'highpass', 0.7);
+    } else if (kind === 'beat') {    // 只剩一颗心：咚、咚
+      tone(0, 74, 46, 0.16, 0.22); tone(0.19, 66, 42, 0.18, 0.16);
+    } else if (kind === 'swap') {    // 换枪：咔、嗒
+      tone(0, 520, 360, 0.05, 0.08, 'triangle'); tone(0.07, 760, 620, 0.06, 0.07, 'triangle'); hiss(0, 0.05, 0.05, 3000, 'highpass', 0.7);
     } else if (kind === 'weapon') {  // 捡到一把新枪
       for (const [d, f] of [[0, 523], [0.09, 659], [0.18, 784], [0.28, 1047]]) tone(d, f, f * 0.99, 0.22, 0.06, 'triangle');
     }
