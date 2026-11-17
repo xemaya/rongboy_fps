@@ -410,9 +410,20 @@ export function buildWorld(cine, level, weapons) {
     for (let i = 0; i < 9; i++) { const x = gx - 0.72 + i * 0.18, h = 1.25 + Math.sin(i / 8 * Math.PI) * 0.3; k.soft(M('felt', 0xf3ead8), 0.13, h, 0.05, x, h / 2 + 0.06, gz, { r: 0.05 }); }
     for (const y of [0.45, 1.05]) k.soft(wood, 1.74, 0.07, 0.035, gx, y, gz + 0.04, { r: 0.012 });
     const stone = [0xd9cdb0, 0xcfc3a4, 0xe2d7bd];
-    const path = [[0, 4.45], [0.05, 5.2], [-0.04, 5.95]];
-    for (const s of [-1, 1]) path.push([s * 1.0, 6.5], [s * 2.0, 6.75], [s * 3.0, 7.05], [s * 3.3, 7.9], [s * 2.8, 8.75], [s * 1.9, 9.4], [s * 0.85, 9.9]);
-    path.push([-5.45, 3.8], [-5.2, 4.6], [-4.6, 5.3], [-3.7, 5.85], [-2.7, 6.2], [-1.7, 6.45]);
+    const path = [];
+    if (level.id === 'house') {   // 家：绕过花坛的两条弧线，再分一条去客厅的落地门（坐标是照着这张图摆的）
+      path.push([0, 4.45], [0.05, 5.2], [-0.04, 5.95]);
+      for (const s of [-1, 1]) path.push([s * 1.0, 6.5], [s * 2.0, 6.75], [s * 3.0, 7.05], [s * 3.3, 7.9], [s * 2.8, 8.75], [s * 1.9, 9.4], [s * 0.85, 9.9]);
+      path.push([-5.45, 3.8], [-5.2, 4.6], [-4.6, 5.3], [-3.7, 5.85], [-2.7, 6.2], [-1.7, 6.45]);
+    } else {                      // 别的图：从院门到南墙上每扇门各铺一条直的，压在家具底下的那几块不铺
+      for (const d of level.walls.filter(c => c.kind === 'lintel' && !c.alongZ && Math.abs(c.z - house.maxZ) < 0.01)) {
+        const from = [gx, G.maxZ - 1.0], to = [d.x, house.maxZ + 0.75], n = Math.max(1, Math.round(Math.hypot(to[0] - from[0], to[1] - from[1]) / 0.78));
+        for (let i = 0; i <= n; i++) {
+          const x = from[0] + (to[0] - from[0]) * i / n, z = from[1] + (to[1] - from[1]) * i / n;
+          if (!level.furnitureBoxes.some(c => x > c.minX - 0.35 && x < c.maxX + 0.35 && z > c.minZ - 0.35 && z < c.maxZ + 0.35)) path.push([x + (i % 2 ? 0.05 : -0.04), z]);
+        }
+      }
+    }
     if (built) for (const [x, z] of path) k.cyl(M('felt', stone[Math.floor(rnd() * 3)]), 0.3 + rnd() * 0.06, 0.33 + rnd() * 0.06, 0.035, x + (rnd() - 0.5) * 0.08, 0.004, z, { seg: 12 });
     // 沿围篱脚下的野花和蘑菇（都很矮，不挡路）
     for (let i = 0; i < 46; i++) {

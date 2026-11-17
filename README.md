@@ -11,7 +11,8 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 16 套检查
+npm test                                                # 17 套检查
+node scripts/map.mjs                                    # 地图工具：出草图、检查、体检、俯视图（docs/map-guide.md）
 ```
 
 已经克隆但 `cine-engine/` 是空的：`git submodule update --init`。
@@ -86,4 +87,5 @@ git add cine-engine && git commit
 - 第一人称的手和枪永远画在场景前面，不会再被墙、楼梯、窗帘吞掉（上一轮只靠缩小，没解决）；追人的僵尸贴墙时会把手收回来（只改画面）。没管的：僵尸的头比碰撞半径大，正对墙时脸还会蹭进墙；侧身贴墙时垂着的手也可能碰到墙。
 - 画面检查是在不出帧的隐藏面板里用同步推进的入口做的（`window.__rb`，见 `scenes/rongboy-mission/main.js` 末尾）；实时手感和帧率要在前台窗口确认。
 - 九类僵尸里，弓手、炸弹客、持盾者已经摆进三张地图；爬行者和两个首领仍只在试战庭院出现。
+- 2026-11-17 加了给 agent 用的地图工具（`docs/map-guide.md`、`scripts/map.mjs`、`scenes/rongboy-mission/mapkit/`）：写一份草图，工具算坐标，再用硬性检查和体检报告来改。示例图"奶奶家"（`?level=cottage`）是用它做的，登记了但不在游戏的地图列表里：3D 画面只看过八张静帧，**没有人玩过**。体检里的阈值是照现有三张图定的初值。
 - 2026-11-16 按玩法准则（`docs/fun-design.md`）改了一轮：手里两把枪（Q 换）加单独一个键的手雷、每把枪只管一件事、弓手会算提前量、受伤有方向和棉絮。数值是按枪表和两个机器人（`scripts/tests/rongboy-fun.mjs`）定的初值，**没有人实际玩过这一版**；受伤的动画和声音只看过静帧。

@@ -1,0 +1,195 @@
+# 地图指南：给写地图的 agent
+
+你写一份草图（房间怎么分、哪两间连通、每间放什么），工具把它展开成完整的坐标，再告诉你哪里不对、哪里还能更好。
+这份指南先讲准则，再讲工具。准则先于地图：改图之前先看第 1 节，改完把学到的写回第 8 节。
+玩法本身的准则（僵尸出什么题、枪管什么事）在 `docs/fun-design.md`，写地图前也要看。
+
+一张图五步：
+
+```
+node scripts/map.mjs draft <id> --theme school --rooms 5 --seed 3   # 随机出一份初稿（也可以照着 levels/cottage.js 自己写）
+node scripts/map.mjs check <id>      # 硬性检查：有 ERR 就不能合入
+node scripts/map.mjs review <id>     # 体检：一组数、两个机器人、带坐标的建议；再跑一次会标出和上次的变化
+node scripts/map.mjs preview <id>    # 字符俯视图 + SVG
+node scripts/map.mjs vocab           # 草图里能写的全部词
+```
+
+`<id>` 是 `scenes/rongboy-mission/levels/` 下的文件名。示例：`levels/cottage.js`（奶奶家）。
+
+## 1. 准则
+
+每一条后面括号里是哪个工具在看它。`check` 看的是硬性的，`review` 看的是程度。
+
+### 布局
+
+1.1 **开局安全。** 在出生点站一分钟，没有僵尸发现你。出生点前面放一件高的东西（`'blocks@start'`），或者让第一眼看得到的僵尸都睡着。（check：`unsafe-start`）
+
+1.2 **每间至少两个出口。** 只有一扇门的房间，进去就被堵住，僵尸也只能排着队从门口来。（check：`doors`）
+
+1.3 **路要成环。** 被追的时候能绕一圈回来，也能绕到僵尸背后。一个房间有两扇门就算一个环；整张图一个环都没有就是一条死胡同。（review：环）
+
+1.4 **门够宽。** 默认 1.5–1.8 米。最宽的僵尸（棉甲）要 1 米，门口 0.8 米内不能有家具。（check：`door-blocked`）
+
+1.5 **没有僵尸够不着的地方。** 家具要么贴死墙和别的家具，要么离开 0.8 米以上；中间留一条只有玩家挤得进去的缝，就成了安全屋。（check：`pocket`）
+
+1.6 **房间认得出。** 每间有自己的名字、地面和墙裙颜色，最好有一件别处没有的大件当地标。房间最窄处不小于 2.4 米。（check：`room-small`）
+
+### 掩体和视线
+
+2.1 **掩体少而准。** 高掩体（1.3 米以上）挡视线、挡箭；矮掩体（0.6–1.3 米）挡身体，站着能越过去开枪；0.6 米以下不算。有三只以上僵尸的房间至少要有一件。别堆成迷宫：现有的图里最挤的教室，走得了人的地面占 37%。（review：每间的高 / 矮掩体数、可走比例）
+
+2.2 **远程僵尸看得到的地方，3.5 米内要有东西能躲。** 弓手拉弓 1.15 秒，玩家每秒 3.15 米：看到它举弓再跑，3.5 米是极限。（review：远程僵尸一栏）
+
+2.3 **长直线要截断。** 弓手射程 11 米。屋里的直线视野太长，它会从很远就开打。现有的图是 25 米上下，报告里只给数，不报问题。（review：屋里最长的直线视野）
+
+### 遭遇
+
+3.1 **一次只教一种。** 沿着从出生点走进去的顺序，每个房间最多第一次出现一种特殊僵尸（弓手、炸弹客、持盾者、棉甲），而且第一次出场时屋里别太挤。同一间里特殊僵尸不超过两种。（check：`teach-one`、`too-many-kinds`；review：房间表的"新出现"）
+
+3.2 **打不动要成对。** 有持盾者就要有棉被炮，有棉甲就要有毛衣针，而且枪要放在它第一次出现之前的房间。（check：`no-answer`）
+
+3.3 **睡着、站岗、巡逻混着放。** 全睡着就是一路偷袭，全醒着就没有偷袭的机会。（review：三种状态的数）
+
+3.4 **密度。** 每 100 平米可走的地面 3–8 只。学校是 6.3 只。（review：密度）
+
+3.5 **开局留一口气。** 出生的那间最多三四只，最密的一间放到靠里的位置。（review）
+
+3.6 **补给。** 心 2 颗左右；弹药包大约每 8 只僵尸 1 个；地上至少一把特殊枪。（review：补给）
+
+### 机器人
+
+4. **偷懒不行，留神可以。** 两个机器人都只用手枪、瞄得一样准。偷懒的只会后退加开枪；留神的会看预告（瞄准线变红换方向、离开红圈、对盾用蓄力球）。一张合格的图：留神的打得完、挨打不多；偷懒的打不完，或者挨得明显更多。偷懒的也轻松打完，说明这张图可以无脑打。（review：机器人一栏）
+
+## 2. 怎么改一张图
+
+1. 出初稿或者自己写草图。草图写错了（房间不是矩形、两间不挨着却要开门、家具放不下），工具会直接说哪里错、怎么改。
+2. `check` 到 0 个错误。警告逐条看：多半是问题，确认是有意的可以留。
+3. `review`，从"问题"开始改，再看"可以考虑"。每条都带坐标。改一处，再跑一次，括号里是上一次的数。
+4. `preview --hits` 看俯视图，红叉（字符画里的 `*l`、`*k`）是机器人挨打的地方。
+5. 想微调某一样东西的位置：`print <id>` 看展开后的坐标，再在草图里给那一样写上 `x`、`z`。
+
+不要为了让数字好看去改图。数字只是提醒你去看那个地方；看了觉得没问题，就留着，并在地图文件的注释里写一句为什么。
+
+## 3. 草图怎么写
+
+地图文件就是一份草图：
+
+```js
+import { buildMap } from '../mapkit/build.js';
+
+export default buildMap({
+  id: 'cottage',                      // 文件名、网址里的名字：小写字母和数字
+  name: '奶奶家 · 小平房和菜园',       // 界面上的名字；" · " 前面的是短名
+  theme: 'home',                      // home / museum / school：墙、灯、光线、层高一整套
+  cell: 1.5,                          // layout 里一格几米
+  layout: [                           // 上北下南，一个字母一个房间，每个字母占的格子必须是一个矩形
+    'KKKKKHHBBBBB',
+    'LLLLLHHSSSSS',
+    'GGGGGGGGGGGG',                   // 室外的房间只能在最下面，占满整行
+  ],
+  doors: ['G-H', 'L-H', 'L-K', 'K-H'],   // 哪两间之间开一扇门；写两次就是两扇
+  rooms: {
+    G: { id: 'garden', name: '菜园', outdoor: true,
+      props: ['shed@e', 'tree', { look: 'hedge', place: 'start', h: 1.7 }],
+      zombies: ['walker:asleep', 'walker:patrol'],
+      pickups: ['stun', 'yarn'] },
+    // …
+  },
+});
+```
+
+**房间**（`rooms` 里每个字母一项）
+
+| 字段 | 意思 |
+|---|---|
+| `id`、`name` | 英文短名、界面上的名字 |
+| `outdoor: true` | 室外。只能有南边的一整条，玩家从它的南沿进来 |
+| `props` | 家具，见下 |
+| `zombies` | 僵尸，见下 |
+| `pickups` | 拾取物，见下 |
+| `surface`、`floor`、`accent` | 地面织物（boards / quilt / terry）、地面颜色、墙裙颜色。不写就按主题轮着配 |
+| `rug: true`、`lamp: false`、`windows: false`、`picture: false` | 加一块地毯；不要自动的灯、窗、画 |
+
+**家具**（`props`）
+
+| 写法 | 放在哪 |
+|---|---|
+| `'sofa'` | 不贴墙：这间屋里不贴墙的几件沿房间长边匀开，四周各留 0.85 米 |
+| `'sofa@n'` | 贴北墙（n / s / e / w），自动找最长的一段空墙，让开门口 |
+| `'sofa@ne'` | 贴北墙的东头（第二个字母是靠哪一头） |
+| `'sofa@c'` | 屋子正中 |
+| `'blocks@start'` | 挡在出生点前面 2.4 米 |
+| `{ look: 'sofa', wall: 'n', at: 0.3 }` | 贴北墙，沿墙 30% 的位置 |
+| `{ look: 'desk-kid', rows: 2, cols: 3 }` | 排成 2 行 3 列 |
+| `{ look: 'sofa', at: [0.3, 0.6] }` | 房间里 30%、60% 的位置（从西北角量） |
+| `{ look: 'sofa', x: 1.2, z: -3, face: 'e' }` | 绝对坐标，照放 |
+
+对象写法还可以加 `h`（改高度，比如 1.7 米的高树篱）、`color`、`item`（展柜里摆什么）、`turn: true`（转 90°）。
+
+**僵尸**（`zombies`）：`'walker'`、`'archer:idle'`、`'leaper:patrol'`、`'heavy:asleep'`。状态不写就由工具搭配。位置由工具找：不堵门、彼此散开、开局不被出生点看见；远程的放在离入口最远的地方，睡着的靠墙。要指定位置就写 `{ type: 'archer', x: 3, z: -5, state: 'idle', heading: 1.57 }`。
+
+**拾取物**（`pickups`）：`'heart'`、`'ammo'`、`'yarn'`，枪的名字（`'heavy'`、`'needle'`、`'stun'`、`'sewing'`、`'scatter'`），任务物品 `{ objective: '毛线篮', item: 'basket' }`。枪放在进门不远处，补给放在靠里的角落。
+
+**其他**
+
+| 字段 | 意思 |
+|---|---|
+| `mission: 'fetch'` | 找东西的任务（要有任务物品），拿到后回出生点。不写就是清空全图 |
+| `start: { room: 'G', at: 0.3 }` | 出生在哪间（必须在最下面一行）、南沿的哪个位置 |
+| `par`、`texts`、`arsenal`、`look` | 标准时间、界面文案、开局带的枪、光线。不写就按内容补 |
+| `auto: { windows: false }` | 整张图不自动开窗（lamps、pictures 同理） |
+| `raw: { furniture: [...], enemies: [...], pictures: [...], yard: [...], theme: {...} }` | 原样加进展开结果的东西（绝对坐标），格式同 `levels/school.js` |
+
+完整的词：`node scripts/map.mjs vocab`。
+
+## 4. 工具做不到的
+
+- **只支持单层。** 楼梯间是为"家"写死的，多层的图要手写（`levels/house.js`），`check` 能查，`review` 和机器人不支持。
+- **房子是一个长方形，院子在南面。** 渲染就是这么画的。L 形的房子、四面有院子都不行。
+- **不能新增模型。** 家具只有 `vocab` 里那些；新模型要先在 `cine-engine` 的布景库和 `world.js` 里做出来。
+- **好不好看要看 3D。** `node scripts/build.mjs --serve --port 5193 rongboy-mission`，打开 `rongboy-mission.html?level=<id>`。俯视图看不出灯光、颜色和穿模。
+- **好不好玩要人玩。** 机器人瞄得比人准、不会慌，它的通关时间不能当成人的。它只说明"偷懒不行、留神可以"和哪里最容易挨打。
+
+## 5. 合入之前
+
+1. `node scripts/map.mjs check <id>`：0 个错误；留下的警告在地图文件的注释里写明原因。
+2. `node scripts/map.mjs review <id>`：留神的机器人打得完；"问题"都处理过，或者写明为什么不改。
+3. `npm test` 全过（`scripts/tests/rongboy-mapkit.mjs` 会把登记过的图都检查一遍）。
+4. 新图先不进游戏里的地图列表（`draft` 只登记，不列出）。有人看过 3D 画面、玩过一遍，再 `node scripts/map.mjs register <id> --listed`。
+5. 提交说明里写清楚：哪些是人看过、玩过的，哪些只有工具查过。
+
+## 6. 文件
+
+| 文件 | 作用 |
+|---|---|
+| `scenes/rongboy-mission/levels/<id>.js` | 一张图（草图，或者手写的完整坐标） |
+| `scenes/rongboy-mission/levels/index.js` | 地图表：`LEVELS` 是能用网址打开的，`ORDER` 是游戏里列出来的 |
+| `scenes/rongboy-mission/mapkit/catalog.js` | 词汇表：家具、主题、僵尸、枪 |
+| `scenes/rongboy-mission/mapkit/build.js` | 生成器 `buildMap(草图)` |
+| `scenes/rongboy-mission/mapkit/check.js` | 硬性检查 `checkMap(关卡)` |
+| `scenes/rongboy-mission/mapkit/review.js`、`bots.js` | 体检报告和两个机器人 |
+| `scenes/rongboy-mission/mapkit/preview.js`、`draft.js` | 俯视图、随机草图 |
+| `scripts/map.mjs` | 命令行入口 |
+| `scripts/tests/rongboy-mapkit.mjs` | 工具自己的测试 |
+
+## 7. 现有地图的已知情况
+
+工具第一次跑现有三张图时查到的，留作参照：
+
+- **家**：二层儿童房和游戏室之间的门被一只箱子堵得只剩 0.4 米，已经把箱子挪开。
+- **学校**：操场同时第一次出现弓手和炸弹客，科学教室同时第一次出现棉甲和持盾者（`teach-one` 警告）。没有改：这是第三张图，前两张已经见过它们。
+- **博物馆**：只有 3 个弹药包配 27 只僵尸。没有改。
+
+## 8. 修订记录
+
+| 日期 | 起因 | 改了什么 |
+|---|---|---|
+| 2026-11-17 | 第一版。用户要一个给 agent 用的地图生成器，并且要有校验工具方便 agent 优化 | 草图格式、生成器、硬性检查、体检报告、两个机器人、俯视图、随机草图。阈值是照现有三张图定的：一开始"可走比例低于 55% 算太挤""每 100 平米超过 6.5 只算太密"，结果现有的图全中，改成 35% 和 8 只。远程僵尸的掩体距离一开始把贴着它的格子也算进去，最远的点总是它脚边，改成只算 4 米以外。机器人一开始只用一条线判断打不打得到，会一直打在门框上，改成按毛球的粗细量三条线，打 3 秒没打中就换位置。 |
+
+## 9. 出处
+
+- 掩体的高矮分档、"少而准"、敌人要露出一点：Level Design Book，book.leveldesignbook.com/process/combat/cover
+- 一次只用少数几种敌人、单一种类的遭遇当教学、不要做很难的埋伏：book.leveldesignbook.com/process/combat/encounter
+- 走廊、场地、环的类型：book.leveldesignbook.com/process/layout/typology
+- 环对射击游戏的作用：critpoints.net/2018/02/18/good-fps-map-design
+- 门和走廊的尺度要拿玩家的碰撞体去量、去走一遍：book.leveldesignbook.com/process/blockout/metrics

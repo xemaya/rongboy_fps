@@ -210,7 +210,7 @@ export default {
         { id: 'bath-stool', kind: 'bench', look: 'coffee', x: -5.0, z: -5.6, w: 1.4, d: 0.7, h: 0.45, color: 0xd9c7a4, accent: 0x9cc8c6 },
         // 儿童房
         { id: 'kids-bed', kind: 'bed', face: 'w', x: 7.9, z: 2.3, w: 2.2, d: 1.4, h: 0.55, color: 0x8fb7d9, accent: 0xe9c46a },
-        { id: 'kids-chest', kind: 'crate', look: 'chest', face: 's', x: 3.4, z: -2.55, w: 1.4, d: 0.7, h: 0.6, color: 0xe2a35c },
+        { id: 'kids-chest', kind: 'crate', look: 'chest', face: 's', x: 5.6, z: -2.55, w: 1.4, d: 0.7, h: 0.6, color: 0xe2a35c },
         { id: 'kids-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -1.6, w: 0.6, d: 1.8, h: 1.6, color: 0xe0b060 },
         { id: 'kids-table', kind: 'bench', look: 'coffee', x: 4.6, z: 0.6, w: 1.2, d: 1.2, h: 0.5, color: 0xd9b98c, accent: 0xe7836f },
         { id: 'kids-blocks', kind: 'crate', look: 'chest', face: 'e', x: 2.0, z: 2.6, w: 0.8, d: 0.8, h: 0.7, color: 0x9fc3e0 },
