@@ -6,6 +6,7 @@
 //   node scripts/map.mjs review <id> [--json]          体检：一组数 + 两个机器人 + 带坐标的建议，并和上一次比
 //   node scripts/map.mjs preview <id> [--hits]         字符俯视图（印出来）+ SVG（存到 shots/map/<id>.svg）；--hits 标出机器人挨打的地方
 //   node scripts/map.mjs print <id>                    展开后的完整坐标表（家具、僵尸、拾取物）
+//   node scripts/map.mjs suggest <id> [--kind clock]    给手写的地图建议机关和拉链暗格放在哪（生成器写的图不用，草图里写 gadget / stash 就行）
 //   node scripts/map.mjs register <id> [--listed]      把 levels/<id>.js 登记进地图表；--listed 同时进游戏里的地图列表
 //   node scripts/map.mjs list                          现有的地图
 // <id> 是 scenes/rongboy-mission/levels/ 下的文件名（不带 .js）。
@@ -20,6 +21,9 @@ import { reviewMap, formatReview } from '../scenes/rongboy-mission/mapkit/review
 import { asciiMap, svgMap, LEGEND } from '../scenes/rongboy-mission/mapkit/preview.js';
 import { draftPlan, planSource } from '../scenes/rongboy-mission/mapkit/draft.js';
 import { ENEMY_TYPES, WEAPONS } from '../scenes/rongboy-mission/game.js';
+import { GADGETS } from '../scenes/rongboy-mission/gadgets.js';
+import { compileLevel } from '../scenes/rongboy-mission/level.js';
+import { doorsOf, entryOf, gadgetSpot, stashSpot } from '../scenes/rongboy-mission/mapkit/place.js';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const levels = path.join(root, 'scenes/rongboy-mission/levels'), indexFile = path.join(levels, 'index.js'), outDir = path.join(root, 'shots/map');
@@ -69,6 +73,9 @@ if (command === 'vocab') {
   console.log('\n拾取物（pickups）。写法：\'heart\' 心；\'ammo\' 弹药包（补手里那把特殊枪）；\'yarn\' 毛线团手雷；枪的名字；{ objective: \'名字\', item: \'…\' } 任务物品');
   console.log('    枪：' + Object.entries(GUNS).map(([g, n]) => `${g}（${WEAPONS.find(w => w.id === g).name}，带 ${n} 发）`).join('，'));
   console.log('    任务物品的模型（item）：' + OBJECTIVE_ITEMS.join('、') + '。任务物品要配 mission: \'fetch\'');
+  console.log('\n机关（一张图只用一种，打一下触发，只能用一次）。写法：草图顶层 gadget: \'clock\'（不写就按主题），哪个房间要放就在那个房间写 gadget: true');
+  for (const [k, G] of Object.entries(GADGETS)) console.log(`    ${k.padEnd(8)} ${G.name}：${G.verb}，范围 ${G.radius} 米${Object.entries(THEMES).filter(([, t]) => t.gadget === k).map(([, t]) => `（${t.name}主题默认用它）`).join('')}`);
+  console.log('拉链暗格。写法：房间里 stash: [\'heart\']（只能放 heart / ammo / yarn），工具在这间屋找一段空墙开拉链');
   console.log('\n开局玩家手里有：线轴手枪（备弹无限）、绒球霰弹、1 个毛线团。');
 } else if (command === 'list') {
   const { ids, order } = await readIndex();
@@ -124,6 +131,24 @@ if (command === 'vocab') {
     console.log('拾取物'); for (const k of part.pickups || []) console.log(`  ${(k.name ?? k.weapon ?? k.kind).padEnd(8)} ${k.kind.padEnd(10)} (${k.x}, ${k.z})${k.amount ? '  ×' + k.amount : ''}`);
   });
   for (const n of def.notes || []) console.log('note  ' + n);
+} else if (command === 'suggest') {
+  const def = await load(id), L = compileLevel(def), parts = [def, ...(def.upper || [])];
+  const kind = typeof flags.kind === 'string' ? flags.kind : (parts.flatMap(q => q.gadgets || [])[0]?.kind ?? 'clock');
+  if (!GADGETS[kind]) die(`机关 "${kind}" 不存在（现有：${Object.keys(GADGETS).join('、')}）`);
+  console.log(`${def.name}：${GADGETS[kind].name}和拉链暗格的建议位置（坐标是这一层里的 x, z）。"用得上"是它生效范围里、或者冲向进门处的路上的僵尸数。`);
+  parts.forEach((part, floor) => {
+    const S = L.storeys[floor], from = floor && L.stairs ? { x: 0, z: L.stairs.outZ + 0.6 } : L.player, zips = [];
+    if (parts.length > 1) console.log(`\n—— ${floor + 1} 层 ——`);
+    for (const room of part.rooms.filter(r => !r.tower)) {
+      const doors = doorsOf(part, room), entry = entryOf(S, room, doors, from), enemies = L.enemies.filter(e => e.floor === floor && e.x >= room.minX && e.x <= room.maxX && e.z >= room.minZ && e.z <= room.maxZ);
+      const taken = [...L.pickups.filter(k => k.floor === floor), ...L.gadgets.filter(g => g.floor === floor)];
+      const g = gadgetSpot(S, { room, kind, doors, entry, enemies, taken, from });
+      const z = stashSpot(S, part, { room, doors, entry, house: L.house, yard: floor === 0 && L.outdoor.length > 0, WT: def.wallThickness, taken: zips, enemies, pickups: L.pickups.filter(k => k.floor === floor && !k.stash), from });
+      if (z) zips.push(z);
+      console.log(`  ${room.name}（${enemies.length} 只僵尸）  机关：${g ? `{ kind: '${kind}', x: ${g.x}, z: ${g.z} }  用得上 ${g.used} 只` : '放不下'}`);
+      console.log(`  ${' '.repeat(room.name.length * 2)}             暗格：${z ? `x: ${z.drop.x}, z: ${z.drop.z}, stash: { x: ${z.x}, z: ${z.z}, normal: [${z.normal}] }` : '没有合适的空墙'}`);
+    }
+  });
 } else if (command === 'register') {
   await load(id);
   const reg = await register(id, !!flags.listed);

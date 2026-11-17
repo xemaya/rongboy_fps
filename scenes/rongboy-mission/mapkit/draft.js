@@ -52,6 +52,9 @@ export function draftPlan({ id, name, theme = 'school', seed = 1, rooms = 5, att
         last = e.message;
         // 放不下：把报错的那间屋里最后一件同类的东西拿掉再试
         const key = /（(\w)）/.exec(e.message)?.[1], spec = plan.rooms[key];
+        // 机关、暗格放不下：这间不放了
+        if (spec && /拉链暗格/.test(e.message) && spec.stash?.length) { spec.stash.pop(); continue; }
+        if (spec && /放不下(闹钟|颜料桶|聚光灯)/.test(e.message) && spec.gadget) { delete spec.gadget; continue; }
         const list = !spec ? null : /僵尸/.test(e.message) ? spec.zombies : /拾取物/.test(e.message) ? spec.pickups : spec.props;
         if (!list?.length) break;
         list.pop();
@@ -107,6 +110,10 @@ function onePlan({ id, name, theme, rooms: count }, rand) {
   [deep[0], deep[Math.min(2, deep.length - 1)]].forEach(q => spec[q.key].pickups.push('heart'));
   for (let i = 0; i < Math.ceil(total / 7); i++) spec[inner[(i * 2 + 1) % inner.length].key].pickups.push('ammo');
   spec[inner[Math.floor(inner.length / 2)].key].pickups.push('yarn'); (spec.Y || spec[entry.key]).pickups.push('yarn');
+  // 机关：出生的那间一个（一进来就看得到），僵尸最多的两间各一个；暗格：最靠里的一间藏一颗心，中间的一间藏一个弹药包
+  (spec.Y || spec[entry.key]).gadget = true;
+  [...inner].filter(q => spec[q.key] !== (spec.Y || spec[entry.key])).sort((a, b) => spec[b.key].zombies.length - spec[a.key].zombies.length).slice(0, 2).forEach(q => { spec[q.key].gadget = true; });
+  spec[deep[0].key].stash = ['heart']; if (inner.length > 2) spec[inner[Math.floor(inner.length / 2)].key].stash = ['ammo'];
   const keys = [...(hasYard ? ['Y'] : []), ...order.map(q => q.key)];
   return { id, name: name ?? `${THEMES[theme].name}（草图 ${id}）`, theme, cell: 1.5, layout, doors: doors.map(d => d.join('-')), rooms: Object.fromEntries(keys.map(k => [k, spec[k]])) };
 }
@@ -115,10 +122,11 @@ function onePlan({ id, name, theme, rooms: count }, rand) {
 export function planSource(plan, { seed } = {}) {
   const q = v => (typeof v === 'string' ? `'${v.replace(/'/g, "\\'")}'` : typeof v === 'number' && Number.isInteger(v) && v > 0xffff ? '0x' + v.toString(16) : Array.isArray(v) ? `[${v.map(q).join(', ')}]`
     : v && typeof v === 'object' ? `{ ${Object.entries(v).map(([k, x]) => `${/^[A-Za-z_]\w*$/.test(k) ? k : q(k)}: ${q(x)}`).join(', ')} }` : String(v));
-  const room = ([key, r]) => `    ${key}: { id: ${q(r.id)}, name: ${q(r.name)},${r.outdoor ? ' outdoor: true,' : ''}\n      props: ${q(r.props || [])},\n      zombies: ${q(r.zombies || [])},\n      pickups: ${q(r.pickups || [])} },`;
+  const room = ([key, r]) => `    ${key}: { id: ${q(r.id)}, name: ${q(r.name)},${r.outdoor ? ' outdoor: true,' : ''}${r.gadget ? ' gadget: true,' : ''}${r.stash?.length ? ` stash: ${q(r.stash)},` : ''}\n      props: ${q(r.props || [])},\n      zombies: ${q(r.zombies || [])},\n      pickups: ${q(r.pickups || [])} },`;
   return `// ${plan.name}。用地图生成器出的初稿${seed != null ? `（种子 ${seed}）` : ''}：只保证通过硬性检查，要接着改。
 // 改法见 docs/map-guide.md：改这份草图 → node scripts/map.mjs check ${plan.id} → review ${plan.id} → preview ${plan.id}。
 // layout 一个字母一格（${plan.cell} 米），上北下南；doors 写哪两间连通；props / zombies / pickups 的写法见 map-guide 第 3 节。
+// gadget: true 是在这间放一个机关（这张图用哪种看主题）；stash 是在这间的墙上开一个拉链暗格。
 import { buildMap } from '../mapkit/build.js';
 
 export default buildMap({

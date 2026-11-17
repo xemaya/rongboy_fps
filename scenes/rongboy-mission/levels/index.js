@@ -7,4 +7,4 @@ import school from './school.js';
 import cottage from './cottage.js';
 
 export const LEVELS = { house, museum, school, cottage };
-export const ORDER = ['house', 'museum', 'school'];
+export const ORDER = ['house', 'museum', 'school', 'cottage'];

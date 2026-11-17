@@ -9,6 +9,7 @@ import { PlushKit, tone, cabinet, bookshelf, fridge, table, crate, sofa, bed, he
 import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, ottoman, spotLamp } from '../../cine-engine/library/structures/museum.js';
 import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../cine-engine/library/structures/school.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
+import { createToys } from './toys.js';
 
 const WALL = 0xf0e4c8, CEILING = 0xf6eedb, ROOF = 0xd98468, HEDGE = 0x7caa66, LAWN = 0xa5c57c;
 
@@ -64,9 +65,15 @@ function pickupModel(k, weapons) {
   return g;
 }
 
-function furniture(k, M, c) {
+// toys / floor：会动的那几样（骨架模型、地球仪、小黄鸭、盆栽）不并进整块网格，交给 toys 单独造在第 floor 层上
+function furniture(k, M, c, toys = null, floor = 0) {
   const look = c.look || c.kind;
   // 博物馆的展品
+  if (c.kind === 'plinth' && toys && look === 'skeleton') return toys.rattler(floor, c.id, c.x, c.z, kit => skeletonModel(kit, M, { ...c, x: 0, z: 0 }));
+  if (c.kind === 'plinth' && toys && c.item === 'globe') {
+    const l = plinth(k, M, { ...c, item: undefined }), [x, z] = l.pos(0, l.depth / 2);
+    return toys.globe(floor, c.id, x, c.h, z, Math.min(l.across, l.depth) * 0.9);
+  }
   if (c.kind === 'plinth') return look === 'dino' ? dinosaur(k, M, c) : look === 'skeleton' ? skeletonModel(k, M, c) : plinth(k, M, c);
   if (c.kind === 'case') return displayCase(k, M, c);
   if (c.kind === 'sarcophagus') return sarcophagus(k, M, c);
@@ -99,9 +106,12 @@ function furniture(k, M, c) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.sphere(M.button(0xe9c46a), 0.07, c.x + sx * (c.w / 2 - 0.2), 0.06, c.z + sz * (c.d / 2 - 0.16), { seg: 8, rings: 6 });
     k.soft(M.button(0x9fd6e4), c.w - 0.3, 0.03, c.d - 0.3, c.x, c.h - 0.012, c.z, { r: 0.012 });
     for (let i = 0; i < 7; i++) k.sphere(M('felt', 0xffffff), 0.07 + (i % 3) * 0.02, c.x - c.w * 0.3 + (i % 4) * 0.13, c.h + 0.02, c.z - 0.12 + (i % 3) * 0.12, { seg: 8, rings: 6 });
-    k.sphere(M('felt', 0xf2cf62), 0.085, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05, { seg: 10, rings: 8, sy: 0.8 });
-    k.sphere(M('felt', 0xf2cf62), 0.055, c.x + c.w * 0.18 + 0.07, c.h + 0.13, c.z + 0.05, { seg: 8, rings: 6 });
-    k.sphere(M.button(0xe58b3a), 0.022, c.x + c.w * 0.18 + 0.125, c.h + 0.125, c.z + 0.05, { seg: 6, rings: 4 });
+    if (toys) toys.duck(floor, c.id, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05);
+    else {
+      k.sphere(M('felt', 0xf2cf62), 0.085, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05, { seg: 10, rings: 8, sy: 0.8 });
+      k.sphere(M('felt', 0xf2cf62), 0.055, c.x + c.w * 0.18 + 0.07, c.h + 0.13, c.z + 0.05, { seg: 8, rings: 6 });
+      k.sphere(M.button(0xe58b3a), 0.022, c.x + c.w * 0.18 + 0.125, c.h + 0.125, c.z + 0.05, { seg: 6, rings: 4 });
+    }
     k.cyl(M.button(0xcfd6d8), 0.018, 0.018, 0.22, c.x + c.w / 2 - 0.12, c.h + 0.11, c.z - c.d / 2 + 0.1, { seg: 8 });
     k.sphere(M.button(0xcfd6d8), 0.035, c.x + c.w / 2 - 0.12, c.h + 0.23, c.z - c.d / 2 + 0.1, { seg: 8, rings: 6 });
   } else if (look === 'vanity') {
@@ -126,8 +136,11 @@ function furniture(k, M, c) {
     k.soft(M.glow(0x9fd3d8, 0.55), ns ? 0.84 : 0.006, 0.45, ns ? 0.006 : 0.84, sx, c.h + 0.34, sz, { r: 0 });
   } else if (c.kind === 'cabinet') {
     const l = cabinet(k, M, c), [x, z] = l.pos(l.across * 0.2, l.depth / 2), rnd = l.rnd;
-    k.cyl(M.button(0xd08a66), 0.07, 0.055, 0.1, x, c.h + 0.05, z, { seg: 10 });
-    for (let i = 0; i < 5; i++) k.sphere(M('terry', 0x6f9a5e), 0.05 + rnd() * 0.03, x + (rnd() - 0.5) * 0.1, c.h + 0.14 + rnd() * 0.1, z + (rnd() - 0.5) * 0.1, { seg: 8, rings: 6 });
+    if (toys) toys.plant(floor, c.id, x, c.h, z, rnd);
+    else {
+      k.cyl(M.button(0xd08a66), 0.07, 0.055, 0.1, x, c.h + 0.05, z, { seg: 10 });
+      for (let i = 0; i < 5; i++) k.sphere(M('terry', 0x6f9a5e), 0.05 + rnd() * 0.03, x + (rnd() - 0.5) * 0.1, c.h + 0.14 + rnd() * 0.1, z + (rnd() - 0.5) * 0.1, { seg: 8, rings: 6 });
+    }
   } else if (c.kind === 'bench') table(k, M, c, c.look || 'coffee');
   else crate(k, M, c, look);
 }
@@ -177,6 +190,9 @@ export function buildWorld(cine, level, weapons) {
   // ================================================================== 每一层
   // shell：外墙、窗、层间腰线（一直画，从花园看得到）；inner：地面、内墙、家具、灯（只画玩家所在层和上下相邻的层）
   const facadeDeco = new PlushKit();
+  // 会动的小东西（机关、拉链、吊灯之类）：每层一个组，稍后挂到那一层的室内组上，换层时一起隐藏
+  const toyFloors = level.storeys.map(() => new T.Group());
+  const toys = createToys({ Kit: PlushKit, M, label, floors: toyFloors, floorY: level.storeys.map(q => q.y) });
   function buildStorey(S) {
     const shell = new PlushKit(), k = new PlushKit(), top = S.index === N - 1, ground = S.index === 0;
     const deco = new PlushKit();   // 外立面上的小装饰：一直画，但不投影（阴影那一趟已经很重）
@@ -336,12 +352,12 @@ export function buildWorld(cine, level, weapons) {
     }
 
     // ---- 室内摆设
-    const lamps = S.lamps.map(l => { const p = TH.lamp === 'spot' ? spotLamp(k, M, { x: l.x, z: l.z, ceiling: H }) : pendantLamp(k, M, { x: l.x, z: l.z, ceiling: H, color: l.color ?? 0xffd9a0 }); return { x: p.x, y: p.y + S.y, z: p.z }; });
+    const lamps = S.lamps.map(l => { const p = TH.lamp === 'spot' ? spotLamp(k, M, { x: l.x, z: l.z, ceiling: H }) : toys.lamp(S.index, { x: l.x, z: l.z, ceiling: H, color: l.color ?? 0xffd9a0 }); return { x: p.x, y: p.y + S.y, z: p.z }; });   // 吊灯单独一组：被毛球碰到会晃
     for (const l of lamps) lampList.push({ p: [l.x, l.y - 0.05, l.z], color: TH.lampColor, power: TH.lampPower, range: TH.lampRange, ...(TH.lamp === 'spot' ? { dir: [0, -1, 0], cone: 1.15, soft: 0.6 } : {}) });
     for (const g of S.hangings) (g.kind === 'whale' ? whale : banner)(k, M, { ...g, ceiling: H });
     for (const r of S.rugs) rug(k, M, { ...r, y: inHouse(r.x, r.z) ? 0.026 : 0.012 });
     S.pictures.forEach((p, i) => picture(k, M, { ...p, seed: S.index * 31 + i + 1 }));
-    for (const c of S.furnitureBoxes) if (!ground || inHouse(c.x, c.z)) furniture(k, M, c);
+    for (const c of S.furnitureBoxes) if (!ground || inHouse(c.x, c.z)) furniture(k, M, c, toys, S.index);
     if (T0 && top) {   // 顶层西边那一跑的口上：栏杆
       const x0 = T0.minX, x1 = -T0.spine, z = T0.mouthZ;
       for (const x of [x0 + 0.06, (x0 + x1) / 2, x1 - 0.06]) k.soft(wood, 0.08, 1.0, 0.08, x, 0.5, z, { r: 0.02 });
@@ -353,6 +369,9 @@ export function buildWorld(cine, level, weapons) {
     return { shell: group(shell, 'shell'), inner: group(k, 'inner'), lamps };
   }
   const storeys = level.storeys.map(buildStorey);
+  storeys.forEach((q, i) => q.inner.add(toyFloors[i]));
+  for (const g of level.gadgets || []) toys.gadget(g);
+  level.pickups.forEach((p, i) => { if (p.stash) toys.zipper({ ...p, id: p.id ?? i + 1 }); });
 
   // ================================================================== 楼梯间：通高的竖井，折返楼梯
   const tower = new PlushKit();
@@ -397,7 +416,7 @@ export function buildWorld(cine, level, weapons) {
   // ================================================================== 花园：草地、围篱、院门、石板路
   const k = new PlushKit(), far = new PlushKit();   // far：屋顶和远景，不投影
   k.soft(M('terry', TH.lawn ?? LAWN), 120, 0.2, 120, hx, -0.1, (B.minZ + B.maxZ) / 2, { r: 0 });   // 草地顶面在 y = 0，室内地面高出 1.2 厘米
-  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) furniture(k, M, c);
+  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) furniture(k, M, c, toys, 0);
   const G = level.outdoor.length ? { minX: house.minX, maxX: house.maxX, minZ: house.maxZ, maxZ: B.maxZ } : null;
   if (G && TH.yard === 'playground') playground(k, M, { G, gateX: level.player.x, yard: level.yard || [] });   // 学校：铅笔围栏、蜡笔校门、地上的画线
   else if (G) {
@@ -481,7 +500,9 @@ export function buildWorld(cine, level, weapons) {
   puffs.count = cloudSpec.length + (chimney ? 4 : 0); puffs.visible = puffs.count > 0;   // 夜里的博物馆没有云也没有烟囱
   puffs.frustumCulled = false; puffs.castShadow = false; puffs.receiveShadow = false; root.add(puffs);
   const dummy = new T.Object3D();
+  let lastTime = null;
   function update(time) {
+    toys.update(lastTime === null ? 0 : Math.max(0, Math.min(0.05, time - lastTime)), time); lastTime = time;
     cloudSpec.forEach((c, i) => {
       const a = c.a + time * 0.004;
       dummy.position.set(hx + Math.cos(a) * c.dist - Math.sin(a) * c.dx, c.y, hz + Math.sin(a) * c.dist + Math.cos(a) * c.dx);
@@ -540,5 +561,5 @@ export function buildWorld(cine, level, weapons) {
   };
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, refreshPickup, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
+  return { root, storeys, pickups, refreshPickup, toys, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
 }

@@ -3,7 +3,9 @@
 // 同一份草图永远展开成同一张图（不用随机数）。草图怎么写见 docs/map-guide.md 第 3 节。不依赖 DOM。
 import { compileLevel, freePoint, clearPath, lineOfSight, routeTo, navRadius } from '../level.js';
 import { CONFIG, ENEMY_TYPES, WEAPONS } from '../game.js';
-import { PROPS, THEMES, ZOMBIES, GUNS, OBJECTIVE_ITEMS } from './catalog.js';
+import { PROPS, THEMES, ZOMBIES, GUNS, OBJECTIVE_ITEMS, STASH_ITEMS } from './catalog.js';
+import { GADGETS } from '../gadgets.js';
+import { gadgetSpot, stashSpot } from './place.js';
 
 // 草图写错了：消息里说清楚哪里错、怎么改（读的人多半是 agent）。
 export class PlanError extends Error { constructor(message) { super(message); this.name = 'PlanError'; } }
@@ -372,6 +374,36 @@ function populate(ctx) {
   }
 }
 
+// ---------- 5b. 机关和拉链暗格（docs/fun-design.md 第 9 节）----------
+// 一张图只用一种机关（草图的 gadget，不写就按主题）；房间里写 gadget: true 就在这间放一个，stash: ['heart'] 就在这间的墙上开一个暗格。
+function extras(ctx) {
+  const { rooms, def, plan, T, house, yard, WT, player } = ctx, kind = plan.gadget ?? T.gadget;
+  if (!GADGETS[kind]) fail(`机关 "${kind}" 不存在（现有：${names(GADGETS)}）`);
+  const within = (p, r) => p.x >= r.minX && p.x <= r.maxX && p.z >= r.minZ && p.z <= r.maxZ, taken = def.pickups.map(k => ({ x: k.x, z: k.z }));
+  for (const room of rooms) {
+    const where = `${room.name}（${room.key}）`, count = room.spec.gadget === true ? 1 : Number(room.spec.gadget || 0);
+    for (let i = 0; i < count; i++) {
+      const spot = gadgetSpot(ctx.L, { room, kind, doors: room.doors, entry: room.entry, enemies: def.enemies.filter(e => within(e, room)), taken })
+        || fail(`${where} 放不下${GADGETS[kind].name}：它四周要留 1 米，要离门口、僵尸和出生点远一点，还要从进门的地方看得到。减少这间屋中间的家具，或者换一间放`);
+      def.gadgets.push({ kind, x: spot.x, z: spot.z }); taken.push(spot);
+      if (!spot.used) ctx.notes.push(`${where} 的${GADGETS[kind].name}（${spot.x}, ${spot.z}）旁边没有僵尸用得上它：这间屋里加僵尸，或者把它换到有僵尸的房间`);
+    }
+  }
+  const L = compileLevel(def), zips = [];
+  for (const room of rooms) {
+    const where = `${room.name}（${room.key}）`;
+    for (const raw of room.spec.stash || []) {
+      if (!STASH_ITEMS.includes(raw)) fail(`${where} 的暗格 "${raw}"：拉链里只能放补给（${STASH_ITEMS.join('、')}），不放枪和任务物品`);
+      // 自动挂的画给暗格让位：先不管画找位置，找到以后把挨着的那幅画拿掉
+      const spot = stashSpot(L, { ...def, pictures: plan.raw?.pictures || [] }, { room, doors: room.doors, entry: room.entry, house, yard, WT, taken: zips, enemies: def.enemies, pickups: def.pickups })
+        || fail(`${where} 开不了拉链暗格：找不到一段 0.9 米以上、前面有空地的空墙（要让开门、窗、画和贴墙的家具）。换一间，或者挪开一件贴墙的家具`);
+      zips.push(spot);
+      def.pictures = def.pictures.filter(p => Math.hypot(p.x - spot.x, p.z - spot.z) > 1.1);
+      def.pickups.push({ ...(raw === 'heart' ? { kind: 'heart', amount: 1 } : raw === 'yarn' ? { kind: 'ammo', weapon: 'yarn', amount: 1 } : { kind: 'ammo' }), x: spot.drop.x, z: spot.drop.z, stash: { x: spot.x, z: spot.z, normal: spot.normal } });
+    }
+  }
+}
+
 // ---------- 6. 界面文案：草图里没写的，按内容补 ----------
 function texts(plan, def, rooms) {
   const short = plan.short ?? def.name.split(/\s*·\s*/)[0], n = def.enemies.length, fetch = def.mission.type === 'fetch';
@@ -419,7 +451,7 @@ export function buildMap(plan) {
     id: plan.id, name: plan.name, look: plan.look ?? T.look, bounds, height: plan.height ?? T.height, wallThickness: T.wallThickness, doorHeight: T.doorHeight,
     par: 0, player, arsenal: plan.arsenal ?? ['single', 'scatter', 'yarn'], mission, theme: { ...T.theme, ...(plan.raw?.theme || {}) },
     rooms: rooms.map(r => ({ id: r.id, name: r.name, minX: r.minX, maxX: r.maxX, minZ: r.minZ, maxZ: r.maxZ, ...(r.outdoor ? { outdoor: true, floor: r.floor } : { surface: r.surface, floor: r.floor, accent: r.accent }) })),
-    walls, windows: [], lamps: [], rugs: [], pictures: [], furniture: [], enemies: [], pickups: [],
+    walls, windows: [], lamps: [], rugs: [], pictures: [], furniture: [], enemies: [], pickups: [], gadgets: [],
   };
   const notes = [], ctx = { plan, T, rooms, house, yard, WT: T.wallThickness, player, startRoom, furniture: def.furniture, def, notes };
   placeProps(ctx);
@@ -427,7 +459,8 @@ export function buildMap(plan) {
   ctx.L = compileLevel(def);
   dress(ctx);
   populate(ctx);
-  for (const key of ['windows', 'lamps', 'rugs', 'pictures', 'enemies', 'pickups']) def[key].push(...(plan.raw?.[key] || []));
+  extras(ctx);
+  for (const key of ['windows', 'lamps', 'rugs', 'pictures', 'enemies', 'pickups', 'gadgets']) def[key].push(...(plan.raw?.[key] || []));
   for (const key of ['yard', 'hangings', 'skylights', 'menu']) if (plan.raw?.[key]) def[key] = plan.raw[key];
   // 标准时间：每只僵尸 21 秒，取整到半分钟（现有三张图大致是这个数）
   def.par = plan.par ?? Math.max(120, Math.round(def.enemies.length * 21 / 30) * 30);

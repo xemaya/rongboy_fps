@@ -13,7 +13,7 @@ const run = (s, seconds, input = {}) => { for (let i = 0; i < Math.round(seconds
 const L = compileLevel(def), S = L.storeys[0];
 
 test('the level table lists every map and each one compiles', () => {
-  assert.deepEqual(ORDER, ['house', 'museum', 'school']);
+  assert.deepEqual(ORDER, ['house', 'museum', 'school', 'cottage']);
   for (const id of ORDER) { const c = compileLevel(LEVELS[id]); assert.equal(c.id, id); assert.ok(c.texts.short && c.texts.intro && c.look); }
 });
 

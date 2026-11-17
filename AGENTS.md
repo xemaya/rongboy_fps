@@ -13,7 +13,7 @@ node scripts/map.mjs review <id>                                   # 体检：�
 node scripts/map.mjs preview <id>                                  # 俯视图
 ```
 
-示例图：`scenes/rongboy-mission/levels/cottage.js`。新图先不进游戏里的地图列表，有人看过、玩过再进。
+示例：`scenes/rongboy-mission/levels/cottage.js`（奶奶家，第四张地图，整张图是用这套工具写的）。新图先不进游戏里的地图列表，进不进由项目负责人定。
 
 ## 想改玩法
 

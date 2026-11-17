@@ -1,6 +1,8 @@
 // 关卡几何：把关卡数据编译成实体盒子，并提供碰撞、视线和寻路。
 // 渲染、战斗、寻路共用同一份盒子，所以看到的和撞到的一致。不依赖 DOM。
 
+import { GADGETS } from './gadgets.js';
+
 // 身体（玩家、僵尸）只被离地不高的盒子挡住；门楣之类悬空的盒子只挡毛球。
 const BODY_HEIGHT = 1.1;
 
@@ -54,7 +56,8 @@ export function compileLevel(def) {
   let stairs = null;
   if (def.stairs) {
     const t = def.stairs, spine = 0.1;
-    stairs = { ...t, spine, xA: (t.minX - spine) / 2, xB: (t.maxX + spine) / 2, run: t.mouthZ - t.landingZ, rise: SH / 2,
+    // lane：一跑楼梯有多宽。比它宽的身体（首领）上下不了楼
+    stairs = { ...t, spine, lane: Math.min(-t.minX, t.maxX) - spine, xA: (t.minX - spine) / 2, xB: (t.maxX + spine) / 2, run: t.mouthZ - t.landingZ, rise: SH / 2,
       landZ: (t.landingZ + t.endZ) / 2, outZ: t.mouthZ + 0.45, flights: n - 1 };
     // 竖井两侧是实心的（屋外的空地不属于关卡），两跑之间是一道通高的隔墙
     for (const [x0, x1, side] of [[B.minX, t.minX, 'w'], [t.maxX, B.maxX, 'e']]) {
@@ -77,6 +80,8 @@ export function compileLevel(def) {
     const y = i * SH, rooms = part.rooms, indoor = rooms.filter(r => !r.outdoor && !r.tower);
     const walls = (part.walls || []).flatMap((w, k) => wallBoxes(w, k, def, y));
     const furniture = (part.furniture || []).map(f => box({ ...f, solid: 'furniture' }, y));
+    // 机关也是实心的：毛球打中它才触发，身体绕着走
+    const gadgets = (part.gadgets || []).map((g, k) => box({ id: g.id ?? `gadget${i}-${k}`, kind: 'gadget', gadget: g.kind, x: g.x, z: g.z, w: GADGETS[g.kind].w, d: GADGETS[g.kind].d, h: GADGETS[g.kind].h }, y));
     const extra = [];
     if (indoor.length) {   // 这一层的天花板（也是上一层的楼板）
       const r = rectOf(indoor);
@@ -89,11 +94,11 @@ export function compileLevel(def) {
       if (i === 0) extra.push(box({ id: 'stair-cupboard', kind: 'cupboard', x: stairs.xB, z: stairs.mouthZ, w: stairs.maxX - stairs.spine, d: 0.1, h: def.height }, y));
       if (i === n - 1 && n > 1) extra.push(box({ id: 'stair-rail', kind: 'railing', x: stairs.xA, z: stairs.mouthZ, w: -stairs.minX - stairs.spine, d: 0.1, h: 1.0 }, y));
     }
-    const solids = [...walls, ...furniture, ...extra];
+    const solids = [...walls, ...furniture, ...gadgets, ...extra];
     return {
       index: i, y, height: def.height, rooms, outdoor: rooms.filter(r => r.outdoor),
       bounds: i === 0 ? B : { minX: B.minX, maxX: B.maxX, minZ: B.minZ, maxZ: house.maxZ },
-      walls, furnitureBoxes: furniture, solids,
+      walls, furnitureBoxes: furniture, gadgetBoxes: gadgets, solids,
       blockers: [...solids.filter(b => b.minY - y < BODY_HEIGHT), ...shared],
       windows: part.windows || [], lamps: part.lamps || [], rugs: part.rugs || [], pictures: part.pictures || [],
       skylights: part.skylights || [], hangings: part.hangings || [],
@@ -106,6 +111,7 @@ export function compileLevel(def) {
     solids: [...storeys.flatMap(s => s.solids), ...shared, ...stairBoxes],
     enemies: parts.flatMap((part, i) => (part.enemies || []).map(e => ({ ...e, floor: i }))),
     pickups: parts.flatMap((part, i) => (part.pickups || []).map(k => ({ ...k, floor: i, y: i * SH }))),
+    gadgets: storeys.flatMap(S => S.gadgetBoxes.map(b => ({ id: b.id, kind: b.gadget, x: b.x, z: b.z, floor: S.index, y: S.y }))),
   };
 }
 

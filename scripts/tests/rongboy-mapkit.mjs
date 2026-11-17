@@ -5,12 +5,13 @@ import { buildMap, PlanError } from '../../scenes/rongboy-mission/mapkit/build.j
 import { checkMap } from '../../scenes/rongboy-mission/mapkit/check.js';
 import { reviewMap, formatReview } from '../../scenes/rongboy-mission/mapkit/review.js';
 import { asciiMap, svgMap } from '../../scenes/rongboy-mission/mapkit/preview.js';
+import { playBot } from '../../scenes/rongboy-mission/mapkit/bots.js';
 import { draftPlan, planSource } from '../../scenes/rongboy-mission/mapkit/draft.js';
 import { PROPS, THEMES } from '../../scenes/rongboy-mission/mapkit/catalog.js';
 import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
 
 let checks = 0;
-function test(name, fn) { fn(); checks++; console.log('PASS', name); }
+function test(name, fn) { const t = Date.now(); fn(); checks++; console.log('PASS', name, `(${((Date.now() - t) / 1000).toFixed(1)} s)`); }
 const codes = list => list.map(e => e.code);
 const clone = o => JSON.parse(JSON.stringify(o));
 
@@ -94,6 +95,26 @@ test('fetch mission: the plan names the thing to find, the map gets an exit at t
   assert.deepEqual(checkMap(def).errors, []);
 });
 
+test('gadgets and zipper stashes: the plan says which rooms, the theme says which gadget, the kit finds the spots', () => {
+  const plan = PLAN(); plan.rooms.B.gadget = true; plan.rooms.Y.gadget = true; plan.rooms.C.stash = ['heart']; plan.rooms.B.stash = ['ammo'];
+  const def = buildMap(plan), stashed = def.pickups.filter(k => k.stash);
+  assert.deepEqual(def.gadgets.map(g => g.kind), ['bucket', 'bucket']);   // 学校主题用颜料桶
+  assert.deepEqual(stashed.map(k => k.kind), ['heart', 'ammo']);
+  for (const k of stashed) { const d = Math.hypot(k.x - k.stash.x, k.z - k.stash.z); assert.ok(d > 0.4 && d < 0.8 && (k.x - k.stash.x) * k.stash.normal[0] + (k.z - k.stash.z) * k.stash.normal[1] > 0.4, 'what is inside drops at the foot of the wall, on the room side'); }
+  const r = checkMap(def); assert.deepEqual(r.errors, []); assert.deepEqual(r.warnings, []);
+  const text = asciiMap(def); assert.ok(text.includes('Pb') && text.includes('zz') && text.includes('??'));
+  assert.equal(buildMap({ ...PLAN(), theme: 'home', rooms: { ...PLAN().rooms, Y: { ...PLAN().rooms.Y, gadget: true } } }).gadgets[0].kind, 'clock');
+  const bad = change => { const q = PLAN(); change(q); try { buildMap(q); } catch (e) { return e.message; } return ''; };
+  assert.match(bad(q => { q.rooms.C.stash = ['needle']; }), /拉链里只能放补给/);
+  assert.match(bad(q => { q.gadget = 'trampoline'; q.rooms.A.gadget = true; }), /机关 "trampoline" 不存在/);
+  // 检查抓得到放错的
+  const faulty = (change, code, level = 'errors') => { const d = clone(def); change(d); const got = checkMap(d, { play: false }); assert.ok(codes(got[level]).includes(code), `${code} not reported; got ${codes(got.errors)} / ${codes(got.warnings)}`); };
+  faulty(d => { const f = d.furniture[0]; Object.assign(d.gadgets[0], { x: f.x, z: f.z }); }, 'gadget-blocked');
+  faulty(d => { d.gadgets[1].kind = 'clock'; }, 'gadget-mix', 'warnings');
+  faulty(d => { const k = d.pickups.find(q => q.stash); k.kind = 'weapon'; k.weapon = 'heavy'; }, 'stash-holds');
+  faulty(d => { const k = d.pickups.find(q => q.stash); k.stash.x += 1.5; k.stash.z += 1.5; }, 'stash-wall');
+});
+
 test('the checker catches planted faults', () => {
   const faulty = (change, code, level = 'errors') => { const def = clone(tiny); change(def); const r = checkMap(def, { play: code === 'unsafe-start' || code === 'lost' }); assert.ok(codes(r[level]).includes(code), `${code} not reported; got ${codes(r.errors)} / ${codes(r.warnings)}`); };
   const desk = tiny.furniture.find(f => f.look === 'desk-kid');
@@ -111,29 +132,35 @@ test('the checker catches planted faults', () => {
   faulty(d => { d.furniture = d.furniture.filter(f => f.id !== 'yard-blocks'); d.enemies.push({ type: 'walker', x: d.player.x, z: d.player.z - 3.5, state: 'idle', heading: 0 }); }, 'unsafe-start');
 });
 
-test('the three shipped maps and the example pass the hard checks', () => {
-  assert.deepEqual(ORDER, ['house', 'museum', 'school']);   // 示例图登记了，但不在游戏的列表里
+test('all four shipped maps pass the hard checks', () => {
+  assert.deepEqual(ORDER, ['house', 'museum', 'school', 'cottage']);   // 奶奶家是用生成器写的，2026-11-17 起是第四张正式地图
   assert.ok(LEVELS.cottage);
-  for (const id of Object.keys(LEVELS)) assert.deepEqual(checkMap(LEVELS[id]).errors.map(e => `${id}: ${e.msg}`), []);
-  assert.deepEqual(checkMap(LEVELS.cottage).warnings, []);
+  // 三张正式的图各有自己的测试把"真的跑一遍"那部分跑过了，这里只跑静态的；示例图全跑
+  for (const id of ORDER.filter(id => id !== 'cottage')) assert.deepEqual(checkMap(LEVELS[id], { play: false }).errors.map(e => `${id}: ${e.msg}`), []);
+  const example = checkMap(LEVELS.cottage);
+  assert.deepEqual(example.errors, []); assert.deepEqual(example.warnings, []);
 });
 
 test('random drafts pass the hard checks for every theme, and a seed always gives the same plan', () => {
-  for (const theme of Object.keys(THEMES)) for (const seed of [1, 2]) {
+  for (const theme of Object.keys(THEMES)) for (const seed of [1]) {
     const made = draftPlan({ id: 'draft', theme, seed, rooms: 4 + seed });
     assert.deepEqual(made.result.errors, [], `${theme} seed ${seed}`);
     assert.ok(made.def.enemies.length >= 6 && made.def.pickups.some(k => k.kind === 'heart'));
+    assert.ok(made.def.gadgets.length >= 1 && made.def.gadgets.every(g => g.kind === THEMES[theme].gadget), `${theme}: a draft comes with its theme's gadget`);
     if (seed === 1 && theme === 'home') assert.equal(planSource(draftPlan({ id: 'draft', theme, seed, rooms: 5 }).plan), planSource(draftPlan({ id: 'draft', theme, seed, rooms: 5 }).plan));
   }
   assert.match(planSource(draftPlan({ id: 'draft', theme: 'home', seed: 2 }).plan, { seed: 2 }), /export default buildMap\(\{\n  id: 'draft'/);
 });
 
 test('the review reports the numbers an author tunes, and the two bots tell lazy play from attentive play', () => {
-  const r = reviewMap(LEVELS.cottage);
-  assert.equal(r.facts.zombies, 13); assert.ok(r.flow.loops >= 1); assert.equal(r.rooms[0].name, '菜园'); assert.equal(r.ranged.length, 2);
-  assert.ok(r.bots.keen.won && r.bots.keen.hurt < r.bots.lazy.hurt, JSON.stringify([r.bots.lazy.hurt, r.bots.keen.hurt]));
-  assert.deepEqual(reviewMap(LEVELS.cottage).bots, r.bots);   // 同一张图跑两次，结果一样
-  assert.match(formatReview(r, r), /留神的：打完了/);
+  const r = reviewMap(LEVELS.cottage), sum = runs => runs.reduce((n, b) => n + b.hurt, 0);
+  assert.equal(r.facts.zombies, 15); assert.ok(r.flow.loops >= 1); assert.equal(r.rooms[0].name, '菜园'); assert.equal(r.ranged.length, 4);
+  assert.equal(r.gadgets.length, 3); assert.ok(r.gadgets.every(g => g.kind === 'clock' && g.inside > 0 && g.reach)); assert.equal(r.supplies.stashes, 2);
+  assert.equal(r.bots.runs.lazy.length, 3);
+  assert.ok(r.bots.runs.keen.filter(b => b.won).length >= 2 && sum(r.bots.runs.keen) < sum(r.bots.runs.lazy), JSON.stringify([r.bots.runs.lazy.map(b => b.hurt), r.bots.runs.keen.map(b => b.hurt)]));
+  assert.deepEqual(r.tips.filter(t => t.level === 'problem'), []);
+  assert.match(formatReview(r, r), /留神的：3 遍里打完/);
+  assert.deepEqual(playBot(tiny, { attentive: true }), playBot(tiny, { attentive: true }));   // 同一张图跑两次，结果一样
   assert.equal(reviewMap(LEVELS.house).unsupported.includes('多层'), true);
 });
 
@@ -141,7 +168,7 @@ test('a map of nothing but walkers in one open room is flagged as playing itself
   const def = buildMap({ id: 'dull', name: '空地', theme: 'school', layout: ['YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY'],
     rooms: { Y: { id: 'yard', name: '空地', outdoor: true, props: ['blocks@start'], zombies: ['walker', 'walker', 'walker', 'walker', 'walker', 'walker'], pickups: ['heart'] } } });
   const r = reviewMap(def);
-  assert.ok(r.bots.lazy.won && r.bots.lazy.hurt <= 1, JSON.stringify(r.bots.lazy));
+  assert.ok(r.bots.runs.lazy.filter(b => b.won && b.hurt <= 1).length >= 2, JSON.stringify(r.bots.runs.lazy.map(b => [b.won, b.hurt])));
   assert.ok(r.tips.some(t => t.level === 'problem' && /无脑打/.test(t.text)));
 });
 

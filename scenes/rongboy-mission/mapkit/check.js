@@ -5,6 +5,7 @@ import { compileLevel, clearPath, freePoint, routeTo, navRadius, roomAt, lineOfS
 import { createGame, step, missionStatus, CONFIG, WEAPONS, ENEMY_TYPES } from '../game.js';
 import { ATTACKS } from '../attacks.js';
 import { PROPS, ZOMBIES, SURFACES, OBJECTIVE_ITEMS } from './catalog.js';
+import { GADGETS, STASH } from '../gadgets.js';
 
 const LOOKS = ['afternoon', 'morning', 'night'];   // looks.js 里的光线预设（那个文件依赖渲染引擎，这里不能直接引）
 const KINDS = new Set(Object.values(PROPS).map(p => p.kind));
@@ -68,16 +69,20 @@ export function checkMap(def, { play = true } = {}) {
       if (!ENEMY_TYPES[e.type]) err('enemy-type', `${tag}僵尸 ${at(e)}：type "${e.type}" 不存在。现有：${Object.keys(ENEMY_TYPES).join('、')}`);
       else if (ZOMBIES[e.type]?.untested) warn('enemy-untested', `${tag}${ZOMBIES[e.type].name} ${at(e)}：这个种类还没进过正式地图，没有人玩过它在地图里的表现`);
       if (!['asleep', 'idle', 'alert'].includes(e.state ?? 'alert')) err('enemy-state', `${tag}僵尸 ${at(e)}：state "${e.state}" 不存在，只能是 asleep / idle（巡逻的也是 idle，再加 patrol）`);
-      else if ((e.state ?? 'alert') === 'alert') warn('enemy-alert', `${tag}${ENEMY_TYPES[e.type]?.name ?? e.type} ${at(e)} 一开局就是警觉的：会立刻冲向出生点。正式地图里的僵尸都应该是 asleep 或 idle`);
+      else if ((e.state ?? 'alert') === 'alert' && !e.dormant) warn('enemy-alert', `${tag}${ENEMY_TYPES[e.type]?.name ?? e.type} ${at(e)} 一开局就是警觉的：会立刻冲向出生点。正式地图里的僵尸都应该是 asleep 或 idle`);
     }
     for (const k of part.pickups || []) {
       if (!['weapon', 'ammo', 'heart', 'objective'].includes(k.kind)) err('pickup-kind', `${tag}拾取物 ${at(k)}：kind "${k.kind}" 不存在`);
       if (k.weapon && !WEAPONS.some(w => w.id === k.weapon)) err('pickup-weapon', `${tag}拾取物 ${at(k)}：没有叫 "${k.weapon}" 的枪`);
       if (k.kind === 'objective' && k.item && !OBJECTIVE_ITEMS.includes(k.item)) warn('pickup-item', `${tag}任务物品 ${at(k)}：item "${k.item}" 没有对应的模型，会画成毛线篮`);
       if (k.kind === 'objective' && !k.name) err('pickup-name', `${tag}任务物品 ${at(k)} 没有 name`);
+      if (k.stash && (k.kind === 'weapon' || k.kind === 'objective')) err('stash-holds', `${tag}拉链暗格 ${at(k.stash)} 里放了${k.kind === 'weapon' ? '枪' : '任务物品'}：暗格里只放补给（心、弹药包、毛线团），过关必需的东西不能藏起来（fun-design 9.7）`);
     }
+    for (const g of part.gadgets || []) if (!GADGETS[g.kind]) err('gadget-kind', `${tag}机关 ${at(g)}：kind "${g.kind}" 不存在。现有：${Object.keys(GADGETS).join('、')}`);
   });
   if (errors.length) return { errors, warnings, facts: {} };   // 词都没写对，后面的检查没有意义
+  const gadgetKinds = [...new Set(parts.flatMap(part => (part.gadgets || []).map(g => g.kind)))];
+  if (gadgetKinds.length > 1) warn('gadget-mix', `这张图用了 ${gadgetKinds.length} 种机关（${gadgetKinds.map(k => GADGETS[k].name).join('、')}）：一张图只用一种，玩家学一样就够用整张图（fun-design 9.4）`);
 
   // ---- 2. 房间拼得对不对：室内的房间要正好铺满房子的矩形，院子在南面
   parts.forEach((part, floor) => {
@@ -112,6 +117,21 @@ export function checkMap(def, { play = true } = {}) {
   }
   L.storeys.forEach((S, floor) => {
     const tag = multi ? `${floor + 1} 层 ` : '', boxes = S.furnitureBoxes;
+    // 机关：不能压在墙和家具上；拉链要开在墙面上，东西掉在它前面
+    for (const g of S.gadgetBoxes) {
+      const others = [...boxes, ...S.walls.filter(w => w.kind === 'wall'), ...S.gadgetBoxes.filter(o => o !== g)];
+      const clash = others.find(c => Math.min(g.maxX, c.maxX) - Math.max(g.minX, c.minX) > 0.03 && Math.min(g.maxZ, c.maxZ) - Math.max(g.minZ, c.minZ) > 0.03);
+      if (clash) err('gadget-blocked', `${tag}${GADGETS[g.gadget].name} ${at(g)} 压在了 "${clash.id}" 上。挪到空地上，四周留 0.85 米`);
+      else if (g.minX < S.bounds.minX || g.maxX > S.bounds.maxX || g.minZ < S.bounds.minZ || g.maxZ > S.bounds.maxZ) err('gadget-blocked', `${tag}${GADGETS[g.gadget].name} ${at(g)} 伸出了地图边界`);
+    }
+    for (const k of L.pickups.filter(k => k.floor === floor && k.stash)) {
+      const z = k.stash, H = L.house, where = `${tag}拉链暗格 ${at(z)}`;
+      const toWall = Math.min(...S.walls.filter(w => w.kind === 'wall').map(w => Math.hypot(Math.max(w.minX - z.x, 0, z.x - w.maxX), Math.max(w.minZ - z.z, 0, z.z - w.maxZ))), Infinity);
+      const toEdge = Math.min(Math.abs(z.x - S.bounds.minX), Math.abs(z.x - S.bounds.maxX), Math.abs(z.z - S.bounds.minZ), Math.abs(z.z - S.bounds.maxZ), ...(Number.isFinite(H.minX) ? [Math.abs(z.x - H.minX), Math.abs(z.x - H.maxX), Math.abs(z.z - H.minZ)] : []));
+      if (Math.min(toWall, toEdge) > 0.2) err('stash-wall', `${where} 不在墙面上（离最近的墙 ${f1(Math.min(toWall, toEdge))} 米）：毛球要打在墙上才拉得开它`);
+      const n = z.normal || [0, 1], out = (k.x - z.x) * n[0] + (k.z - z.z) * n[1], far = Math.hypot(k.x - z.x, k.z - z.z);
+      if (out < 0.3 || far > 1.2) err('stash-drop', `${where}：里面的东西落在 ${at(k)}，要落在拉链正前方 0.4–1 米的墙脚（normal 指向屋里）`);
+    }
     for (let i = 0; i < boxes.length; i++) {
       const a = boxes[i];
       if (a.minX < S.bounds.minX - 0.01 || a.maxX > S.bounds.maxX + 0.01 || a.minZ < S.bounds.minZ - 0.01 || a.maxZ > S.bounds.maxZ + 0.01) err('furniture-out', `${tag}家具 "${a.id}" ${at(a)} 伸出了地图边界`);

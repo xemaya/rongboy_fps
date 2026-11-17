@@ -51,6 +51,29 @@ export function createArsenalAudio(ctx) {
       tone(0, 74, 46, 0.16, 0.22); tone(0.19, 66, 42, 0.18, 0.16);
     } else if (kind === 'swap') {    // 换枪：咔、嗒
       tone(0, 520, 360, 0.05, 0.08, 'triangle'); tone(0.07, 760, 620, 0.06, 0.07, 'triangle'); hiss(0, 0.05, 0.05, 3000, 'highpass', 0.7);
+    } else if (kind === 'knock') {   // 毛球打在木头上：笃
+      tone(0, 260, 150, 0.06, 0.13, 'triangle'); hiss(0, 0.025, 0.07, 1500, 'bandpass', 1.2);
+    } else if (kind === 'thump') {   // 打在软垫上：噗
+      tone(0, 120, 60, 0.1, 0.16); hiss(0, 0.1, 0.1, 500, 'lowpass');
+    } else if (kind === 'ting') {    // 打在玻璃、灯罩上：叮
+      tone(0, 2300, 2250, 0.32, 0.05); tone(0, 3450, 3400, 0.2, 0.025); hiss(0, 0.015, 0.05, 6000, 'highpass');
+    } else if (kind === 'clang') {   // 打在铁皮上：当
+      tone(0, 620, 600, 0.26, 0.07, 'square'); tone(0, 930, 905, 0.2, 0.04, 'triangle'); hiss(0, 0.03, 0.08, 2600, 'bandpass', 1.5);
+    } else if (kind === 'tock') {    // 打在石台上：嗒
+      tone(0, 420, 300, 0.035, 0.1, 'triangle'); hiss(0, 0.03, 0.09, 2400, 'bandpass', 1.4);
+    } else if (kind === 'rattle') {  // 骨架模型：一串骨头磕在一起
+      for (let i = 0; i < 7; i++) { tone(i * 0.035 + Math.random() * 0.01, 700 + Math.random() * 500, 500, 0.03, 0.06, 'triangle'); hiss(i * 0.035, 0.015, 0.05, 3200, 'bandpass', 2); }
+    } else if (kind === 'squeak') {  // 小黄鸭：吱
+      tone(0, 1100, 1900, 0.09, 0.09, 'square'); tone(0.09, 1900, 1300, 0.08, 0.06, 'square');
+    } else if (kind === 'rumble') {  // 守墓巨像现身：一声越来越沉的低音
+      tone(0, 78, 34, 1.5, 0.32); tone(0.25, 52, 28, 1.3, 0.22, 'triangle'); hiss(0, 1.2, 0.12, 180, 'lowpass');
+    } else if (kind === 'ring') {    // 闹钟：一串很密的铃声
+      for (let i = 0; i < 9; i++) { tone(i * 0.045, i % 2 ? 2100 : 1750, i % 2 ? 2080 : 1730, 0.05, 0.05, 'square'); tone(i * 0.045, 4200, 4100, 0.03, 0.02); }
+    } else if (kind === 'flash') {   // 聚光灯：啪地一亮，嗡一声
+      hiss(0, 0.03, 0.2, 3000, 'highpass'); tone(0, 180, 120, 0.5, 0.08, 'sawtooth'); tone(0.02, 1200, 2400, 0.25, 0.04);
+    } else if (kind === 'zip') {     // 拉链拉开：一串越来越高的小齿声
+      for (let i = 0; i < 12; i++) hiss(i * 0.022, 0.018, 0.12, 1800 + i * 320, 'bandpass', 3);
+      tone(0.28, 880, 1320, 0.16, 0.05, 'triangle');
     } else if (kind === 'weapon') {  // 捡到一把新枪
       for (const [d, f] of [[0, 523], [0.09, 659], [0.18, 784], [0.28, 1047]]) tone(d, f, f * 0.99, 0.22, 0.06, 'triangle');
     }

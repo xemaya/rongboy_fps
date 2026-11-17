@@ -160,6 +160,15 @@ export default {
     { id: 'cafe-fridge', kind: 'cabinet', look: 'fridge', face: 'w', x: 13.6, z: 6.55, w: 0.8, d: 0.8, h: 1.95, color: 0xb9c7c2 },
   ],
 
+  // 机关（docs/fun-design.md 第 9 节）：这张图用聚光灯，打一下，光圈里的僵尸定住几秒。位置用 node scripts/map.mjs suggest 找的。
+  gadgets: [
+    { kind: 'spot', x: 1.2, z: 7.95 },      // 门厅：一进门就看得到，售票台后面睡着一只,
+    { kind: 'spot', x: -3.3, z: 2.7 },      // 中央大厅,
+    { kind: 'spot', x: -7.8, z: 2.95 },     // 埃及厅,
+    { kind: 'spot', x: -11.05, z: -7.05 },  // 画廊,
+    { kind: 'spot', x: 6.95, z: 10.45 },    // 咖啡厅,
+  ],
+
   enemies: [
     // 门厅：售票台后面睡着一只，开局碰不到
     { type: 'walker', x: 2.6, z: 8.0, state: 'asleep', heading: Math.PI },
@@ -200,6 +209,10 @@ export default {
   ],
 
   pickups: [
+    // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
+    { kind: 'heart', amount: 1, x: -12.37, z: 11.4, stash: { x: -12.37, z: 12, normal: [0, -1] } },   // 纪念品店南墙,
+    { kind: 'ammo', x: 2.65, z: -3.25, stash: { x: 2.65, z: -3.85, normal: [0, 1] } },              // 中央大厅北墙,
+    { kind: 'ammo', weapon: 'yarn', amount: 1, x: 2.75, z: -10.35, stash: { x: 2.15, z: -10.35, normal: [1, 0] } },   // 珍宝馆西墙,
     { kind: 'objective', item: 'mask', name: '黄金面具', x: -11.4, z: 1.0 },
     { kind: 'objective', item: 'egg', name: '恐龙蛋', x: 12.2, z: 1.0 },
     { kind: 'objective', item: 'gem', name: '蓝宝石', x: 8.5, z: -10.2 },

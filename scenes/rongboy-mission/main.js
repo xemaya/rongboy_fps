@@ -18,6 +18,7 @@ import { buildWorld } from './world.js';
 import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
 import { createArsenalAudio } from './sfx.js';
 import { LEVELS, ORDER } from './levels/index.js';
+import { GADGETS } from './gadgets.js';
 import { trainingDef } from './levels/training.js';
 import { ATTACKS, attackCue } from './attacks.js';
 import { applyAttackPose } from './attack-pose.js';
@@ -28,7 +29,7 @@ const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // 哪张地图：网址里的 ?level=<id>，没有就是第一张。换图是换网址重新加载（场景和光线都是开局时搭好的）。
-// ?level=training 是九类僵尸的试战庭院（&type=<兵种> 只练一种），从手办图鉴页进来，不在三张地图的列表里。
+// ?level=training 是九类僵尸的试战庭院（&type=<兵种> 只练一种），从手办图鉴页进来，不在地图列表里。
 const training = q.get('level') === 'training', practiceType = ENEMY_TYPES[q.get('type')] ? q.get('type') : null;
 const levelId = training ? 'training' : LEVELS[q.get('level')] ? q.get('level') : ORDER[0];
 const level = compileLevel(training ? trainingDef(practiceType) : LEVELS[levelId]);
@@ -155,7 +156,11 @@ function updateFx(dt) {
 
 // ---------- 声音与提示 ----------
 
-let sound = true, audio = null, soundBus = null, arsenalBus = null, lastBounceSound = 0;
+let sound = true, audio = null, soundBus = null, arsenalBus = null, lastBounceSound = 0, lastKnockSound = 0, lastRing = 0;
+// 家具是什么做的：决定被毛球打到时的声音和绒絮多少
+const SOUND_OF = { soft: 'thump', wood: 'knock', glass: 'ting', metal: 'clang', stone: 'tock' };
+const SOFT = new Set(['sofa', 'bed', 'ottoman', 'basket', 'hedge', 'tree', 'planter']), METAL = new Set(['fridge', 'locker', 'tub', 'slide', 'swing', 'mailbox']);
+const stuffOf = c => (c.kind === 'case' ? 'glass' : c.kind === 'plinth' || c.kind === 'sarcophagus' ? 'stone' : c.kind === 'gadget' ? 'metal' : SOFT.has(c.look || c.kind) ? 'soft' : METAL.has(c.look || c.kind) ? 'metal' : 'wood');
 function unlock() { if (!sound) return; audio ??= new AudioContext(); soundBus ??= createWoolAudio(audio); arsenalBus ??= createArsenalAudio(audio); audio.resume(); }
 function sfx2(kind, options = {}) { if (sound && audio && audio.state === 'running') arsenalBus.play(kind, options); }
 function sfx(kind, options = {}) { if (sound && audio && audio.state === 'running') soundBus.play(kind, options); }
@@ -474,6 +479,25 @@ function canSee(e) {
     .some(([ox, oz, y]) => lineOfSight(level, eye, { x: e.x + ox, y, z: e.z + oz }));
 }
 
+// 守墓巨像：两只发亮的眼睛一直亮着；出场时先只有眼睛（眨一下），过一半时间身子才从一团暗絮里现出来（开场片第 17 镜的演法）。
+const emerging = new Map(), eyeGeo = new T.SphereGeometry(0.075, 12, 8), eyeMat = new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffc94a, emissiveIntensity: 4 });
+function wardenLook(e, a, dt) {
+  if (!a.eyes) {
+    a.eyes = new T.Group();
+    for (const sx of [-1, 1]) { const m = new T.Mesh(eyeGeo, eyeMat); m.position.set(sx * 0.2, e.height * 0.84, e.radius * 0.8); a.eyes.add(m); }
+    a.world.add(a.eyes);
+  }
+  a.eyes.rotation.y = e.heading; a.eyes.visible = e.alive; a.eyes.scale.y = 1;
+  const st = emerging.get(e.id);
+  if (!st) return;
+  st.t += dt;
+  const shown = st.t > st.time * 0.5;
+  a.model.visible = shown; a.blob.visible = shown; if (a.healthBar && !shown) a.healthBar.visible = false;
+  if (st.t > 0.45 && st.t < 0.6) a.eyes.scale.y = 0.12;   // 眨一下
+  if (shown && !st.done) { st.done = true; burst(e.x, e.z, 28, 1.3, 0x3d342c, e.base + 1.2); sfx2('rumble'); }
+  if (st.t > st.time) emerging.delete(e.id);
+}
+
 function updateModels(dt) {
   animateHero(dt, mode === 'playing' && !paused);
   const present = new Set(s.enemies.map(e => e.id));
@@ -500,6 +524,7 @@ function updateModels(dt) {
     a.blob.position.y = 0.05 - hop; a.blob.scale.setScalar(e.radius * 3.4 * (1 - Math.min(0.5, hop * 0.6)));
     a.model.traverse(m => { if (m.userData.fuzz) m.visible = distance < 8.5; });
     updateEnemy(e, a);
+    if (e.type === 'boss-warden') wardenLook(e, a, dt);
     if (e.alive && !window.__rb.noArmTuck) tuckArms(e, a, dt);
     if (!e.alive && e.deathAge > 0.78 && !a.poof) { a.poof = true; burst(e.x, e.z, 20, 0.95, 0xddd7b5, e.base + 0.55); }
   }
@@ -514,6 +539,9 @@ function updateModels(dt) {
       ballModels.set(b.id, o); cine.scene.add(o);
     }
     o.position.set(b.x, b.y, b.z);
+    // 擦到会动的布景（吊灯、地球仪、骨架、小黄鸭、盆栽）：它动一下，响一声
+    const touched = world.toys.sweep(b, floorIndex(level, b.y - 1));
+    if (touched) { sfx2({ lamp: 'ting', globe: 'knock', rattler: 'rattle', duck: 'squeak', plant: 'thump' }[touched.kind], { strength: 0.6 }); burst(b.x, b.z, 4, 0.4, 0xf6efe0, b.y); }
     // 贴脸的球淡出，免得挡住命中反馈。
     const nearFade = Math.max(0, Math.min(1, (o.position.distanceTo(camera.position) - b.r - 0.30) / 0.6));
     for (const m of o.userData.ownMaterials) { m.opacity = nearFade * nearFade; m.depthWrite = nearFade > 0.98; }
@@ -529,10 +557,12 @@ function updateModels(dt) {
     }
   }
   combatFx.update(s,dt);
+  // 闹钟响着的时候一直有铃声
+  if (s.gadgets.some(g => g.kind === 'clock' && g.used && s.time < g.until && Math.hypot(g.x - s.player.x, g.z - s.player.z) < 16) && performance.now() - lastRing > 430) { sfx2('ring', { strength: 0.7 }); lastRing = performance.now(); }
   for (const k of s.pickups) {
     const o = world.pickups.get(k.id);
     if (!o) continue;
-    o.visible = !k.taken;
+    o.visible = !k.taken && !k.hidden;   // 藏在拉链暗格里的，拉开之前看不见
     o.userData.body.rotation.y += dt * 1.4; o.position.y = o.userData.baseY + Math.sin(s.time * 2.2 + k.id) * 0.05;
   }
 }
@@ -581,9 +611,10 @@ function processEvents() {
     } else if (e.type === 'explode') {
       // 毛线团炸开：光球、一地彩色线头、镜头震一下
       effects.boom(e, e.radius, 0xe6b8f0); sfx2('boom', { strength: Math.min(1.2, 6 / Math.max(3, Math.hypot(e.x - s.player.x, e.z - s.player.z))) });
-      for (const color of [0xd9a6e0, 0xf2d27a, 0x9fc3e0, 0xe7836f, 0xf6efe0]) burst(e.x, e.z, 14, 2.6, color, e.y + 0.2);
+      for (const color of e.source === 'bucket' ? [0xf2a6b8, 0x8fc3e8, 0xf2c84b, 0x9fd8a4, 0xf6efe0] : [0xd9a6e0, 0xf2d27a, 0x9fc3e0, 0xe7836f, 0xf6efe0]) burst(e.x, e.z, 14, 2.6, color, e.y + 0.2);
       if (Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) shake = Math.max(shake, 0.03);
-      if (e.struck.length) say(`缠住了 ${e.struck.length} 只`, 1.1);
+      if (e.source === 'bucket') say(e.struck.length ? `颜料桶炸了 · 溅到 ${e.struck.length} 只` : '颜料桶炸了 · 没溅到谁', 1.4);
+      else if (e.struck.length) say(`缠住了 ${e.struck.length} 只`, 1.1);
     }
     else if (e.type === 'interrupted') say('打断了攻击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
@@ -611,6 +642,29 @@ function processEvents() {
       if (e.left > 0) say(`${e.source === 'collision' ? '撞倒一只' : bonus || '击倒'} · 还剩 ${e.left} 只`, 1.3);
     } else if (e.type === 'bounce') {
       if (performance.now() - lastBounceSound > 90) { sfx('bounce', { weapon: e.weapon }); lastBounceSound = performance.now(); }
+      // 打在家具上：冒一团它那种颜色的绒絮，声音听得出是什么做的；会动的那几样（小黄鸭、盆栽、地球仪、骨架）动一下
+      if (e.solid && e.solid.kind !== 'wall' && e.solid.kind !== 'lintel' && near(16)) {
+        const stuff = stuffOf(e.solid);
+        burst(e.x + (e.nx || 0) * 0.05, e.z + (e.nz || 0) * 0.05, stuff === 'soft' ? 9 : 5, stuff === 'soft' ? 0.7 : 0.5, e.solid.color ?? 0xd9c9a8, e.y);
+        if (performance.now() - lastKnockSound > 70) { sfx2(SOUND_OF[stuff], { strength: Math.min(1, 4 / Math.max(2, Math.hypot(e.x - s.player.x, e.z - s.player.z))) }); lastKnockSound = performance.now(); }
+        const moved = world.toys.react(e, -(e.nx || 0), -(e.nz || 0));
+        if (moved) sfx2({ globe: 'knock', rattler: 'rattle', duck: 'squeak', plant: 'thump' }[moved.kind] ?? 'knock', { strength: 0.6 });
+      }
+    } else if (e.type === 'gadget') {
+      // 机关触发（docs/fun-design.md 第 9 节）
+      world.toys.fire(e);
+      const n = e.struck.length, top = base + GADGETS[e.kind].h;
+      effects.ring({ x: e.x, y: top, z: e.z }, e.kind === 'spot' ? 0xfff0c8 : 0xffe08a, e.kind === 'clock' ? 2.4 : 3.2, 0.5);
+      if (e.kind === 'clock') { sfx2('ring'); say(n ? `闹钟响了 · ${n} 只僵尸过去看了` : '闹钟响了 · 附近没有僵尸听见', 1.6); }
+      else if (e.kind === 'spot') { sfx2('flash'); burst(e.x, e.z, 16, 1.6, 0xfff0c8, top); say(n ? `灯亮了 · 定住了 ${n} 只` : '灯亮了 · 光圈里没有僵尸', 1.6); }
+    } else if (e.type === 'emerge') {
+      // 没出场的首领现身（任务物品拿齐的那一刻）：这句提示盖过"拿到了"
+      emerging.set(e.id, { t: 0, time: e.time, done: false }); sfx2('rumble', { strength: 0.6 });
+      burst(e.x, e.z, 30, 0.8, 0x2a2420, base + 1.4);   // 一团暗絮：眼睛先从里面亮出来
+      say(TX.emerge || `${ENEMY_TYPES[e.enemyType].name}出现了 · 快跑`, 3);
+    } else if (e.type === 'stash') {
+      world.toys.unzip(e.id); sfx2('zip'); burst(e.sx, e.sz, 12, 0.7, 0xe9c46a, base + 1.2);
+      say(`拉链里掉出了${e.kind === 'heart' ? '一颗心' : e.weapon === 'yarn' ? '毛线团' : '弹药包'}`, 1.5);
     } else if (e.type === 'ball-expired') {
       if (e.reason !== 'explode') burst(e.x, e.z, 4, 0.25, 0xeadbb9, e.y);
       if (e.weapon === 'needle' && e.reason === 'bounce-limit' && e.normal) {
@@ -813,7 +867,7 @@ function start() {
   frameIntervals.length = 0; clearModels(); keys.clear(); down = false; lobDown = false; paused = false; phase = 0; acc = 0; toy.reset(); clearHurt();
   recoil = createRecoil(); hitMarkerTime = 0; hitMarkerKind = ''; shake = 0; yaw = level.player.yaw || 0; pitch = 0; lastRoom = '';
   for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
-  s = createGame({ level }); mode = 'playing';
+  s = createGame({ level }); mode = 'playing'; world.toys.reset(); emerging.clear();
   document.body.classList.remove('menu', 'paused', 'leaving');
   $('intro').hidden = true; $('pausePanel').hidden = true; $('result').hidden = true;
   menuZombie.world.visible = false; menuHero.world.visible = false; fpHero.world.visible = true;

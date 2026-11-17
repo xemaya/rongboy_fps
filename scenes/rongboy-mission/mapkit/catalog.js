@@ -73,18 +73,19 @@ export const PROPS = {
 // 这个游戏里眼睛在 1.2 米：高过 1.3 米的东西挡视线、挡箭；0.6–1.3 米的挡身体和贴地的炸弹，站着能越过去开枪。
 export const coverOf = h => (h >= 1.3 ? 'tall' : h >= 0.6 ? 'low' : 'none');
 
-// 主题：一整套外观。look 是光线预设（looks.js），theme 交给 world.js，window / picture 是自动开窗、挂画时用的高度。
+// 主题：一整套外观，外加这种主题的图用哪种机关（gadget；一张图只用一种，docs/fun-design.md 9.4）。
+// look 是光线预设（looks.js），theme 交给 world.js，window / picture 是自动开窗、挂画时用的高度。
 // floors：自动给房间配的地面 [surface, floor 颜色, accent 墙裙颜色]，按房间顺序轮着用；草图里写了就用草图的。
 export const THEMES = {
   home: {
-    name: '家', look: 'afternoon', height: 2.8, wallThickness: 0.2, doorHeight: 2.05, door: 1.5,
+    gadget: 'clock', name: '家', look: 'afternoon', height: 2.8, wallThickness: 0.2, doorHeight: 2.05, door: 1.5,
     theme: { facadeTrim: true },
     window: { sill: 1.0, head: 2.1, max: 2.0 }, pictureY: 1.7, yardFloor: 0x86a765,
     floors: [['boards', 0xd6b383, 0xd49a78], ['boards', 0xcfa873, 0x9db79a], ['quilt', 0xeadcc2, 0xe8c877], ['boards', 0xd2b49c, 0xbfa8cf], ['boards', 0xb39068, 0x86aaa6], ['terry', 0xbcd0c8, 0x8fb8c0]],
     pictures: [0xf2dfb0, 0xa9cfe0, 0xe9c9d9, 0xbfe0d0],
   },
   museum: {
-    name: '博物馆', look: 'night', height: 4.4, wallThickness: 0.3, doorHeight: 2.8, door: 1.8,
+    gadget: 'spot', name: '博物馆', look: 'night', height: 4.4, wallThickness: 0.3, doorHeight: 2.8, door: 1.8,
     theme: { wall: 0xe6dfd0, ceiling: 0xd8d4c8, trim: 0xcbbf9f, beams: false, roof: false, lamp: 'spot', night: true,
       lampColor: 0xffe6c0, lampPower: 7, lampRange: 8, skyGain: 14, lightAmbient: [0.16, 0.24, 0.44], bounce: null, sheer: [0xdfe9ff, 0x9fbdf0, 0.55] },
     window: { sill: 1.3, head: 3.5, max: 2.2 }, pictureY: 2.0, yardFloor: 0x7f9a78,
@@ -92,7 +93,7 @@ export const THEMES = {
     pictures: [0xa9cfe0, 0xf2dfb0, 0xe9c9d9, 0xbfe0d0, 0xd9c9a0],
   },
   school: {
-    name: '学校', look: 'morning', height: 2.8, wallThickness: 0.2, doorHeight: 2.05, door: 1.6,
+    gadget: 'bucket', name: '学校', look: 'morning', height: 2.8, wallThickness: 0.2, doorHeight: 2.05, door: 1.6,
     theme: { wall: 0xfff0c4, ceiling: 0xfffaf0, roofColor: 0xef7b6b, beams: false, yard: 'playground', rainbow: true, lawn: 0xb4dc8c, lampPower: 8, skyGain: 6 },
     window: { sill: 1.0, head: 2.1, max: 2.4 }, pictureY: 1.65, yardFloor: 0xb4dc8c,
     floors: [['boards', 0xecc98c, 0x9fd8c4], ['boards', 0xe6c088, 0x8fc3e8], ['quilt', 0xf6ecd6, 0xf2a6b8], ['quilt', 0xe2f0e6, 0xb8d86a], ['boards', 0xf0d8a8, 0xf2c84b], ['terry', 0xd6e6f2, 0xef7b6b]],
@@ -111,10 +112,14 @@ export const ZOMBIES = {
   bomber:   { name: '炸弹客', role: '往你脚下扔炸弹', special: true, ranged: true },
   shielded: { name: '持盾者', role: '正面挡普通毛球，蓄势盾冲', special: true, answer: 'heavy' },
   crawler:  { name: '爬行者', role: '贴地扑抓（还没进过正式地图）', special: true, untested: true },
-  'boss-warden': { name: '守墓巨像', role: '首领：震地、召援（还没进过正式地图）', special: true, untested: true },
+  // 守墓巨像：在"家"的阁楼里，写 dormant: true（开局不在场上，任务物品拿齐才现身）。身体比楼梯宽，下不了楼；生成器还不会摆它
+  'boss-warden': { name: '守墓巨像', role: '首领：震地、召援；很慢，不用打倒', special: true },
   'boss-leech':  { name: '噬连兽', role: '首领：吸引扇区（还没进过正式地图）', special: true, untested: true },
 };
 
 // 地上的枪默认带多少备弹（和现有三张图一致）。手枪和毛线团不在这里：手枪开局就有，毛线团写 'yarn'。
 export const GUNS = { scatter: 6, heavy: 3, stun: 4, sewing: 48, needle: 6 };
 export const OBJECTIVE_ITEMS = ['basket', 'mask', 'egg', 'gem'];
+
+// 拉链暗格里能放的东西：只放补给，不放枪和任务物品（docs/fun-design.md 9.7）。
+export const STASH_ITEMS = ['heart', 'ammo', 'yarn'];

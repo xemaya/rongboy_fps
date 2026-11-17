@@ -59,7 +59,7 @@ export default {
   // 黑板（motif: 'board'）和墙上的画
   pictures: [
     { x: -12, z: -5.75, y: 1.75, normal: [1, 0], w: 3.2, h: 1.3, motif: 'board' },
-    { x: -3.9, z: -5.75, y: 1.6, normal: [-1, 0], w: 1.0, h: 0.8, color: 0xf2dfb0 },
+    { x: -4.1, z: -5.75, y: 1.6, normal: [-1, 0], w: 1.0, h: 0.8, color: 0xf2dfb0 },
     { x: -1.2, z: -9, y: 1.7, normal: [0, 1], w: 0.8, h: 0.9, color: 0xa9cfe0 }, { x: 1.9, z: -9, y: 1.7, normal: [0, 1], w: 0.8, h: 0.9, color: 0xf2c9d6 },
     { x: 3.9, z: -8.0, y: 1.7, normal: [-1, 0], w: 0.9, h: 0.7, color: 0xbfe0d0 },
     { x: 12, z: -3.4, y: 1.75, normal: [-1, 0], w: 1.2, h: 0.9, motif: 'board' },
@@ -110,6 +110,13 @@ export default {
     { id: 'lab-globe', kind: 'plinth', item: 'globe', face: 'w', x: 11.5, z: -4.2, w: 1.0, d: 1.0, h: 0.8, color: 0xfff0c4 },
   ],
 
+  // 机关（docs/fun-design.md 第 9 节）：这张图用颜料桶，打一下炸开，和毛线团手雷一样。位置用 node scripts/map.mjs suggest 找的。
+  gadgets: [
+    { kind: 'bucket', x: -3.55, z: 8.45 },   // 操场：从校门就看得到，巡逻的那只会走过来,
+    { kind: 'bucket', x: 1.55, z: 0.08 },    // 走廊,
+    { kind: 'bucket', x: 0.8, z: -8.68 },    // 美术教室,
+  ],
+
   enemies: [
     // 操场
     { type: 'walker', x: -6.0, z: 4.2, state: 'idle', heading: Math.PI / 2, patrol: [[6.0, 4.2], [-6.0, 4.2]] },
@@ -139,6 +146,10 @@ export default {
   ],
 
   pickups: [
+    // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
+    { kind: 'heart', amount: 1, x: -8.07, z: -0.2, stash: { x: -8.07, z: 0.4, normal: [0, -1] } },   // 走廊南墙,
+    { kind: 'ammo', x: 10.13, z: -8.4, stash: { x: 10.13, z: -9, normal: [0, 1] } },             // 科学教室北墙,
+    { kind: 'ammo', weapon: 'yarn', amount: 1, x: 8.15, z: 1.2, stash: { x: 8.15, z: 0.6, normal: [0, 1] } },   // 教学楼朝操场的外墙,
     { kind: 'weapon', weapon: 'stun', amount: 4, x: 1.7, z: 10.6 },
     { kind: 'weapon', weapon: 'sewing', amount: 48, x: -2.6, z: -4.2 },
     { kind: 'weapon', weapon: 'needle', amount: 6, x: 11.3, z: -6.2 },

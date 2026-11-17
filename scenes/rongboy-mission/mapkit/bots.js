@@ -11,10 +11,12 @@ const DT = 1 / 60, PR = navRadius(CONFIG.playerRadius);
 const DIRS = Array.from({ length: 16 }, (_, i) => ({ x: Math.cos(i * Math.PI / 8), z: Math.sin(i * Math.PI / 8) }));
 const ranged = e => e.type === 'archer' || e.type === 'bomber';
 
-export function playBot(def, { attentive = false, seconds } = {}) {
+// shift：出生点往旁边挪多少米（机器人对起点很敏感，体检会换几个起点各跑一遍）
+export function playBot(def, { attentive = false, seconds, shift = 0 } = {}) {
   const L = def.storeys ? def : compileLevel(def);
   if (L.storeys.length > 1) return null;
   const s = createGame({ level: L }), p = s.player, limit = seconds ?? Math.max(240, (L.par || 300) * 2);
+  if (shift && freePoint(L, p.x + shift, p.z, CONFIG.playerRadius + 0.05)) p.x += shift;
   const hits = [], dist = (a, b) => Math.hypot(a.x - b.x, a.z - b.z);
   // 这一枪打不打得到：毛球有粗细，所以除了正中一条线，左右各偏 0.14 米的两条也要是通的（不然会一直打在门框上）
   const canShoot = e => {
@@ -28,7 +30,8 @@ export function playBot(def, { attentive = false, seconds } = {}) {
   };
   let held = false, strafe = 1, wasLocked = false, goal = null, route = [], planIn = 0, lastSpot = { x: p.x, z: p.z }, stuckFor = 0, shove = null;
   let aimed = null, aimedSince = 0, lastHit = -9, giveUp = new Map();   // 对着同一只打了 3 秒都没打中：先不打它，换个位置
-  while (s.time < limit && s.phase === 'playing') {
+  let progress = 0;   // 上一次有进展（打中、击倒、挨打、捡到东西）是什么时候；一分钟没进展就是机器人自己绕不出来了，不再耗着
+  while (s.time < limit && s.phase === 'playing' && s.time - progress < 60) {
     const foes = s.enemies.filter(e => e.alive && e.enabled), awake = foes.filter(e => e.awareness === 'alert' || e.awareness === 'waking');
     // 去哪：先对付已经发现自己的；没有，就去找还没拿的任务物品、然后是最近的僵尸；东西齐了就回出口
     planIn -= DT;
@@ -91,11 +94,12 @@ export function playBot(def, { attentive = false, seconds } = {}) {
       else if (held && s.charge >= need) { releaseCharge(s, aim(target)); held = false; }
     }
     step(s, DT, { x: mx, z: mz });
-    for (const e of consumeEvents(s)) if (e.type === 'hit') lastHit = s.time; else if (e.type === 'hurt') {
+    for (const e of consumeEvents(s)) if (e.type === 'hit') lastHit = progress = s.time; else if (e.type === 'knockdown' || e.type === 'pickup') progress = s.time; else if (e.type === 'hurt') {
+      progress = s.time;
       const by = s.enemies.find(q => q.id === e.by);
       hits.push({ x: Math.round(e.x * 10) / 10, z: Math.round(e.z * 10) / 10, t: Math.round(s.time), by: by?.type ?? '?', source: e.source, room: roomAt(L, e.x, e.z)?.name ?? '?' });
     }
   }
-  return { won: s.phase === 'won', phase: s.phase, hurt: s.damageTaken, time: Math.round(s.time), left: aliveCount(s), kills: s.kills, hits, stars: s.stars,
+  return { won: s.phase === 'won', phase: s.phase === 'playing' ? 'stalled' : s.phase, hurt: s.damageTaken, time: Math.round(s.time), left: aliveCount(s), kills: s.kills, hits, stars: s.stars,
     leftWhere: s.enemies.filter(e => e.alive && e.enabled).map(e => ({ type: e.type, name: ENEMY_TYPES[e.type].name, room: roomAt(L, e.x, e.z)?.name ?? '?' })) };
 }

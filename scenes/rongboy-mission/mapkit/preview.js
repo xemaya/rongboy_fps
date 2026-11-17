@@ -2,15 +2,18 @@
 import { compileLevel, roomAt } from '../level.js';
 import { ENEMY_TYPES, WEAPONS } from '../game.js';
 import { coverOf } from './catalog.js';
+import { GADGETS } from '../gadgets.js';
 
 const LETTER = { walker: 'W', leaper: 'L', heavy: 'H', shielded: 'S', archer: 'A', bomber: 'B', crawler: 'C', 'boss-warden': 'K', 'boss-leech': 'K' };
 const GUN = { scatter: 'Gc', heavy: 'Gh', stun: 'Gt', sewing: 'Gw', needle: 'Gn' };
+const GADGET = { clock: 'Ck', bucket: 'Pb', spot: 'Sp' };
 const tokenOf = k => (k.kind === 'heart' ? '<3' : k.kind === 'objective' ? '!!' : k.kind === 'weapon' ? GUN[k.weapon] ?? 'G?' : k.weapon === 'yarn' ? 'ya' : 'am');
 export const LEGEND = [
   '## 墙（门洞是墙上的缺口）   XX 高家具（≥1.3 米，挡视线挡箭）   oo 矮家具（挡身体，能越过去开枪）   :: 很矮（不算掩体）',
   '空白 室内地面    . 室外地面    @@ 出生点（面朝北 = 朝上）',
   '僵尸：W 跳跳  L 跃行者  H 棉甲  S 持盾者  A 弓手  B 炸弹客  C 爬行者  K 首领；后面的 z = 睡着，~ = 巡逻，空 = 醒着站着',
   '拾取：<3 心  am 弹药包  ya 毛线团  Gc 霰弹  Gh 棉被炮  Gt 静电枪  Gw 缝纫机枪  Gn 毛衣针  !! 任务物品',
+  '机关：Ck 闹钟  Pb 颜料桶  Sp 聚光灯（打一下触发，只能用一次）    zz 拉链暗格（打一下拉开，东西掉在旁边的 ?? 处）',
 ];
 
 // 一格 0.5 米，一格印两个字符（终端里的字符高是宽的两倍，这样比例是对的）。上北下南，左西右东。
@@ -35,7 +38,8 @@ export function asciiMap(def, { marks = [], cell = 0.5 } = {}) {
       return !room ? '  ' : room.outdoor ? ' .' : room.tower ? '//' : '  ';
     }));
     const put = (p, token) => { const i = Math.round((p.x - B.minX) / cell), j = Math.round((p.z - B.minZ) / cell); if (grid[j]?.[i] !== undefined) grid[j][i] = token; };
-    for (const k of L.pickups.filter(k => k.floor === floor)) put(k, tokenOf(k));
+    for (const k of L.pickups.filter(k => k.floor === floor)) { put(k, k.stash ? '??' : tokenOf(k)); if (k.stash) put(k.stash, 'zz'); }
+    for (const g of L.gadgets.filter(g => g.floor === floor)) put(g, GADGET[g.kind] ?? 'G?');
     for (const e of L.enemies.filter(e => e.floor === floor)) put(e, (LETTER[e.type] ?? '?') + (e.state === 'asleep' ? 'z' : e.patrol ? '~' : ' '));
     if (floor === 0) put(L.player, '@@');
     for (const m of marks.filter(m => (m.floor ?? 0) === floor)) put(m, m.token);
@@ -81,6 +85,11 @@ export function svgMap(def, { marks = [], scale = 34 } = {}) {
       const color = k.kind === 'heart' ? '#d9705f' : k.kind === 'objective' ? '#d9a21f' : k.kind === 'weapon' ? '#2f8fbf' : '#8a7a55';
       g.push(`<circle cx="${X(k.x)}" cy="${Z(k.z)}" r="6" fill="#fff" stroke="${color}" stroke-width="2"/><text x="${X(k.x) + 9}" y="${Z(k.z) + 4}" font-size="11" fill="${color}">${esc(k.name ?? label)}</text>`);
     }
+    for (const q of L.gadgets.filter(q => q.floor === floor)) {
+      const G = GADGETS[q.kind];
+      g.push(`<circle cx="${X(g.x)}" cy="${Z(g.z)}" r="${G.radius * scale}" fill="#e9a23b" fill-opacity="0.06" stroke="#e9a23b" stroke-opacity="0.5" stroke-dasharray="6 5"/><rect x="${X(g.x - G.w / 2)}" y="${Z(g.z - G.d / 2)}" width="${G.w * scale}" height="${G.d * scale}" fill="#e9a23b" stroke="#8a5a12" stroke-width="1.5"/><text x="${X(g.x) + 11}" y="${Z(g.z) - 8}" font-size="11" fill="#8a5a12" font-weight="600">${G.name}</text>`);
+    }
+    for (const k of L.pickups.filter(k => k.floor === floor && k.stash)) g.push(`<line x1="${X(k.stash.x)}" y1="${Z(k.stash.z)}" x2="${X(k.x)}" y2="${Z(k.z)}" stroke="#c65a4e" stroke-dasharray="3 3"/><rect x="${X(k.stash.x) - 5}" y="${Z(k.stash.z) - 5}" width="10" height="10" fill="#c65a4e"/><text x="${X(k.stash.x) + 8}" y="${Z(k.stash.z) - 6}" font-size="10" fill="#c65a4e">拉链</text>`);
     for (const e of L.enemies.filter(e => e.floor === floor)) {
       const T = ENEMY_TYPES[e.type], color = TYPE_COLOR[e.type] ?? '#555', r = T.radius * scale, h = e.heading ?? 0;
       if (e.patrol) g.push(`<polyline points="${[[e.x, e.z], ...e.patrol].map(([x, z]) => `${X(x)},${Z(z)}`).join(' ')}" fill="none" stroke="${color}" stroke-dasharray="5 4" stroke-width="1.5"/>`);
@@ -94,7 +103,7 @@ export function svgMap(def, { marks = [], scale = 34 } = {}) {
     parts.push(g.join('\n'));
     top += H + 60;
   });
-  const legend = ['粗框 = 高家具（挡视线） · 细框 = 矮家具 · 虚框 = 很矮', '圆 = 僵尸（半透明是睡着的，短线是朝向，虚线是巡逻路线） · 圈 = 拾取物 · 蓝三角 = 出生点 · 红叉 = 机器人挨打的地方', '一格 1 米；上北下南'];
+  const legend = ['粗框 = 高家具（挡视线） · 细框 = 矮家具 · 虚框 = 很矮 · 橙色方块 = 机关（虚线圈是它的生效范围） · 红方块 = 拉链暗格', '圆 = 僵尸（半透明是睡着的，短线是朝向，虚线是巡逻路线） · 圈 = 拾取物 · 蓝三角 = 出生点 · 红叉 = 机器人挨打的地方', '一格 1 米；上北下南'];
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${top + 30}" viewBox="0 0 ${width} ${top + 30}" font-family="-apple-system, 'PingFang SC', sans-serif">
 <rect width="100%" height="100%" fill="#faf8f3"/>
 <text x="${pad}" y="22" font-size="16" font-weight="700" fill="#222">${esc(L.name)}（${esc(L.id)}）</text>

@@ -11,11 +11,12 @@ export default {
     short: '家',
     eyebrow: '第一关 · 家（三层楼与花园）',
     title: '上阁楼，<br>把毛线篮拿回来。',
-    intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不会再多，也不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
+    intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
     how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：棉被炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
     start: '进入花园',
     hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
-    got: '拿到毛线篮了！楼里被惊动了，快回院门',
+    got: '拿到毛线篮了！',
+    emerge: '拿到毛线篮了！守墓巨像醒了 · 不用打，带着篮子跑',
     carry: '带着毛线篮回到院门',
     won: '带回来了！',
     lostCarrying: '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。',
@@ -123,6 +124,12 @@ export default {
 
   // state: asleep 睡着（靠近或有声音才醒）；idle 醒着站岗或巡逻（靠视线发现你）。
   // heading：0 朝南（+z），π 朝北，π/2 朝东，-π/2 朝西。
+  // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
+  gadgets: [
+    { kind: 'clock', x: -7.25, z: 3.37 },    // 花园：从院门就看得到，旁边睡着两只,
+    { kind: 'clock', x: -3.75, z: -2.63 },   // 客厅,
+  ],
+
   enemies: [
     // 花园
     { type: 'walker', x: -4.5, z: 5.5, state: 'idle', heading: Math.PI / 2, patrol: [[3.5, 5.5], [-4.5, 5.5]] },
@@ -149,6 +156,8 @@ export default {
   ],
 
   pickups: [
+    // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
+    { kind: 'ammo', x: 7.95, z: -8.4, stash: { x: 7.95, z: -9, normal: [0, 1] } },      // 书房北墙,
     { kind: 'ammo', x: 5.4, z: 9.6 },
     { kind: 'ammo', x: -2.0, z: -7.6 },
     { kind: 'weapon', weapon: 'heavy', amount: 3, x: 2.2, z: 2.4 },
@@ -221,6 +230,11 @@ export default {
         { id: 'play-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -6.0, w: 0.6, d: 2.0, h: 2.0, color: 0x9bb07c },
         { id: 'play-crate', kind: 'crate', x: 1.95, z: -3.55, w: 0.7, d: 0.9, h: 0.7, color: 0xb9936d },
       ],
+      // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
+      gadgets: [
+        { kind: 'clock', x: -5.55, z: -0.8 },    // 主卧,
+      ],
+
       enemies: [
         { type: 'walker', x: 0, z: 1.0, state: 'idle', heading: Math.PI, patrol: [[0, -6.0], [0, 1.0]] },
         { type: 'heavy', x: -5.4, z: 1.2, state: 'asleep', heading: Math.PI / 2 },
@@ -235,6 +249,8 @@ export default {
         { type: 'bomber', x: 3.4, z: -5.0, state: 'asleep', heading: 0 },
       ],
       pickups: [
+        // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
+        { kind: 'heart', amount: 1, x: -5.92, z: -8.4, stash: { x: -5.92, z: -9, normal: [0, 1] } },   // 浴室北墙,
         { kind: 'ammo', x: -2.2, z: 2.4 },
         { kind: 'ammo', x: 8.3, z: -8.3 },
         { kind: 'heart', amount: 1, x: -2.4, z: -3.9 },
@@ -290,6 +306,11 @@ export default {
         { id: 'treasure-cabinet', kind: 'cabinet', face: 's', x: 4.2, z: -2.6, w: 1.6, d: 0.6, h: 1.6, color: 0xa68fb8 },
         { id: 'treasure-crate', kind: 'crate', x: 5.2, z: 0.2, w: 1.0, d: 1.0, h: 1.0, color: 0xc0a078 },
       ],
+      // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
+      gadgets: [
+        { kind: 'clock', x: -6.55, z: 0.45 },    // 储藏间：拿毛线篮之前可以先把这一头的引开,
+      ],
+
       enemies: [
         { type: 'shielded', x: 0, z: 1.4, state: 'idle', heading: Math.PI, patrol: [[0, -5.5], [0, 1.4]] },   // 第一只持盾者：走廊里绕不到背后，要用棉被炮、蓄力球或者反弹
         { type: 'leaper', x: -3.2, z: -7.6, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.4, -7.4], [-3.2, -7.6]] },
@@ -300,8 +321,14 @@ export default {
         { type: 'shielded', x: 7.2, z: -4.0, state: 'idle', heading: -Math.PI / 2 },
         { type: 'heavy', x: 6.6, z: -0.8, state: 'idle', heading: -Math.PI / 2 },
         { type: 'leaper', x: 3.0, z: 1.4, state: 'asleep', heading: Math.PI / 2 },
+        // 守墓巨像（开场片结尾的那一位）：开局不在场上，拿起毛线篮的那一刻在藏宝间的西北角现身，在玩家身后。
+        // 不能放在两扇门前面：篮子在东南角，回楼梯最近的路是北门，它站在那儿就把人堵死了（第一版就是这么错的）。
+        // 它很慢，身体比楼梯宽、下不了楼：不用打倒，带着篮子跑出阁楼就甩掉了。
+        { type: 'boss-warden', x: 2.6, z: -1.9, dormant: true },
       ],
       pickups: [
+        // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
+        { kind: 'ammo', weapon: 'yarn', amount: 1, x: 8.4, z: -7.67, stash: { x: 9, z: -7.67, normal: [-1, 0] } },   // 缝纫间东墙,
         { kind: 'objective', item: 'basket', name: '毛线篮', x: 7.8, z: 1.9 },
         { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
         { kind: 'ammo', x: 8.2, z: -8.3 },

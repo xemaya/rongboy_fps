@@ -1,6 +1,6 @@
 # Rongboy FPS
 
-毛绒风的第一人称毛线球射击游戏：三张地图（家、博物馆、学校），任务制，纯键盘操作。全部用代码生成，构建出来每个页面是一个自带一切的 HTML 文件。
+毛绒风的第一人称毛线球射击游戏：四张地图（家、博物馆、学校、奶奶家），任务制，纯键盘操作。全部用代码生成，构建出来每个页面是一个自带一切的 HTML 文件。
 
 画面用 [cine-engine](https://github.com/xemaya/cine-engine) 渲染。引擎是这个仓库的子模块（`cine-engine/`），钉在一个确定的提交上。
 
@@ -11,7 +11,7 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 17 套检查
+npm test                                                # 19 套检查
 node scripts/map.mjs                                    # 地图工具：出草图、检查、体检、俯视图（docs/map-guide.md）
 ```
 
@@ -86,6 +86,8 @@ git add cine-engine && git commit
 - 清晰度调节器换成了游戏自己的（`scenes/rongboy-mission/governor.js`）：目标 30 帧，先减像素数、保住抗锯齿和环境遮蔽，画面轻了会加回去。逻辑有模拟测试（`scripts/tests/rongboy-governor.mjs`），**但没有在前台窗口里实际跑过**：自动化用的浏览器窗口在后台，出帧被压到每秒一帧，量不了。在 Intel Mac（Radeon Pro 5300M，Retina 屏）上按同步测速推算，重的画面会停在约 100 万像素（1300×740 上下）、30 帧。测量和原因见 `scenes/rongboy-mission/DESIGN.md` 的"清晰度调节"。
 - 第一人称的手和枪永远画在场景前面，不会再被墙、楼梯、窗帘吞掉（上一轮只靠缩小，没解决）；追人的僵尸贴墙时会把手收回来（只改画面）。没管的：僵尸的头比碰撞半径大，正对墙时脸还会蹭进墙；侧身贴墙时垂着的手也可能碰到墙。
 - 画面检查是在不出帧的隐藏面板里用同步推进的入口做的（`window.__rb`，见 `scenes/rongboy-mission/main.js` 末尾）；实时手感和帧率要在前台窗口确认。
-- 九类僵尸里，弓手、炸弹客、持盾者已经摆进三张地图；爬行者和两个首领仍只在试战庭院出现。
-- 2026-11-17 加了给 agent 用的地图工具（`docs/map-guide.md`、`scripts/map.mjs`、`scenes/rongboy-mission/mapkit/`）：写一份草图，工具算坐标，再用硬性检查和体检报告来改。示例图"奶奶家"（`?level=cottage`）是用它做的，登记了但不在游戏的地图列表里：3D 画面只看过八张静帧，**没有人玩过**。体检里的阈值是照现有三张图定的初值。
+- 九类僵尸里，弓手、炸弹客、持盾者已经摆进各张地图，守墓巨像在"家"的阁楼；爬行者和噬连兽仍只在试战庭院出现。
+- 2026-11-17 守墓巨像进了"家"的阁楼：拿起毛线篮的那一刻现身，不用打倒，跑出阁楼就甩掉（`docs/fun-design.md` 第 10 节，`scripts/tests/rongboy-warden.mjs`）。"奶奶家"成了第四张地图。都**没有人玩过**。
+- 2026-11-17 每张图加了一种"打一下就生效"的机关（家是闹钟、学校是颜料桶、博物馆是聚光灯）、墙上的拉链暗格，布景被毛球打到会有反应（`docs/fun-design.md` 第 9 节）。规则有测试（`scripts/tests/rongboy-gadgets.mjs`），画面只看过静帧，声音没有人听过，**没有人玩过**。
+- 2026-11-17 加了给 agent 用的地图工具（`docs/map-guide.md`、`scripts/map.mjs`、`scenes/rongboy-mission/mapkit/`）：写一份草图，工具算坐标，再用硬性检查和体检报告来改。"奶奶家"是用它做的（后来成了第四张地图）：3D 画面只看过静帧，**没有人玩过**。体检里的阈值是照现有三张图定的初值。
 - 2026-11-16 按玩法准则（`docs/fun-design.md`）改了一轮：手里两把枪（Q 换）加单独一个键的手雷、每把枪只管一件事、弓手会算提前量、受伤有方向和棉絮。数值是按枪表和两个机器人（`scripts/tests/rongboy-fun.mjs`）定的初值，**没有人实际玩过这一版**；受伤的动画和声音只看过静帧。

@@ -3,11 +3,12 @@
 // 走路、碰撞、寻路按所在那一层的平面做，毛球和视线在三维里算。
 // 与工坊版的区别：僵尸数量固定且默认没发现你；武器有伤害、射程、弹匣和噪音；通关靠完成任务。
 import { FEEL } from '../rongboy-shooter-fps/feedback.js';
-import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, storeyAt, surfaceY, navGoal, inStairs } from './level.js';
+import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, storeyAt, surfaceY, navGoal, inStairs, freePoint } from './level.js';
 import { advanceAction, interruptAction } from './actions.js';
 import {SPECIAL_TYPES,ARROW_SPEED} from './attacks.js';
 import {launchBomb,advanceBombs} from './bombs.js';
 import {advanceSpecial,interruptSpecial,contactAttack,onSpecialDeath} from './special-enemies.js';
+import { GADGETS, STASH } from './gadgets.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -81,11 +82,14 @@ export function createGame({ level } = {}) {
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
     enemies: [], balls: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
-    pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false })),
+    dormant: [],   // 还没出场的（关卡里写了 dormant: true）：任务物品拿齐的那一刻才出现
+    // 藏在拉链暗格里的（stash）开局看不见、捡不到，打开拉链才掉出来
+    pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false, hidden: !!p.stash })),
+    gadgets: (level.gadgets || []).map(g => ({ ...g, used: false, until: 0 })),
     player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
   if (!s.owned[GRENADE]) s.ammo[GRENADE] = { mag: 0, reserve: 0 };   // 关卡没给手雷：一颗都没有，捡到才有
-  for (const e of level.enemies || []) spawn(s, e);
+  for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
   return s;
 }
 
@@ -345,6 +349,7 @@ function sense(s, e, dt) {
     return;
   }
   if (d < CONFIG.closeRange && sees()) { notice(s, e, 0, 'near'); return; }
+  if (e.lure) return;   // 被闹钟引住的只盯着闹钟：贴到跟前、开枪或者打中它才回过神
   if (d < CONFIG.sightRange) {
     const facing = (Math.sin(e.heading) * dx + Math.cos(e.heading) * dz) / flat;
     if (facing > CONFIG.sightCos && sees()) notice(s, e, 0, 'sight');
@@ -373,6 +378,13 @@ function chase(s, e, dt) {
   // 扑击、侧跳、盾冲、投弹这些动作只在和玩家站在同一块平地上时才做；在楼梯上或隔着楼层就老实追
   const level = Math.abs(p.y - e.base) < 0.3 && !inStairs(L, e) && !inStairs(L, p);
   if (!level) { e.action = 'chase'; e.moveMultiplier = 1; e.sideLean = 0; }
+  // 身体比楼梯宽的（首领）下不了楼：玩家不在这一层，它就守在原地，朝楼梯口转过去
+  if (L.stairs && navRadius(e.radius) * 2 > L.stairs.lane && (Math.abs(p.y - e.base) >= 0.3 || inStairs(L, p))) {
+    e.hop *= Math.exp(-dt * 10);
+    let turn = Math.atan2(-e.x, L.stairs.mouthZ - e.z) - e.heading; turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+    e.heading += clamp(turn, -dt * 2, dt * 2);
+    return;
+  }
   const action = !level ? null : SPECIAL_TYPES.has(e.type) ? advanceSpecial(s, e, dt, attackApi, S) : advanceAction(S, e, dt, p, s.events);
   e.hopPhase = ((e.age + e.id * 0.137) % e.hopPeriod) / e.hopPeriod;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
@@ -517,8 +529,8 @@ function advanceBall(s, b, dt) {
   for (let pass = 0; pass < 6 && left > 1e-7 && !b.destroyed; pass++) {
     const end = { x: b.x + b.vx * left, y: b.y + b.vy * left, z: b.z + b.vz * left };
     let hit = null;
-    const candidate = (t, nx, ny, nz, kind, e = null) => {
-      if (t >= -1e-8 && t <= 1 && (hit === null || t < hit.t - 1e-8)) hit = { t: Math.max(0, t), nx, ny, nz, kind, e };
+    const candidate = (t, nx, ny, nz, kind, e = null, box = null) => {
+      if (t >= -1e-8 && t <= 1 && (hit === null || t < hit.t - 1e-8)) hit = { t: Math.max(0, t), nx, ny, nz, kind, e, box };
     };
     for (const [axis, lo, hi] of limits) {
       const delta = end[axis] - b[axis], n = { x: 0, y: 0, z: 0 };
@@ -545,7 +557,7 @@ function advanceBall(s, b, dt) {
     for (const c of L.solids) {
       const h = segmentBox(b, end, c, b.r);
       // 楼板和踏步的顶面算地面：和落在底层地面上一样弹
-      if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, h.ny > 0.5 && (c.kind === 'slab' || c.kind === 'stair') ? 'floor' : 'solid');
+      if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, h.ny > 0.5 && (c.kind === 'slab' || c.kind === 'stair') ? 'floor' : 'solid', null, c);
     }
     const t = hit ? hit.t : 1;
     b.travel += Math.hypot(end.x - b.x, end.y - b.y, end.z - b.z) * t;
@@ -556,6 +568,8 @@ function advanceBall(s, b, dt) {
     // 户外没有天花板，也没有高过围篱的墙：飞出去的球直接散掉。
     if ((hit.kind === 'ceiling' || (hit.kind === 'edge' && b.y > 2.3)) && isOutdoor(L, b.x, b.z)) { expireBall(s, b, 'sky'); break; }
     const incoming = { x: b.vx, y: b.vy, z: b.vz };
+    if (hit.box) struck(s, b, hit.box);                // 打中机关、拉链
+    else if (hit.kind === 'edge') struck(s, b, { kind: 'edge', floorY: storeyAt(L, b.y - 1).y });   // 房子的外墙就是地图边界
     if (b.fuse && hit.e) { explode(s, b); break; }   // 手雷直接砸中僵尸：当场炸开
     if (hit.e && b.pierce > 0) {                      // 毛衣针：扎穿过去，不反弹，接着飞
       ballHit(s, b, hit.e, incoming); b.pierce--; b.passed[hit.e.id] = true;
@@ -574,7 +588,10 @@ function advanceBall(s, b, dt) {
     b.lastNormal = { x: hit.nx, y: hit.ny, z: hit.nz };
     if (s.time - (b.lastBounceEvent ?? -1) > 0.04) {
       b.lastBounceEvent = s.time;
-      s.events.push({ type: 'bounce', id: b.id, x: b.x, y: b.y, z: b.z, kind: hit.kind, count: b.bounceCount, weapon: b.weapon });
+      // solid：打在了哪件东西上（画面按它的材质和颜色给反应）
+      const c = hit.box;
+      s.events.push({ type: 'bounce', id: b.id, x: b.x, y: b.y, z: b.z, kind: hit.kind, count: b.bounceCount, weapon: b.weapon,
+        nx: hit.nx, ny: hit.ny, nz: hit.nz, ...(c ? { solid: { id: c.id, kind: c.kind, look: c.look, item: c.item, color: c.color } } : {}) });
     }
     if (b.bounceCount > b.maxBounces) expireBall(s, b, 'bounce-limit');
   }
@@ -584,21 +601,113 @@ function advanceBall(s, b, dt) {
 
 // 毛线团炸开：blast 米内、没被墙挡住的僵尸掉血（越近越多）、被推开，并被毛线缠住。玩家站太近只会被推一下。
 function explode(s, b) {
-  const w = WEAPONS[weaponIndex(b.weapon)], L = s.level, at = { x: b.x, y: b.y + 0.15, z: b.z }, struck = [];
+  blast(s, b.x, b.y, b.z, WEAPONS[weaponIndex(b.weapon)]);
+  expireBall(s, b, 'explode');
+}
+// 在 (x, y, z) 炸开一团毛线：手雷和颜料桶共用。
+function blast(s, x, y, z, w, source = null) {
+  const L = s.level, at = { x, y: y + 0.15, z }, struck = [];
   for (const e of s.enemies) {
     if (!e.alive || !e.enabled) continue;
-    const cy = e.y + e.height * 0.5, d = Math.hypot(e.x - b.x, cy - b.y, e.z - b.z);
+    const cy = e.y + e.height * 0.5, d = Math.hypot(e.x - x, cy - y, e.z - z);
     if (d > w.blast + e.radius || !lineOfSight(L, at, { x: e.x, y: cy, z: e.z })) continue;
-    const k = clamp(d / w.blast, 0, 1), dx = e.x - b.x, dz = e.z - b.z, n = Math.hypot(dx, dz) || 1;
+    const k = clamp(d / w.blast, 0, 1), dx = e.x - x, dz = e.z - z, n = Math.hypot(dx, dz) || 1;
     struck.push(e.id); s.hits++;
     e.tangle = Math.max(e.tangle, w.tangle);
     damage(s, e, Math.round(w.damage + (w.minDamage - w.damage) * k), dx / n, dz / n, w.push * (1 - 0.5 * k), 'blast', { weapon: w.id, stun: 0.3, contactX: e.x, contactY: cy, contactZ: e.z });
   }
-  const p = s.player, pd = Math.hypot(p.x - b.x, p.y + 0.8 - b.y, p.z - b.z);
-  if (pd < w.blast * 0.7) { const n = Math.hypot(p.x - b.x, p.z - b.z) || 1; p.vx += (p.x - b.x) / n * 3.5; p.vz += (p.z - b.z) / n * 3.5; }
-  s.events.push({ type: 'explode', x: b.x, y: b.y, z: b.z, radius: w.blast, struck, weapon: w.id });
-  emitNoise(s, b.x, b.z, w.noise, b.y);
-  expireBall(s, b, 'explode');
+  const p = s.player, pd = Math.hypot(p.x - x, p.y + 0.8 - y, p.z - z);
+  if (pd < w.blast * 0.7) { const n = Math.hypot(p.x - x, p.z - z) || 1; p.vx += (p.x - x) / n * 3.5; p.vz += (p.z - z) / n * 3.5; }
+  s.events.push({ type: 'explode', x, y, z, radius: w.blast, struck, weapon: w.id, ...(source ? { source } : {}) });
+  emitNoise(s, x, z, w.noise, y);
+  return struck;
+}
+
+// ---------- 机关和拉链暗格（docs/fun-design.md 第 9 节）----------
+
+// 毛球打在一件实心的东西上：是机关就触发；是墙，而且旁边有一条没拉开的拉链，就拉开。
+function struck(s, b, box) {
+  if (box.kind === 'gadget') { const g = s.gadgets.find(q => q.id === box.id); if (g && !g.used) trigger(s, g); return; }
+  for (const k of s.pickups) {
+    if (!k.hidden || !k.stash || Math.abs((k.y ?? 0) - (box.floorY ?? 0)) > 0.5) continue;
+    const h = b.y - (k.y ?? 0);
+    if (Math.hypot(k.stash.x - b.x, k.stash.z - b.z) > STASH.reach || h < STASH.lo || h > STASH.hi) continue;
+    k.hidden = false;
+    s.events.push({ type: 'stash', id: k.id, kind: k.kind, weapon: k.weapon, x: k.x, z: k.z, base: k.y ?? 0, sx: k.stash.x, sz: k.stash.z });
+  }
+}
+
+function trigger(s, g) {
+  const L = s.level, G = GADGETS[g.kind], S = L.storeys[g.floor], top = { x: g.x, y: g.y + G.h + 0.35, z: g.z }, hit = [];   // 声音和灯光从机关顶上发出来（在它自己的盒子外面）
+  g.used = true;
+  const here = e => e.alive && e.enabled && Math.abs(e.base - g.y) < 1;
+  if (g.kind === 'clock') {
+    // 还没发现玩家的（睡着的会被吵醒）走过去围着看。每只占闹钟周围的一个空位，近的先挑。
+    g.until = s.time + G.time;
+    const taken = [];
+    // 刚被惊动、还在反应的（waking）也算：打闹钟的那一枪本身有声音，离得近会先惊动它们，闹钟得盖过去
+    const heard = s.enemies.filter(e => here(e) && (unaware(e) || e.awareness === 'waking')).map(e => ({ e, d: Math.hypot(e.x - g.x, e.z - g.z) }))
+      .filter(({ e, d }) => d < G.radius && (d < G.radius * 0.5 || lineOfSight(L, top, feet(e)))).sort((a, b) => a.d - b.d);
+    for (const { e } of heard) {
+      const ring = Math.max(G.w, G.d) * 0.71 + e.radius + 0.4, r = navRadius(e.radius);
+      const spot = Array.from({ length: 12 }, (_, i) => ({ x: g.x + Math.cos(i * Math.PI / 6) * ring, z: g.z + Math.sin(i * Math.PI / 6) * ring }))
+        .filter(q => freePoint(S, q.x, q.z, e.radius) && taken.every(t => Math.hypot(t.x - q.x, t.z - q.z) > e.radius + t.r + 0.1))
+        .sort((p, q) => Math.hypot(p.x - e.x, p.z - e.z) - Math.hypot(q.x - e.x, q.z - e.z))
+        .find(q => clearPath(S, e, q, r, true) || routeTo(S, e, q, r).length > 0);
+      if (!spot) continue;
+      taken.push({ ...spot, r: e.radius });
+      e.awareness = 'idle'; e.patrol = null; e.navIn = 0; e.route = [];
+      e.lure = { x: spot.x, z: spot.z, lookX: g.x, lookZ: g.z, until: g.until, arrived: false };
+      hit.push(e.id);
+    }
+  } else if (g.kind === 'bucket') {
+    hit.push(...blast(s, g.x, top.y, g.z, WEAPONS[GRENADE], 'bucket'));
+  } else if (g.kind === 'spot') {
+    for (const e of s.enemies) {
+      if (!here(e) || Math.hypot(e.x - g.x, e.z - g.z) > G.radius + e.radius || !lineOfSight(L, top, { x: e.x, y: e.y + e.height * 0.6, z: e.z })) continue;
+      e.stun = Math.max(e.stun, G.stun * (e.armor ? 0.6 : 1));
+      hit.push(e.id);
+    }
+  }
+  s.events.push({ type: 'gadget', id: g.id, kind: g.kind, x: g.x, y: g.y, z: g.z, base: g.y, radius: G.radius, struck: hit });
+}
+
+// 被闹钟引过去的僵尸：走到分给它的空位，面朝闹钟站着，响完为止。路上照样会看见玩家（那就变成追）。
+function investigate(s, e, dt) {
+  const S = storeyAt(s.level, e.base), t = e.lure, r = navRadius(e.radius);
+  if (s.time > t.until) { e.lure = null; e.hop = 0; return; }
+  const far = length(t.x - e.x, t.z - e.z);
+  if (t.arrived || far < 0.15) {
+    t.arrived = true; e.hop *= Math.exp(-dt * 12);
+    let turn = Math.atan2(t.lookX - e.x, t.lookZ - e.z) - e.heading;
+    turn = Math.atan2(Math.sin(turn), Math.cos(turn));
+    e.heading += clamp(turn, -dt * 4, dt * 4);
+    return;
+  }
+  e.navIn -= dt;
+  if (e.navIn <= 0) { e.route = routeTo(S, e, t, r); e.navIn = 0.5; }
+  while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
+  const next = clearPath(S, e, t, r, true) ? t : e.route[0];
+  if (!next) return;
+  const period = e.hopPeriod * 1.2;
+  e.hopPhase = (e.age % period) / period;
+  const lift = Math.sin(clamp(e.hopPhase / 0.78, 0, 1) * Math.PI), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
+  e.hop = lift * e.hopHeight * 0.7;
+  const travel = Math.min(d, (e.hit <= 0 ? e.speed * 0.75 * (0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  e.x += dx / d * travel; e.z += dz / d * travel;
+  if (d > 0.03 && e.hit <= 0) e.heading = Math.atan2(dx, dz);
+}
+
+// 任务物品拿齐了：没出场的（守墓巨像）现在出现。先愣 wake 秒（画面上是先亮眼睛、再现身），然后开始追。
+// 出场之前它不在场上：打不到、不算数、也不会被看见；出场时才带上它的援兵。
+const EMERGE = 1.8;
+function emerge(s) {
+  const p = s.player;
+  for (const d of s.dormant.splice(0)) {
+    const e = spawn(s, { ...d, state: 'idle', heading: Math.atan2(p.x - d.x, p.z - d.z) });
+    e.awareness = 'waking'; e.wake = EMERGE; e.patrol = null;
+    s.events.push({ type: 'emerge', id: e.id, enemyType: e.type, x: e.x, z: e.z, base: e.base, time: EMERGE });
+  }
 }
 
 // ---------- 拾取与任务 ----------
@@ -606,7 +715,7 @@ function explode(s, b) {
 function collect(s) {
   const p = s.player;
   for (const k of s.pickups) {
-    if (k.taken || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
+    if (k.taken || k.hidden || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     let got = null;   // 弹药包：实际补给了哪把枪、多少（界面提示用）
     if (k.kind === 'heart') {
       if (s.health >= CONFIG.maxHealth) continue;
@@ -636,6 +745,7 @@ function collect(s) {
     }
     k.taken = true;
     s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: got?.weapon ?? k.weapon, amount: got?.amount ?? k.amount, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
+    if (k.kind === 'objective' && s.carrying) emerge(s);   // 放在"捡到了"之后：它的提示要盖过"拿到了"
   }
 }
 
@@ -645,7 +755,7 @@ export function offeredWeapon(s) {
   if (s.phase !== 'playing' || second < 0) return null;
   let best = null, nearest = CONFIG.pickupRadius * 1.25;
   for (const k of s.pickups) {
-    if (k.taken || k.kind !== 'weapon' || Math.abs((k.y ?? 0) - p.y) > 1) continue;
+    if (k.taken || k.hidden || k.kind !== 'weapon' || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     const index = weaponIndex(k.weapon), d = length(k.x - p.x, k.z - p.z);
     if (index < 0 || index === GRENADE || s.owned[index] || d > nearest) continue;
     nearest = d; best = k;
@@ -726,7 +836,7 @@ export function step(s, dt, input = {}) {
     if (!e.alive) { e.deathAge += dt; e.hop *= Math.exp(-dt * 12); }
     else if (e.stun > 0) e.hop *= Math.exp(-dt * 14);   // 被电住：站在原地发抖，不追、不看、不咬
     else if (e.awareness === 'alert') chase(s, e, dt);
-    else { sense(s, e, dt); if (e.awareness !== 'alert') idleMove(s, e, dt); }
+    else { sense(s, e, dt); if (e.awareness === 'alert' || e.awareness === 'waking') e.lure = null; else if (e.lure) investigate(s, e, dt); else idleMove(s, e, dt); }
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
     resolveBody(storeyAt(L, e.base), e, e.radius);
