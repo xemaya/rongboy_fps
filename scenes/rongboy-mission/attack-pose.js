@@ -1,11 +1,14 @@
+import {finalBossPose} from '../../library/games/rongboy-final-boss-pose.js';
+import {poseCrawl} from '../../library/games/rongboy-crawl.js';
 import {updateActionGear} from '../../library/games/rongboy-action-gear.js';
 // These poses read actual attack timers. Equipment stays parented to its native joint.
 export function applyAttackPose(e,a){
  const p=n=>a.parts.get(n),rest=n=>a.rest.get(n),x=(n,v)=>{if(p(n))p(n).rotation.x=rest(n).r.x+v;};
  const phase=e.actionAge||0;
- if(e.type==='crawler'){x('LegL',Math.sin(e.age*6)*.06);x('LegR',-Math.sin(e.age*6)*.06);x('ArmL',e.action==='crawler-strike'?-.25:Math.sin(e.age*6)*.07);x('ArmR',e.action==='crawler-strike'?-.25:-Math.sin(e.age*6)*.07);if(p('Body'))p('Body').rotation.z+=Math.sin(e.age*6)*.025;}
+ if(a.model?.userData.final_costume && e.type.startsWith('boss-')){finalBossPose(a,e.action,phase,e.age||0,e.recoverFrom);return;}
+ if(e.type==='crawler')poseCrawl(a,e.crawlDistance||0,e.crawlWeight||0,e.action,phase);
  if(e.type==='shielded'){x('ArmL',e.guardBroken>0?-.8:0);if(e.action==='shield-windup'&&p('Body'))p('Body').rotation.x-=.16;if(e.guardBroken>0&&p('Body'))p('Body').rotation.y+=.22;}
- if(e.type==='archer'){x('ArmL',-Math.PI/2);x('ArmR',e.action==='archer-aim'?-1.05:-.75);if(p('ArmR'))p('ArmR').rotation.y-=e.action==='archer-aim'?.78+Math.min(1,phase/.95)*.25:.60;}
+ if(e.type==='archer'){x('ArmL',-1.14);x('ArmR',e.action==='archer-aim'?-1.05:-.75);if(p('ArmR'))p('ArmR').rotation.y-=e.action==='archer-aim'?.78+Math.min(1,phase/.95)*.25:.60;}
  if(e.type==='bomber'){x('ArmL',-.75);x('ArmR',e.action==='bomber-throw'?-1.0-Math.sin(Math.min(1,phase/.95)*Math.PI)*1.15:-.55);if(p('Body')&&e.action==='bomber-throw')p('Body').rotation.y+=Math.sin(phase*3)*.10;}
  if(e.type==='spawner'){x('LegL',0);x('LegR',0);x('ArmL',e.action==='spawner-call'?-.65:-.2);x('ArmR',e.action==='spawner-call'?-.65:-.2);if(p('Head'))p('Head').rotation.z+=Math.sin(phase*9)*.025;}
  if(e.type==='boss-warden'&&(e.action==='warden-windup'||e.action==='warden-call')){x('ArmL',-1.9);x('ArmR',-1.9);if(p('Body'))p('Body').rotation.x-=.12;}

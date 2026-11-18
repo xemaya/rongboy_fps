@@ -1,0 +1,48 @@
+{
+  "status": "generated_AI_modeling_targets_not_user_approved",
+  "provider": "built-in image_gen",
+  "views": [
+    "front",
+    "left side",
+    "back"
+  ],
+  "purpose": "visual authority for V6 mesh repair",
+  "assets": {
+    "boss-leech": {
+      "path": "boss-leech.png",
+      "sha256": "95225760f9c02e58fa17b0a3bbf7dd45d9d09c20043c31c7a55698a5fd543387"
+    },
+    "crawler": {
+      "path": "crawler.png",
+      "sha256": "7575c506533e3a2e4594fe30676e421733771bcb88ed9c18307210739c7cf22a"
+    },
+    "walker": {
+      "path": "walker.png",
+      "sha256": "84024ea9b267bd0e2fc77cc9d88614645f3870406900be33d2f44fa3eee60f65"
+    },
+    "boss-warden": {
+      "path": "boss-warden.png",
+      "sha256": "acec3118d1c9140d0cf5bb7d60f7877c3d0d0bdf270a836e5ac087f8a3b07bd8"
+    },
+    "shielded": {
+      "path": "shielded.png",
+      "sha256": "a9ec91ad0e6ec4aef6b915ac05d91e2d9c0a6addf81f874ef610215df317a1ae"
+    },
+    "archer": {
+      "path": "archer.png",
+      "sha256": "0fe536dec8e6b53f0dd212d7212c34eec42e12767f904dc6f59ad2bce78b83d6"
+    },
+    "heavy": {
+      "path": "heavy.png",
+      "sha256": "b6c6be746d16e2c47cc25770a3f70fabfa2a158e4da89d4faee130fc35910d19"
+    },
+    "bomber": {
+      "path": "bomber.png",
+      "sha256": "bfa0f9fcad7f45dfb07737f09799df5589600f99cb457f6323b14bc4b2ff47f0"
+    },
+    "leaper": {
+      "path": "leaper.png",
+      "sha256": "6d0b5167509773d74922bd205eb420c1abf330cc147d15abc35626e8327e19e5"
+    }
+  }
+}

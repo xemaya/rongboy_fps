@@ -2,7 +2,7 @@ import {segmentBox,lineOfSight} from './level.js';
 const GRAVITY=9.8;
 export function launchBomb(s,e,target){
  if(s.enemyBombs.length>=10)return;
- const duration=.85,r=.16,m=e.muzzle||{side:.339,forward:.423,y:.829},x=e.x+Math.cos(e.heading)*m.side+Math.sin(e.heading)*m.forward,z=e.z-Math.sin(e.heading)*m.side+Math.cos(e.heading)*m.forward,y=e.y+m.y;
+ const duration=.85,r=.16,m=e.muzzle||{side:0.329657,forward:0.545857,y:0.857034},x=e.x+Math.cos(e.heading)*m.side+Math.sin(e.heading)*m.forward,z=e.z-Math.sin(e.heading)*m.side+Math.cos(e.heading)*m.forward,y=e.y+m.y;
  const b={id:s.nextId++,owner:e.id,x,y,z,vx:(target.x-x)/duration,vz:(target.z-z)/duration,vy:(r-y+.5*GRAVITY*duration**2)/duration,r,landed:false,fuse:1.15,age:0,radius:2.2,destroyed:false,floorY:e.base||0};s.enemyBombs.push(b);s.events.push({type:'bomb-thrown',id:b.id,x,y,z});
 }
 export function advanceBombs(s,dt,hurt){

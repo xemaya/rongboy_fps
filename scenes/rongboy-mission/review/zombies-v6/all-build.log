@@ -1,0 +1,12 @@
+
+> rongboy-fps@0.1.0 build
+> node scripts/build.mjs
+
+[build] dist/rongboy.html  667 kB of script
+[build] dist/rongboy-mission.html  56 kB of script
+[build] dist/rongboy-op.html  39901 kB of script
+[build] dist/rongboy-play.html  37648 kB of script
+[build] dist/rongboy-shooter.html  16316 kB of script
+[build] dist/rongboy-shooter-fps.html  37283 kB of script
+[build] dist/rongboy-figures.html  9474 kB of script
+[build] dist/rongboy-zombies.html  31343 kB of script

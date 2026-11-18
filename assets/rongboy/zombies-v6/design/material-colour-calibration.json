@@ -1,0 +1,124 @@
+{
+  "method": "Conservative linear-light correction from matching back-head regions under unchanged native review lighting. Light and pose differences remain; not a perceptual similarity score.",
+  "probes": {
+    "walker": {
+      "target": [
+        137,
+        130,
+        88
+      ],
+      "model": [
+        144,
+        139,
+        93
+      ]
+    },
+    "leaper": {
+      "target": [
+        132,
+        124,
+        81
+      ],
+      "model": [
+        129,
+        121,
+        70
+      ]
+    },
+    "heavy": {
+      "target": [
+        137,
+        128,
+        85
+      ],
+      "model": [
+        147,
+        142,
+        102
+      ]
+    },
+    "crawler": {
+      "target": [
+        157,
+        149,
+        106
+      ],
+      "model": [
+        152,
+        147,
+        114
+      ]
+    },
+    "shielded": {
+      "target": [
+        136,
+        128,
+        86
+      ],
+      "model": [
+        134,
+        128,
+        92
+      ]
+    },
+    "bomber": {
+      "target": [
+        133,
+        126,
+        82
+      ],
+      "model": [
+        141,
+        133,
+        90
+      ]
+    },
+    "archer": {
+      "target": [
+        140,
+        130,
+        85
+      ],
+      "model": [
+        144,
+        137,
+        109
+      ]
+    },
+    "boss-warden": {
+      "target": [
+        159,
+        151,
+        105
+      ],
+      "model": [
+        158,
+        154,
+        124
+      ]
+    },
+    "boss-leech": {
+      "target": [
+        148,
+        141,
+        100
+      ],
+      "model": [
+        156,
+        151,
+        115
+      ]
+    }
+  },
+  "skinPalette": {
+    "walker": "#767648",
+    "leaper": "#78784A",
+    "heavy": "#767346",
+    "crawler": "#868257",
+    "shielded": "#787750",
+    "bomber": "#757346",
+    "archer": "#827D53",
+    "boss-warden": "#878455",
+    "boss-leech": "#89895B"
+  }
+}

@@ -1,0 +1,24 @@
+
+> rongboy-fps@0.1.0 test
+> for f in scripts/tests/*.mjs; do node "$f" > /dev/null || { echo "FAIL $f"; exit 1; }; echo "ok   $f"; done
+
+ok   scripts/tests/rongboy-attacks.mjs
+ok   scripts/tests/rongboy-feedback.mjs
+ok   scripts/tests/rongboy-figures-v2.mjs
+ok   scripts/tests/rongboy-fun.mjs
+ok   scripts/tests/rongboy-gadgets.mjs
+ok   scripts/tests/rongboy-governor.mjs
+ok   scripts/tests/rongboy-mapkit.mjs
+ok   scripts/tests/rongboy-menu.mjs
+ok   scripts/tests/rongboy-merge.mjs
+ok   scripts/tests/rongboy-mission.mjs
+ok   scripts/tests/rongboy-museum.mjs
+ok   scripts/tests/rongboy-op.mjs
+ok   scripts/tests/rongboy-school.mjs
+ok   scripts/tests/rongboy-shooter-fps.mjs
+ok   scripts/tests/rongboy-shooter.mjs
+ok   scripts/tests/rongboy-walker-rig.mjs
+ok   scripts/tests/rongboy-warden.mjs
+ok   scripts/tests/rongboy-yard.mjs
+ok   scripts/tests/rongboy-zombie-roster.mjs
+ok   scripts/tests/rongboy.mjs

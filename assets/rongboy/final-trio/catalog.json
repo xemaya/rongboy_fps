@@ -1,0 +1,17 @@
+{
+  "source": "final-trio.blend",
+  "models": [
+    {
+      "id": "archer",
+      "name": "弓手"
+    },
+    {
+      "id": "boss-warden",
+      "name": "守墓巨像"
+    },
+    {
+      "id": "boss-leech",
+      "name": "噬连兽"
+    }
+  ]
+}

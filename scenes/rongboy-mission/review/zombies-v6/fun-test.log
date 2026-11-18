@@ -1,0 +1,30 @@
+
+从照面到击倒（括号里是这期间挨了几下）
+僵尸      手枪           霰弹           棉被炮          缝纫机          毛衣针          
+跳跳        0.9 秒          0.2 秒          0.2 秒          0.6 秒          0.9 秒        
+跃行者       0.9 秒          0.2 秒          0.2 秒          0.5 秒          0.8 秒        
+棉甲        3.8 秒          2.8 秒          5.1 秒          打不倒            0.9 秒        
+持盾者       1.6 秒          打不倒 (挨1下)      0.2 秒          打不倒 (挨1下)      0.9 秒        
+弓手        2.3 秒          6.5 秒 (挨1下)    0.9 秒          1.1 秒          1.1 秒        
+炸弹客       1.3 秒          6.2 秒 (挨1下)    0.6 秒          0.7 秒          1.0 秒        
+四只跳跳      5.3 秒 (挨1下)    5.7 秒 (挨2下)    7.6 秒 (挨2下)    2.4 秒          7.5 秒 (挨4下)  
+
+PASS the pistol can put down every kind of zombie on its own
+PASS the pistol is never the fastest answer to anything
+PASS every special gun has a job at which it is at least twice as fast as the pistol
+PASS quilt armour shrugs off one-point hits from the front; the needle goes straight through
+PASS an archer hits someone who keeps walking the same way, and someone who backs straight off
+PASS changing direction when the aim line turns red dodges every arrow
+PASS ranged attacks take turns: with three archers only one draws at a time, and shots are spaced out
+PASS a far-off pistol ball does not break an archer's draw; one from close by does
+
+机器人（只用手枪）
+  偷懒的，只有贴身僵尸：打完了 · 挨 0 下 · 15 秒
+  偷懒的，加上弓手、炸弹客、持盾者：倒下了，还剩 2 只 · 挨 3 下 · 78 秒
+  留神的，同一个阵容：打完了 · 挨 1 下 · 20 秒
+
+PASS backing off with the pistol is enough against touch-only zombies (this is why the old game played itself)
+PASS the same lazy play does not survive archers, bombers and a shield
+PASS watching the telegraphs gets through the same fight with the same pistol
+
+11 fun checks passed

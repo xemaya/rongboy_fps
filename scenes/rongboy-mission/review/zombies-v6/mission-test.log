@@ -1,0 +1,40 @@
+PASS walls split around doors; lintels stop balls but not bodies
+PASS every spawn, pickup and the player start are on free floor inside a named room
+PASS on every floor, every zombie and pickup can be reached from the stair mouth, for both body widths
+PASS no hiding pockets: anywhere the player can stand, a zombie can get close enough to touch
+PASS interior walls stop a woolball, an open doorway lets it through, the lintel is solid
+PASS outdoors a ball that flies up and out simply fades instead of bouncing off the sky
+PASS a sleeping zombie ignores a distant player and wakes only when approached
+PASS an awake zombie sees only what is in front of it, within range, and not through walls
+PASS gunfire carries: full radius in the open, half through a wall
+PASS an alerted zombie calls nearby friends it can see, after a reaction delay
+PASS only alerted zombies hurt on contact; a sleeper is just a soft obstacle
+PASS weapons deal different damage, and it falls off with distance
+PASS a ball fades once it has flown past its maximum range
+PASS a hit from behind doubles, an unaware target doubles again, and they stack
+PASS the quilt-armoured zombie shrugs off frontal hits and must be flanked
+PASS each weapon has its own ricochet budget
+PASS magazines empty, reload takes time, reserves run out, and the starter gun never does
+PASS switching to an empty magazine starts a timed reload without granting instant ammunition
+PASS charging still works: one bigger, harder-hitting ball on release
+PASS pickups: ammo goes to the right reserve, a heart is left alone at full health
+PASS clear mission: ends only when every zombie is down, and nothing ever respawns
+PASS fetch mission: grab the prize (which raises the alarm) and carry it back to the exit
+PASS three hits and the round is lost
+PASS standing at the gate is safe: nobody notices, nobody spawns
+PASS once roused, all three floors find their way down to the player without getting stuck
+PASS two guns in hand: the pistol stays, the other one is swapped on purpose, and the dropped gun keeps its ammo
+PASS the yarn grenade has its own key: it is thrown without leaving the gun in hand
+PASS static gun: freezes its target, the arc jumps to neighbours, and a frozen zombie cannot bite
+PASS sewing machine gun: holding the trigger fires a stream until the magazine runs dry
+PASS knitting needle: flies straight, goes through three zombies in a row and stops in the wall
+PASS yarn grenade: bounces, bursts after its fuse, hurts and tangles what it can see
+PASS the stairs carry the player up floor by floor and back down, height changing smoothly
+PASS the ground-floor cupboard and the attic railing close the two dead-end stair mouths
+PASS floors separate what happens on them: no sight, touch, pickup or woolball through a slab
+PASS gunfire upstairs is muffled downstairs
+PASS a roused zombie from the attic walks down two flights to reach the player in the garden
+PASS the house mission: carry the yarn basket from the attic back to the gate
+PASS view-relative movement is unchanged
+PASS windows sit in solid wall clear of doors; lamps, rugs and pictures are inside the house
+39 mission checks passed

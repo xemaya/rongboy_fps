@@ -1,0 +1,51 @@
+00:00.847  blend            | Read blend: "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/zombies-v6/rongboy-zombie-roster-v6.blend"
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_three_views.py:11: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if not m.use_nodes:continue
+00:02.496  render           | Saved: '/private/tmp/rongboy-material-pass2/after/walker-front.png'
+00:03.341  render           | Saved: '/private/tmp/rongboy-material-pass2/after/walker-side.png'
+00:04.320  render           | Saved: '/private/tmp/rongboy-material-pass2/after/walker-back.png'
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+[INFO ] services.locationservice ...............: Not adding link to MakeHuman user data, since neither explicit path nor auto-discovery is set in preferences.
+[INFO ] mpfb.init ..............................: Build info 20260613
+[INFO ] mpfb.init ..............................: MPFB initialization has finished.
+VIEWS_DONE walker
+00:05.271  render           | Saved: '/private/tmp/rongboy-material-pass2/after/leaper-front.png'
+00:06.073  render           | Saved: '/private/tmp/rongboy-material-pass2/after/leaper-side.png'
+00:06.881  render           | Saved: '/private/tmp/rongboy-material-pass2/after/leaper-back.png'
+VIEWS_DONE leaper
+00:07.924  render           | Saved: '/private/tmp/rongboy-material-pass2/after/heavy-front.png'
+00:08.843  render           | Saved: '/private/tmp/rongboy-material-pass2/after/heavy-side.png'
+00:09.828  render           | Saved: '/private/tmp/rongboy-material-pass2/after/heavy-back.png'
+VIEWS_DONE heavy
+00:10.541  render           | Saved: '/private/tmp/rongboy-material-pass2/after/crawler-front.png'
+00:11.150  render           | Saved: '/private/tmp/rongboy-material-pass2/after/crawler-side.png'
+00:11.763  render           | Saved: '/private/tmp/rongboy-material-pass2/after/crawler-back.png'
+VIEWS_DONE crawler
+00:12.755  render           | Saved: '/private/tmp/rongboy-material-pass2/after/shielded-front.png'
+00:13.593  render           | Saved: '/private/tmp/rongboy-material-pass2/after/shielded-side.png'
+00:14.547  render           | Saved: '/private/tmp/rongboy-material-pass2/after/shielded-back.png'
+VIEWS_DONE shielded
+00:15.527  render           | Saved: '/private/tmp/rongboy-material-pass2/after/bomber-front.png'
+00:16.352  render           | Saved: '/private/tmp/rongboy-material-pass2/after/bomber-side.png'
+00:17.285  render           | Saved: '/private/tmp/rongboy-material-pass2/after/bomber-back.png'
+VIEWS_DONE bomber
+00:18.059  render           | Saved: '/private/tmp/rongboy-material-pass2/after/archer-front.png'
+00:18.775  render           | Saved: '/private/tmp/rongboy-material-pass2/after/archer-side.png'
+00:19.487  render           | Saved: '/private/tmp/rongboy-material-pass2/after/archer-back.png'
+VIEWS_DONE archer
+00:20.503  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-warden-front.png'
+00:21.317  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-warden-side.png'
+00:22.231  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-warden-back.png'
+VIEWS_DONE boss-warden
+00:23.235  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-leech-front.png'
+00:23.978  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-leech-side.png'
+00:24.898  render           | Saved: '/private/tmp/rongboy-material-pass2/after/boss-leech-back.png'
+VIEWS_DONE boss-leech
+ALL_VIEWS_DONE 9
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:30:33)
+
+Blender quit

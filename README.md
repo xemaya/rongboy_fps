@@ -11,7 +11,7 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 19 套检查
+npm test                                                # 20 套检查
 node scripts/map.mjs                                    # 地图工具：出草图、检查、体检、俯视图（docs/map-guide.md）
 ```
 
@@ -20,7 +20,8 @@ node scripts/map.mjs                                    # 地图工具：出草�
 | 页面 | 内容 |
 |---|---|
 | `dist/rongboy-op.html` | 开场片《嘘——》（64 秒）。从这里进游戏：按任意键开始，Esc 跳过，播完进主界面。默认放事先渲好的 `rongboy-op.mp4`，加 `?live=1` 实时渲染 |
-| `dist/rongboy-mission.html` | 任务版，主体，打开是主界面（W / S 选，A / D 换地图，Enter 确定，空格朝睡着的僵尸打一球）。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
+| `dist/rongboy-mission.html` | 轻量选图菜单：左侧切地图、右侧楼层预览；W / S 或 A / D 选，Enter 确认后才加载关卡。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
+| `dist/rongboy-play.html` | 确认后的实际关卡页，先显示 loading，再直接进入第一人称；`?level=<id>` 选择关卡 |
 | `dist/rongboy-zombies.html` | 九类僵尸手办图鉴 |
 | `dist/rongboy-figures.html` | 主角和僵尸的手办预览 |
 | `dist/rongboy-shooter-fps.html` | 工坊版：60 秒生存，任务版的前身 |
@@ -32,7 +33,7 @@ node scripts/map.mjs                                    # 地图工具：出草�
 
 ```
 cine-engine/            引擎子模块：渲染管线、Kit、形状工具、光照体积，以及毛绒 / 博物馆 / 学校零件库
-scenes/rongboy-mission/ 任务版：关卡数据、规则、场景搭建、画面和输入，主界面在 menu.js。设计和验证记录在 DESIGN.md
+scenes/rongboy-mission/ 任务版：关卡数据、规则、场景搭建、画面和输入，菜单在 main.js，关卡在 play.js。设计和验证记录在 DESIGN.md
 scenes/rongboy-op/      开场片：分镜和走位（film.js）、摆手办的工具、片名卡、声音。用的是任务版的场景、手办、枪和特效
 scenes/rongboy-shooter-fps/  工坊版；任务版复用它的手办模型、声音和受击反馈
 scenes/rongboy/、scenes/rongboy-shooter/   早期样板
@@ -91,3 +92,5 @@ git add cine-engine && git commit
 - 2026-11-17 每张图加了一种"打一下就生效"的机关（家是闹钟、学校是颜料桶、博物馆是聚光灯）、墙上的拉链暗格，布景被毛球打到会有反应（`docs/fun-design.md` 第 9 节）。规则有测试（`scripts/tests/rongboy-gadgets.mjs`），画面只看过静帧，声音没有人听过，**没有人玩过**。
 - 2026-11-17 加了给 agent 用的地图工具（`docs/map-guide.md`、`scripts/map.mjs`、`scenes/rongboy-mission/mapkit/`）：写一份草图，工具算坐标，再用硬性检查和体检报告来改。"奶奶家"是用它做的（后来成了第四张地图）：3D 画面只看过静帧，**没有人玩过**。体检里的阈值是照现有三张图定的初值。
 - 2026-11-16 按玩法准则（`docs/fun-design.md`）改了一轮：手里两把枪（Q 换）加单独一个键的手雷、每把枪只管一件事、弓手会算提前量、受伤有方向和棉絮。数值是按枪表和两个机器人（`scripts/tests/rongboy-fun.mjs`）定的初值，**没有人实际玩过这一版**；受伤的动画和声音只看过静帧。
+
+- 2026-11-18：菜单与关卡初始化分离，去掉双人出发演出；补齐切到空弹匣时自动换弹。九类模型以 `image_gen` 三视图为目标修复至 V6，原图、提示词与图模对照见 `assets/rongboy/zombies-v6/design/` 和 `rongboy-zombie-review.html`。菜单/加载/开局以工具验证，尚未人工打通四张地图。

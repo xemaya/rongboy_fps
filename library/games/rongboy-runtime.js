@@ -10,21 +10,33 @@ const isBatchRoot=o=>isRig(o)||isMechanism(o);
 function fuzzMaterial(){
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide,transparent:true,opacity:.48,depthWrite:false,alphaTest:.012});
  material.onBeforeCompile=shader=>{
-  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 woolNormal; varying vec3 vWoolRootNormal;').replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvWoolRootNormal = normalMatrix * woolNormal;');
-  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWoolRootNormal;').replace('#include <alphatest_fragment>','diffuseColor.a *= smoothstep(0.45, 0.85, 1.0 - abs(dot(normalize(vWoolRootNormal), normalize(vViewPosition))));\n#include <alphatest_fragment>');
- };material.customProgramCacheKey=()=> 'rongboy-short-edge-wool-v2';return material;
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 woolNormal; attribute float woolSurface; varying vec3 vWoolRootNormal; varying float vWoolSurface;').replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvWoolRootNormal = normalMatrix * woolNormal; vWoolSurface=woolSurface;');
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWoolRootNormal; varying float vWoolSurface;').replace('#include <alphatest_fragment>','float woolRim=smoothstep(0.45, 0.85, 1.0 - abs(dot(normalize(vWoolRootNormal), normalize(vViewPosition)))); diffuseColor.a *= mix(woolRim, 1.35+.25*woolRim, vWoolSurface);\n#include <alphatest_fragment>');
+ };material.customProgramCacheKey=()=> 'rongboy-curved-surface-wool-v3';return material;
 }
 // Recover growth direction from the narrow root edge of each hair triangle.
-function woolNormals(g){const position=g.getAttribute('position'),directions=new Float32Array(position.count*3),points=[new T.Vector3(),new T.Vector3(),new T.Vector3()],direction=new T.Vector3();for(let i=0;i<position.count;i+=3){for(let j=0;j<3;j++)points[j].fromBufferAttribute(position,i+j);const d=[points[0].distanceToSquared(points[1]),points[1].distanceToSquared(points[2]),points[2].distanceToSquared(points[0])];const pair=d.indexOf(Math.min(...d)),a=pair,b=(pair+1)%3,tip=(pair+2)%3;direction.copy(points[tip]).sub(points[a].clone().add(points[b]).multiplyScalar(.5)).normalize();for(let j=0;j<3;j++)direction.toArray(directions,(i+j)*3);}g.setAttribute('woolNormal',new T.BufferAttribute(directions,3));}
+function woolNormals(g,surface=false){if(surface){g.setAttribute('woolNormal',g.getAttribute('normal').clone());return;}const position=g.getAttribute('position'),directions=new Float32Array(position.count*3),points=[new T.Vector3(),new T.Vector3(),new T.Vector3()],direction=new T.Vector3();for(let i=0;i<position.count;i+=3){for(let j=0;j<3;j++)points[j].fromBufferAttribute(position,i+j);const d=[points[0].distanceToSquared(points[1]),points[1].distanceToSquared(points[2]),points[2].distanceToSquared(points[0])];const pair=d.indexOf(Math.min(...d)),a=pair,b=(pair+1)%3,tip=(pair+2)%3;direction.copy(points[tip]).sub(points[a].clone().add(points[b]).multiplyScalar(.5)).normalize();for(let j=0;j<3;j++)direction.toArray(directions,(i+j)*3);}g.setAttribute('woolNormal',new T.BufferAttribute(directions,3));}
 const textureKey=t=>t?[t.source?.uuid||t.uuid,t.mapping,t.channel,t.colorSpace,t.wrapS,t.wrapT,t.minFilter,t.magFilter,...t.repeat.toArray(),...t.offset.toArray(),...t.center.toArray(),t.rotation,t.flipY].join(':'):'-';
+function feltFibreFinish(material){
+ if(!material.normalMap)return;
+ const prior=material.onBeforeCompile,oldKey=material.customProgramCacheKey(),fiberGain=material.userData.rongboy_felt_finish===2?'.65 + ':'';
+ material.onBeforeCompile=(shader,renderer)=>{
+  prior.call(material,shader,renderer);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+   #ifdef USE_NORMALMAP
+    diffuseColor.rgb *= ${fiberGain}texture2D(normalMap,vNormalMapUv).a;
+   #endif`);
+ };
+ material.customProgramCacheKey=()=>oldKey+'|rongboy-neutral-fibre-luminance-v7-'+(material.userData.rongboy_felt_finish||0);
+}
 export function optimizeFigurine(root){root.updateMatrixWorld(true);const nodes=[];root.traverse(o=>{if(isBatchRoot(o))nodes.push(o);});const canon=new Map();const fuzzMat=fuzzMaterial();
  for(const part of nodes){const groups=new Map(),hair=[],gearLabels=new Set(part.userData.gearLabels||[]);const inverse=part.matrixWorld.clone().invert();function visit(o,fuzz=false){if(o!==part&&isBatchRoot(o))return;if(o.userData.gear)gearLabels.add(o.userData.gear);fuzz ||=!!o.userData.fuzz||o.name.startsWith('fuzz');if(o.isMesh){let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();for(const n of Object.keys(g.attributes))if(!['position','normal','uv','color'].includes(n))g.deleteAttribute(n);g.applyMatrix4(new T.Matrix4().multiplyMatrices(inverse,o.matrixWorld));
- if(fuzz){g.deleteAttribute('uv');g.deleteAttribute('tangent');const colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){colors[i]=o.material.color.r;colors[i+1]=o.material.color.g;colors[i+2]=o.material.color.b;}g.setAttribute('color',new T.BufferAttribute(colors,3));woolNormals(g);hair.push(g);}else{const m=o.material,k=[textureKey(m.map),textureKey(m.normalMap),m.normalScale?.toArray().join(','),m.roughness,m.metalness,m.sheen||0,m.sheenRoughness,m.sheenColor?.getHexString(),m.side,m.opacity,m.alphaTest,m.emissive?.getHexString()].join('|');
+ if(fuzz){g.deleteAttribute('uv');g.deleteAttribute('tangent');const colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){const n=i/3,c=g.getAttribute('color');colors[i]=o.material.color.r*(c?c.getX(n):1);colors[i+1]=o.material.color.g*(c?c.getY(n):1);colors[i+2]=o.material.color.b*(c?c.getZ(n):1);}g.setAttribute('color',new T.BufferAttribute(colors,3));const surface=o.userData.wool_profile==='curled_surface';woolNormals(g,surface);g.setAttribute('woolSurface',new T.BufferAttribute(new Float32Array(g.attributes.position.count).fill(surface?1:0),1));hair.push(g);}else{const m=o.material,k=[textureKey(m.map),textureKey(m.normalMap),m.normalScale?.toArray().join(','),m.userData.rongboy_felt_finish||0,m.roughness,m.metalness,m.sheen||0,m.sheenRoughness,m.sheenColor?.getHexString(),m.side,m.opacity,m.alphaTest,m.emissive?.getHexString()].join('|');
  // Base colours are exact per vertex. Constant-colour V2 cloth can share a draw call
  // without the coloured UV atlas that made the close-up faces look mottled.
  const existing=g.getAttribute('color'),colors=new Float32Array(g.attributes.position.count*3),base=m.color||new T.Color(0xffffff);
  for(let i=0;i<g.attributes.position.count;i++){colors[i*3]=base.r*(existing?existing.getX(i):1);colors[i*3+1]=base.g*(existing?existing.getY(i):1);colors[i*3+2]=base.b*(existing?existing.getZ(i):1);}g.setAttribute('color',new T.BufferAttribute(colors,3));
- if(!canon.has(k)){const material=m.clone();material.color.setHex(0xffffff);material.vertexColors=true;canon.set(k,material);}if(!groups.has(k))groups.set(k,[]);groups.get(k).push(g);}return;}for(const c of o.children)visit(c,fuzz);}visit(part);part.userData.gearLabels=[...gearLabels];
+ if(!canon.has(k)){const material=m.clone();material.color.setHex(0xffffff);material.vertexColors=true;feltFibreFinish(material);canon.set(k,material);}if(!groups.has(k))groups.set(k,[]);groups.get(k).push(g);}return;}for(const c of o.children)visit(c,fuzz);}visit(part);part.userData.gearLabels=[...gearLabels];
  const remove=[];function collect(o){if(o!==part&&isBatchRoot(o))return;if(o.isMesh){remove.push(o);return;}for(const c of o.children)collect(c);}collect(part);for(const o of remove)o.removeFromParent();
  for(const [key,gs]of groups){for(const g of gs)g.deleteAttribute('tangent');const g=mergeGeometries(gs,false);if(!g)throw new Error('Native model merge failed');const mesh=new T.Mesh(g,canon.get(key));mesh.castShadow=mesh.receiveShadow=true;part.add(mesh);for(const q of gs)q.dispose();}
  if(hair.length){const g=mergeGeometries(hair,false);const mesh=new T.Mesh(g,fuzzMat);mesh.receiveShadow=true;mesh.castShadow=false;mesh.userData.fuzz=true;part.add(mesh);for(const q of hair)q.dispose();}
@@ -46,7 +58,7 @@ export async function loadFigurines(data){
  const resolve=kind=>kind==='tank'?'heavy':kind==='runner'||kind==='weaver'?'leaper':kind;
  function template(kind){const id=resolve(kind);if(!templates[id]){const root=raw.get(id);if(!root)throw new Error('Unknown figurine: '+kind);templates[id]=optimizeFigurine(root);}return templates[id];}
  return {templates,kinds:[...(hero?['scout']:[]),...(raw.size?raw.keys():['walker'])],create(kind){
-  const id=resolve(kind),model=template(id).clone(true),world=new T.Group(),tilt=new T.Group();world.add(tilt);tilt.add(model);model.scale.setScalar(ACTOR_SCALE);model.position.y=-.017;
+  const id=resolve(kind),model=template(id).clone(true),world=new T.Group(),tilt=new T.Group();world.add(tilt);tilt.add(model);model.scale.multiplyScalar(ACTOR_SCALE);model.position.y=-.017;
   const parts=new Map(),rest=new Map(),materials=new Map(),gear=new Map(),mechanisms=new Map(),mechanismRest=new Map();
   model.traverse(o=>{
    if(isRig(o)){if(parts.has(o.userData.part))throw new Error('Duplicate native pivot: '+o.userData.part);parts.set(o.userData.part,o);for(const name of o.userData.gearLabels||[])gear.set(name,o);rest.set(o.userData.part,{p:o.position.clone(),r:o.rotation.clone(),s:o.scale.clone()});}

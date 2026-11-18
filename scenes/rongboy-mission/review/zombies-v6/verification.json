@@ -1,0 +1,37 @@
+{
+  "modelCount": 9,
+  "AI_Targets": 9,
+  "nativeViews": 27,
+  "bankBytes": 23545016,
+  "unitSuites": 20,
+  "pageBuilds": 8,
+  "browserChecks": [
+    "menu selection",
+    "visible loading",
+    "direct first-person start",
+    "return preserves selection",
+    "nine models loaded",
+    "zero console errors",
+    "material pass 2 near view and animation",
+    "hero/zombie mixed shader cache separated"
+  ],
+  "humanAcceptance": "not claimed",
+  "limits": [
+    "fine fibres and cloth folds still differ from AI targets",
+    "four full maps not manually completed",
+    "archer side silhouette still differs from target due to bow pose"
+  ],
+  "muzzleCalibration": {
+    "archer": {
+      "side": -0.177316,
+      "y": 1.305937,
+      "forward": 0.343506
+    },
+    "bomber": {
+      "side": 0.325088,
+      "y": 0.863445,
+      "forward": 0.303441
+    }
+  },
+  "materialPass": 2
+}

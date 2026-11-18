@@ -114,7 +114,7 @@ test('the mission: the round ends when the last zombie is down, not before', () 
 });
 
 test('once roused, everyone finds the player in the middle of the playground', () => {
-  const s = createGame({ level: L }); s.health = 1e9;
+  const s = createGame({ level: L }); s.invul = 76; // Keep the navigation target in the playground during the 75-second probe.
   s.player.x = 0; s.player.z = 6.6;
   for (const e of s.enemies) e.awareness = 'alert';
   run(s, 75);

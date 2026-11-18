@@ -1,0 +1,11 @@
+{
+  "mode": "built-in image_gen",
+  "request": {
+    "prompt": "Use case: stylized-concept. Asset type: physically usable seamless surface texture for the existing Rongboy needle-felt zombie 3D models. The attached reference is STYLE ONLY: copy the authentic dry, dense tangled short wool fibres from its green felt skin; do NOT depict the character, face, buttons, seams, props, shadows or background. Generate ONE square full-frame 2D material texture tile, orthographic macro scan of pale neutral grey needle-felt wool, homogeneous base tone. Very fine curved criss-cross fibres and tiny loose wool loops integrated in densely matted short pile. It must look like real soft wool, not cracked paper, stone, pebbles, reptile skin, or evenly knitted cloth. Fibres should be mostly fine 1-2 pixels wide, 8-30 pixels long at 1024 resolution, a few slightly longer wisps. Densely overlapping in every direction, subtle narrow contact shadows only, moderate fine local contrast, no broad folds, no lumps, no lighting gradient or perspective. Flat uniform diffuse lighting, no directional cast shadows, no dramatic highlights. Neutral monochrome; tightly controlled pale-grey background with pale fibres and small darker gaps. Seamless repetition all four sides, absolutely no border, labels, letters, layout, collage, watermark, objects or colour patches. Preserve the reference's soft handmade needle-felt character.",
+    "referenced_image_paths": [
+      "/Users/huanghaibin/Workspace/games/rongboy_fps/assets/rongboy/zombies-v6/design/walker.png"
+    ],
+    "transparent_background": false
+  },
+  "source": "exec-d6af7c3e-4f40-46a4-a2d6-eca52ffe4996.png"
+}

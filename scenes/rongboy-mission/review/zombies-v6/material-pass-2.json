@@ -1,0 +1,34 @@
+{
+  "pass": "target-wool-and-palette-2",
+  "modelBytes": 23545016,
+  "modelSha256": "edfd215ef295a2c95c1673285c289743401611ec1050a4fcd9fd89b87eaec9c5",
+  "AI_texture_mode": "built-in image_gen",
+  "AI_texture": "design/felt-fibre-tile.png",
+  "AI_prompt": "design/felt-fibre-prompt.json",
+  "perCharacterStrands": "approximately 3400 curved surface strands; follow existing rig joints",
+  "nativeViews": 27,
+  "unchangedTargets": 9,
+  "acceptance": "awaiting user review",
+  "remainingDifferences": [
+    "fine sewn embroidery and cloth folds",
+    "some silhouette and equipment proportions"
+  ],
+  "testsPassed": 20,
+  "browserChecks": [
+    "nine native models ready",
+    "surface wool follows rig animation",
+    "zero catalogue shader errors",
+    "target/current/previous comparison switches",
+    "live training render with hero and new zombie; no further errors after empty-world-group fix"
+  ],
+  "humanPlaythrough": "not claimed",
+  "catalogueStats": {
+    "selected": "boss-leech",
+    "detail": true,
+    "quality": "medium",
+    "drawCalls": 48,
+    "triangles": 88846,
+    "shaderErrors": 0,
+    "note": "single observed view, not an FPS benchmark"
+  }
+}

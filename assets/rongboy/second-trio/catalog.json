@@ -1,0 +1,20 @@
+{
+  "source": "second-trio.blend",
+  "models": [
+    {
+      "id": "crawler",
+      "name": "爬行者",
+      "height": 1.02
+    },
+    {
+      "id": "shielded",
+      "name": "持盾者",
+      "height": 1.72
+    },
+    {
+      "id": "bomber",
+      "name": "炸弹客",
+      "height": 1.47
+    }
+  ]
+}

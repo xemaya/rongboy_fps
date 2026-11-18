@@ -1,0 +1,2333 @@
+BlenderMCP: cannot start server in background mode (blender -b) - commands would never execute
+BlenderMCP: run Blender with a GUI, or use a virtual display: xvfb-run -a blender
+BlenderMCP addon registered
+[INFO ] services.locationservice ...............: Not adding link to MakeHuman user data, since neither explicit path nor auto-discovery is set in preferences.
+[INFO ] mpfb.init ..............................: Build info 20260613
+[INFO ] mpfb.init ..............................: MPFB initialization has finished.
+01:52:30 | INFO: Data are loaded, start creating Blender stuff
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.025
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.026
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.027
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.023
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.024
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.028
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.022
+01:52:30 | INFO: Blender create Mesh node Sphere.066
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.032
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.033
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.034
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.030
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.031
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.035
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.029
+01:52:30 | INFO: Blender create Mesh node Sphere.073
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.019
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.021
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.016
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.017
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.018
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.020
+01:52:30 | INFO: Blender create Mesh node Sphere.062
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.037
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.038
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.040
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.039
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.036
+01:52:30 | INFO: Blender create Mesh node Sphere.080
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.003
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.004
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.005
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.006
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.007
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.002
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.001
+01:52:30 | INFO: Blender create Mesh node Sphere.046
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.008
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.011
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.012
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.013
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.014
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.015
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.010
+01:52:30 | INFO: Blender create Mesh node Short silhouette wool.009
+01:52:30 | INFO: Blender create Mesh node Sphere.054
+01:52:30 | INFO: glTF import finished in 0.10s
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:25: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if m.use_nodes:
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:34: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if not m.use_nodes:continue
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:41: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  m=bpy.data.materials.new('V6 / '+name);m.diffuse_color=rgba(h);m.use_nodes=True;m.use_backface_culling=True;m['rongboy_palette']=h;m['rongboy_felt_finish']=2 if not trim else 0
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:64: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if m.use_nodes:m.node_tree.nodes.get('Principled BSDF').inputs['Base Color'].default_value=rgba(h)
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:66: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if m.use_nodes and any(n.type=='NORMAL_MAP' for n in m.node_tree.nodes):m['rongboy_felt_finish']=2
+FELT_LIMB leaper ArmL 4355
+FELT_LIMB leaper ArmR 4353
+FELT_LIMB leaper LegL 4191
+FELT_LIMB leaper LegR 4191
+FELT_LIMB heavy ArmL 5329
+FELT_LIMB heavy ArmR 5326
+FELT_LIMB crawler ArmL 5579
+FELT_LIMB crawler ArmR 5560
+FELT_LIMB shielded ArmL 5633
+FELT_LIMB shielded ArmR 4755
+FELT_LIMB bomber ArmL 5469
+FELT_LIMB bomber ArmR 5478
+FELT_LIMB archer ArmL 4234
+FELT_LIMB archer ArmR 4197
+FELT_LIMB boss-warden ArmL 5369
+FELT_LIMB boss-warden ArmR 5363
+FELT_LIMB boss-leech ArmL 3015
+FELT_LIMB boss-leech ArmR 3015
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:403: DeprecationWarning: 'Material.use_nodes' is expected to be removed in Blender 6.0
+  if ob.type!='MESH' or not any(m and m.use_nodes and any(n.type=='NORMAL_MAP' for n in m.node_tree.nodes) for m in ob.data.materials):continue
+CURVED_FIBRES walker 3400
+CURVED_FIBRES leaper 3401
+CURVED_FIBRES heavy 3418
+CURVED_FIBRES crawler 3404
+CURVED_FIBRES shielded 3410
+CURVED_FIBRES bomber 3405
+CURVED_FIBRES archer 3404
+CURVED_FIBRES boss-warden 3412
+CURVED_FIBRES boss-leech 3404
+/Users/huanghaibin/Workspace/games/rongboy_fps/scripts/blender/rongboy_zombies_v6.py:449: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  scene=bpy.context.scene;scene.camera=cam;scene.render.engine='CYCLES';scene.cycles.samples=20;scene.cycles.use_denoising=True;scene.render.resolution_x=1600;scene.render.resolution_y=1400;scene.world.use_nodes=True;scene.world.node_tree.nodes.get('Background').inputs[0].default_value=(.55,.55,.55,1);scene.world.node_tree.nodes.get('Background').inputs[1].default_value=.4;scene.view_settings.view_transform='AgX';scene['design_status']='V6 modeled against nine image_gen front/side/back targets; awaiting user judgement'
+Info: Saved as "rongboy-zombie-roster-v6.blend"
+INFO Draco mesh compression is available, use library at /Applications/Blender.app/Contents/Resources/5.1/scripts/addons_core/io_scene_gltf2/libextern_draco.dylib
+01:52:48 | INFO: Starting glTF 2.0 export
+01:52:48 | INFO: Extracting primitive: Sphere.066
+01:52:48 | INFO: Primitives created: 2
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.073
+01:52:48 | INFO: Primitives created: 2
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.001
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.062
+01:52:48 | INFO: Primitives created: 3
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.002
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.008
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.009
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.010
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.011
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.012
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.013
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.014
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.015
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.016
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.017
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.018
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.019
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.020
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.021
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.022
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.023
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.024
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.025
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.026
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.027
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.028
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.029
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.030
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.031
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.032
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.033
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.034
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.035
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.036
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.037
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.038
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.039
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.040
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 lapel hem stitch.041
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.008
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.009
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.010
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.011
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.012
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.013
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.014
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: V6 vest back running stitch.015
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.080
+01:52:48 | INFO: Primitives created: 9
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.003
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.046
+01:52:48 | INFO: Primitives created: 6
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.004
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.054
+01:52:48 | INFO: Primitives created: 6
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.005
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.021
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.019
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.035
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.020
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.017
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.017
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.018
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.019
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forward chest stitch cross.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.009
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.013
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: button rim
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: button rim.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.011
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.015
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Cube.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Cube.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Cube.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Cube.008
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Character-specific curved repair
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.009
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.010
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.011
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.012
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.013
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.014
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.015
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.016
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.006
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.007
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.008
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: head repair seam
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: head repair seam cross
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: head repair seam cross.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: mouth felt welt
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: nose stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: nose stitch.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: patch stitch.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: sewn button X
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: sewn button X.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: sewn button X.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: sewn button X.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.052
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.022
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.021
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.027
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.023
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: knee crossed stitch
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: knee crossed stitch.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.050
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.078
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.061
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.067
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.025
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.024
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.028
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.026
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: knee crossed stitch.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: knee crossed stitch.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.064
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.081
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.076
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: spring foot toe seam.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.008
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.009
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.010
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam cross.011
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: thigh outer seam.001
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.101
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.041
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam.002
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.004
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.005
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Sphere.115
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.042
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.006
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam cross.007
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: projected forearm seam.003
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.050
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.051
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.052
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.053
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.054
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.055
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.056
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.057
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.058
+01:52:48 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:48 | INFO: Primitives created: 1
+01:52:48 | INFO: Extracting primitive: Curved short wool fibre ribbons.060
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.061
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.062
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.063
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.064
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.065
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.066
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.067
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.068
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.029
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.049
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.059
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.069
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.070
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.071
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.072
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.073
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.074
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.075
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.076
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.077
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.078
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.079
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.080
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.143
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.145
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.147
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.149
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.151
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.153
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.155
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.157
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.159
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.163
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.165
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.167
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.169
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.171
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.173
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.175
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.177
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.179
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.083
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.141
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.161
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quilt seam cross row
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quilt seam cross row.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quilt seam cross row.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quilt seam cross row.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: rolled quilt perimeter
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: rolled quilt perimeter.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.181
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.183
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.185
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.187
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.189
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.191
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.193
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.195
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.197
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.199
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.201
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.203
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.093
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.097
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.091
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.095
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.099
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.016
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.033
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.034
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.035
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.036
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.037
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.038
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.039
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.040
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.030
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.031
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.032
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.085
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.087
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.089
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.129
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.133
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.131
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.043
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.045
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.044
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.135
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.139
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.137
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.046
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.048
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.047
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.223
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.259
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: crawler repair stitch
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: crawler repair stitch.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.094
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.100
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.237
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.261
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: crawler repair stitch.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: crawler repair stitch.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.095
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.101
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.081
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.205
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected crawling back seam cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.215
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.219
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.213
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.217
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.221
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.018
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.020
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.022
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.024
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.026
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.085
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.086
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.087
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.088
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.089
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.090
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.091
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.092
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.093
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.082
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.083
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.084
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.016
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.017
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.018
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.019
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.020
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.021
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.022
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.023
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.207
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.209
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.211
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.251
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.253
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.096
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.097
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.255
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.257
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.098
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.099
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.295
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.325
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.116
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.127
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.117
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.129
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.119
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.120
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.128
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected shield central stitch
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected shield central stitch cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected shield central stitch cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.309
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.329
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: shield forearm strap
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: shield forearm strap.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.327
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: shield rear hand loop
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: shield stitched rear binding
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.281
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.115
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.118
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.311
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.102
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.263
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.273
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.277
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.271
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.275
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.279
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.028
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.030
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.032
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.034
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.036
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.106
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.107
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.108
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.109
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.110
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.111
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.112
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.113
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.114
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.103
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.104
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.105
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.024
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.025
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.026
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.027
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.028
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.029
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.030
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.031
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.265
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.267
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.269
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.313
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.317
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.315
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.121
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.123
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.122
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.319
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.323
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.321
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.124
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.126
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.125
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.016
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.017
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.349
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.142
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.016
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.017
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.363
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.143
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.153
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding0/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding0/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding0/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding0/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding0/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding1/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding1/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding1/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding1/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding1/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding2/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding2/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding2/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding2/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: held bomb full winding2/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.395
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: soft bomb fuse
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.018
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.019
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier back seam cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: carrier waist belt
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.158
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.154
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.130
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.150
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.151
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.152
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.155
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.156
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.157
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.397
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: padded carrier shoulder strap
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: padded carrier shoulder strap.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch repair cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch top stitching
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch top stitching.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: pouch top stitching.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.331
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb cloth fuse
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb cloth fuse.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb cloth fuse.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/0.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/0.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/1.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/1.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/2.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/2.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/3.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/3.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/4.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn0/4.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/0.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/0.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/1.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/1.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/2.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/2.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/3.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/3.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/4.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn1/4.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/0
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/0.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/0.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/1
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/1.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/1.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/2
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/2.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/2.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/3
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/3.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/3.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/4
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/4.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: spare bomb yarn2/4.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.389
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.391
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.393
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.399
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.401
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.403
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.341
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.345
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.339
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.343
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.347
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.038
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.040
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.042
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.044
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.134
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.135
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.136
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.137
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.138
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.139
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.140
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.141
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.131
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.132
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.133
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.032
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.033
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.034
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.035
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.036
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.037
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.038
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.039
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.333
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.016
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.017
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.018
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.019
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.335
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.337
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.377
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.381
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.379
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.144
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.146
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.145
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.018
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.019
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.020
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.383
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.387
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.385
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.147
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.149
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.148
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.021
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.022
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.023
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.181
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.182
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.180
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nocked arrow felt vane
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nocked arrow felt vane.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nocked arrow shaft
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.467
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: bow string
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: soft bow arc
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: wrapped bow grip
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: wrapped bow grip.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.427
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.172
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.020
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.021
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.441
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.173
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.022
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.023
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: back arrow shaft
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: back arrow shaft.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: back arrow shaft.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.161
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.183
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.184
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.185
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.160
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.159
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.409
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver arrow felt vane
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver arrow felt vane.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver arrow felt vane.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver binding
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver binding.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: quiver shoulder strap
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.407
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.405
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.419
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.423
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.417
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.421
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.425
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.046
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.048
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.050
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.165
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.166
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.167
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.168
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.169
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.170
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.171
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.162
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.163
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.164
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.040
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.041
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.042
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.043
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.044
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.045
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.046
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.047
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.411
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.020
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.021
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.022
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.023
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.413
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.415
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.455
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.459
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.457
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.174
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.176
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.175
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.024
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.025
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.026
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.461
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.465
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.463
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.177
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.179
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.178
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.027
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.028
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.029
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.487
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.199
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: large hand seam
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: large hand seam cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.024
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.025
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.503
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.200
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: large hand seam cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: large hand seam.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.026
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.027
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.062
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.209
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.207
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.208
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.186
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.531
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.533
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: lock keyhole stem
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: lock loop
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.469
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected quilt belly seam cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back heavy seam cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back repair
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back repair.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back repair.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden back repair.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: warden panel binding
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.479
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.483
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.477
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.481
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.485
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.052
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.054
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.056
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.058
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.060
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.190
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.191
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.192
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.193
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.194
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.195
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.196
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.197
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.198
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.187
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.188
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.189
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.012
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.013
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.048
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.049
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.050
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.051
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.052
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.053
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.054
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.055
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.471
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.024
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.025
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.026
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.027
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.473
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.475
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.519
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.523
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.521
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.201
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.203
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.202
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.030
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.031
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.032
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.525
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.529
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.527
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.204
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.206
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.205
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.033
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.034
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.035
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.557
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.224
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.225
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.234
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Hollow felt suction cup
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.581
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.028
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.029
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: soft sucker palm
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.563
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.006
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.008
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.009
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.010
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: cup rim radial stitch.011
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.226
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.227
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.235
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Hollow felt suction cup.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.583
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.030
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam cross.031
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected forearm seam.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: soft sucker palm.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.210
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.222
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.223
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: leech back stitch cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.535
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross.001
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross.002
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross.003
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross.004
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: projected sack front repair cross.005
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.553
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.555
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.545
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.549
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: button rim.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.543
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.547
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.551
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.064
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.066
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.068
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Cube.070
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Character-specific curved repair.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.214
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.215
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.216
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.217
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.218
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.219
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.220
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.221
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.211
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.212
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.213
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: head repair seam cross.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: mouth felt welt.007
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.014
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: nose stitch.015
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.056
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.057
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.058
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.059
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.060
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.061
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.062
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: patch stitch.063
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.537
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.028
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.029
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.030
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: sewn button X.031
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.539
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.541
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.569
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.573
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.571
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.228
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.230
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.229
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.036
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.037
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.038
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.575
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.579
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Sphere.577
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.231
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.233
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: Curved short wool fibre ribbons.232
+01:52:49 | WARNING: The active Vertex Color will not be exported, as it is not used in the node tree of the material
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.039
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.040
+01:52:49 | INFO: Primitives created: 1
+01:52:49 | INFO: Extracting primitive: toe stitch.041
+01:52:49 | INFO: Primitives created: 1
+01:52:50 | INFO: Finished glTF 2.0 export in 1.6946468353271484 s
+
+V6_DONE 9 23545016
+BlenderMCP server stopped
+BlenderMCP addon unregistered
+Blender 5.1.2 (hash ec6e62d40fa9 built 2026-05-19 01:30:33)
+
+Blender quit

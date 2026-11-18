@@ -270,6 +270,21 @@ test('magazines empty, reload takes time, reserves run out, and the starter gun 
   assert.deepEqual(s.ammo[1], { mag: 2, reserve: 3 });
 });
 
+test('switching to an empty magazine starts a timed reload without granting instant ammunition', () => {
+  const s = game(); s.owned[1] = true; s.ammo[1] = { mag: 0, reserve: 3 };
+  consumeEvents(s); assert.equal(selectWeapon(s, 1), true);
+  assert.equal(s.reloading, true); assert.equal(s.reload, WEAPONS[1].reload);
+  assert.deepEqual(s.ammo[1], { mag: 0, reserve: 3 });
+  assert.equal(fire(s), false); assert.equal(beginCharge(s), false);
+  assert.ok(consumeEvents(s).some(e => e.type === 'reload' && e.weapon === WEAPONS[1].id));
+  run(s, WEAPONS[1].reload - .1); assert.equal(s.ammo[1].mag, 0);
+  selectWeapon(s, 0); assert.equal(s.reloading, false);
+  selectWeapon(s, 1); assert.equal(s.reload, WEAPONS[1].reload, 'switching does not skip reload time');
+  run(s, WEAPONS[1].reload + .02); assert.deepEqual(s.ammo[1], { mag: 2, reserve: 1 });
+  selectWeapon(s, 0); s.ammo[1].mag = 1; selectWeapon(s, 1);
+  assert.equal(s.reloading, false, 'a usable magazine is not forcibly topped up on weapon switch');
+});
+
 test('charging still works: one bigger, harder-hitting ball on release', () => {
   const s = game(); const e = spawn(s, { x: 0.5, z: 0, heading: WEST });
   assert.equal(beginCharge(s), true); run(s, 1); assert.equal(s.shots, 0);

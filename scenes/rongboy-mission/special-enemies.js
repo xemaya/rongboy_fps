@@ -7,7 +7,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const still={x:0,z:0,y:0};
 const set=(e,action)=>{e.action=action;e.actionAge=0;};
 const visible=(s,e,p=s.player)=>lineOfSight(s.level,{x:e.x,y:(e.base||0)+.95,z:e.z},{x:p.x,y:(p===s.player?(p.y||0):(e.base||0))+1,z:p.z});
-function recovery(e,cooldown){set(e,'special-recover');e.actionCooldown=cooldown;}
+function recovery(e,cooldown){e.recoverFrom=e.action;set(e,'special-recover');e.actionCooldown=cooldown;}
 export function interruptSpecial(e,meta={}){
  const heavy=meta.weapon==='heavy'||meta.charged;
  const vulnerable=['crawler-windup','crawler-strike','archer-aim','bomber-throw'].includes(e.action);
@@ -15,7 +15,7 @@ export function interruptSpecial(e,meta={}){
  // 打断要打得够疼：1 点的小伤害（小纽扣、6 米外的手枪球）断不了拉弓和举弹，得靠近打，或者用够劲的枪
  if(vulnerable&&!heavy&&(meta.amount??2)<2)return false;
  if(!vulnerable&&!(strong&&heavy))return false;
- recovery(e,e.type==='boss-warden'||e.type==='boss-leech'?2.8:1.8);e.interrupted=true;return true;
+ recovery(e,e.type==='boss-warden'||e.type==='boss-leech'?2.8:1.8);e.interrupted=true;e.recoverFrom='interrupted';return true;
 }
 function activateReserve(s,e,api,S=s.level){
  const sealed=s.enemies.find(o=>o.alive&&!o.enabled&&o.reserveOf===e.id);if(!sealed)return false;

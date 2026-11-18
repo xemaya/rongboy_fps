@@ -1,0 +1,23 @@
+{
+  "crawler": {
+    "prompt": "Create a NEW independent full-body turnaround of ONE handmade needle felt plush zombie. The attached image is only the approved Rongboy family and textile reference. Keep the flat mustard and dark X stitched mismatched button eyes, little sewn ears, dark cloth mouth with four crooked cream teeth, repaired forehead, warm tangible real felt. Distinct asymmetric handmade character with simple large readable shapes, manufacturable sewn panels. Showcase exactly three orthographic views arranged left to right FRONT, SIDE, BACK on one clean wide ivory studio page; consistent identity, limb positions, materials, size, same ground line, complete feet visible, generous gutters, no labels or other characters. Soft raking light and real short wool fibre. The crawler is a low four-point crawling mechanic plush. Horizontal long indigo-blue dungaree-clad back and belly, hips pushed behind shoulders, head lifted facing camera, soft grey-sage green skin, oversized wide mitten forepaws planted on ground, short bent hind legs tucked under hips. Golden ochre oval elbow patches with coarse running stitches, simple indigo overalls with crossed ochre suspenders and small stitched square pocket at the center of the back. Little low boots. Head stays oval, never squashed. Clearly a low quadrupedal pose in all views, the rear view must show the long back and X straps. No shield or backpack.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  },
+  "shielded": {
+    "prompt": "Create a NEW independent full-body turnaround of ONE handmade needle felt plush zombie. The attached image is only the approved Rongboy family and textile reference. Keep the flat mustard and dark X stitched mismatched button eyes, little sewn ears, dark cloth mouth with four crooked cream teeth, repaired forehead, warm tangible real felt. Distinct asymmetric handmade character with simple large readable shapes, manufacturable sewn panels. Showcase exactly three orthographic views arranged left to right FRONT, SIDE, BACK on one clean wide ivory studio page; consistent identity, limb positions, materials, size, same ground line, complete feet visible, generous gutters, no labels or other characters. Soft raking light and real short wool fibre. A wide-shouldered blue spruce-green shield-bearer, strong inverted trapezoid chest, smallish head nestled toward the off-hand shoulder, one oversized bracing forearm, grounded wide splayed boots. Deep navy short sleeveless vest, broad warm tan diagonal bandolier crossing front and back. Front image LEFT hand carries a BIG padded, vertically oriented rounded teardrop/kite shield of muted denim blue felt with mustard piping and a lighter blue central raised ridge. Shield held off-center so broad chest and face remain visible. Rear shows leather grip straps. One arm uncovered. Avoid round dinner plate shields and metal. Head sits level.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  },
+  "bomber": {
+    "prompt": "Create a NEW independent full-body turnaround of ONE handmade needle felt plush zombie. The attached image is only the approved Rongboy family and textile reference. Keep the flat mustard and dark X stitched mismatched button eyes, little sewn ears, dark cloth mouth with four crooked cream teeth, repaired forehead, warm tangible real felt. Distinct asymmetric handmade character with simple large readable shapes, manufacturable sewn panels. Showcase exactly three orthographic views arranged left to right FRONT, SIDE, BACK on one clean wide ivory studio page; consistent identity, limb positions, materials, size, same ground line, complete feet visible, generous gutters, no labels or other characters. Soft raking light and real short wool fibre. A short, pear-shaped round-bottomed soft olive/ochre wool yarn-ball tosser with tiny short sturdy legs and a small roundish head, a noticeably wider lower belly than shoulders. One caramel brown canvas WORK APRON with curved bib, two tan shoulder straps crossed at back, two pockets and russet running stitches. Front image RIGHT hand cups one conspicuous golden yellow wrapped yarn ball with a short cream yarn tail; rear has a horizontal row of three small ochre yarn balls tucked in separate felt pouches on a low waist belt. Yarn balls look soft with dense irregular windings. Adorable, no real explosives, no metal or flame. Throwing hand slightly forward for profile clarity. No chest armor.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  }
+}

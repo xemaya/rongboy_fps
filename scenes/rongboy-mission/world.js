@@ -364,7 +364,7 @@ export function buildWorld(cine, level, weapons) {
       k.soft(wood, x1 - x0, 0.07, 0.1, (x0 + x1) / 2, 1.0, z, { r: 0.025, long: 0 });
       k.soft(M('quilt', 0xc65a4e), x1 - x0 - 0.2, 0.6, 0.04, (x0 + x1) / 2, 0.5, z, { r: 0.02 });
     }
-    const group = (kit, name) => { const g = new T.Group(); g.position.y = S.y; g.add(...kit.build({ name: name + S.index })); root.add(g); return g; };
+    const group = (kit, name) => { const g = new T.Group(); g.position.y = S.y; const meshes = kit.build({ name: name + S.index }); if (meshes.length) g.add(...meshes); root.add(g); return g; };
     facadeDeco.merge(deco, 0, S.y, 0);   // 各层的装饰并成一组网格：每种材质只多一次绘制
     return { shell: group(shell, 'shell'), inner: group(k, 'inner'), lamps };
   }

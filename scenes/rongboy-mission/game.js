@@ -27,10 +27,10 @@ export const CONFIG = {
 export const ENEMY_TYPES = {
   walker: { name: '跳跳', hp: 6, radius: 0.32, height: 1.62, scale: 1, speed: 1.45, hopHeight: 0.22, hopPeriod: 0.72, resistance: 1 },
   leaper: { name: '跃行者', hp: 5, radius: 0.30, height: 1.56, scale: 0.96, speed: 1.9, hopHeight: 0.28, hopPeriod: 0.55, resistance: 0.9 },
-  crawler: {name:'爬行者',hp:4,radius:.37,height:1.02,scale:1,speed:.85,hopHeight:.02,hopPeriod:1.1,resistance:1},
+  crawler: {name:'爬行者',hp:4,radius:.37,height:1.02,scale:1,speed:.85,hopHeight:0,hopPeriod:1.1,resistance:1},
   shielded: {name:'持盾者',hp:7,radius:.36,height:1.71,scale:1,speed:1.15,hopHeight:.12,hopPeriod:.90,resistance:.65},
-  bomber: {name:'炸弹客',hp:5,radius:.40,height:1.58,scale:1,speed:1.15,hopHeight:.16,hopPeriod:.90,resistance:.9,muzzle:{y:.829,forward:.423,side:.339}},
-  archer: {name:'弓手',hp:5,radius:.30,height:1.74,scale:1,speed:1.05,hopHeight:.10,hopPeriod:.9,resistance:1.1,muzzle:{y:1.306,forward:.572,side:-.209}},
+  bomber: {name:'炸弹客',hp:5,radius:.40,height:1.58,scale:1,speed:1.15,hopHeight:.16,hopPeriod:.90,resistance:.9,muzzle:{y:0.857034,forward:0.545857,side:0.329657}},
+  archer: {name:'弓手',hp:5,radius:.30,height:1.74,scale:1,speed:1.05,hopHeight:.10,hopPeriod:.9,resistance:1.1,muzzle:{y:0.955520,forward:0.595485,side:-0.117760}},
   'boss-warden': {name:'守墓巨像',hp:24,radius:.62,height:2.24,scale:1,speed:.75,hopHeight:.06,hopPeriod:1.2,resistance:.20,armor:.65,reserves:2},
   'boss-leech': {name:'噬连兽',hp:20,radius:.42,height:1.93,scale:1,speed:1.05,hopHeight:.10,hopPeriod:1.1,resistance:.5},
   // 棉甲正面只吃一半伤害，要绕到背后打。
@@ -120,6 +120,7 @@ export function selectWeapon(s, index) {
   if (s.phase !== 'playing' || !WEAPONS[index] || !s.owned[index] || s.weapon === index) return false;
   s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false;
   s.events.push({ type: 'weapon', weapon: index });
+  if (s.ammo[index].mag === 0 && s.ammo[index].reserve > 0) startReload(s);
   return true;
 }
 
@@ -364,10 +365,10 @@ function idleMove(s, e, dt) {
   const [tx, tz] = e.patrol[e.patrolIndex], dx = tx - e.x, dz = tz - e.z, d = length(dx, dz);
   if (d < 0.12) { e.patrolIndex = (e.patrolIndex + 1) % e.patrol.length; e.patrolWait = 1.4; return; }
   const period = e.hopPeriod * 1.5;
-  e.hopPhase = (e.age % period) / period;
+  e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
   e.hop = lift * e.hopHeight * 0.5;
-  const travel = Math.min(d, e.speed * 0.42 * (0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
+  const travel = Math.min(d, e.speed * 0.42 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   e.heading = Math.atan2(dx, dz);
 }
@@ -386,7 +387,7 @@ function chase(s, e, dt) {
     return;
   }
   const action = !level ? null : SPECIAL_TYPES.has(e.type) ? advanceSpecial(s, e, dt, attackApi, S) : advanceAction(S, e, dt, p, s.events);
-  e.hopPhase = ((e.age + e.id * 0.137) % e.hopPeriod) / e.hopPeriod;
+  e.hopPhase = e.type === 'crawler' ? 0 : ((e.age + e.id * 0.137) % e.hopPeriod) / e.hopPeriod;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
   e.hop = action ? action.y : lift * e.hopHeight;
   if (e.hopPhase < prevPhase && !action) s.events.push({ type: 'land', id: e.id, ...at(e), enemyType: e.type });
@@ -402,7 +403,7 @@ function chase(s, e, dt) {
   const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
   if (!next) return;
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
-  const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0;
+  const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0;
   const travel = Math.min(d, speed * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   if (d > 0.03 && e.hit <= 0) {
@@ -690,10 +691,10 @@ function investigate(s, e, dt) {
   const next = clearPath(S, e, t, r, true) ? t : e.route[0];
   if (!next) return;
   const period = e.hopPeriod * 1.2;
-  e.hopPhase = (e.age % period) / period;
+  e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
   const lift = Math.sin(clamp(e.hopPhase / 0.78, 0, 1) * Math.PI), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   e.hop = lift * e.hopHeight * 0.7;
-  const travel = Math.min(d, (e.hit <= 0 ? e.speed * 0.75 * (0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  const travel = Math.min(d, (e.hit <= 0 ? e.speed * 0.75 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   if (d > 0.03 && e.hit <= 0) e.heading = Math.atan2(dx, dz);
 }
@@ -830,6 +831,7 @@ export function step(s, dt, input = {}) {
 
   for (const e of s.enemies) {
     if(!e.enabled)continue;
+    const startX=e.x, startZ=e.z;
     e.age += dt; e.reactionAge += dt;
     e.hit = Math.max(0, e.hit - dt); e.chainCooldown = Math.max(0, e.chainCooldown - dt);
     e.stun = Math.max(0, e.stun - dt); e.tangle = Math.max(0, e.tangle - dt);
@@ -837,9 +839,16 @@ export function step(s, dt, input = {}) {
     else if (e.stun > 0) e.hop *= Math.exp(-dt * 14);   // 被电住：站在原地发抖，不追、不看、不咬
     else if (e.awareness === 'alert') chase(s, e, dt);
     else { sense(s, e, dt); if (e.awareness === 'alert' || e.awareness === 'waking') e.lure = null; else if (e.lure) investigate(s, e, dt); else idleMove(s, e, dt); }
+    const selfTravel = e.type === 'crawler' ? Math.hypot(e.x-startX,e.z-startZ) : 0;
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
     resolveBody(storeyAt(L, e.base), e, e.radius);
+    if (e.type === 'crawler') {
+      const travel = Math.min(selfTravel, Math.hypot(e.x-startX,e.z-startZ));
+      e.crawlDistance = (e.crawlDistance || 0) + travel;
+      const stepping = travel > .00001 ? 1 : 0;
+      e.crawlWeight = stepping + ((e.crawlWeight || 0)-stepping)*Math.exp(-18*dt);
+    }
     e.base = surfaceY(L, e.x, e.z, e.base); e.y = e.base + e.hop;
   }
 

@@ -1,0 +1,23 @@
+{
+  "archer": {
+    "prompt": "Production orthographic full-body turnaround design sheet for one premium needle felt plush videogame monster. Three consistent true orthographic views side by side: straight FRONT, exact left SIDE, BACK. Same floor line, same scale, enough gutter. No lettering. Ivory studio ground, soft shadows, natural macro product photography. The attached photo gives only the Rongboy family language: compact olive hand-felt, mustard and charcoal mismatched sewn X button eyes, crooked little cloth teeth, forehead patch, warm tactile wool fibres and short handmade blanket stitches. Physical sewing construction, very readable silhouette at a distance. Field archer toy, same oval Walker head, slightly narrow lanky upright body with offset feet. Dark forest teal asymmetric cropped felt cape over just the bow shoulder; diagonal ochre quiver sling, bare draw arm, plum trousers and umber boots. Holds a slim crescent teal cloth toy bow forward and away from the face, BOTH hands distinctly separated at chest level, one hand grips the bow, other hand touches nock; a single safe soft-tipped wool arrow, cream taut string. Slim ochre-brown quiver on back with three blunt teal feathered toy arrows. No hood hiding face.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  },
+  "boss-warden": {
+    "prompt": "Production orthographic full-body turnaround design sheet for one premium needle felt plush videogame monster. Three consistent true orthographic views side by side: straight FRONT, exact left SIDE, BACK. Same floor line, same scale, enough gutter. No lettering. Ivory studio ground, soft shadows, natural macro product photography. The attached photo gives only the Rongboy family language: compact olive hand-felt, mustard and charcoal mismatched sewn X button eyes, crooked little cloth teeth, forehead patch, warm tactile wool fibres and short handmade blanket stitches. Physical sewing construction, very readable silhouette at a distance. Boss the Grave Warden, huge low and exceptionally BROAD square-shouldered barrel body, small squat rectangular head sunk between two mountainous shoulders, massive long thick padded arms, squared hammer-mitten fists hanging at knee level, very short stout legs wide apart. Silhouette like a doorway. Deep lichen olive skin, charcoal slate thick short gatekeeper apron with layered hem, massive antique mustard FELT PADLOCK and embroidered keyhole on front belly, with broad crossed chestnut back straps. Soft light-tan horizontal knuckle bands around both fists. Heavy unmoving stone-like guardian built from needle felt. Arms slightly away to show their outlines. No weapons or hat, no suction cups.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  },
+  "boss-leech": {
+    "prompt": "Production orthographic full-body turnaround design sheet for one premium needle felt plush videogame monster. Three consistent true orthographic views side by side: straight FRONT, exact left SIDE, BACK. Same floor line, same scale, enough gutter. No lettering. Ivory studio ground, soft shadows, natural macro product photography. The attached photo gives only the Rongboy family language: compact olive hand-felt, mustard and charcoal mismatched sewn X button eyes, crooked little cloth teeth, forehead patch, warm tactile wool fibres and short handmade blanket stitches. Physical sewing construction, very readable silhouette at a distance. Boss the Siphon plush: extraordinarily NARROW long drooping pear-head, slender long-necked sack torso, small low feet, two extremely elongated soft flexible hose-like arms ending in unmistakable giant hollow concave plum felt suction cups with rolled lilac rims aimed forward and slightly open to the camera. These cups replace the hands. Curve arms outward from narrow shoulders, taper body high and widen hips slightly; two small feet close together. Dusky sage-grey body, lavender scalloped short shoulder cowl with collar seam, one organic winding plum running seam down front and back of body. Cups and little scarf/cowl should dominate the colour accents. Never bulky, never armored. Swaying gentle menace, designed to reach out and draw things in.",
+    "referenced_image_paths": [
+      "../../walker-trio/front-side.jpg"
+    ],
+    "transparent_background": false
+  }
+}

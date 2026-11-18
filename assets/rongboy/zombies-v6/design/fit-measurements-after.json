@@ -1,0 +1,113 @@
+{
+  "method": "Foreground bounding width/height ratios. Approximate silhouette aid only; poses differ. Not an aesthetic similarity score.",
+  "models": {
+    "walker": {
+      "front": {
+        "targetRatio": 0.486,
+        "modelRatio": 0.497,
+        "factor": 0.976
+      },
+      "side": {
+        "targetRatio": 0.32,
+        "modelRatio": 0.375,
+        "factor": 0.853
+      }
+    },
+    "leaper": {
+      "front": {
+        "targetRatio": 0.522,
+        "modelRatio": 0.523,
+        "factor": 0.997
+      },
+      "side": {
+        "targetRatio": 0.475,
+        "modelRatio": 0.48,
+        "factor": 0.99
+      }
+    },
+    "heavy": {
+      "front": {
+        "targetRatio": 0.601,
+        "modelRatio": 0.602,
+        "factor": 0.999
+      },
+      "side": {
+        "targetRatio": 0.534,
+        "modelRatio": 0.542,
+        "factor": 0.985
+      }
+    },
+    "crawler": {
+      "front": {
+        "targetRatio": 1.233,
+        "modelRatio": 1.172,
+        "factor": 1.052
+      },
+      "side": {
+        "targetRatio": 1.422,
+        "modelRatio": 1.443,
+        "factor": 0.986
+      }
+    },
+    "shielded": {
+      "front": {
+        "targetRatio": 0.486,
+        "modelRatio": 0.507,
+        "factor": 0.96
+      },
+      "side": {
+        "targetRatio": 0.336,
+        "modelRatio": 0.345,
+        "factor": 0.974
+      }
+    },
+    "bomber": {
+      "front": {
+        "targetRatio": 0.614,
+        "modelRatio": 0.602,
+        "factor": 1.02
+      },
+      "side": {
+        "targetRatio": 0.537,
+        "modelRatio": 0.584,
+        "factor": 0.918
+      }
+    },
+    "archer": {
+      "front": {
+        "targetRatio": 0.351,
+        "modelRatio": 0.36,
+        "factor": 0.976
+      },
+      "side": {
+        "targetRatio": 0.469,
+        "modelRatio": 0.566,
+        "factor": 0.829
+      }
+    },
+    "boss-warden": {
+      "front": {
+        "targetRatio": 0.678,
+        "modelRatio": 0.68,
+        "factor": 0.997
+      },
+      "side": {
+        "targetRatio": 0.71,
+        "modelRatio": 0.641,
+        "factor": 1.107
+      }
+    },
+    "boss-leech": {
+      "front": {
+        "targetRatio": 0.5,
+        "modelRatio": 0.484,
+        "factor": 1.032
+      },
+      "side": {
+        "targetRatio": 0.422,
+        "modelRatio": 0.411,
+        "factor": 1.026
+      }
+    }
+  }
+}
