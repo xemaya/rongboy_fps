@@ -1,4 +1,4 @@
-// Rongboy 任务制试玩：家 · 三层楼与花园。第一人称、纯键盘。
+// Rongboy 任务制试玩：家 · 三层楼与花园。第一人称，键盘或手柄。
 // 战斗规则在 game.js，关卡几何在 level.js；这里只管画面、声音、输入和 HUD。
 import * as T from 'three';
 import { createCineRenderer, QUALITY } from '../../cine-engine/engine/index.js';
@@ -13,7 +13,7 @@ import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED,
-  PISTOL, GRENADE, secondOf, grenades, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow } from './game.js';
+  PISTOL, GRENADE, secondOf, grenades, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow, beginJump } from './game.js';
 import { buildWorld } from './world.js';
 import { extendWeaponKit, projectileModels, createEffects } from './arsenal.js';
 import { createArsenalAudio } from './sfx.js';
@@ -24,6 +24,7 @@ import { trainingDef } from './levels/training.js';
 import { ATTACKS, attackCue } from './attacks.js';
 import { applyAttackPose } from './attack-pose.js';
 import { createCombatFx } from './combat-fx.js';
+import { createGamepad } from './gamepad.js';
 
 
 const $ = id => document.getElementById(id);
@@ -52,6 +53,9 @@ let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last 
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, lastRoom = '', zoom = 0;
 let hurtRoll = 0, hurtPitch = 0, lastHealth = CONFIG.maxHealth, nextBeat = 0, offerShown = '';   // 挨打时镜头偏的那一下；心跳声；换枪提示
 const keys = new Set(), errors = [], frameIntervals = [];
+// 手柄：PS5 插上就能用；没插的时候这一套全是 0，键盘照旧。
+const pad = createGamepad();
+let padSide = 0, padForward = 0, padWasConnected = false, inputMode = 'keyboard', padSoundHint = false;
 
 // The menu is a separate lightweight page; this page loads only the confirmed map.
 function applyTexts() {
@@ -62,6 +66,28 @@ function applyTexts() {
  $('objective').textContent = level.mission.title;
  $('loadingTitle').textContent = '正在前往' + (TX.short || level.name);
  $('loadBack').href = 'rongboy-mission.html?level=' + levelId;
+ applyInputHints();
+}
+
+// 屏幕上的按键提示跟着最近用过的输入设备走：键盘动过就是键盘，手柄动过就是手柄。
+// 动作本身不受影响，两套输入一直都能用。
+const KEY_LABELS = { fire: '空格', switch: 'Q', throw: 'E', exchange: 'F', reload: 'R', pause: 'Esc', confirm: 'Enter', jump: 'Shift', back: 'Esc' };
+const PAD_LABELS = { fire: 'R2', switch: 'L1', throw: 'L2', exchange: '□', reload: 'R1', pause: 'Options', confirm: '✕', jump: '✕', back: '○' };
+const inputLabels = () => (inputMode === 'gamepad' ? PAD_LABELS : KEY_LABELS);
+function setInputMode(value) { if (inputMode === value) return; inputMode = value; applyInputHints(); }
+function applyInputHints() {
+  const L = inputLabels(), padMode = inputMode === 'gamepad';
+  $('controls').innerHTML = padMode
+    ? '左摇杆 移动 · 右摇杆 转向 / 抬头低头<br>R2 射击 · 按住：蓄力 / 连发 / 瞄准<br>L1 换枪 · L2 扔毛线团 · □ 换地上的枪 · R1 换弹 · ✕ 跳<br>Options 暂停（暂停时 R1 重开）'
+    : 'WASD 移动 · 方向键 转向 / 抬头低头<br>空格 射击 · 按住：蓄力 / 连发 / 瞄准<br>Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹 · Shift 跳<br>Esc 暂停（暂停时 R 重开）';
+  $('keySwitch').textContent = L.switch;
+  $('keyThrow').textContent = L.throw;
+  $('pauseTip').textContent = padMode ? `按 ${L.confirm} 继续，${L.reload} 重新开始这一关，${L.back} 返回选图。` : '按 Enter 继续，按 R 重新开始这一关。';
+  $('resultHint').textContent = `${L.confirm} 再来一次 · ${L.back} 返回选图`;
+  $('again').textContent = padMode ? `再来一次 · ${L.confirm}` : '再来一次';
+  $('back').textContent = padMode ? `返回 · ${L.back}` : '返回';
+  $('approach').textContent = padMode ? '开始接敌 · ✕' : '开始接敌 · Enter';
+  $('pauseHow').innerHTML = (TX.how || []).join('<br>') + (padMode ? '<br>手柄：左摇杆移动 · 右摇杆转向 · R2 射击 · L1 换枪 · L2 毛线团 · □ 捡枪 · R1 换弹 · ✕ 跳 · Options 暂停' : '');
 }
 function fail(err) {
   const msg = String(err?.stack || err);
@@ -218,8 +244,10 @@ function animateHero(dt, moving) {
   hero.reset();
   const heading = Math.PI;
   hero.model.rotation.y = heading;
-  const side = (keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0), fwd = (keys.has('s') ? 1 : 0) - (keys.has('w') ? 1 : 0), speed = Math.hypot(side, fwd);
-  if (moving && speed > 0) phase += dt * 10.5;
+  const side = ((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0)) + padSide;
+  const fwd = ((keys.has('s') ? 1 : 0) - (keys.has('w') ? 1 : 0)) - padForward;   // 这里向前是负的
+  const speed = Math.hypot(side, fwd);
+  if (moving && speed > 0) phase += dt * 10.5 * Math.min(1, speed);   // 摇杆半推时步频也跟着慢
   const body = part(hero, 'CTRL / body'), head = part(hero, 'CTRL / head'), pack = part(hero, 'CTRL / backpack');
   if (body) body.position.y += Math.sin(phase * 2) * 0.012 * (speed > 0 ? 1 : 0.3);
   for (const sign of [-1, 1]) {
@@ -609,6 +637,8 @@ function processEvents() {
     else if (e.type === 'interrupted') say('打断了攻击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
     else if (e.type === 'alert') { if (near(9)) { say(`${ENEMY_TYPES[e.enemyType].name}发现你了！`, 1.1); sfx('hurt'); } }
+    else if (e.type === 'hop') { sfx2('thump', { strength: 0.18 }); }
+    else if (e.type === 'hop-land') { burst(s.player.x, s.player.z, 3, 0.16, 0xeadbb9, s.player.y + 0.04); sfx2('thump', { strength: 0.3 }); }
     else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, base + 0.04); }
     else if (e.type === 'shot') {
       const w = WEAPONS.find(v => v.id === e.weapon), light = e.weapon === 'sewing';
@@ -767,7 +797,7 @@ function cameraFrame(dt) {
     camera.fov = 65 - 31 * zoom + recoil.fov.x * motion;
     camera.rotation.order = 'YXZ';
     camera.rotation.set(pitch + recoil.camera.x * motion + hurtPitch, yaw, Math.sin(s.time * 49) * shake * motion + hurtRoll);
-    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
+    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + s.player.jump + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
     if (fpHero) { fpHero.world.position.set(0.30 + Math.sin(phase) * 0.004, -0.76 - Math.abs(Math.sin(phase)) * 0.004, -0.52).multiplyScalar(FP_SCALE); fpHero.model.rotation.y = Math.PI; }
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
   shake = Math.max(0, shake - dt * 0.6);
@@ -778,7 +808,7 @@ function cameraFrame(dt) {
 
 const clock = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 function hud() {
-  const w = WEAPONS[s.weapon], a = s.ammo[s.weapon], status = missionStatus(s);
+  const w = WEAPONS[s.weapon], a = s.ammo[s.weapon], status = missionStatus(s), L = inputLabels();
   $('statusEffect').textContent=s.pulledUntil>s.time?'吸引中 · 侧移或找掩体':s.slowUntil>s.time?'缠线减速 · '+Math.max(0,s.slowUntil-s.time).toFixed(1)+'s':'';
   $('weaponName').textContent = w.name; $('weaponTag').textContent = w.tag;
   $('ammo').textContent = `${a.mag} / ${a.reserve === Infinity ? '∞' : a.reserve}`;
@@ -793,7 +823,7 @@ function hud() {
   const offer = mode === 'playing' && !paused ? offeredWeapon(s) : null, offerKey = offer ? offer.id + ':' + offer.weapon : '';
   if (offerKey !== offerShown) {
     offerShown = offerKey; $('swapPrompt').hidden = !offer;
-    if (offer) $('swapPrompt').innerHTML = `<kbd>F</kbd> 换成 <b>${WEAPONS.find(v => v.id === offer.weapon).name}</b> <small>放下${WEAPONS[second].name}</small>`;
+    if (offer) $('swapPrompt').innerHTML = `<kbd>${L.exchange}</kbd> 换成 <b>${WEAPONS.find(v => v.id === offer.weapon).name}</b> <small>放下${WEAPONS[second].name}</small>`;
   }
   $('objective').textContent = status.type !== 'fetch' ? level.mission.title : status.carrying ? TX.carry : status.needed > 1 ? `${level.mission.title} · ${status.collected} / ${status.needed}` : level.mission.title;
   $('enemyCount').textContent = `${status.alive} / ${status.total}`;
@@ -815,7 +845,7 @@ function hud() {
   $('chargeFill').style.width = (s.lobbing ? lobbing : s.reloading ? reloading : charging) * 100 + '%';
   $('charge').classList.toggle('full', !s.reloading && charging > 0.95);
   $('charge').classList.toggle('reloading', s.reloading);
-  $('chargeLabel').textContent = s.lobbing ? '松开 E 扔出毛线团 · 按得越久越远' : s.reloading ? '换弹中…' : a.mag === 0 ? '没弹药了' : w.auto ? '按住空格连发' : w.zoom ? (s.charging ? (charging > 0.95 ? '瞄稳了 · 松开射出' : '瞄准中…') : '按住空格瞄准 · 松开射出') : w.kind === 'grenade' ? (s.charging ? '松开扔出 · 按得越久越远' : '空格扔出 · 按住扔得更远') : w.kind === 'zap' ? '空格放电' : charging > 0.95 ? '松开空格 · 发射大毛球' : s.charging ? '蓄力中…' : '空格射击 · 按住蓄力';
+  $('chargeLabel').textContent = s.lobbing ? `松开 ${L.throw} 扔出毛线团 · 按得越久越远` : s.reloading ? '换弹中…' : a.mag === 0 ? '没弹药了' : w.auto ? `按住 ${L.fire} 连发` : w.zoom ? (s.charging ? (charging > 0.95 ? '瞄稳了 · 松开射出' : '瞄准中…') : `按住 ${L.fire} 瞄准 · 松开射出`) : w.kind === 'grenade' ? (s.charging ? '松开扔出 · 按得越久越远' : `${L.fire} 扔出 · 按住扔得更远`) : w.kind === 'zap' ? `${L.fire} 放电` : charging > 0.95 ? `松开 ${L.fire} · 发射大毛球` : s.charging ? '蓄力中…' : `${L.fire} 射击 · 按住蓄力`;
   $('reticle').hidden = mode !== 'playing' || paused; $('reticle').style.scale = 1 + Math.min(0.35, recoil.back.x * 0.65);
   $('hitMarker').hidden = mode !== 'playing' || paused || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind; $('hitMarker').style.opacity = Math.min(1, hitMarkerTime * 18); $('hitMarker').style.scale = 1 + Math.min(0.35, hitMarkerTime);
@@ -827,7 +857,7 @@ function snapshot() {
     mode, paused, phase: s.phase, time: s.time, health: s.health, stars: s.stars, kills: s.kills, total: s.total, alive: aliveCount(s),
     weapon: WEAPONS[s.weapon].id, second: WEAPONS[secondOf(s)]?.id || null, grenades: grenades(s), offer: offeredWeapon(s)?.weapon || null, owned: WEAPONS.filter((w, i) => s.owned[i]).map(w => w.id), ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
-    player: { x: s.player.x, y: s.player.y, z: s.player.z }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
+    player: { x: s.player.x, y: s.player.y, z: s.player.z, jump: s.player.jump }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
     enemies: s.enemies.map(e => ({ id: e.id, type: e.type, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
     level: level.id, enemyBombs: s.enemyBombs.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, landed: b.landed, fuse: b.fuse })), enemyShots: s.enemyShots.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, age: b.age })), slowUntil: s.slowUntil, pulledUntil: s.pulledUntil, neutralized: s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
@@ -896,47 +926,119 @@ function showResult() {
 }
 function toMenu() { location.href = 'rongboy-mission.html?level=' + levelId; }
 
-// ---------- 输入：纯键盘，不需要鼠标 ----------
+// ---------- 输入：键盘 + 手柄，不需要鼠标 ----------
 
 const HELD = ['w', 'a', 's', 'd', ' ', 'arrowleft', 'arrowright', 'arrowup', 'arrowdown'];
 $('view').addEventListener('contextmenu', e => e.preventDefault());
+$('view').addEventListener('pointerdown', unlock);   // 只用手柄开的局，点一下画面也能补上声音
+
+// 键盘和手柄共用的动作。两个设备只负责把"按了什么"翻译成这里的一个调用。
+function confirmAction() {
+  if (mode === 'result') start();
+  else if (paused) setPause(false);
+}
+function pauseAction() { if (mode === 'playing') setPause(!paused); }
+function reloadAction() {
+  if (mode === 'result' || paused) start();          // 暂停或结算时是重开
+  else if (mode === 'playing') { startReload(s); processEvents(); }   // 游戏中是换弹
+}
+function switchAction(index) {
+  if (index < 0) { say('第二把枪还空着 · 屋里能捡到', 1.2); return; }
+  if (selectWeapon(s, index)) { if (down) releaseCharge(s); down = false; keys.delete(' '); processEvents(); }
+}
+function throwAction() { if (!lobDown) { unlock(); lobDown = beginThrow(s); processEvents(); } }
+function exchangeAction() { unlock(); if (exchangeWeapon(s)) { if (down) releaseCharge(s); down = false; keys.delete(' '); } processEvents(); }
+function firePress() { down = true; unlock(); beginCharge(s); processEvents(); }
+function fireRelease() { down = false; if (mode === 'playing' && !paused) releaseCharge(s, shotParams()); }
+function throwRelease() { lobDown = false; if (mode === 'playing' && !paused) { releaseThrow(s, shotParams()); processEvents(); } }
+function jumpAction() { if (beginJump(s)) processEvents(); }
+// 手柄拔掉时把扳机状态清掉，免得回到键盘后枪还卡在蓄力
+function cancelHeldInput() { if (down) { down = false; s.charging = false; s.charge = 0; } if (lobDown) { lobDown = false; s.lobbing = false; s.lob = 0; } }
+
 addEventListener('keydown', e => {
   if (e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key.toLowerCase();
+  setInputMode('keyboard');
+  unlock();   // 浏览器要一次真实按键才放出声音；手柄开的局按一下键盘也能补上
   if (awaitingApproach && !paused && ready) {
     if (k === 'enter') { e.preventDefault(); beginApproach(); }
     if (k !== 'escape') return;
   }
   if ((k === 'enter' || k === ' ') && ['BUTTON','A'].includes(e.target?.tagName)) return;
   if (HELD.includes(k) || k === 'enter') e.preventDefault();
-  if (k === 'enter' && ready && !e.repeat) { if (mode === 'result') start(); else if (paused) setPause(false); return; }
-  if (k === 'escape') { if (mode === 'playing') setPause(!paused); return; }
-  if (k === 'r' && !e.repeat && ready) {
-    if (mode === 'result' || paused) start();          // 暂停或结算时 R 是重开
-    else if (mode === 'playing') { startReload(s); processEvents(); }   // 游戏中 R 是换弹
-    return;
-  }
+  if (k === 'enter' && ready && !e.repeat) { confirmAction(); return; }
+  if (k === 'escape') { if (mode === 'result') toMenu(); else pauseAction(); return; }
+  if (k === 'r' && !e.repeat && ready) { reloadAction(); return; }
   if (mode !== 'playing' || paused) return;
+  if (k === 'shift') { if (!e.repeat) jumpAction(); return; }   // 蹦一下（不替代枪和走位）
   // Q：在手枪和另一把之间换（1、2 也行）。E：扔毛线团，按住扔得更远。F：换脚边的枪。
   if (k === 'q' || k === '1' || k === '2') {
     if (e.repeat) return;
     const second = secondOf(s), index = k === 'q' ? (s.weapon === PISTOL ? second : PISTOL) : k === '1' ? PISTOL : second;
-    if (index < 0) say('第二把枪还空着 · 屋里能捡到', 1.2);
-    else if (selectWeapon(s, index)) { if (down) releaseCharge(s); down = false; keys.delete(' '); processEvents(); }
+    switchAction(index);
     return;
   }
-  if (k === 'e') { if (!e.repeat && !lobDown) { unlock(); lobDown = beginThrow(s); processEvents(); } return; }
-  if (k === 'f') { if (!e.repeat) { unlock(); if (exchangeWeapon(s)) { if (down) releaseCharge(s); down = false; keys.delete(' '); } processEvents(); } return; }
+  if (k === 'e') { if (!e.repeat) throwAction(); return; }
+  if (k === 'f') { if (!e.repeat) exchangeAction(); return; }
   if (!HELD.includes(k)) return;
   keys.add(k);
-  if (k === ' ' && !e.repeat && !down) { down = true; unlock(); beginCharge(s); processEvents(); }
+  if (k === ' ' && !e.repeat && !down) firePress();
 });
 addEventListener('keyup', e => {
   const k = e.key.toLowerCase();
   keys.delete(k);
-  if (k === ' ' && down) { down = false; if (mode === 'playing' && !paused) releaseCharge(s, shotParams()); }
-  if (k === 'e' && lobDown) { lobDown = false; if (mode === 'playing' && !paused) { releaseThrow(s, shotParams()); processEvents(); } }
+  if (k === ' ' && down) fireRelease();
+  if (k === 'e' && lobDown) throwRelease();
 });
+
+// ---------- 手柄 ----------
+// PS5 DualSense 插上就能用：左摇杆走、右摇杆转向 / 抬头低头、R2 开火（按住蓄力）、
+// L2 扔毛线团（按住扔得更远）、R1 换弹、L1 换枪、□ 换地上的枪、十字键左右直接选两把枪、
+// Options 暂停、✕ 确定 / 继续、○ 返回选图。摇杆和扳机是模拟量，轻推轻按有轻的效果。
+let padHintTimer = 0;
+function gamepadFrame() {
+  pad.poll();
+  const axes = pad.axes;
+  padSide = axes.x; padForward = -axes.y;
+  if (!pad.connected) {
+    padSide = padForward = 0;
+    if (padWasConnected) { padWasConnected = false; cancelHeldInput(); setInputMode('keyboard'); say('手柄断开了 · 改用键盘', 1.6); }
+    return;
+  }
+  const active = pad.anyPressed || Math.hypot(axes.x, axes.y) > 0.35 || Math.hypot(axes.lookX, axes.lookY) > 0.35;
+  if (active) setInputMode('gamepad');
+  if (!padWasConnected) { padWasConnected = true; say('手柄已连接 · 左摇杆走 · R2 开火', 2); }
+  // 浏览器不把"按手柄"当成用户按键，声音可能还锁着。等一秒确认没开声，再提示一次（按键盘能解开）。
+  if (active && mode === 'playing' && !paused && !padSoundHint && !padHintTimer && (!audio || audio.state !== 'running')) {
+    padHintTimer = setTimeout(() => {
+      padHintTimer = 0;
+      if (padSoundHint || !pad.connected || inputMode !== 'gamepad' || audio?.state === 'running') return;
+      padSoundHint = true; say('浏览器要按一下键盘才放出声音 · 手柄照常能用', 2.6);
+    }, 900);
+  }
+
+  // 确定 / 暂停 / 返回：暂停面板、结算、接敌提示里都能用
+  let crossUsed = false;
+  if (pad.pressed('cross')) {
+    if (awaitingApproach && !paused && ready) { beginApproach(); crossUsed = true; }
+    else if (mode === 'result') { start(); crossUsed = true; }
+    else if (paused) { setPause(false); crossUsed = true; }
+  }
+  if (pad.pressed('options')) pauseAction();
+  if (pad.pressed('circle') && (mode === 'result' || paused)) toMenu();
+  if (pad.pressed('r1') && ready) reloadAction();
+  if (mode !== 'playing' || paused || awaitingApproach) return;
+
+  if (pad.pressed('cross') && !crossUsed) jumpAction();
+  if (pad.pressed('l1')) switchAction(s.weapon === PISTOL ? secondOf(s) : PISTOL);
+  if (pad.pressed('left')) switchAction(PISTOL);
+  if (pad.pressed('right')) switchAction(secondOf(s));
+  if (pad.pressed('square')) exchangeAction();
+  if (pad.pressed('r2') && !down) firePress();
+  if (pad.released('r2') && down) fireRelease();
+  if (pad.pressed('l2') && !lobDown) throwAction();
+  if (pad.released('l2') && lobDown) throwRelease();
+}
 addEventListener('blur', () => { if (mode === 'playing' && !paused) setPause(true); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'playing' && !paused && !q.has('test')) setPause(true); });
 $('expand').onclick = () => { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch(() => {}); };
@@ -954,8 +1056,14 @@ function advance(dt) {
   const turn = 1 - 0.6 * zoom;   // 瞄准时转得慢，好对准
   yaw += ((keys.has('arrowleft') ? 1 : 0) - (keys.has('arrowright') ? 1 : 0)) * dt * 1.15 * turn;
   pitch = Math.max(-0.78, Math.min(0.72, pitch + ((keys.has('arrowup') ? 1 : 0) - (keys.has('arrowdown') ? 1 : 0)) * dt * 0.85 * turn));
+  // 右摇杆：平方一下让中间更好细瞄，推满时比方向键快一点
+  const lookX = pad.axes.lookX, lookY = pad.axes.lookY;
+  yaw -= lookX * Math.abs(lookX) * dt * 2.6 * turn;
+  pitch = Math.max(-0.78, Math.min(0.72, pitch - lookY * Math.abs(lookY) * dt * 1.9 * turn));
   cameraFrame(0); aim();
-  const move = cameraMove((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0), (keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0), yaw);
+  const side = ((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0)) + padSide;
+  const forward = ((keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)) + padForward;
+  const move = cameraMove(side, forward, yaw);
   const input = { x: move.x, z: move.z, aimX: lookDir.x, aimY: lookDir.y, aimZ: lookDir.z };
   if (s.trigger) input.shot = shotParams();   // 连发枪：每一发都从当前的枪口出去
   acc += dt;
@@ -972,6 +1080,7 @@ function frame(now) {
   last = now;
   if (!ready) return;
   govern(now, elapsed);
+  gamepadFrame();
   if (mode === 'playing' && !paused) { frameIntervals.push(elapsed); if (frameIntervals.length > 180) frameIntervals.shift(); }
   cameraFrame(dt);
   if (mode === 'playing' && !paused && !awaitingApproach && !window.__rb.hold) advance(dt);
@@ -1009,7 +1118,9 @@ boot().catch(fail);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },   // 仅供调试：直接读写战斗状态
-  cine, world, effects, governor,
+  cine, world, effects, governor, pad,
+  get inputMode() { return inputMode; }, get padInput() { return { side: padSide, forward: padForward }; },
+  gamepadFrame,
   hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },   // 调试：只演一遍受伤的画面，不扣心
   gunInFront: true,   // 调试：false 时手和枪照普通物体画（对比穿模用）
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图

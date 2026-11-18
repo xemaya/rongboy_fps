@@ -1,4 +1,5 @@
 import { MAP_CARDS } from './map-cards.js';
+import { createGamepad } from './gamepad.js';
 const $=id=>document.getElementById(id),q=new URLSearchParams(location.search),training=q.get('level')==='training';
 const cards=training?MAP_CARDS.filter(c=>c.id==='training'):MAP_CARDS.filter(c=>c.id!=='training');
 let selected=Math.max(0,cards.findIndex(c=>c.id===q.get('level'))),leaving=false;
@@ -8,3 +9,8 @@ async function launch(){if(leaving)return;leaving=true;const c=cards[selected];$
 $('start').onclick=launch;
 addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey||e.repeat||leaving)return;const k=e.key.toLowerCase();if(e.target.closest?.('a'))return;if(['w','s','a','d','arrowup','arrowdown','arrowleft','arrowright','enter'].includes(k))e.preventDefault();if(['w','a','arrowup','arrowleft'].includes(k))select(selected-1);else if(['s','d','arrowdown','arrowright'].includes(k))select(selected+1);else if(k==='enter')launch();else if(k>='1'&&k<=String(cards.length))select(Number(k)-1);});
 select(selected);
+// 手柄：十字键或左摇杆上下选（按住会连续切），✕ 出发。和键盘走同一个 select / launch。
+const pad=createGamepad();let padDir=0,padNext=0;
+function gamepadMenu(now){pad.poll();if(leaving)return;if(pad.pressed('cross')){launch();return;}const up=pad.held('up')||pad.axes.y<-.55,down=pad.held('down')||pad.axes.y>.55,left=pad.held('left')||pad.axes.x<-.55,right=pad.held('right')||pad.axes.x>.55,dir=up||left?-1:down||right?1:0;if(!dir){padDir=0;padNext=0;return;}if(dir!==padDir){padDir=dir;padNext=now+380;select(selected+dir);}else if(now>=padNext){padNext=now+130;select(selected+dir);}}
+function padLoop(now){requestAnimationFrame(padLoop);gamepadMenu(now);}
+if(typeof requestAnimationFrame==='function'&&navigator.getGamepads)requestAnimationFrame(padLoop);

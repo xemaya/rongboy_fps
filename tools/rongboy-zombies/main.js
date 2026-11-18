@@ -4,6 +4,7 @@ import {loadFigurines} from '../../library/games/rongboy-runtime.js';
 import {ZOMBIE_ROSTER} from '../../library/games/rongboy-roster.js';
 import {ATTACKS} from '../../scenes/rongboy-mission/attacks.js';
 import {poseRosterFigurine} from '../../library/games/rongboy-roster-pose.js';
+import {createGamepad} from '../../scenes/rongboy-mission/gamepad.js';
 import zombies from '../../assets/rongboy/zombies-v7/zombie-roster.glb';
 const specialists = new URLSearchParams(location.search).get('study') === 'specialists';
 const options = new URLSearchParams(location.search);
@@ -46,10 +47,12 @@ function update(){if(!ready)return;$('all').classList.toggle('active',!selected)
  }cine.camera.updateProjectionMatrix();}
 $('detail').onclick=()=>{detail=!detail;$('detail').classList.toggle('active',detail);$('detail').setAttribute('aria-pressed',detail);if(!selected)selected=roster[0].id;update();};
 $('all').onclick=()=>{select(null);$('roster').scrollTop=0;};for(const id of ['front','side','back'])$(id).onclick=()=>{if(!selected)selected=roster[0].id;view=id;update();};$('animate').onclick=()=>{moving=!moving;$('animate').classList.toggle('active',moving);$('animate').setAttribute('aria-pressed',moving);};
-addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;if(['ArrowLeft','ArrowRight','Escape',' '].includes(e.key))e.preventDefault();if(e.repeat)return;if(e.key===' '){$('animate').click();return;}if(e.key==='Escape'){select(null);return;}if(e.key==='ArrowLeft'||e.key==='ArrowRight'){const i=roster.findIndex(s=>s.id===selected),step=e.key==='ArrowRight'?1:-1;select(roster[i<0?(step>0?0:roster.length-1):(i+step+roster.length)%roster.length].id);}});
+function stepRoster(step){const i=roster.findIndex(s=>s.id===selected);select(roster[i<0?(step>0?0:roster.length-1):(i+step+roster.length)%roster.length].id);}
+addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;if(['ArrowLeft','ArrowRight','Escape',' '].includes(e.key))e.preventDefault();if(e.repeat)return;if(e.key===' '){$('animate').click();return;}if(e.key==='Escape'){select(null);return;}if(e.key==='ArrowLeft'||e.key==='ArrowRight')stepRoster(e.key==='ArrowRight'?1:-1);});
+const pad=createGamepad();
 function positionLabels(){if(selected)return;const box=$('stage').getBoundingClientRect();for(const spec of roster){const a=actors.get(spec.id),p=new T.Vector3(a.world.position.x,-.13,a.world.position.z).project(cine.camera),label=labels.get(spec.id);label.style.left=(p.x*.5+.5)*box.width+'px';label.style.top=(-p.y*.5+.5)*box.height+'px';}}
 function diagnostics(){$('diagnostics').dataset.state=JSON.stringify({ready,count:actors.size,selected,view,moving,kinds:[...actors.keys()],poses:[...actors].map(([id,a])=>({id,native:a.nativeVariant,parts:a.parts.size,y:a.world.position.y,arm:a.parts.get('ArmL')?.rotation.x})),errors});$('diagnostics').dataset.stats=JSON.stringify(cine.stats());}
-function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,(now-last)/1000);last=now;if(ready){if(moving)time+=dt;for(const a of actors.values())if(a.world.visible)poseRosterFigurine(a,time,moving);positionLabels();}cine.frame(dt);if(++frame%10===0)diagnostics();}requestAnimationFrame(animate);
+function animate(now){requestAnimationFrame(animate);const dt=Math.min(.05,(now-last)/1000);last=now;pad.poll();if(ready){if(pad.pressed('left'))stepRoster(-1);if(pad.pressed('right'))stepRoster(1);if(pad.pressed('cross'))$('animate').click();if(pad.pressed('triangle'))$('detail').click();if(pad.pressed('circle')){select(null);$('roster').scrollTop=0;}if(moving)time+=dt;for(const a of actors.values())if(a.world.visible)poseRosterFigurine(a,time,moving);positionLabels();}cine.frame(dt);if(++frame%10===0)diagnostics();}requestAnimationFrame(animate);
 addEventListener('resize',()=>{cine.resize();update();});
 async function boot(){
  let bank=zombies;

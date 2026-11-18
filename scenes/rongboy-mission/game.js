@@ -86,7 +86,7 @@ export function createGame({ level } = {}) {
     // 藏在拉链暗格里的（stash）开局看不见、捡不到，打开拉链才掉出来
     pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false, hidden: !!p.stash })),
     gadgets: (level.gadgets || []).map(g => ({ ...g, used: false, until: 0 })),
-    player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, aimX: 0, aimY: 0, aimZ: -1 },
+    player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, jump: 0, jumpV: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
   if (!s.owned[GRENADE]) s.ammo[GRENADE] = { mag: 0, reserve: 0 };   // 关卡没给手雷：一颗都没有，捡到才有
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
@@ -492,6 +492,16 @@ export function cameraMove(side, forward, yaw) {
   return { x: side * Math.cos(yaw) - forward * Math.sin(yaw), z: -side * Math.sin(yaw) - forward * Math.cos(yaw) };
 }
 
+// 毛绒玩具蹦一下：只是离地，不替代现有的枪和走位，也不给无敌帧。
+// p.jump 是离地高度（p.y 仍是脚下的地面）；落地、起跳各发一个事件给表现层。
+export function beginJump(s) {
+  const p = s.player;
+  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0) return false;
+  p.jump = 0.001; p.jumpV = 2.6;
+  s.events.push({ type: 'hop' });
+  return true;
+}
+
 // All attack sources share the same heart/iframe path.
 export function hurtPlayer(s,enemy,source='contact'){
  if(s.phase!=='playing'||s.invul>0||s.endIn!==null||(s.total>0&&aliveCount(s)===0))return false;
@@ -806,6 +816,12 @@ export function step(s, dt, input = {}) {
   s.cooldown = Math.max(0, s.cooldown - dt);
   s.invul = Math.max(0, s.invul - dt);
   s.lobCooldown = Math.max(0, s.lobCooldown - dt);
+  // 蹦一下：重力把 p.jump 落回 0；最高约 0.4 米、整段约 0.6 秒。
+  if (p.jump > 0 || p.jumpV > 0) {
+    p.jumpV -= 8.5 * dt;
+    p.jump += p.jumpV * dt;
+    if (p.jump <= 0) { p.jump = 0; p.jumpV = 0; s.events.push({ type: 'hop-land' }); }
+  }
   if (s.charging) s.charge = Math.min(CONFIG.chargeTime, s.charge + dt);
   if (s.lobbing) s.lob = Math.min(CONFIG.chargeTime, s.lob + dt);
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }

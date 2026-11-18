@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Rongboy: a plush first-person woolball shooter (mission-based, keyboard only), built on cine-engine",
+  "description": "Rongboy: a plush first-person woolball shooter (mission-based, keyboard and gamepad), built on cine-engine",
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs --serve",

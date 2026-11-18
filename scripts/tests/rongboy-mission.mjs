@@ -5,7 +5,7 @@ import houseDef from '../../scenes/rongboy-mission/levels/house.js';
 import { compileLevel, clearPath, freePoint, lineOfSight, routeTo, navRadius, roomAt, resolveBody, surfaceY, storeyAt, floorIndex, navGoal } from '../../scenes/rongboy-mission/level.js';
 import { createGame, spawn, fire, beginCharge, releaseCharge, step, consumeEvents, selectWeapon, startReload, emitNoise, ballDamage,
   missionStatus, aliveCount, cameraMove, CONFIG, WEAPONS, ENEMY_TYPES, PISTOL, GRENADE, secondOf, grenades, swapWeapon, offeredWeapon, exchangeWeapon,
-  beginThrow, releaseThrow, throwGrenade } from '../../scenes/rongboy-mission/game.js';
+  beginThrow, releaseThrow, throwGrenade, beginJump } from '../../scenes/rongboy-mission/game.js';
 import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
 import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 
@@ -626,6 +626,23 @@ test('view-relative movement is unchanged', () => {
   const m = cameraMove(0, 1, 0); assert.ok(Math.abs(m.x) < 1e-9 && Math.abs(m.z + 1) < 1e-9);
   const body = { x: -1.5, z: -2, vx: 0, vz: 0 }; resolveBody(house, body, 0.3);
   assert.ok(Math.abs(body.x + 1.5) > 0.39, 'a body inside a wall is pushed out');
+});
+
+test('jump is a short hop: ~0.4 m up, lands in under 0.7 s, no second jump in mid-air', () => {
+  const s = game();
+  assert.equal(beginJump(s), true, 'jump from the ground');
+  assert.ok(consumeEvents(s).some(e => e.type === 'hop'), 'take-off emits hop');
+  let peak = 0;
+  for (let i = 0; i < 80; i++) { step(s, 1 / 120, { x: 0, z: 0 }); peak = Math.max(peak, s.player.jump); }
+  assert.ok(peak > 0.35 && peak < 0.45, `peak ${peak.toFixed(3)} m`);
+  assert.equal(s.player.jump, 0, 'back on the ground');
+  assert.ok(consumeEvents(s).some(e => e.type === 'hop-land'), 'landing emits hop-land');
+  assert.equal(s.player.y, 0, 'jump does not move the floor under the player');
+  // 空中不能二段跳；落地后可以再跳
+  beginJump(s); run(s, 0.1);
+  assert.equal(beginJump(s), false, 'no mid-air second jump');
+  run(s, 0.7);
+  assert.equal(beginJump(s), true, 'can jump again after landing');
 });
 
 // ---------- 只影响画面的摆设 ----------

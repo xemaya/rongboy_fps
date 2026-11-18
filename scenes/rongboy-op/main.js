@@ -10,12 +10,14 @@ import { createFilm, DURATION } from './film.js';
 import { createTitle } from './title.js';
 import { createOpAudio } from './audio.js';
 import { poseZombie } from './puppet.js';
+import { createGamepad } from '../rongboy-mission/gamepad.js';
 import musicBytes from '../../assets/rongboy/op/music-musicbox.mp3';
 
 const $ = id => document.getElementById(id);
 const q = new URLSearchParams(location.search);
 const exporting = q.has('export'), autoplay = q.get('play') !== '0', wantLive = q.has('live') || exporting;
 const video = $('film');
+const pad = createGamepad();
 const NEXT = q.get('next') || 'rongboy-mission.html?from=op';
 const fail = err => { const msg = String(err?.stack || err); $('err').textContent = msg; $('gate').hidden = true; console.error(msg); };
 addEventListener('error', e => fail(e.error || e.message));
@@ -55,7 +57,17 @@ function finish() {
 function start() {
   if (mode !== 'ready') return;
   mode = 'playing'; $('gate').hidden = true; $('skip').hidden = false;
-  if (!stage) { video.currentTime = T; video.play().catch(fail); return; }
+  if (!stage) {
+    video.currentTime = T;
+    const playing = video.play();
+    // 手柄按键不算浏览器的"用户操作"，带声音的片子可能被拦下来：退回等待，请玩家按一下键盘。
+    playing?.catch?.(() => {
+      mode = 'ready'; $('gate').hidden = false; $('skip').hidden = true;
+      $('loading').hidden = true; $('press').hidden = false;
+      $('press').innerHTML = '<b>按一下键盘开始</b>';
+    });
+    return;
+  }
   if (ctx) {
     ctx.resume(); sfx = createOpAudio(ctx); sink.sound = (kind, opts) => { if (ctx.state === 'running') sfx.play(kind, opts); };
     if (musicBuffer) music = sfx.music(musicBuffer, T);
@@ -64,6 +76,10 @@ function start() {
 }
 function frame(now) {
   requestAnimationFrame(frame);
+  // 手柄：任意键开始 / 任意键跳过。和键盘一样，按下的那一帧才算（按住不会连跳）。
+  pad.poll();
+  if (mode === 'ready' && autoplay && pad.anyPressed) start();
+  else if (mode === 'playing' && pad.anyPressed) finish();
   if (mode !== 'playing' || !stage) return;
   const prev = T;
   // 有声音就跟着声卡的钟走（画面和配乐不会越走越偏），没有就按帧间隔

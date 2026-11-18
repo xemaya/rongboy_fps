@@ -1,6 +1,6 @@
 # Rongboy FPS
 
-毛绒风的第一人称毛线球射击游戏：四张地图（家、博物馆、学校、奶奶家），任务制，纯键盘操作。全部用代码生成，构建出来每个页面是一个自带一切的 HTML 文件。
+毛绒风的第一人称毛线球射击游戏：四张地图（家、博物馆、学校、奶奶家），任务制，键盘 / 手柄操作。全部用代码生成，构建出来每个页面是一个自带一切的 HTML 文件。
 
 画面用 [cine-engine](https://github.com/xemaya/cine-engine) 渲染。引擎是这个仓库的子模块（`cine-engine/`），钉在一个确定的提交上。
 
@@ -11,7 +11,7 @@ git clone --recurse-submodules <这个仓库>
 npm ci
 npm run build                                           # 生成 dist/*.html
 node scripts/build.mjs --serve --port 5192 rongboy-mission   # 边改边看
-npm test                                                # 20 套检查
+npm test                                                # 23 套检查
 node scripts/map.mjs                                    # 地图工具：出草图、检查、体检、俯视图（docs/map-guide.md）
 ```
 
@@ -19,15 +19,21 @@ node scripts/map.mjs                                    # 地图工具：出草�
 
 | 页面 | 内容 |
 |---|---|
-| `dist/rongboy-op.html` | 开场片《嘘——》（64 秒）。从这里进游戏：按任意键开始，Esc 跳过，播完进主界面。默认放事先渲好的 `rongboy-op.mp4`，加 `?live=1` 实时渲染 |
-| `dist/rongboy-mission.html` | 轻量选图菜单：左侧切地图、右侧楼层预览；W / S 或 A / D 选，Enter 确认后才加载关卡。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
+| `dist/rongboy-op.html` | 开场片《嘘——》（64 秒）。从这里进游戏：按任意键或手柄 ✕ 开始，Esc / 手柄任意键跳过，播完进主界面。默认放事先渲好的 `rongboy-op.mp4`，加 `?live=1` 实时渲染 |
+| `dist/rongboy-mission.html` | 轻量选图菜单：左侧切地图、右侧楼层预览；W / S 或 A / D 选，Enter 确认后才加载关卡；手柄用十字键 / 左摇杆选，✕ 出发。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
 | `dist/rongboy-play.html` | 确认后的实际关卡页，先显示 loading，再直接进入第一人称；`?level=<id>` 选择关卡 |
 | `dist/rongboy-zombies.html` | 九类僵尸手办图鉴 |
 | `dist/rongboy-figures.html` | 主角和僵尸的手办预览 |
 | `dist/rongboy-shooter-fps.html` | 工坊版：60 秒生存，任务版的前身 |
 | `dist/rongboy-shooter.html`、`dist/rongboy.html` | 更早的斜俯视射击和跳棋样板，留作对照 |
 
-操作：WASD 移动，方向键转向和抬头低头，空格射击（按住：蓄力 / 连发 / 瞄准），Q 在两把枪之间换，E 扔毛线团（按住扔得更远），F 换脚边的枪，R 换弹，Esc 暂停。
+操作（键盘）：WASD 移动，方向键转向和抬头低头，空格射击（按住：蓄力 / 连发 / 瞄准），Q 在两把枪之间换，E 扔毛线团（按住扔得更远），F 换脚边的枪，R 换弹，Shift 跳，Esc 暂停。结算页 Enter 再来一次、Esc 返回选图。
+
+操作（PS5 手柄）：左摇杆移动，右摇杆转向 / 抬头低头，R2 射击（按住蓄力），L2 扔毛线团（按住扔得更远），R1 换弹，L1 换枪，□ 换地上的枪，✕ 跳，十字键左右直接选手枪 / 另一把，Options 暂停，✕ 确定 / 继续，○ 返回选图。结算页 ✕ 再来一次、○ 返回选图。选图页用十字键 / 左摇杆选，✕ 出发；开场片按 ✕ 开始，任意键跳过。
+
+两套输入同时可用，屏幕提示会跟着最近用过的设备换。跳只是毛绒玩具蹦一下（镜头离地约 0.4 米），不替代枪和走位，也没有无敌帧。浏览器不把"按手柄"当成用户按键：只用手柄时，声音可能要先按一下键盘或点一下画面才出来（页面会提示）。
+
+手柄连接：macOS 蓝牙里配对 "Wireless Controller"（按住 PS + Create 约 3 秒，灯条闪），或直接插 USB-C。Chrome / Safari 要等你按下手柄上的一个键，页面才拿得到它；按下后 HUD 的按键提示会换成手柄的。图鉴页也能用手柄（十字键切角色、✕ 动作、△ 细节、○ 全体）；手办预览工具和早期样板页仍是键盘。
 
 ## 目录
 
