@@ -1,57 +1,75 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rongboy · 加载地图</title><style>
-:root{color-scheme:light;--ink:#343e2d;--paper:#f0e5ca;--gold:#dcac50;--rust:#aa6549}*{box-sizing:border-box}body{margin:0;background:#c5b99e;color:var(--ink);font-family:Georgia,'Songti SC','Noto Serif CJK SC',serif;overflow:hidden}button{font:inherit;cursor:pointer;border:1px solid #827450;border-radius:7px;background:var(--paper);color:var(--ink);padding:9px 15px;box-shadow:0 3px 0 #6f624749}button:hover{background:#fff0c7}button:focus-visible{outline:3px solid #c78d26;outline-offset:3px}button:disabled{opacity:.5;cursor:wait}.primary{background:var(--rust);border-color:#70442f;color:#fff0d0;font-weight:bold;padding:13px 28px}.primary:hover{background:#965437}#view{display:block;width:100vw;height:100dvh;touch-action:none;outline:none}header{position:absolute;z-index:3;top:0;left:0;right:0;padding:17px 24px;display:flex;justify-content:space-between;align-items:center;gap:12px;pointer-events:none;background:linear-gradient(#e6dcc1ed,#e6dcc100)}.brand{letter-spacing:3px;font-size:26px;font-weight:700}.sub{font:10px/1.7 Verdana,sans-serif;letter-spacing:2px;color:#6d7358}.hud{display:flex;align-items:center;gap:27px}.hud div{text-align:center}.value{font-size:25px;font-weight:bold}.label{font:9px Verdana,sans-serif;letter-spacing:2px;margin-top:3px}.hearts{color:#a65c42;font-size:24px;letter-spacing:4px}.charge{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:200px;z-index:3;text-align:center;pointer-events:none}.charge label{font:10px Verdana,sans-serif;letter-spacing:1px}.track{height:9px;background:#958d6b60;border:1px solid #756c49;border-radius:8px;margin-top:7px;overflow:hidden}.fill{width:0;height:100%;background:#e2ad40;transition:width .04s linear}.charge.full .fill{background:#ae6545}.charge.full label{color:#9a4b27}.controls{position:absolute;bottom:22px;left:24px;font:11px/1.7 Verdana,sans-serif;color:#48523b;background:#ece1c18c;padding:8px 12px;border-left:2px solid #a89a72;pointer-events:none}.tools{position:absolute;right:24px;bottom:26px;display:flex;gap:7px;z-index:4}.tools button{padding:8px 11px;font-size:12px}.panel{position:absolute;z-index:5;right:5%;bottom:15%;width:340px;padding:27px 29px;background:#f1e5c9f5;border:1px solid #b7a67e;box-shadow:0 8px 40px #514c3b22;border-radius:12px}.panel:before{content:"";position:absolute;inset:8px;border:1px dashed #b6a77d;border-radius:8px;pointer-events:none}.panel h1,.panel h2{font-size:30px;margin:8px 0 12px;letter-spacing:-1px}.panel p{font-size:14px;line-height:1.65;margin:10px 0 18px}.panel .eyebrow{font:10px Verdana,sans-serif;letter-spacing:2px;color:#7b6747}.panel .how{font:11px/1.9 Verdana,sans-serif;border-top:1px solid #c5b78e;padding-top:12px;margin-bottom:18px}.panel .primary{width:100%}[hidden]{display:none!important}#result{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-50%);width:360px;text-align:center}.stats{display:flex;justify-content:space-around;gap:12px;margin:20px 0}.stats b{display:block;font-size:25px}.stats span{font:9px Verdana,sans-serif;letter-spacing:1px}.result-actions{display:flex;gap:10px;justify-content:center}#toast{position:absolute;top:16%;left:50%;transform:translateX(-50%);font-size:21px;letter-spacing:1px;color:#58452a;text-align:center;pointer-events:none;text-shadow:0 1px 4px #fff8;z-index:4}#reticle{position:absolute;width:24px;height:24px;border:1px dashed #eee7ca;border-radius:50%;box-shadow:0 0 0 1px #66583688;pointer-events:none;transform:translate(-50%,-50%);z-index:3}#reticle:after{content:"";position:absolute;width:4px;height:4px;background:#f3de9c;border-radius:50%;left:9px;top:9px}#reticle.target{border:2px solid #e0a641;width:28px;height:28px}#reticle.target:after{left:10px;top:10px}#diagnostics{position:absolute;right:14px;top:82px;font:10px monospace;color:#5e674e;pointer-events:none}#error{position:absolute;left:12px;top:90px;background:#fff0d7;color:#9d3c2e;white-space:pre-wrap;max-width:90%;z-index:10;font:12px monospace}body.menu .hud,body.menu .charge,body.menu #reticle,body.menu .controls{display:none}body.menu .tools #pause{display:none}.paused #reticle{display:none}@media(max-width:720px){header{padding:12px}.brand{font-size:20px}.sub{font-size:8px;letter-spacing:1px}.hud{gap:12px}.value{font-size:20px}.hearts{font-size:19px;letter-spacing:1px}.panel{right:4%;bottom:16%;width:290px;padding:22px}.panel h1{font-size:27px}.tools{right:12px;bottom:17px}.controls{left:12px;bottom:65px;font-size:9px;padding:6px}.charge{bottom:20px;left:12px;transform:none;width:145px}.charge label{font-size:9px}#diagnostics{top:70px}.panel p{font-size:13px}#result{width:min(350px,92vw)}}
-@media(max-width:720px){}
-@media(max-width:450px){.charge{bottom:64px}.controls{bottom:108px}.tools{left:12px;right:12px;justify-content:flex-end}}
-#reticle{left:50%;top:50%;position:absolute}body.locked #view{cursor:none}#reticle:before{content:"";position:absolute;width:6px;height:1px;background:#f4ebd3;left:-4px;top:11px}.controls{max-width:390px}
-.weapon{position:absolute;right:24px;bottom:83px;z-index:3;width:225px;padding:12px 15px;background:#eee4cce8;border:1px solid #9e9270;border-radius:8px;pointer-events:none}.weapon b{display:block;font-size:21px;margin:4px 0}.weapon small{font:9px Verdana,sans-serif;letter-spacing:1.4px}.loadout{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font:11px Verdana,sans-serif}.loadout span{border:1px solid #a99d7b;padding:4px 9px;border-radius:4px}.loadout .selected{background:#526f63;color:#fff0ce;border-color:#526f63}#targetLabel{position:absolute;left:50%;top:calc(50% + 24px);transform:translateX(-50%);font:12px Georgia,serif;color:#f9efd2;text-shadow:0 1px 3px #273a2b;pointer-events:none}body.menu .weapon,body.menu #targetLabel{display:none}.controls{font-size:10px}#toast{font-size:18px;background:#f2e5c5b0;border-radius:6px;padding:5px 13px}#toast:empty{display:none}@media(max-width:720px){.weapon{bottom:105px;right:12px;width:170px;padding:8px 11px}.weapon b{font-size:17px}.weapon small{font-size:8px}.loadout{gap:5px}.loadout span{padding:3px 6px}.controls{max-width:220px;font-size:9px}.charge{bottom:20px}}@media(max-width:450px){.weapon{bottom:80px}.controls{bottom:155px}.charge{bottom:64px}}
-#hitMarker{position:absolute;left:50%;top:50%;translate:-50% -50%;font:bold 34px/1 Georgia,serif;color:#f9e9b6;text-shadow:0 0 3px #523e25;pointer-events:none;z-index:4}#hitMarker[data-kind="heavy"]{font-size:43px;color:#ffe3ae}#hitMarker[data-kind="heavy"]:after{content:"";position:absolute;inset:-7px;border:1px solid #f7dfb0;border-radius:50%;opacity:.6}#hitMarker[data-kind="kill"]{color:#fff9df;font-size:39px}body.menu #hitMarker{display:none}
-
-/* 任务制版本新增 */
-button{white-space:nowrap}
-.mission{position:absolute;z-index:3;top:78px;left:24px;max-width:340px;padding:9px 14px;background:#eee4cce0;border-left:3px solid var(--rust);border-radius:0 8px 8px 0;pointer-events:none}.mission small{font:10px Verdana,sans-serif;letter-spacing:2px;color:#7b6747}.mission b{display:block;font-size:16px;margin-top:3px;line-height:1.4}body.menu .mission{display:none}
-.weapon{width:240px}.weapon .ammo{float:right;font-size:26px;font-weight:bold;line-height:1}.weapon .ammo.low{color:#a4432c}.loadout .empty{opacity:.45;text-decoration:line-through}
-.charge.reloading .fill{background:#6f8f84}.label,.sub,.controls,.panel .how,.panel .eyebrow,.charge label,.weapon small{font-family:Verdana,'PingFang SC','Microsoft YaHei',sans-serif}
-.stars{font-size:44px;letter-spacing:8px;color:#d69a2b;margin:6px 0 2px}#resultNote{font-size:13px;line-height:1.6;margin:8px 0 4px}#resultHint{font:11px/1.7 Verdana,'PingFang SC',sans-serif;color:#7b6747;letter-spacing:.06em;margin:2px 0 10px}
-.controls{max-width:330px;line-height:1.8}@media(max-width:720px){.mission{top:62px;left:12px;max-width:230px}.mission b{font-size:13px}}
-
-#statusEffect{position:absolute;top:145px;left:24px;padding:5px 10px;background:#efe4c9dd;color:#765275;font:12px Georgia,serif;z-index:3;pointer-events:none}#statusEffect:empty{display:none}body.menu #statusEffect{display:none}
-
-/* 主界面：左边是缝上去的标题和四个选项，右边留给活的小场景 */
-#intro{position:absolute;z-index:5;left:0;top:0;bottom:0;width:min(46vw,560px);padding:9vh 0 0 clamp(26px,5.2vw,74px);background:linear-gradient(90deg,#f1e6cbf2 0%,#f1e6cbd9 52%,#f1e6cb00 100%);transition:opacity .45s,transform .6s}
-body.leaving #intro{opacity:0;transform:translateX(-26px);pointer-events:none}
-.logo{margin:0;line-height:1;position:relative;display:inline-block}
-.logo .word{display:block;font-size:clamp(40px,6.2vw,84px);font-weight:700;letter-spacing:.06em;color:var(--ink);-webkit-text-stroke:1.5px #fbf3dc;paint-order:stroke fill;text-shadow:3px 5px 0 #46371e2e}
-.logo .patch{position:absolute;right:-.2em;bottom:-.78em;font-size:clamp(17px,2.1vw,27px);font-weight:700;letter-spacing:.3em;padding:.3em .5em .3em .8em;color:#fbf3dc;background:var(--rust);border-radius:.45em;outline:2px dashed #fbf3dcc0;outline-offset:-6px;transform:rotate(-5deg);box-shadow:2px 4px 0 #46371e2e}
-.brief{margin:clamp(34px,6vh,58px) 0 clamp(14px,2.6vh,24px);font-size:clamp(13px,1.25vw,16px);color:#5d6850;letter-spacing:.06em;max-width:24em;line-height:1.6}
-.menu{position:relative}
-.menu .item{position:relative;display:flex;align-items:baseline;gap:.7em;padding:.36em 0 .36em 1.9em;font-size:clamp(20px,2.3vw,31px);font-weight:700;color:#6f7660;cursor:pointer;letter-spacing:.08em;transition:color .15s,transform .18s}
-.menu .item small{font:400 .5em Verdana,'PingFang SC',sans-serif;letter-spacing:.1em;color:#8a8a6c}
-.menu .item .pick{font-weight:400;font-size:.72em;color:var(--rust);letter-spacing:.12em}
-.menu .item.sel{color:var(--ink);transform:translateX(6px)}
-.menu .item.sel:after{content:"";position:absolute;left:1.9em;right:38%;bottom:.2em;border-bottom:2px dashed #aa654999}
-/* 光标是一颗毛球：换项时蹦过去 */
-.menu .cursor{position:absolute;left:.1em;top:0;width:1.05em;height:1.05em;font-size:clamp(20px,2.3vw,31px);border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff6dc 0 18%,#f3dfa5 46%,#d9bb74 100%);box-shadow:inset -3px -4px 0 #b8975238,0 3px 0 #46371e30;transition:transform .26s cubic-bezier(.3,1.5,.5,1);pointer-events:none}
-.menu .cursor:before,.menu .cursor:after{content:"";position:absolute;inset:14%;border-radius:50%;border:1.5px solid #b89752b0;border-color:#b89752b0 transparent transparent #b89752b0;transform:rotate(18deg)}
-.menu .cursor:after{inset:30% 8% 8% 30%;transform:rotate(200deg)}
-.menu .cursor.hop{animation:hop .26s ease-out}
-@keyframes hop{40%{margin-top:-.42em;scale:.94 1.08}85%{scale:1.1 .9}}
-.keys{margin:clamp(18px,3.4vh,34px) 0 0;font:11px/1.9 Verdana,'PingFang SC',sans-serif;letter-spacing:.12em;color:#6d7358}
-.keys b{font-weight:400;border:1px solid #a99d7b;border-radius:4px;padding:1px 6px;margin:0 2px;background:#f6edd4}
-.replay{display:inline-block;margin-top:10px;font:11px Verdana,'PingFang SC',sans-serif;letter-spacing:.12em;color:#7b6747;text-decoration:none}
-.replay:hover{text-decoration:underline}.replay:focus-visible{outline:2px solid #a9844c;outline-offset:3px}
-body.menu header,body.menu .tools #restart{display:none}
-#curtain{position:absolute;inset:0;z-index:20;background:#000;opacity:0;pointer-events:none;transition:opacity .9s}
-body.from-op #curtain{opacity:1;transition:none}
-#pauseHow:empty{display:none}
-@media(max-width:720px){#intro{width:100%;padding:5vh 22px 0;background:linear-gradient(180deg,#f1e6cbf2 0%,#f1e6cbcc 58%,#f1e6cb00 100%);bottom:auto;height:66%}.brief{margin-top:30px}.keys{display:none}}
-@media(prefers-reduced-motion:reduce){.menu .cursor,.menu .item,#intro{transition:none}.menu .cursor.hop{animation:none}}
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rongboy · 加载地图</title><link rel="stylesheet" href="rongboy-interface.css"><style>
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: #19271e; overflow: hidden; }
+button { font: inherit; cursor: pointer; white-space: nowrap; }
+button:focus-visible { outline: 2px solid var(--ui-gold); outline-offset: 3px; }
+#view { display: block; width: 100vw; height: 100dvh; touch-action: none; outline: none; }
+body.locked #view { cursor: none; }
+header { position: absolute; z-index: 3; top: 0; left: 0; right: 0; padding: 17px 24px; display: flex; justify-content: space-between; gap: 12px; pointer-events: none; }
+.hud { display: flex; align-items: center; text-align: center; }
+.hud .label { margin-top: 3px; }
+.hearts { font-size: 24px; letter-spacing: 4px; white-space: nowrap; }
+.charge { position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%); z-index: 3; text-align: center; pointer-events: none; }
+.track { border: 1px solid; border-radius: 8px; margin-top: 7px; overflow: hidden; }
+.fill { width: 0; height: 100%; background: #e2ad40; transition: width .04s linear; }
+.charge.full .fill { background: #de7d49; }
+.charge.reloading .fill { background: #8caa9e; }
+.weapon { position: absolute; z-index: 3; right: 24px; padding: 12px 15px; border: 1px solid; border-radius: 5px; pointer-events: none; }
+.weapon .ammo { float: right; }
+.weapon b { display: block; margin: 4px 0; }
+.loadout { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.loadout .empty { opacity: .45; }
+#range-hints { margin-top: 9px; }
+#grenade-choice { display:inline-flex; align-items:center; gap:5px; }
+#scopeOverlay { position:fixed; inset:0; z-index:2; pointer-events:none; display:grid; place-items:center; }
+.scope-glass {
+  position:relative; width:min(90dvh,86vw); aspect-ratio:1; border-radius:50%;
+  border:7px solid #887258; outline: 2px dashed #c0a887; outline-offset:-5px;
+  box-shadow: 0 0 0 100vmax #151c17e8, inset 0 0 27px #171a1499;
+  color:#fff0c2; font:700 19px/1 var(--ui-symbol);
+}
+.scope-glass::before,.scope-glass::after { position:absolute; content:""; background:#f7dfa4d4; top:50%; left:50%; transform:translate(-50%,-50%); }
+.scope-glass::before { width:65%; height:1px; }
+.scope-glass::after { height:65%; width:1px; }
+.scope-glass span { position:absolute; right:18%; top:22%; text-shadow:0 2px 5px #181b14; }
+body.scoped #reticle { display:none; }
+.loadout .slot { border: 1px solid; border-radius: 4px; }
+.mission { position: absolute; z-index: 3; top: 78px; left: 24px; padding: 9px 14px; border-left: 3px solid; pointer-events: none; }
+.mission b { display: block; line-height: 1.4; }
+#targetLabel { position: absolute; z-index: 3; left: 50%; top: calc(50% + 24px); transform: translateX(-50%); pointer-events: none; }
+#toast { position: absolute; z-index: 4; top: 19%; left: 50%; transform: translateX(-50%); text-align: center; pointer-events: none; }
+#toast:empty { display: none; }
+#reticle { position: absolute; z-index: 3; left: 50%; top: 50%; width: 24px; height: 24px; border: 1px dashed #eee7ca; border-radius: 50%; box-shadow: 0 0 0 1px #66583688; pointer-events: none; transform: translate(-50%, -50%); }
+#reticle::before { content: ""; position: absolute; width: 6px; height: 1px; background: #f4ebd3; left: -4px; top: 11px; }
+#reticle::after { content: ""; position: absolute; width: 4px; height: 4px; background: #f3de9c; border-radius: 50%; left: 9px; top: 9px; }
+#reticle.target { border: 2px solid #e0a641; width: 28px; height: 28px; }
+#reticle.target::after { left: 10px; top: 10px; }
+#diagnostics { position: absolute; right: 14px; top: 82px; font: 10px monospace; color: #5e674e; pointer-events: none; }
+#error { position: absolute; left: 12px; top: 90px; margin: 0; background: #fff0d7; color: #9d3c2e; white-space: pre-wrap; max-width: 90%; z-index: 10; font: 12px monospace; }
+#statusEffect { position: absolute; left: 24px; padding: 5px 10px; z-index: 3; pointer-events: none; }
+#statusEffect:empty { display: none; }
+#result { text-align: center; }
+#resultNote { margin: 8px 0 4px; }
+.stars { font-size: 44px; letter-spacing: 8px; margin: 6px 0 2px; }
+.stats { display: flex; justify-content: space-around; gap: 12px; margin: 20px 0; }
+.stats b { display: block; font-size: 25px; }
+.result-actions { display: flex; gap: 10px; justify-content: center; }
+@media (max-width: 720px) {
+  header { padding: 12px; }
+  .hearts { font-size: 19px; letter-spacing: 1px; }
+  .weapon { right: 12px; padding: 8px 11px; }
+  .mission { top: 62px; left: 12px; }
+  .mission b { font-size: 14px; }
+  #diagnostics { top: 70px; }
+}
+#hitMarker{position:absolute;left:50%;top:50%;translate:-50% -50%;font:bold 34px/1 Georgia,serif;color:#f9e9b6;text-shadow:0 0 3px #523e25;pointer-events:none;z-index:4}#hitMarker[data-kind="heavy"]{font-size:43px;color:#ffe3ae}#hitMarker[data-kind="heavy"]:after{content:"";position:absolute;inset:-7px;border:1px solid #f7dfb0;border-radius:50%;opacity:.6}#hitMarker[data-kind="kill"]{color:#fff9df;font-size:39px}
 
 /* 手里两把 + 手雷 */
 .loadout{align-items:center}.loadout .slot{display:flex;gap:5px;align-items:baseline;white-space:nowrap;padding:4px 7px}.loadout .slot i,.loadout .slot em{font-style:normal}.loadout .slot em{opacity:.78}
 .loadout .empty{text-decoration:none}.loadout .nade{flex-basis:100%;justify-content:flex-start;border-style:dashed}
-kbd{font:bold 10px Verdana,sans-serif;border:1px solid #7b6f52;border-bottom-width:2px;border-radius:3px;padding:1px 5px;background:#fff8e6;color:#4a4130}
 #swapPrompt{position:absolute;left:50%;top:63%;transform:translateX(-50%);z-index:4;padding:7px 14px;background:#f2e5c5e8;border:1px solid #9e9270;border-radius:8px;font:15px Georgia,'Songti SC',serif;color:#3d4a36;pointer-events:none;white-space:nowrap}
-#swapPrompt[hidden],body.menu #swapPrompt,body.paused #swapPrompt{display:none}#swapPrompt b{color:#8a4a2c}#swapPrompt small{opacity:.7;font-size:12px}
+#swapPrompt[hidden],body.paused #swapPrompt{display:none}#swapPrompt b{color:#8a4a2c}#swapPrompt small{opacity:.7;font-size:12px}
 /* 受伤：整屏边缘的玫红、挨打那一侧更亮、指向来源的一段弧、飞出来的棉絮（准则见 docs/fun-design.md 第 4 节） */
 #hurtFrame,#hurtSide,#cotton{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 #hurtFrame.damage{animation:ouch .85s ease-out}
@@ -67,21 +85,187 @@ body.danger #hurtFrame.damage{animation:ouch .85s ease-out}
 .hearts i{font-style:normal;display:inline-block}.hearts i.off{color:#b6a688}
 .hearts i.pop{animation:heartpop .75s ease-out}@keyframes heartpop{0%{scale:1;color:#d2364e}22%{scale:2;rotate:-16deg;color:#d2364e}50%{scale:1.3;rotate:11deg;color:#d2364e}100%{scale:1;rotate:0deg}}
 body.danger .hearts i.on{color:#d2364e;animation:heartbeat 1.1s ease-in-out infinite}@keyframes heartbeat{0%,100%{scale:1}50%{scale:1.28}}
-body.menu #hurtFrame,body.menu #hurtSide,body.menu #hurtArc,body.menu #cotton{display:none}
 @media(prefers-reduced-motion:reduce){body.danger #hurtFrame,body.danger .hearts i.on{animation:none}}
 
 body.loading > :not(#loading):not(script){visibility:hidden}
 #loading{position:fixed;inset:0;z-index:100;background:#f3ecd9;display:grid;place-items:center;color:#344b3e;text-align:center;font-family:Georgia,'Songti SC',serif}#loading[hidden]{display:none}#loading h1{font-size:42px;letter-spacing:.13em}#loading h2{font-size:25px;letter-spacing:.12em;font-weight:400}#loading p{font-size:13px;color:#858571}#loading progress{width:min(310px,70vw);height:5px;accent-color:#7b946e;border:0}#loading .spool{width:45px;height:45px;border:2px dashed #99ab82;border-right-color:transparent;border-radius:50%;margin:27px auto;animation:loadturn 1.2s linear infinite;will-change:transform}#loadBack{display:inline-block;margin-top:24px;color:#66765b;font-size:13px}#loadBack[hidden]{display:none}@keyframes loadturn{to{transform:rotate(360deg)}}.menu-back{display:inline-block;color:#5c6b54;margin-top:15px;font-size:13px}@media(prefers-reduced-motion:reduce){#loading .spool{animation:none}}
-</style></head><body class="loading"><section id="loading" role="status" aria-live="polite"><div><h1>RONGBOY</h1><div class="spool" aria-hidden="true"></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 扔毛线团，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
-<header><div><div class="brand">RONGBOY</div><div class="sub">家 · 三层楼与花园</div></div><div class="hud"><div><div class="value" id="room">花园</div><div class="label">所在位置</div></div><div><div class="value" id="enemyCount">36 / 36</div><div class="label">剩余僵尸</div></div><div><div class="value" id="timer">0:00</div><div class="label">用时</div></div><div><div id="hearts" class="hearts" aria-label="3 颗心"><i class="on">♥</i><i class="on">♥</i><i class="on">♥</i></div><div class="label">小心别被扑到</div></div></div></header>
-<div class="mission"><small>任务</small><b id="objective">上阁楼找回毛线篮，带回院门</b></div>
-<div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="targetLabel"></div><div id="statusEffect" aria-live="polite"></div>
-<div class="weapon"><span class="ammo" id="ammo">6 / ∞</span><b id="weaponName">线轴手枪</b><small id="weaponTag">均衡 · 备弹无限</small><div class="loadout"><span id="slotA" class="slot selected"><i id="slotAName">手枪</i><em id="slotAAmmo">∞</em></span><kbd id="keySwitch">Q</kbd><span id="slotB" class="slot"><i id="slotBName">霰弹</i><em id="slotBAmmo">6</em></span><span id="slotG" class="slot nade"><kbd id="keyThrow">E</kbd><i>毛线团</i><em id="nadeCount">×2</em></span></div></div>
-<div class="controls" id="controls">WASD 移动 · 方向键 转向 / 抬头低头<br>空格 射击 · 按住：蓄力 / 连发 / 瞄准<br>Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹<br>Esc 暂停（暂停时 R 重开）</div>
+
+#reloadStatus{position:absolute;z-index:5;top:calc(50% + 27px);left:50%;transform:translateX(-50%);min-width:124px;padding:6px 10px;border-radius:6px;background:#294139ed;color:#fff3cc;pointer-events:none;font:600 13px/1.3 system-ui,sans-serif;text-align:center;font-variant-numeric:tabular-nums}
+#reloadStatus progress{display:block;margin:5px auto 0;width:100%;height:5px;accent-color:#f1c775}
+#reloadStatus[hidden],#reloadStatus progress[hidden]{display:none}
+.weapon #weaponTag.zap-tip{font:12px/1.45 system-ui,sans-serif;letter-spacing:0}
+#aimAdvice{position:absolute;z-index:3;left:50%;top:calc(50% + 44px);transform:translateX(-50%);padding:4px 9px;background:#26392fea;color:#fff1cd;border-radius:5px;font:12px/1.4 system-ui,sans-serif;max-width:85vw;width:max-content;text-align:center;pointer-events:none}
+#aimAdvice:empty,#reloadStatus:not([hidden])~#aimAdvice,#reloadStatus:not([hidden])~#targetLabel,body.paused #aimAdvice,body.result #aimAdvice{display:none}
+#gardenCompare{position:absolute;right:16px;top:98px;z-index:7;min-height:30px;font-size:15px}.single-loadout #slotB,.single-loadout #slotG,.single-loadout #keySwitch{display:none}.thread-tight #reticle{border:2px solid #ffd98b;box-shadow:0 0 0 3px #6f4a2877}#gardenReceipt{font:700 16px var(--ui-title);color:var(--ui-gold)}
+
+#loading{place-items:stretch;align-items:end;text-align:left;color:#fff0ca;background-color:#15211a;background-image:linear-gradient(0deg,#0f1c14f5 1%,#101b13aa 39%,transparent 75%),var(--level-scene);background-size:cover;background-position:center;padding:4.6vw 5.5vw}
+#loading>div{margin:0;max-width:min(75vw,580px)}#loading h2{font-size:clamp(42px,7vw,100px);margin:0;border-left:5px solid #edb657;padding-left:18px;line-height:1.08}
+#loading p{font-size:clamp(15px,2vw,26px);margin:12px 0 21px}
+.loadingBrand{position:absolute;top:5vw;left:5.5vw;display:flex;flex-direction:column;text-shadow:0 2px 11px #101505}
+.loadingBrand strong{font:900 clamp(37px,6vw,95px)/1 "Kaiti SC",STKaiti,serif}.loadingBrand span{font:700 clamp(10px,1.4vw,20px)/2 Georgia,serif;letter-spacing:.27em}
+#loading progress{display:block;width:min(100%,470px);height:10px;accent-color:#efbd5e;border-radius:10px;overflow:hidden}#loading progress::-webkit-progress-bar{background:#eee8c53b;border-radius:10px}#loading progress::-webkit-progress-value{background:#efb95e;border-radius:10px}
+#loading #loadBack{margin-top:16px;color:#fff0ca}
+/* 战斗信息沿屏幕边缘排，准星附近只留即时反馈。 */
+.game-interface { font-family: var(--ui-text); }
+.game-interface header { align-items: start; background: linear-gradient(#152219e6, #15221900); color: var(--ui-cream); text-shadow: 0 2px 6px #0d1810; }
+.game-interface .sub, .game-interface .label { color: var(--ui-parchment); font: 700 clamp(12px, 1.18vw, 16px)/1.15 var(--ui-title); letter-spacing: .05em; }
+.game-interface .map-room { font: 700 clamp(22px, 3vw, 40px)/1 var(--ui-title); margin: 0 0 6px; }
+.game-interface .hud { gap: clamp(13px, 2.1vw, 34px); justify-content: flex-end; }
+.game-interface .hud .value { font: 700 clamp(18px, 2vw, 30px)/1 var(--ui-symbol); letter-spacing: -.04em; }
+.game-interface .hearts { color: #f89b85; line-height: 1; }
+.game-interface .mission { max-width: min(440px, 84vw); background: linear-gradient(95deg, #17271ef2, #17271ebd); border-color: var(--ui-gold); border-radius: 0 5px 5px 0; color: var(--ui-cream); box-shadow: 0 2px 12px #0c130e40; }
+.game-interface .mission small { font: 700 13px var(--ui-title); color: var(--ui-gold); }
+.game-interface .mission b { margin-top: 1px; }
+.challenge-round #elapsed { display: none; }
+#challenge-run { display: flex; gap: 6px 14px; flex-wrap: wrap; margin-top: 6px; color: var(--ui-gold); font: 700 clamp(14px, 1.25vw, 18px)/1.3 var(--ui-title); }
+#challenge-clock, #challenge-window { font-variant-numeric: tabular-nums; }
+#challenge-window { color: #a8e9e6; }
+.game-interface .weapon { bottom: 26px; width: min(260px, 41vw); background: linear-gradient(155deg, #233428f2, #152219ee); border-color: var(--ui-edge); color: var(--ui-cream); box-shadow: 0 5px 18px #0c190e68; }
+.game-interface .weapon .ammo { font: 700 clamp(19px, 2.1vw, 32px)/1 var(--ui-symbol); color: #ffdea0; letter-spacing: -.08em; }
+.game-interface .weapon .ammo.low { color: #ffa184; }
+.game-interface .weapon b { font: 700 clamp(18px, 1.9vw, 27px)/1.05 var(--ui-title); }
+.game-interface .weapon small, .game-interface .weapon #weaponTag.zap-tip, .game-interface .loadout .slot { color: var(--ui-parchment); font: 700 13px/1.35 var(--ui-title); letter-spacing: 0; }
+.game-interface .loadout .slot { border-color: var(--ui-edge); }
+.game-interface .loadout .selected { background: #385441; color: var(--ui-cream); border-color: #bcab78; }
+.game-interface .loadout em { font-family: var(--ui-symbol); }
+.game-interface .charge { width: clamp(180px, 28vw, 300px); color: var(--ui-cream); text-shadow: 0 2px 6px #0c140b, 0 0 6px #0c140b; }
+.game-interface .charge label { display: inline-flex; align-items: center; justify-content: center; gap: .45em; font: 700 clamp(13px, 1.32vw, 18px)/1.4 var(--ui-title); }
+.game-interface .charge.full label { color: #ffe2a6; }
+.game-interface .charge .track { height: 7px; background: #13231bd9; border-color: var(--ui-edge); }
+.game-interface #reloadStatus, .game-interface #aimAdvice, .game-interface #targetLabel, .game-interface #statusEffect, .game-interface #toast, .game-interface #swapPrompt {
+  color: var(--ui-cream); background: #19291fea; border: 1px solid var(--ui-edge); border-radius: 4px;
+  font: 700 clamp(14px, 1.35vw, 19px)/1.3 var(--ui-title); text-shadow: none;
+}
+.game-interface #targetLabel { padding: 2px 6px; }
+.game-interface #targetLabel:empty { display: none; }
+.game-interface #swapPrompt b { color: var(--ui-gold); }
+.game-interface #swapPrompt small { color: var(--ui-parchment); }
+.game-interface #toast { padding: 6px 14px; }
+.game-interface #statusEffect { top: 144px; border-color: #d8a2a5; }
+.game-interface #pause { position: fixed; z-index: 4; bottom: 24px; left: 24px; }
+.game-interface #loadingStatus { color: var(--ui-cream); font: 700 clamp(17px, 2.15vw, 29px)/1.4 var(--ui-title); }
+.game-interface #loading #loadBack { display: inline-flex; }
+
+body.practice-ready::after, body.paused::after, body.result::after { content: ""; position: fixed; z-index: 5; inset: 0; pointer-events: none; }
+body.practice-ready::after { background: linear-gradient(30deg, #122118ec, #1221189c 22%, transparent 53%); }
+body.paused::after, body.result::after { z-index: 9; background: #101e16be; }
+body.paused #gardenCompare, body.result #gardenCompare,
+body.paused #reticle, body.paused #targetLabel, body.paused #toast, body.paused #ready-actions,
+body.result #reticle, body.result #targetLabel, body.result #toast, body.result #pause,
+body.practice-ready .mission, body.practice-ready .charge, body.practice-ready #targetLabel, body.practice-ready #pause,
+body.practice-ready #toast { display: none; }
+
+#ready-actions { position: fixed; z-index: 6; bottom: 7vh; left: 5.5vw; width: min(460px, 88vw); color: var(--ui-cream); }
+#ready-actions h2 { margin: 0; color: #ffe1a0; font: 700 clamp(30px, 4.2vw, 62px)/1.08 var(--ui-title); text-shadow: 0 2px 6px #0b180e; }
+#ready-actions p { margin: .55em 0 1em; font: 700 clamp(16px, 1.75vw, 23px)/1.5 var(--ui-text); text-shadow: 0 2px 6px #0b180e; }
+.ready-buttons { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+
+#pausePanel, #result {
+  position: fixed; z-index: 10; top: 50%; left: 50%; right: auto; bottom: auto;
+  width: min(92vw, 790px); max-height: 92dvh; overflow: auto; transform: translate(-50%, -50%);
+  padding: clamp(18px, 3vw, 40px); border: 1px solid var(--ui-edge); border-radius: 8px;
+  background: linear-gradient(160deg, #243729, #15251c); color: var(--ui-cream);
+  box-shadow: 0 14px 60px #08120bbd; outline: 1px dashed #c9aa724d; outline-offset: -7px;
+}
+#pausePanel::before, #result::before { display: none; }
+.pause-grid { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: clamp(18px, 3vw, 40px); }
+#pausePanel h2, #result h2 { font: 700 clamp(33px, 5vw, 66px)/1.05 var(--ui-title); margin: 0 0 .35em; }
+#pausePanel .pause-choice { display: block; width: 100%; margin: 9px 0; padding: .6em .85em; color: var(--ui-cream); background: #14241acc; border: 1px solid var(--ui-edge); font: 700 clamp(18px, 2.1vw, 27px)/1.2 var(--ui-title); text-align: left; }
+#pausePanel .pause-choice.selected, #pausePanel .pause-choice:hover { color: #27311d; background: #eabb64; border-color: #eabb64; }
+.pause-controls { padding-inline-start: clamp(12px, 2vw, 24px); border-inline-start: 1px dashed var(--ui-edge); align-self: center; }
+.pause-controls h3 { margin: 0 0 10px; font: 700 clamp(17px, 2vw, 26px) var(--ui-title); color: var(--ui-gold); }
+#pauseBindings { display: grid; gap: .5em; }
+.pause-utilities { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.pause-utilities .ui-return { min-height: 34px; font-size: 16px; }
+.pause-utilities .ui-return.selected { background: #eabb64; border-color: #eabb64; color: #27311d; }
+#pauseTip { margin-top: 15px; }
+#result { width: min(92vw, 490px); }
+#result .eyebrow, #resultNote { color: var(--ui-parchment); font: 700 16px/1.5 var(--ui-title); }
+#result .eyebrow { margin-bottom: .6em; }
+#result .stars { color: var(--ui-gold); }
+#challenge-stamp { margin: 14px auto 8px; color: #a14531; background: #f1dab2; font-size: clamp(43px, 7vw, 72px); animation: stamp-down .33s ease-out both; }
+.challenge-round #resultNote { margin: 10px 0 18px; }
+@keyframes stamp-down {
+  from { opacity: 0; transform: rotate(-13deg) scale(1.4); }
+  68% { opacity: 1; transform: rotate(-9deg) scale(.96); }
+  to { opacity: 1; transform: rotate(-9deg) scale(1); }
+}
+.reduced-ui #challenge-stamp { animation: none; }
+#result .stats { padding: 12px 0; border-block: 1px dashed var(--ui-edge); }
+#result .stats b { font-family: var(--ui-symbol); }
+#result .stats span { color: var(--ui-parchment); font: 700 14px var(--ui-title); }
+#result .result-actions { flex-wrap: wrap; }
+.game-interface .primary { color: #19241a; background: linear-gradient(160deg, #ffe1a1, #e3b664); border: 1px solid #ffd58a; border-radius: 4px; padding: .55em .9em; box-shadow: 0 3px 0 #946e35; font: 700 clamp(18px, 2vw, 27px)/1.15 var(--ui-title); }
+.game-interface .primary:hover { background: #ffe2a4; }
+.game-interface .panel .primary { width: auto; }
+@media (max-width: 900px) {
+  .game-interface .charge { left: 24px; bottom: 80px; transform: none; }
+}
+@media (max-width: 720px) {
+  .game-interface #pause { bottom: 17px; left: 12px; }
+  .game-interface .weapon { bottom: 17px; }
+  .game-interface .charge { left: 12px; bottom: 70px; }
+  .game-interface #statusEffect { top: 121px; left: 12px; }
+}
+@media (max-width: 500px) {
+  .game-interface .weapon .ammo { float: none; display: block; }
+  .pause-grid { grid-template-columns: 1fr; gap: 13px; }
+  .pause-controls { border-inline: 0; border-top: 1px dashed var(--ui-edge); padding: 12px 0 0; }
+  #pauseBindings { display: flex; flex-wrap: wrap; }
+}
+</style></head><body class="loading game-interface"><section id="loading" role="status" aria-live="polite"><div><div class="loadingBrand"><strong>绒仔</strong><span>RONGBOY</span></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a class="ui-return" id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 投掷，G 或十字键下切换炸弹，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
+<header><div><div id="room" class="map-room">花园</div><div class="sub">家 · 三层楼与花园</div></div><div class="hud"><div><div class="value" id="enemyCount">36 / 36</div><div class="label">剩余僵尸</div></div><div id="elapsed"><div class="value" id="timer">0:00</div><div class="label">用时</div></div><div><div id="hearts" class="hearts" aria-label="3 颗心"><i class="on">♥</i><i class="on">♥</i><i class="on">♥</i></div><div class="label">小心别被扑到</div></div></div></header>
+<div class="mission"><small>任务</small><b id="objective">上阁楼找回毛线篮，带回院门</b><div id="challenge-run" hidden><span id="challenge-progress" aria-live="polite"></span><span id="challenge-clock"></span><span id="challenge-window" hidden></span></div><div id="range-hints" class="ui-hints" hidden></div></div>
+<div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
+<div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="reloadStatus" hidden><span id="reloadCaption"></span><progress id="reloadProgress" max="1" value="0" aria-label="装填进度"></progress></div><div id="aimAdvice"></div><div id="targetLabel"></div><div id="statusEffect" aria-live="polite"></div>
+<div class="weapon"><span class="ammo" id="ammo">6 / ∞</span><b id="weaponName">线轴手枪</b><small id="weaponTag">均衡 · 备弹无限</small><div class="loadout"><span id="slotA" class="slot selected"><i id="slotAName">手枪</i><em id="slotAAmmo">∞</em></span><kbd class="ui-key" id="keySwitch">Q</kbd><span id="slotB" class="slot"><i id="slotBName">霰弹</i><em id="slotBAmmo">6</em></span><span id="slotG" class="slot nade"><kbd class="ui-key" id="keyThrow">E</kbd><i id="grenadeName">蒸笼</i><em id="nadeCount">×2</em></span><span id="grenade-choice" hidden><kbd class="ui-key" id="keyGrenade">G</kbd><small id="grenade-alternate"></small></span></div></div>
 <div class="charge" id="charge"><label id="chargeLabel">空格射击 · 按住蓄力</label><div class="track"><div class="fill" id="chargeFill"></div></div></div>
-<div class="tools"><button id="approach" hidden>开始接敌 · Enter</button><button id="expand">全屏</button><button id="sound" aria-pressed="true">声音 开</button><button id="pause">暂停</button><button id="restart">重开</button></div>
+<a class="ui-return" id="gardenCompare" hidden></a>
+<button id="pause" class="ui-return">暂停</button>
 
+<section id="ready-actions" aria-labelledby="ready-title" hidden>
+  <h2 id="ready-title"></h2>
+  <p id="ready-brief"></p>
+  <div class="ready-buttons">
+    <button id="approach" class="primary ui-trigger">开始练习</button>
+    <button id="readyBack" class="ui-return">返回练习</button>
+  </div>
+</section>
 
-<section class="panel" id="pausePanel" hidden><div class="eyebrow">歇一会儿</div><h2>暂停</h2><p id="pauseTip">按 Enter 继续，按 R 重新开始这一关。</p><div class="how" id="pauseHow"></div><button class="primary" id="resume">继续</button><button id="pauseMenu">返回选图</button></section>
-<section class="panel" id="result" hidden><div class="eyebrow">家 · 三层楼与花园</div><h2 id="resultTitle">清空了！</h2><div class="stars" id="resultStars">★★★</div><p id="resultNote"></p><p id="resultHint"></p><div class="stats"><div><b id="rKills">0</b><span>击倒</span></div><div><b id="rTime">0:00</b><span>用时</span></div><div><b id="rSneak">0</b><span>背后 / 偷袭命中</span></div></div><div class="result-actions"><button class="primary" id="again">再来一次</button><button id="back">返回</button></div></section>
+<section class="panel" id="pausePanel" hidden aria-label="暂停">
+  <div class="pause-grid">
+    <div>
+      <h2>暂停</h2>
+      <button class="pause-choice selected" id="resume">继续</button>
+      <button class="pause-choice" id="pauseRestart">重玩关卡</button>
+      <button class="pause-choice" id="pauseMenu">返回选关</button>
+    </div>
+    <div class="pause-controls">
+      <h3>操作</h3>
+      <div id="pauseBindings" class="ui-hints"></div>
+      <div class="pause-utilities">
+        <button id="expand" class="ui-return">全屏</button>
+        <button id="sound" class="ui-return" aria-pressed="true">声音 开</button>
+      </div>
+    </div>
+  </div>
+  <div id="pauseTip" class="ui-hints ui-seam"></div>
+</section>
+<section class="panel" id="result" hidden aria-label="结算">
+  <div class="eyebrow"></div>
+  <h2 id="resultTitle"></h2>
+  <div class="stars" id="resultStars"></div>
+  <div class="ui-stamp" id="challenge-stamp" role="img" aria-label="挑战印章" hidden></div>
+  <p id="gardenReceipt" hidden></p>
+  <p id="resultNote"></p>
+  <div class="stats" id="resultStats">
+    <div><b id="rKills">0</b><span>击倒</span></div>
+    <div><b id="rTime">0:00</b><span>用时</span></div>
+    <div><b id="rSneak">0</b><span>背后 / 偷袭命中</span></div>
+  </div>
+  <div class="result-actions">
+    <button class="primary ui-trigger" id="again">再来一次</button>
+    <button class="ui-return" id="back">返回</button>
+  </div>
+</section>
 <pre id="error"></pre><div id="diagnostics" aria-hidden="true"></div><script>/*__BUNDLE__*/</script></body></html>

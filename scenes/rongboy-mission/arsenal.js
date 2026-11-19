@@ -3,6 +3,7 @@
 import * as T from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { woolMaterial, createWoolBall } from '../../library/games/rongboy-runtime.js';
+import { makeSoftWeave } from './soft-weave.js';
 
 const hard = (color, roughness = 0.35, metalness = 0) => new T.MeshStandardMaterial({ color, roughness, metalness });
 const glowing = (color, strength) => new T.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: strength, roughness: 0.6 });
@@ -11,32 +12,102 @@ function part(group, geometry, material, x = 0, y = 0, z = 0) {
 }
 const alongZ = m => { m.rotation.x = Math.PI / 2; return m; };
 
-// 给武器套件补上第 4 把起的枪。枪口朝 +z，尺寸和前三把的发射筒相当（长约 0.6，枪口在 z = 0.63）。
 export function extendWeaponKit(kit, weapons) {
-  const wood = hard(0x906641, 0.8), metal = hard(0xcfd6d8, 0.3, 0.6);
-  for (let i = kit.userData.variants.length; i < weapons.length; i++) {
-    const id = weapons[i].id, g = new T.Group();
-    if (id === 'stun') {
-      // 静电枪：蓝绿色的枪身，一圈圈铜线，前头两根电极，中间一颗会跳的电火花
-      part(g, new RoundedBoxGeometry(0.34, 0.27, 0.46, 3, 0.09), woolMaterial(0x6fb6c4), 0, 0, 0.02);
-      alongZ(part(g, new T.CylinderGeometry(0.1, 0.1, 0.3, 16), woolMaterial(0xf1e6c8), 0, 0.01, 0.36));
-      for (let k = 0; k < 4; k++) part(g, new T.TorusGeometry(0.115, 0.022, 8, 20), hard(0xe0a04a, 0.3, 0.7), 0, 0.01, 0.25 + k * 0.07);
-      for (const x of [-0.075, 0.075]) { alongZ(part(g, new T.CylinderGeometry(0.018, 0.018, 0.2, 8), metal, x, 0.01, 0.56)); part(g, new T.SphereGeometry(0.03, 10, 8), metal, x, 0.01, 0.66); }
-      g.userData.spark = part(g, new T.SphereGeometry(0.04, 10, 8), glowing(0x9fe8ff, 6), 0, 0.01, 0.64);
-      part(g, new RoundedBoxGeometry(0.14, 0.2, 0.16, 2, 0.04), wood, 0, -0.2, -0.08);
-      for (const x of [-0.175, 0.175]) part(g, new T.SphereGeometry(0.045, 10, 8), glowing(0xf2d27a, 1.2), x, 0.06, 0.02);
+  const original = kit.userData.variants;
+  const wood = hard(0x8d6040, .86), brass = hard(0xb29357, .48, .38);
+  const cream = woolMaterial(0xf1dfb8), rust = woolMaterial(0xa35138);
+  const olive = woolMaterial(0x677057), slate = woolMaterial(0x536e70);
+  const dark = hard(0x312b23, .92), metal = hard(0xcfd6d8, .3, .6);
+  const button = hard(0xc78659, .52);
+  function soft(group, w, h, d, r, mat, x, y, z) {
+    return part(group, new RoundedBoxGeometry(w, h, d, 3, r), mat, x, y, z);
+  }
+  function tube(group, radius, depth, mat, x, y, z) {
+    return alongZ(part(group, new T.CylinderGeometry(radius, radius, depth, 24), mat, x, y, z));
+  }
+  function ring(group, radius, thickness, mat, x, y, z) {
+    return part(group, new T.TorusGeometry(radius, thickness, 9, 32), mat, x, y, z);
+  }
+  function grip(g) {
+    soft(g, .14, .26, .16, .047, wood, 0, -.17, -.19).rotation.x = -.22;
+    soft(g, .05, .09, .085, .015, brass, 0, -.135, -.065);
+  }
+
+  kit.userData.variants = weapons.map((w, index) => {
+    const id = w.id;
+    if (id === 'single') return original[index];
+    original[index]?.removeFromParent();
+    const g = new T.Group();
+    if (id === 'scatter') {
+      // 花园喷枪，扁喷头前并排三孔。
+      soft(g,.36,.26,.52,.09,olive,0,0,.02);
+      soft(g,.31,.165,.26,.066,olive,0,-.025,.35);
+      soft(g,.335,.187,.044,.052,cream,0,-.025,.363);
+      soft(g,.59,.245,.19,.105,rust,0,.005,.51);
+      soft(g,.55,.204,.06,.09,cream,0,.005,.602);
+      for (const x of [-.175,0,.175]) {
+        tube(g,.069,.02,dark,x,.005,.634);
+        ring(g,.071,.015,brass,x,.005,.642);
+      }
+      soft(g,.34,.12,.08,.04,cream,0,.102,.16);
+      part(g,new T.CylinderGeometry(.067,.067,.032,8),brass,0,.177,.07);
+      grip(g);
+      g.userData.muzzleZ=.67;
+    } else if (id === 'heavy') {
+      // 皮布提梁、B 版的厚灯圈、凹入的独立出膛口。
+      tube(g,.218,.55,slate,0,.015,.147);
+      ring(g,.213,.022,cream,0,.015,-.106);
+      tube(g,.247,.085,rust,0,.015,.425);
+      ring(g,.254,.046,rust,0,.015,.517);
+      ring(g,.227,.021,brass,0,.015,.549);
+      tube(g,.225,.025,dark,0,.015,.493);
+      const lamp = glowing(0xffbf64,1.4);
+      ring(g,.173,.029,lamp,0,.015,.518);
+      tube(g,.104,.096,wood,0,.015,.526);
+      tube(g,.078,.015,dark,0,.015,.577);
+      ring(g,.079,.015,slate,0,.015,.581);
+      for (const z of [-.09,.26]) {
+        soft(g,.1,.14,.072,.025,cream,0,.234,z);
+        part(g,new T.SphereGeometry(.026,12,8),brass,.06,.232,z);
+      }
+      soft(g,.111,.082,.42,.037,wood,0,.31,.085);
+      for (const z of [-.04,.02,.08,.14,.2]) ring(g,.231,.009,cream,0,.015,z).scale.y=.99;
+      soft(g,.29,.091,.26,.033,cream,0,-.205,.29);
+      grip(g);
+      g.userData.lamp = lamp;
+    } else if (id === 'stun') {
+      // 四个凹入的陶瓷网发射点，枪口和飞网完全分开。
+      soft(g,.32,.29,.56,.085,olive,0,0,.09);
+      soft(g,.281,.24,.23,.053,olive,0,.013,.438);
+      soft(g,.301,.258,.045,.057,cream,0,.013,.471);
+      soft(g,.398,.327,.09,.075,cream,0,.018,.56);
+      soft(g,.318,.248,.032,.047,dark,0,.018,.611);
+      const contacts=glowing(0x78bcb8,.8);
+      for (const x of [-.086,.086]) for (const y of [-.041,.077]) {
+        tube(g,.041,.025,slate,x,y,.622);
+        ring(g,.026,.010,contacts,x,y,.647);
+      }
+      soft(g,.37,.055,.06,.025,rust,0,.158,.216);
+      grip(g);
+      g.userData.contacts=contacts;
+      g.userData.muzzleZ=.67;
     } else if (id === 'sewing') {
-      // 缝纫机枪：一台小缝纫机，顶上插着线轴，尾巴上一个手轮
-      part(g, new RoundedBoxGeometry(0.22, 0.2, 0.62, 3, 0.07), woolMaterial(0xf1e6c8), 0, 0.06, 0.05);
-      part(g, new RoundedBoxGeometry(0.22, 0.34, 0.18, 3, 0.07), woolMaterial(0xf1e6c8), 0, -0.02, 0.3);
-      part(g, new RoundedBoxGeometry(0.3, 0.08, 0.5, 2, 0.03), wood, 0, -0.22, 0.02);
-      alongZ(part(g, new T.CylinderGeometry(0.04, 0.05, 0.2, 12), metal, 0, -0.08, 0.5));
-      alongZ(part(g, new T.CylinderGeometry(0.012, 0.004, 0.14, 6), metal, 0, -0.08, 0.66));
-      part(g, new T.CylinderGeometry(0.085, 0.085, 0.15, 16), woolMaterial(0xe7836f), 0, 0.25, 0.0);
-      for (const y of [0.165, 0.335]) part(g, new T.CylinderGeometry(0.105, 0.105, 0.02, 16), wood, 0, y, 0.0);
-      const wheel = part(g, new T.TorusGeometry(0.11, 0.03, 8, 20), hard(0x5a4a3c, 0.5), 0.14, 0.06, -0.18); wheel.rotation.y = Math.PI / 2;
-      g.userData.wheel = wheel;
-      part(g, new T.SphereGeometry(0.035, 8, 6), hard(0xe9c46a, 0.3), 0.115, 0.14, 0.2);
+      // 订书机的翻压臂与纽扣轨，抛离时按每发节奏压一次。
+      soft(g,.24,.103,.65,.038,slate,0,-.08,.058);
+      soft(g,.25,.15,.18,.05,olive,0,-.01,-.22);
+      soft(g,.20,.143,.08,.035,cream,0,-.059,.383);
+      for (let i=0;i<7;i++) {
+        const disc=part(g,new T.CylinderGeometry(.075,.075,.024,14),button,0,-.003,-.12+i*.072);
+        disc.rotation.x=Math.PI/2;
+      }
+      const press=new T.Group();press.position.set(0,.056,-.24);g.add(press);
+      soft(press,.272,.09,.57,.04,rust,0,.072,.285);
+      soft(press,.23,.032,.48,.014,cream,0,.027,.251);
+      for (const x of [-.133,.133]) {
+        const hinge=part(g,new T.CylinderGeometry(.053,.053,.025,16),brass,x,.043,-.221);
+        hinge.rotation.z=Math.PI/2;
+      }
+      grip(g);g.userData.press=press;g.userData.muzzleZ=.43;g.userData.muzzleY=-.025;
     } else if (id === 'needle') {
       // 毛衣针：一根长长的银针架在毛线团上，针尾一个圆头
       alongZ(part(g, new T.CylinderGeometry(0.02, 0.024, 1.0, 10), metal, 0, 0.04, 0.2));
@@ -46,19 +117,55 @@ export function extendWeaponKit(kit, weapons) {
       ball.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.setHex(0xb7a0d8); } });
       part(g, new RoundedBoxGeometry(0.12, 0.2, 0.14, 2, 0.04), wood, 0, -0.26, -0.06);
       for (const z of [-0.06, 0.3]) part(g, new T.TorusGeometry(0.035, 0.012, 6, 14), hard(0xe9c46a, 0.3), 0, 0.04, z);
-    } else if (id === 'yarn') {
-      // 毛线团手雷：木碗里托着一团毛线，线头翘着（打空时线团不见，换好弹再出现）
-      alongZ(part(g, new T.CylinderGeometry(0.2, 0.13, 0.2, 18), wood, 0, -0.03, 0.2));
-      alongZ(part(g, new T.CylinderGeometry(0.1, 0.1, 0.3, 12), woolMaterial(0xd9c88f), 0, -0.03, -0.05));
-      const ball = createWoolBall(); ball.scale.setScalar(0.18); ball.position.set(0, 0.0, 0.36); g.add(ball);
-      ball.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.setHex(weapons[i].color); } });
-      const fuse = part(ball, new T.SphereGeometry(0.16, 8, 6), glowing(0xffd27a, 4), 0.2, 0.95, 0.1);
-      g.userData.round = ball; g.userData.fuse = fuse;
+    } else if (w.kind === 'grenade') {
+      const bomb=bombProp(id);
+      bomb.scale.setScalar(.2);bomb.position.set(0,.04,.34);g.add(bomb);
     }
-    g.traverse(m => { if (m.isMesh) m.castShadow = m.receiveShadow = false; });
-    g.visible = false; kit.add(g); kit.userData.variants.push(g);
-  }
+    g.visible = false;
+    kit.add(g);
+    return g;
+  });
   return kit;
+}
+
+// The same toy in flight, in the player's hand and when it opens.
+function bombProp(id, deployed=false) {
+  const g=new T.Group(), brass=hard(0xb7985a,.52,.37), knit=woolMaterial(0xc8a1cd);
+  const oat=woolMaterial(0xf2deb3), rust=woolMaterial(0xa75639);
+  if (id==='jack') {
+    part(g,new RoundedBoxGeometry(1.35,1.01,1.2,3,.18),rust,0,-.14,0);
+    part(g,new RoundedBoxGeometry(.22,.91,1.218,3,.054),oat,.36,-.14,0);
+    const lid=part(g,new RoundedBoxGeometry(1.42,.25,1.27,3,.105),rust,0,.48,0);
+    part(g,new RoundedBoxGeometry(.32,.23,.09,3,.04),brass,0,.34,.648);
+    for (const x of [-.53,.53]) for (const z of [-.47,.47]) part(g,new T.SphereGeometry(.105,8,6),brass,x,-.59,z);
+    if (deployed) {
+      lid.rotation.x=-1.05;lid.position.set(0,.84,-.49);
+      const spring=new T.Curve();
+      spring.getPoint=t=>new T.Vector3(Math.cos(t*18.85)*.25,.38+t*.91,Math.sin(t*18.85)*.25);
+      part(g,new T.TubeGeometry(spring,32,.065,8),oat,0,0,0);
+      const head=new T.Group();head.position.set(0,1.54,0);g.add(head);
+      part(head,new T.SphereGeometry(.43,16,12),oat,0,0,0);
+      part(head,new T.ConeGeometry(.36,.48,16),rust,0,.47,0);
+      part(head,new T.SphereGeometry(.11,12,8),oat,0,.72,0);
+      for(const x of [-.39,.39]) part(head,new T.SphereGeometry(.22,12,8),knit,x,.013,0);
+      for(const x of [-.147,.147]) part(head,new T.SphereGeometry(.054,10,8),brass,x,.03,.409);
+      part(head,new T.SphereGeometry(.104,12,8),rust,0,-.075,.425);
+      const smile=new T.CatmullRomCurve3([new T.Vector3(-.16,-.17,.365),new T.Vector3(0,-.23,.39),new T.Vector3(.16,-.17,.365)]);
+      part(head,new T.TubeGeometry(smile,12,.021,5),rust,0,0,0);
+    }
+  } else {
+    part(g,new T.CylinderGeometry(.64,.59,.24,24),knit,0,-.55,0);
+    for(let i=0;i<9;i++) {
+      const angle=i*Math.PI*2/9, petal=new T.Group();
+      petal.rotation.y=angle;g.add(petal);
+      const shell=part(petal,new T.SphereGeometry(1,15,9),brass,0,deployed?-.35:.06,deployed?.87:.49);
+      shell.scale.set(.37,.59,.072);shell.rotation.x=deployed?1.08:-.48;
+      for (const x of [-.15,.15]) part(petal,new T.SphereGeometry(.037,7,5),rust,x,deployed?-.14:.15,deployed?.91:.562);
+    }
+    part(g,new T.CylinderGeometry(.19,.17,.27,16),brass,0,.23,0);
+    part(g,new T.SphereGeometry(deployed?.31:.21,14,10),knit,0,deployed?-.05:.45,0);
+  }
+  return g;
 }
 
 // 每把枪打出去的东西。单位大小是半径 1，画的时候按毛球半径缩放；oriented 的要顺着飞行方向摆，不打转。
@@ -75,10 +182,19 @@ export function projectileModels(weapons, ballTemplate) {
       alongZ(part(o, new T.ConeGeometry(0.34, 2.4, 8), hard(0xdfe6ea, 0.25, 0.7), 0, 0, 3.7));
       part(o, new T.SphereGeometry(1.0, 8, 6), hard(0xe7a0b6, 0.8), 0, 0, -8.6);
       alongZ(part(o, new T.CylinderGeometry(0.16, 0.05, 16, 5), new T.MeshBasicMaterial({ color: 0xf2b8c8 }), 0, 0, -16.5));
+    } else if (w.kind === 'grenade') {
+      o = bombProp(w.id);
     } else {
       o = ballTemplate.clone(true);
-      o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.setHex(w.color); } });
-      if (w.kind === 'grenade') part(o, new T.SphereGeometry(0.22, 8, 6), glowing(0xffd27a, 5), 0.25, 1.0, 0.1).name = 'fuse';   // 克隆时 userData 里存不住网格，按名字找
+      o.traverse(m => {
+        if (!m.isMesh) return;
+        m.material=m.material.clone();
+        m.material.color.setHex(w.color);
+        if (w.id==='heavy') {
+          m.material.emissive.setHex(0xe99024);
+          m.material.emissiveIntensity=.72;
+        }
+      });   // 克隆时 userData 里存不住网格，按名字找
     }
     return o;
   });
@@ -91,6 +207,125 @@ function sprite(draw, size = 128) {
 }
 
 // 效果都从固定大小的池子里取，不在开枪时新建网格。颜色用高亮度值（大于 1），后期的泛光会让它们发亮。
+export function createWeaponFeedback(scene, lightObject = null) {
+  const light = new T.PointLight(0xffae4d, 0, 5.2, 1.7);
+  light.name = 'Spotlight projectile';
+  scene.add(light);
+  const netTemplate=makeSoftWeave(false), floorTemplate=makeSoftWeave(true);
+  const steamer=bombProp('yarn',true), popping=bombProp('jack',true);
+  const active=new Map();
+  const jackBursts=Array.from({length:3},()=>{
+    const model=popping.clone(true);model.visible=false;scene.add(model);
+    return {model,at:-Infinity};
+  });
+  let nextJack=0, nextMark=0;
+  const damageTextures=new Map();
+  const marks=Array.from({length:14},()=>{
+    const icon=new T.Sprite(new T.SpriteMaterial({transparent:true,depthWrite:false,toneMapped:false}));
+    icon.visible=false;scene.add(icon);return {icon,at:-Infinity,y:0};
+  });
+
+  function display(state, terrain) {
+    if (!active.has(state.id)) {
+      const template=terrain?floorTemplate:netTemplate, model=new T.Group(), mesh=template.clone(true);
+      const materials=mesh.children.map(rope=>{
+        rope.material=rope.material.clone();
+        return rope.material;
+      });
+      lightObject?.(mesh);
+      model.add(mesh);
+      const pod=terrain?steamer.clone(true):null;
+      if (pod) { pod.position.y=.19;model.add(pod); }
+      scene.add(model);active.set(state.id,{model,mesh,pod,materials});
+    }
+    return active.get(state.id);
+  }
+  function remove(id, entry) {
+    entry.model.removeFromParent();
+    entry.materials.forEach(material=>material.dispose());
+    active.delete(id);
+  }
+  function deform(mesh, fold, ripple, opacity) {
+    for (const rope of mesh.children) {
+      rope.morphTargetInfluences[0]=fold;
+      rope.morphTargetInfluences[1]=ripple;
+      rope.material.opacity=opacity;
+    }
+  }
+
+  return {
+    burst(event,time) {
+      const pop=jackBursts[nextJack++%jackBursts.length];pop.at=time;
+      pop.model.position.set(event.x,Math.max(.16,event.y),event.z);
+      pop.model.visible=true;
+    },
+    damage(event,time) {
+      if (!damageTextures.has(event.amount)) damageTextures.set(event.amount,sprite((ctx,n)=>{
+        ctx.font='800 65px Georgia';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.lineWidth=7;ctx.strokeStyle='#44291d';ctx.fillStyle='#ffe5ac';
+        const amount='−'+event.amount;
+        ctx.strokeText(amount,n/2,n*.51);ctx.fillText(amount,n/2,n*.51);
+      }));
+      const mark=marks[nextMark++%marks.length];mark.at=time;mark.y=(event.contactY ?? event.y)+.42;
+      mark.icon.position.set(event.x,mark.y,event.z);
+      mark.icon.scale.set(.52,.52,1);mark.icon.material.map=damageTextures.get(event.amount);mark.icon.material.needsUpdate=true;
+      mark.icon.visible=true;
+    },
+    sync(state) {
+      const ball=state.balls.find(ball=>ball.weapon==='heavy');
+      light.intensity=ball ? 20 * Math.min(1,(ball.lifetime-ball.age)/.3) : 0;
+      if (ball) light.position.set(ball.x,ball.y,ball.z);
+      const present=new Set();
+      for (const net of state.nets) {
+        present.add(net.id);
+        const {model,mesh}=display(net,false);
+        model.position.set(net.x,net.y,net.z);
+        model.lookAt(net.x+net.dx,net.y+net.dy,net.z+net.dz);
+        const spread=Math.min(1,net.travel/3.05);
+        model.rotateZ(.32*(1-spread)+.13*Math.sin(net.travel*1.65));
+        model.scale.set(net.radius,net.radius*(.67+.33*spread),net.radius);
+        const fade=Math.min(1,net.travel/.38,(net.until-state.time)/.16);
+        deform(mesh,1-spread,.36+.29*Math.sin(net.travel*3.6),fade*.92);
+      }
+      for (const field of state.tangleFields) {
+        present.add(field.id);
+        const {model,mesh,pod}=display(field,true);
+        const age=state.time-field.start;
+        const spread=1-Math.pow(1-Math.min(1,age/.24),2);
+        model.position.set(field.x,field.y,field.z);
+        mesh.scale.setScalar(field.radius * Math.max(.08,spread));
+        pod.scale.setScalar(.22+.09*spread);
+        const settle=Math.max(0,1-age/.36);
+        deform(mesh,settle,settle*(.59+.4*Math.sin(age*18)),.93*Math.min(1,(field.until-state.time)/.64));
+      }
+      for (const [id,entry] of active) if (!present.has(id)) remove(id,entry);
+      for (const pop of jackBursts) {
+        const t=state.time-pop.at;
+        pop.model.visible=t<.68;
+        if(pop.model.visible) pop.model.scale.set(.27,.27*Math.min(1,Math.max(.22,t*12)),.27);
+      }
+      for (const mark of marks) {
+        const t=state.time-mark.at;
+        mark.icon.visible=t<.56;
+        if (mark.icon.visible) {
+          mark.icon.position.y=mark.y+t*.54;
+          mark.icon.material.opacity=Math.min(1,(.56-t)/.24);
+        }
+      }
+    },
+    clear() {
+      light.intensity=0;
+      for (const [id,entry] of active) remove(id,entry);
+      for (const pop of jackBursts) { pop.model.visible=false;pop.at=-Infinity; }
+      for (const mark of marks) { mark.icon.visible=false;mark.at=-Infinity; }
+    },
+  };
+}
+
+export function scopeFieldOfView(fov, magnification) {
+  return T.MathUtils.radToDeg(2 * Math.atan(Math.tan(T.MathUtils.degToRad(fov / 2)) / magnification));
+}
+
 export function createEffects(scene) {
   const flashTex = sprite((a, n) => {
     const g = a.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);

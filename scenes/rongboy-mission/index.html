@@ -1,3 +1,152 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Rongboy · 选择地图</title><style>
-:root{--paper:#f3ecd9;--ink:#344b3e;--muted:#858571;--thread:#c4b999;--green:#4b6655}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Georgia,'Songti SC','STSong',serif}button,a{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid #b88b42;outline-offset:5px}.page{min-height:100svh;display:grid;grid-template-columns:minmax(300px,.78fr) minmax(480px,1.35fr);gap:5vw;align-items:center;max-width:1600px;margin:auto;padding:4vh 6vw;background:radial-gradient(ellipse at 98% 10%,#cbd1b63a,transparent 54%)}.brand{font-size:clamp(32px,4vw,62px);font-weight:900;letter-spacing:.12em;line-height:1}.patch{display:inline-block;margin:14px 0 23px;padding:5px 18px;background:#c8b783;border:1px dashed #8b7c55;outline:3px solid #c8b783;border-radius:3px;color:#4d4d35;font-size:22px;letter-spacing:.3em}.eyebrow{font:10px Verdana,sans-serif;letter-spacing:.25em;color:var(--muted);margin:0 0 14px}.maps{display:grid;gap:4px}.map-choice{display:flex;gap:17px;align-items:center;border:0;border-bottom:1px solid #c4b99965;background:transparent;text-align:left;width:100%;padding:11px 9px 11px 0;border-radius:2px;transition:background .13s,transform .13s}.map-choice.selected{background:#d9dfc43b;transform:translateX(5px)}.map-number{font:11px Verdana,sans-serif;color:#a0a08d;min-width:23px}.map-choice strong{font-size:clamp(21px,2.1vw,29px);font-weight:500;letter-spacing:.07em}.map-choice small{display:block;font:10px/1.7 Verdana,'PingFang SC',sans-serif;color:var(--muted);margin-top:4px}.map-dot{width:10px;height:10px;border:1px solid #a8b19a;border-radius:50%;margin-left:auto}.selected .map-dot{background:#9aab79;box-shadow:0 0 0 3px #b6c39b36;border-color:#7f9266}#start{width:100%;margin-top:24px;min-height:59px;background:var(--green);color:#f7f0dc;border:1px dashed #c5cdb390;outline:4px solid var(--green);border-radius:3px;font-size:21px;letter-spacing:.12em;transition:background .15s}#start:hover{background:#385a45}.keys{font:10px/1.8 Verdana,'PingFang SC',sans-serif;color:var(--muted);margin-top:19px;letter-spacing:.04em}kbd{font:inherit;border:1px solid #c9c2ab;border-radius:3px;padding:2px 5px;background:#f8f1df}.links{display:flex;gap:22px;flex-wrap:wrap;margin-top:19px}.links a{font-size:12px;color:#68745d;text-decoration:none;border-bottom:1px solid #bcbba580;padding-bottom:4px}.preview-card{position:relative;transform:rotate(-.7deg);padding:22px;background:#eee4cc;box-shadow:3px 16px 40px #6c6a4917;border:1px solid #d8ccad;border-radius:5px}.preview-card:before{content:"";position:absolute;inset:8px;border:1px dashed #b5aa8b80;pointer-events:none;border-radius:3px}.preview-head{display:flex;justify-content:space-between;padding:6px 8px 18px;font:10px Verdana,'PingFang SC',sans-serif;letter-spacing:.17em;color:#7f806a}.preview-card img{display:block;width:100%;aspect-ratio:1100/650;object-fit:contain;background:#e9e0c9;border-radius:3px}.caption{padding:22px 10px 9px}.caption h1{margin:0;font-size:clamp(28px,3vw,45px);font-weight:500;letter-spacing:.13em}.mission{margin:12px 0 8px;font-size:16px;line-height:1.7;color:#53634b}.facts{font:10px Verdana,'PingFang SC',sans-serif;letter-spacing:.08em;color:#8a846a}.detail{font-size:12px;line-height:1.8;color:#87816c;max-width:56ch;margin:14px 0 0}.loading{position:fixed;inset:0;z-index:30;background:#f3ecd9;display:grid;place-items:center;text-align:center}.loading[hidden]{display:none}.loading h2{font-size:27px;letter-spacing:.12em;font-weight:500}.loading p{color:#8b866e;font-size:13px}.spool{width:48px;height:48px;border-radius:50%;border:2px dashed #a8b28c;border-right-color:transparent;margin:28px auto;animation:spin 1.2s linear infinite;will-change:transform}@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:840px){.page{grid-template-columns:1fr;padding:25px 7vw;gap:30px}.brand{font-size:39px}.patch{margin:13px 0 26px;font-size:19px}.maps{grid-template-columns:1fr 1fr;gap:2px 17px}.map-choice{gap:9px}.map-choice strong{font-size:22px}.map-choice small{font-size:9px}.preview-card{grid-row:2;padding:17px;transform:none}.caption{padding-top:17px}.caption h1{font-size:32px}.keys{font-size:9px}.links{margin-top:18px}.detail{display:none}}@media(prefers-reduced-motion:reduce){*{transition:none!important}.spool{animation:none}}
-</style></head><body><main class="page"><section class="selection"><div class="brand">RONGBOY</div><span class="patch">绒仔</span><p class="eyebrow">选一个地方，轻手轻脚地出发。</p><nav id="maps" class="maps" aria-label="选择地图"></nav><button id="start">出发</button><p class="keys"><kbd>W</kbd> <kbd>S</kbd> 或 <kbd>A</kbd> <kbd>D</kbd> 选图　·　<kbd>Enter</kbd> 出发<br>手柄：十字键 / 左摇杆 选图　·　<kbd>✕</kbd> 出发</p><nav class="links"><a href="rongboy-zombies.html">僵尸图鉴 ↗</a><a href="rongboy-mission.html?level=training">试战庭院 ↗</a><a href="rongboy-op.html">重看开场 ↗</a></nav></section><section class="preview-card" aria-label="地图预览"><div class="preview-head"><span>地图预览</span><span id="mapCount"></span></div><img id="preview" alt=""><div class="caption" aria-live="polite"><h1 id="mapName"></h1><p id="mapMission" class="mission"></p><p id="mapFacts" class="facts"></p><p id="mapDetail" class="detail"></p></div></section></main><section class="loading" id="loading" hidden role="status" aria-live="polite"><div><div class="brand">RONGBOY</div><div class="spool" aria-hidden="true"></div><h2 id="loadingTitle">准备出发</h2><p>马上就到，稍等一下。</p></div></section><script>/*__BUNDLE__*/</script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>绒仔 · RONGBOY</title>
+<link rel="stylesheet" href="rongboy-interface.css">
+<style>
+:root{color-scheme:dark;--ink:#fff0c9;--muted:#d0c3a4;--gold:#efbf61;--felt:#253729;--deep:#101a14;--serif:"Songti SC","Noto Serif CJK SC",STSong,Georgia,serif;--sans:"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--deep);color:var(--ink);font-family:var(--sans)}
+button,a{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,a:focus-visible{outline:2px solid #ffe0a0;outline-offset:5px}
+#scene,.shade{position:fixed;inset:0;pointer-events:none}
+#scene{background-image:url(menu-garden.webp);background-position:center;background-size:cover}
+.shade{background:linear-gradient(90deg,rgba(9,20,12,.86),rgba(12,22,14,.54) 27%,transparent 62%),linear-gradient(0deg,#0c160ddb,transparent 21%)}
+body[data-screen=chapters] .shade{background:linear-gradient(0deg,#101b15 2%,#101a15ee 14%,#101a1560 51%,transparent 77%),linear-gradient(90deg,#111c152b,transparent 56%)}
+body[data-screen=settings] .shade,body[data-screen=controls] .shade{background:linear-gradient(90deg,#132017e6 0%,#142218ab 49%,#111b143a),linear-gradient(0deg,#101a15d0,transparent 30%);backdrop-filter:blur(3px)}
+body[data-screen=opponents] .shade,body[data-screen=challenges] .shade{background:linear-gradient(90deg,#101b15e8,#101a14a0 35%,transparent 65%),linear-gradient(0deg,#101b15da,transparent 35%)}
+.layout{position:relative;min-height:100dvh;isolation:isolate;display:flex;flex-direction:column;padding:clamp(24px,4.1vw,70px) clamp(22px,4.5vw,78px) clamp(16px,2.8vw,44px);gap:24px}
+.brand{align-self:flex-start;position:relative;text-shadow:0 3px 18px #17190c;display:flex;flex-direction:column;color:#f6e6bb;line-height:1}
+.brand strong{font:900 clamp(36px,5vw,80px)/1 "Kaiti SC",STKaiti,KaiTi,var(--serif);letter-spacing:.045em}
+.brand span{font:700 clamp(10px,1.4vw,17px) Georgia,serif;letter-spacing:.31em;margin-top:9px;padding-left:2px}
+body[data-screen=home] .brand strong{font-size:clamp(74px,9.4vw,155px)}
+body[data-screen=home] .brand span{font-size:clamp(13px,2vw,27px);margin-top:14px}
+section{flex:1;min-width:0}
+h1,h2{font-family:var(--serif);margin:0;text-shadow:0 2px 7px #1018019c}
+h1{font-size:clamp(34px,4vw,66px);line-height:1.06;margin-bottom:20px}
+h2{font-size:clamp(32px,4.5vw,74px);line-height:1.08}
+p{line-height:1.5;margin:9px 0}
+.stack{display:flex;flex-direction:column;align-items:stretch;gap:7px;width:min(100%,326px)}
+.home nav{margin-top:clamp(12px,3vh,35px);width:clamp(190px,25vw,390px)}
+.choice,.pill,.primary,.secondary{position:relative;border:1px solid transparent;border-radius:9px;background:transparent;text-align:left;line-height:1.15;transition:background-color .15s,color .15s,border-color .15s}
+.choice{padding:.42em .88em;font:700 clamp(24px,3vw,48px)/1.1 var(--serif);text-shadow:0 2px 6px #132013}
+.choice:hover,.pill:hover,.secondary:hover{background:#eee0b51c}
+.choice[aria-pressed=true],.pill[aria-pressed=true],.primary{color:#27331f;border-color:#d7a956;background:linear-gradient(165deg,#f0cb7c,#dba658);text-shadow:none;box-shadow:0 3px 11px #1011097a,inset 0 1px 0 #ffe5a6a0}
+.choice[aria-pressed=true]::after,.primary::after{content:"";position:absolute;inset:4px 5px;border:1px dashed #fff1c388;border-radius:6px;pointer-events:none}
+.primary,.secondary{padding:.56em 1.0em;font:700 clamp(19px,2.1vw,32px)/1.18 var(--serif);text-align:center}
+.primary:hover{background:#f3ca7c}
+.secondary,.pill{border-color:#e4d5ae65;background:#142218bb}
+.pill{padding:.37em .72em;text-align:center}
+.footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 22px;min-height:42px;border-top:1px solid #e3c18b50;padding-top:12px;text-shadow:0 2px 5px #0b190e}
+.chapters{display:flex;flex-direction:column;justify-content:flex-end;gap:19px}
+.location{border-left:5px solid var(--gold);padding-left:19px}
+.location p{font:700 clamp(16px,1.94vw,26px) var(--serif);margin:7px 0 0}
+.chapter-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:18px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.card{border:2px solid #cfbf9465;border-radius:10px;overflow:hidden;background:#23362b;padding:0;font:700 clamp(14px,1.75vw,24px) var(--serif);text-align:center}
+.card img{display:block;width:100%;aspect-ratio:1.65;object-fit:cover}
+.card span{display:block;padding:.38em .2em}
+.card:hover,.card[aria-pressed=true]{border-color:#f8c66d}
+.card[aria-pressed=true]{background:#d5a14b;color:#212c19;box-shadow:0 0 0 1px #f8c66d}
+.chapter-actions .primary{white-space:nowrap}
+.panel{width:min(100%,720px);padding:clamp(17px,2.8vw,37px);border:1px solid #bca4708a;background:linear-gradient(145deg,#263629f5,#19271eea);border-radius:15px;box-shadow:0 16px 50px #0c120bb3;outline:1px dashed #d2b87862;outline-offset:-7px}
+.setting{display:grid;grid-template-columns:minmax(95px,.88fr) 1.65fr;gap:12px;align-items:center;min-height:54px;padding:9px;border-radius:8px;border:1px solid transparent}
+.setting+.setting{border-top-color:#bfaa7e40}
+.setting.active{border-color:#dbac57;background:#b48a4329}
+.setting .values{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.setting-title{font:700 clamp(16px,2vw,26px) var(--serif)}
+.setup-link{margin-top:15px}
+.devices{display:flex;gap:8px}
+.bindings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:18px 0 0}
+.bindings div{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid #ddc49648;padding:5px 0}
+.bindings dd{margin:0;font:700 clamp(14px,1.4vw,19px)/1.4 var(--ui-title)}
+.practice{display:flex;flex-direction:column;justify-content:flex-end;gap:16px;padding-bottom:clamp(10px,6vh,70px)}
+.practice .primary{align-self:flex-start}
+.practice-brief{width:min(100%,440px);padding:3px 0 4px 15px;border-left:2px solid var(--ui-gold);text-shadow:0 2px 8px #0c170d}
+.practice-brief strong{display:block;font:700 clamp(20px,2.25vw,34px)/1.2 var(--ui-title);color:#ffe1a0}
+.practice-brief p{margin:4px 0 0;color:var(--ui-cream);font:700 clamp(16px,1.55vw,22px)/1.45 var(--ui-text)}
+.enemy-list{position:relative;display:flex;flex-direction:column;max-height:56dvh;overflow:auto;scrollbar-color:#c69f5f #25382b;gap:6px;width:min(36vw,300px);padding:5px}
+.enemy-list .choice{font-size:clamp(16px,2vw,27px);background-color:#152a20c7;border-color:#d4c09245}
+.enemy-list .choice[aria-pressed=true]{background:#eabe71}
+.opponent-grid{display:grid;grid-template-columns:minmax(105px,.65fr) minmax(0,1.35fr);gap:clamp(12px,3vw,42px)}
+.opponent-grid .enemy-list{width:min(100%,300px);align-self:start}
+body[data-screen=opponents] .layout{gap:clamp(12px,2vh,24px);padding-block:clamp(15px,3.2vh,48px)}
+body[data-screen=opponents] .brand strong{font-size:clamp(33px,5.4vh,64px)}
+body[data-screen=opponents] h1{font-size:clamp(29px,5.7vh,59px)}
+#model-area{min-width:0;display:flex;flex-direction:column;align-items:center;gap:9px}
+#model-slot{width:100%;height:clamp(136px,33vh,395px)}
+iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;color-scheme:dark;background:transparent}
+#enemy-preview{width:min(100%,525px);background:#16271ee8;border:1px dashed var(--ui-edge);padding:12px 18px;border-radius:7px}
+#enemy-attack{margin:0;font:700 clamp(19px,2.2vw,31px) var(--ui-title);color:var(--ui-gold)}
+#enemy-tactic{margin:3px 0 0;font:700 clamp(15px,1.45vw,21px)/1.45 var(--ui-text)}
+#views{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
+#model-action{align-self:center}
+.challenge-book{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr);gap:clamp(12px,3vw,44px);width:min(100%,940px);align-items:start}
+.challenge-list{display:grid;gap:9px}
+.challenge-list .choice{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:58px;font-size:clamp(20px,2.4vw,33px);background:#15251bcc;border-color:var(--ui-edge)}
+.challenge-list .choice[aria-pressed=true]{background:#ecc16e}
+.challenge-list .ui-stamp{font-size:.7em;color:#f5bd8d}
+.challenge-list .choice[aria-pressed=true] .ui-stamp{color:#8b3526}
+.challenge-page{position:relative;background:repeating-linear-gradient(0deg,#9c704708 0 1px,transparent 1px 27px),linear-gradient(130deg,#fff0ce,#eddbb6);color:#233727;box-shadow:0 13px 33px #131a0e9c;border-radius:4px 14px 14px 4px;border:1px solid #feedc1;border-left:5px solid #be9d6b;padding:clamp(18px,3.5vw,45px);outline:1px dashed #a5866570;outline-offset:-8px}
+.challenge-page h2{font:900 clamp(30px,4vw,61px)/1.05 var(--ui-title);text-shadow:none;padding-right:1.35em}
+#book-stamp{position:absolute;right:clamp(16px,3vw,42px);top:clamp(16px,3vw,42px);font-size:clamp(25px,3.4vw,45px)}
+#challenge-goal{font:700 clamp(17px,2vw,27px)/1.4 var(--ui-text);margin-top:.65em}
+#challenge-hint{color:#46523d;font:700 clamp(15px,1.5vw,21px)/1.45 var(--ui-text);margin:8px 0 20px}
+.challenge-action{display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px}
+#challenge-time{color:#514d37;font:700 17px var(--ui-title)}
+@media (max-height:650px) and (min-width:701px){.layout{padding-top:25px;gap:12px}.home nav{margin-top:5px}.choice{font-size:clamp(21px,3.1vw,39px)}body[data-screen=home] .brand strong{font-size:clamp(55px,8vw,104px)}.card img{aspect-ratio:2.15}.panel{padding:17px}h1{margin-bottom:12px}.enemy-list{max-height:56dvh}}
+@media (max-width:700px){.layout{gap:15px;padding:24px 18px 14px}.chapter-actions{grid-template-columns:1fr;gap:12px}.chapter-actions .primary{justify-self:start}.cards{gap:5px}.card{border-radius:6px}.card span{font-size:clamp(12px,3.4vw,18px)}.stack{width:min(59vw,285px)}.binding div{flex-wrap:wrap}.setting .values{gap:4px}#model-action{font-size:17px}#enemy-preview{padding:9px 12px}.footer{gap:5px 9px}.challenge-book{grid-template-columns:1fr}.challenge-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.challenge-list .choice{min-height:48px;font-size:clamp(15px,3vw,23px);padding:.4em}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="scene" aria-hidden="true"></div><div class="shade" aria-hidden="true"></div>
+<main class="layout">
+  <header class="brand" aria-label="绒仔 RONGBOY"><strong>绒仔</strong><span>RONGBOY</span></header>
+  <section id="home" class="home" aria-label="主菜单" hidden><nav class="stack" id="home-options" aria-label="主菜单"></nav></section>
+  <section id="chapters" class="chapters" aria-label="选关" hidden>
+    <div class="location"><h2 id="chapter-name"></h2><p id="chapter-goal"></p></div>
+    <div class="chapter-actions"><nav class="cards" id="maps" aria-label="选择地图"></nav><button class="primary ui-trigger" id="start"></button></div>
+  </section>
+  <section id="settings" aria-label="设置" hidden>
+    <h1>设置</h1><div class="panel"><div id="setting-options"></div><button class="choice setup-link" id="show-controls">查看按键</button></div>
+  </section>
+  <section id="controls" aria-label="按键" hidden>
+    <h1>按键</h1><div class="panel"><div id="devices" class="devices"></div><dl class="bindings" id="bindings"></dl></div>
+  </section>
+  <section id="practice" class="practice" aria-label="练习" hidden>
+    <h1>练习</h1><nav id="practice-options" class="stack" aria-label="选择练习"></nav>
+    <div class="practice-brief"><strong id="practice-skill"></strong><p id="practice-goal"></p></div>
+    <button class="primary ui-trigger" id="practice-start"></button>
+  </section>
+  <section id="opponents" aria-label="兵种试战" hidden>
+    <h1>兵种试战</h1>
+    <div class="opponent-grid">
+      <nav id="opponent-options" class="enemy-list" aria-label="选择敌人"></nav>
+      <div id="model-area" aria-label="模型和招式预览">
+        <div id="model-slot"></div><nav id="views" aria-label="模型角度"></nav>
+        <div id="enemy-preview"><h2 id="enemy-attack"></h2><p id="enemy-tactic"></p></div>
+        <button class="primary ui-trigger" id="model-action"></button>
+      </div>
+    </div>
+  </section>
+  <section id="challenges" aria-label="挑战簿" hidden>
+    <h1>挑战簿</h1>
+    <div class="challenge-book">
+      <nav id="challenge-options" class="challenge-list" aria-label="选择挑战"></nav>
+      <article class="challenge-page">
+        <h2 id="challenge-name"></h2><span id="book-stamp" class="ui-stamp" role="img" aria-label="已盖章" hidden></span>
+        <p id="challenge-goal"></p><p id="challenge-hint"></p>
+        <div class="challenge-action"><button id="challenge-start" class="primary ui-trigger"></button><span id="challenge-time"></span></div>
+      </article>
+    </div>
+  </section>
+  <footer class="footer"><div id="hints" class="ui-hints"></div><button class="ui-return" id="go-back" hidden>返回</button></footer>
+</main>
+<script>/*__BUNDLE__*/</script>
+</body>
+</html>

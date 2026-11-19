@@ -74,16 +74,16 @@ test('a warden upstairs slams on its own floor and calls its reserves onto that 
   for (const e of s.enemies.filter(o => o.reserveOf === w.id && o.enabled)) { assert.equal(e.base, SH); assert.ok(Math.abs(e.y - SH) < 0.6, 'reserve stands at ' + e.y); }
 });
 
-test('sealed reserves are invisible to the newer weapons: no arc jumps to them, no yarn blast tangles them', () => {
+test('a flying net hits the warden on its floor and ignores sealed reserves', () => {
   const s = upstairs(0, 2.2, 1), w = place(s, 'boss-warden', 0, 0, 1), sealed = s.enemies.filter(e => !e.enabled);
   const stun = WEAPONS.findIndex(x => x.id === 'stun'); s.owned[stun] = true; s.ammo[stun] = { mag: 5, reserve: 5 }; selectWeapon(s, stun);
   s.player.aimX = 0; s.player.aimY = 0; s.player.aimZ = -1;
-  fire(s, 0); const zap = consumeEvents(s).find(e => e.type === 'zap');
-  assert.ok(zap && zap.struck.includes(w.id), 'the arc missed the warden');
+  fire(s, 0); const zap = run(s,.52).find(e => e.type === 'zap');
+  assert.ok(zap && zap.struck.includes(w.id), 'the net missed the warden');
   for (const r of sealed) { assert.ok(!zap.struck.includes(r.id)); assert.equal(r.stun, 0); assert.equal(r.hp, r.maxHp); }
 });
 
-test('a stunned shield-bearer cannot block: the arc opens it up for a plain ball from the front', () => {
+test('a stunned shield-bearer cannot block a plain ball from the front', () => {
   const s = upstairs(0, 2.2, 1), e = place(s, 'shielded', 0, -0.4, 1); e.heading = 0;   // facing +z, toward the player
   s.player.aimX = 0; s.player.aimY = 0; s.player.aimZ = -1;
   fire(s, 0); let ev = run(s, 0.6);

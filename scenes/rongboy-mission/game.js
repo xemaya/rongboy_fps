@@ -9,6 +9,7 @@ import {SPECIAL_TYPES,ARROW_SPEED} from './attacks.js';
 import {launchBomb,advanceBombs} from './bombs.js';
 import {advanceSpecial,interruptSpecial,contactAttack,onSpecialDeath} from './special-enemies.js';
 import { GADGETS, STASH } from './gadgets.js';
+import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -44,28 +45,32 @@ export const WEAPONS = [
     mag: 6, reserve: Infinity, reload: 1.15, cooldown: 0.36, speed: 13, bounces: 2, noise: 5.5, push: 1.8, chargePush: 3.6, color: 0xf3dfa5 },
   { id: 'scatter', short: '霰弹', name: '绒球霰弹', tag: '贴脸 · 一枪倒', count: 3, fan: 0.11, damage: 2, chargeDamage: 0, range: 4, minDamage: 1, maxRange: 11,
     mag: 2, reserve: 6, pack: 4, reload: 1.7, cooldown: 0.55, speed: 12, bounces: 1, noise: 8, push: 0.72, chargePush: 0.55, color: 0xabc8bd },
-  { id: 'heavy', short: '棉被炮', name: '棉被炮', tag: '一炮一个 · 破盾', count: 1, damage: 7, chargeDamage: 0, range: 12, minDamage: 4, maxRange: 24,
+  { id: 'heavy', short: '探照灯炮', name: '探照灯炮', tag: '发光重弹 · 破盾', count: 1, damage: 7, chargeDamage: 0, range: 12, minDamage: 4, maxRange: 24,
     mag: 1, reserve: 3, pack: 2, reload: 2.0, cooldown: 0.5, speed: 10, bounces: 3, noise: 12, push: 9.2, chargePush: 3.6, color: 0xd6a789 },
   // 以下四把要在关卡里捡到（或者关卡的 arsenal 里写上）。feel：后坐力和受击手感借用前三把里的哪一把。
-  // 静电枪：一道电弧，打中就把僵尸定住 stun 秒，还会跳到 chainRange 米内的另外 chain 只身上。几乎不伤血，很安静。
-  { id: 'stun', short: '静电枪', name: '静电枪', tag: '定住一小群', kind: 'zap', feel: 'single', count: 1, damage: 1, minDamage: 1, range: 7.5, stun: 2.6, chain: 2, chainRange: 2.8,
+  // 静电枪发射会张开的飞网，飞行中扫到的僵尸才会被定住。
+  { id: 'stun', short: '静电枪', name: '静电枪', tag: '飞网 · 定住一小群', kind: 'zap', feel: 'single', count: 1, damage: 1, minDamage: 1, range: 7.5, speed: 18, stun: 2.6, targets: 3,
     mag: 4, reserve: 4, pack: 4, reload: 1.8, cooldown: 0.55, noise: 3.5, color: 0x8fd8f0 },
   // 缝纫机枪：按住连发的小纽扣，单发伤害低、有散布、不反弹。
-  { id: 'sewing', short: '缝纫机', name: '缝纫机枪', tag: '按住扫射 · 清一群', auto: true, feel: 'single', count: 1, damage: 1, chargeDamage: 0, range: 7, minDamage: 1, maxRange: 15,
+  { id: 'sewing', short: '订书机', name: '订书机枪', tag: '纽扣连发 · 清一群', auto: true, feel: 'single', count: 1, damage: 1, chargeDamage: 0, range: 7, minDamage: 1, maxRange: 15,
     mag: 32, reserve: 64, pack: 32, reload: 1.7, cooldown: 0.085, speed: 19, bounces: 0, spread: 0.05, radius: 0.055, noise: 6, push: 0.45, chargePush: 0, color: 0xe7836f },
   // 毛衣针：又直又快，一针能穿过 pierce 只僵尸再扎进墙里。按住是举枪瞄准（镜头拉近），蓄满伤害更高。
-  { id: 'needle', short: '毛衣针', name: '毛衣针', tag: '打远处 · 扎穿棉甲', zoom: true, feel: 'heavy', count: 1, damage: 4, chargeDamage: 4, range: 22, minDamage: 3, maxRange: 40,
+  { id: 'needle', short: '毛衣针', name: '毛衣针', tag: '4× 瞄准 · 扎穿棉甲', zoom: 4, feel: 'heavy', count: 1, damage: 4, chargeDamage: 4, range: 22, minDamage: 3, maxRange: 40,
     mag: 3, reserve: 6, pack: 3, reload: 2.1, cooldown: 0.7, speed: 34, bounces: 0, pierce: 2, pierceArmor: true, straight: true, radius: 0.05, noise: 7, push: 2.2, chargePush: 1.4, color: 0xcfd6d8 },
-  // 毛线团手雷：抛出去弹几下，fuse 秒后（或者直接砸中僵尸时）炸开：blast 米内掉血、被推开，并被毛线缠住 tangle 秒走不快。按住扔得更远。
-  { id: 'yarn', short: '毛线团', name: '毛线团手雷', tag: '炸开 · 缠住一片', kind: 'grenade', feel: 'scatter', count: 1, damage: 4, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
-    blast: 2.6, tangle: 4, fuse: 1.5, mag: 1, reserve: 1, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.16, noise: 14, push: 5, chargePush: 0, color: 0xd9a6e0 },
+  // 保留 yarn 的补给标识，旧的地图和暗格仍然补这个投掷物。
+  { id: 'yarn', short: '蒸笼', name: '折叠蒸笼', tag: '范围伤害 · 留下绒网', kind: 'grenade', feel: 'scatter', count: 1, damage: 4, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
+    blast: 2.6, tangle: 4, fuse: 1.5, mag: 1, reserve: 1, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.19, noise: 14, push: 3, chargePush: 0, color: 0xb994ce },
+  { id: 'jack', short: '小丑盒', name: '弹簧小丑盒', tag: '范围伤害 · 强力击退', kind: 'grenade', feel: 'scatter', count: 1, damage: 5, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
+    blast: 2.25, tangle: 0, fuse: 1.1, mag: 1, reserve: 0, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.2, noise: 14, push: 11, chargePush: 0, color: 0xd89968 },
 ];
 export const TANGLE_SPEED = 0.35;   // 被毛线缠住时的移动速度倍率
 const weaponIndex = id => WEAPONS.findIndex(w => w.id === id);
 // 手里两把：手枪固定（PISTOL），另一把可换（secondOf）；手雷不占手，单独一个键扔（GRENADE）。准则见 docs/fun-design.md 第 3 节。
 export const PISTOL = 0, GRENADE = weaponIndex('yarn');
-export const secondOf = s => s.owned.findIndex((own, i) => own && i !== PISTOL && i !== GRENADE);
-export const grenades = s => s.ammo[GRENADE].mag + s.ammo[GRENADE].reserve;
+export const GRENADE_TYPES = WEAPONS.flatMap((w, index) => w.kind === 'grenade' ? [index] : []);
+export const secondOf = s => s.owned.findIndex((own, i) => own && i !== PISTOL && WEAPONS[i].kind !== 'grenade');
+export const grenades = (s, index = s.grenade) => s.ammo[index].mag + s.ammo[index].reserve;
+export const netRadius = distance => 0.24 + Math.min(1, distance / 3.0) * 1.24;
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const length = (x, z) => Math.hypot(x, z);
@@ -81,14 +86,18 @@ export function createGame({ level } = {}) {
     charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
-    enemies: [], balls: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
+    enemies: [], balls: [], nets: [], tangleFields: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
     dormant: [],   // 还没出场的（关卡里写了 dormant: true）：任务物品拿齐的那一刻才出现
     // 藏在拉链暗格里的（stash）开局看不见、捡不到，打开拉链才掉出来
     pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false, hidden: !!p.stash })),
     gadgets: (level.gadgets || []).map(g => ({ ...g, used: false, until: 0 })),
     player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, jump: 0, jumpV: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
-  if (!s.owned[GRENADE]) s.ammo[GRENADE] = { mag: 0, reserve: 0 };   // 关卡没给手雷：一颗都没有，捡到才有
+  const startWeapon = WEAPONS.findIndex((w, i) => w.id === level.startWeapon && s.owned[i]);
+  if (startWeapon >= 0) s.weapon = startWeapon;
+  s.challenge = level.mission?.type === 'challenge' ? createChallengeRun(level.mission.challenge) : null;
+  for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
+  s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
   return s;
 }
@@ -117,7 +126,7 @@ export const aliveCount = s => s.enemies.reduce((n, e) => n + (e.alive ? 1 : 0),
 // ---------- 武器 ----------
 
 export function selectWeapon(s, index) {
-  if (s.phase !== 'playing' || !WEAPONS[index] || !s.owned[index] || s.weapon === index) return false;
+  if (s.phase !== 'playing' || !WEAPONS[index] || WEAPONS[index].kind === 'grenade' || !s.owned[index] || s.weapon === index) return false;
   s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false;
   s.events.push({ type: 'weapon', weapon: index });
   if (s.ammo[index].mag === 0 && s.ammo[index].reserve > 0) startReload(s);
@@ -213,8 +222,8 @@ export function fire(s, power = 0, shot = null) {
   if (s.cooldown > 0 || !canShoot(s)) return false;
   power = clamp(power, 0, 1);
   const w = WEAPONS[s.weapon], { origin, dx, dy, dz } = muzzle(s, shot);
-  if (w.kind === 'zap') return zap(s, w, origin, { x: dx, y: dy, z: dz }, power);
-  launch(s, w, power, origin, dx, dy, dz);
+  if (w.kind === 'zap') s.nets.push({ id: s.nextId++, ...origin, origin, dx, dy, dz, travel: 0, radius: netRadius(0), struck: [], points: [], until: Infinity });
+  else launch(s, w, power, origin, dx, dy, dz);
   s.ammo[s.weapon].mag--;
   s.shots++;
   s.cooldown = w.cooldown + (w.id === 'single' && power >= 0.6 ? 0.16 : 0);
@@ -223,10 +232,18 @@ export function fire(s, power = 0, shot = null) {
   return true;
 }
 
+export function selectGrenade(s) {
+  if (s.phase !== 'playing' || s.lobbing) return false;
+  const next = GRENADE_TYPES.find(index => index !== s.grenade && s.owned[index]);
+  if (next === undefined) return false;
+  s.grenade = next;
+  return true;
+}
+
 // 手雷：不占手，按 E 直接扔（按住扔得更远）。手里拿着哪把枪、是不是在换弹都不影响。
 export function beginThrow(s) {
   if (s.phase !== 'playing' || s.lobbing || s.lobCooldown > 0) return false;
-  if (grenades(s) <= 0) { s.events.push({ type: 'dry', weapon: 'yarn' }); return false; }
+  if (grenades(s) <= 0) { s.events.push({ type: 'dry', weapon: WEAPONS[s.grenade].id }); return false; }
   s.lobbing = true; s.lob = 0;
   return true;
 }
@@ -238,7 +255,7 @@ export function releaseThrow(s, shot = null) {
   return throwGrenade(s, power, shot);
 }
 export function throwGrenade(s, power = 0, shot = null) {
-  const w = WEAPONS[GRENADE], a = s.ammo[GRENADE];
+  const w = WEAPONS[s.grenade], a = s.ammo[s.grenade];
   if (s.phase !== 'playing' || s.lobCooldown > 0 || grenades(s) <= 0) return false;
   const { origin, dx, dy, dz } = muzzle(s, shot);
   launch(s, w, clamp(power, 0, 1), origin, dx, dy, dz);
@@ -255,44 +272,48 @@ export function ballDamage(b) {
   return Math.max(b.minDamage, Math.round(b.damage + (b.minDamage - b.damage) * t));
 }
 
-// 静电枪：沿准星打出一道电弧，命中第一只僵尸后再跳到附近的几只身上。被电到的定在原地 stun 秒（棉甲只有六成）。
-function zap(s, w, origin, dir, power) {
-  const L = s.level, end = { x: origin.x + dir.x * w.range, y: origin.y + dir.y * w.range, z: origin.z + dir.z * w.range };
-  let best = 1, first = null;
-  for (const c of L.solids) { const h = segmentBox(origin, end, c); if (h && h.t < best) best = h.t; }
-  for (const e of s.enemies) {
-    if (!e.alive || !e.enabled) continue;
-    const t = segmentCylinder(origin.x, origin.y, origin.z, end.x, end.y, end.z, e.x, e.z, e.radius + 0.06, e.y + 0.04, e.y + e.height);
-    if (t !== null && t < best) { best = t; first = e; }
+// The leading plane of a free-flying net opens as it travels. Walls stop the center;
+// each caught zombie also needs an unoccluded path from the shot.
+const NET_WEAPON = WEAPONS[weaponIndex('stun')];
+function advanceNet(s, net, dt) {
+  if (net.until !== Infinity) return;
+  const w = NET_WEAPON, { dx, dy, dz, origin } = net;
+  const span = Math.min(w.range - net.travel, w.speed * dt);
+  const at = { x: net.x + dx * span, y: net.y + dy * span, z: net.z + dz * span };
+  let fraction = 1;
+  for (const solid of s.level.solids) {
+    const hit = segmentBox(net, at, solid);
+    if (hit && hit.t < fraction) fraction = hit.t;
   }
-  const tip = { x: origin.x + (end.x - origin.x) * best, y: origin.y + (end.y - origin.y) * best, z: origin.z + (end.z - origin.z) * best };
-  const points = [{ ...origin }, tip], struck = [];
-  const mid = e => ({ x: e.x, y: e.y + e.height * 0.6, z: e.z });
-  const shock = (e, from) => {
-    const dx = e.x - from.x, dz = e.z - from.z, n = Math.hypot(dx, dz) || 1;
-    struck.push(e.id); s.hits++;
-    e.stun = Math.max(e.stun, w.stun * (e.armor ? 0.6 : 1));
-    damage(s, e, w.damage, dx / n, dz / n, 0.4, 'zap', { weapon: w.id, stun: 0.12, contactX: e.x, contactY: e.y + e.height * 0.6, contactZ: e.z });
-  };
-  if (first) {
-    shock(first, origin);
-    let from = first;
-    for (let hop = 0; hop < w.chain; hop++) {
-      let next = null, nearest = w.chainRange;
-      for (const e of s.enemies) {
-        if (!e.alive || !e.enabled || struck.includes(e.id)) continue;
-        const d = Math.hypot(e.x - from.x, e.base - from.base, e.z - from.z);
-        if (d < nearest && lineOfSight(L, mid(from), mid(e))) { nearest = d; next = e; }
-      }
-      if (!next) break;
-      points.push(mid(next)); shock(next, from); from = next;
-    }
+  const reach = net.travel + span * fraction;
+  const radius = netRadius(reach);
+  for (const enemy of s.enemies) {
+    if (net.struck.length >= w.targets) break;
+    if (!enemy.alive || !enemy.enabled || net.struck.includes(enemy.id)) continue;
+    const point = { x: enemy.x, y: clamp(net.y, enemy.y + .1, enemy.y + enemy.height), z: enemy.z };
+    const x = point.x - origin.x, y = point.y - origin.y, z = point.z - origin.z;
+    const along = x * dx + y * dy + z * dz;
+    if (along < Math.max(0, net.travel - enemy.radius) || along > reach + enemy.radius) continue;
+    const across = Math.hypot(x - along * dx, y - along * dy, z - along * dz);
+    if (across > radius + enemy.radius || !lineOfSight(s.level, origin, point)) continue;
+    const stun = w.stun * (enemy.armor ? .6 : 1);
+    net.firstExpiry = Math.min(net.firstExpiry ?? Infinity, s.time + stun);
+    enemy.stun = Math.max(enemy.stun, stun);
+    net.struck.push(enemy.id); net.points.push(point); s.hits++;
+    damage(s, enemy, w.damage, dx, dz, .4, 'zap', { weapon: w.id, stun: .12, contactX: point.x, contactY: point.y, contactZ: point.z });
+    s.events.push({ type: 'net-contact', ...point });
   }
-  s.ammo[s.weapon].mag--; s.shots++; s.cooldown = w.cooldown;
-  s.events.push({ type: 'shot', x: origin.x, y: origin.y, z: origin.z, dx: dir.x, dy: dir.y, dz: dir.z, power, weapon: w.id });
-  s.events.push({ type: 'zap', points, struck, weapon: w.id });
-  emitNoise(s, origin.x, origin.z, w.noise, origin.y);
-  return true;
+  net.travel = reach; net.radius = radius;
+  net.x = origin.x + reach * dx; net.y = origin.y + reach * dy; net.z = origin.z + reach * dz;
+  const bounds = s.level.bounds;
+  if (reach < w.range - 1e-6 && fraction === 1 && net.y > .035 && net.y <= s.level.top &&
+      net.x >= bounds.minX && net.x <= bounds.maxX && net.z >= bounds.minZ && net.z <= bounds.maxZ) return;
+  net.until = s.time + .16;
+  s.events.push({ type: 'zap', x: net.x, y: net.y, z: net.z, points: net.points, struck: net.struck, weapon: w.id });
+  if (s.challenge) {
+    const targets = net.struck.filter(id => s.enemies.some(enemy => enemy.id === id && enemy.alive && enemy.stun > 0));
+    recordChallengeZap(s.challenge, targets, s.nextId, net.firstExpiry);
+  }
 }
 
 // ---------- 感知 ----------
@@ -337,7 +358,8 @@ function sense(s, e, dt) {
     e.wake -= dt;
     let turn = Math.atan2(dx, dz) - e.heading;
     turn = Math.atan2(Math.sin(turn), Math.cos(turn));
-    e.heading += clamp(turn, -dt * 5, dt * 5);
+    if (e.type === 'shielded') steerTravel(e, dx, dz, dt, d);
+    else e.heading += clamp(turn, -dt * 5, dt * 5);
     if (e.wake <= 0) becomeAlert(s, e);
     return;
   }
@@ -357,6 +379,18 @@ function sense(s, e, dt) {
   }
 }
 
+// The shield, the visible rig and the damage cone share this heading.
+function steerTravel(e, dx, dz, dt, distance) {
+  const desired = Math.atan2(dx, dz);
+  if (e.type !== 'shielded') { e.heading = desired; return 1; }
+  const delta = Math.atan2(Math.sin(desired-e.heading), Math.cos(desired-e.heading));
+  const rate = .72 + 1.65 * clamp((distance - 3) / 2, 0, 1);
+  const step = clamp(delta, -rate*dt, rate*dt);
+  e.heading += step;
+  // When the waypoint is behind the guard, plant its feet and turn first.
+  return clamp(Math.cos(delta-step)*1.5, 0, 1);
+}
+
 // 没发现玩家时：睡着的不动，巡逻的在几个点之间慢慢蹦。
 function idleMove(s, e, dt) {
   e.hop = 0; e.hopPhase = 0;
@@ -368,9 +402,9 @@ function idleMove(s, e, dt) {
   e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
   const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
   e.hop = lift * e.hopHeight * 0.5;
-  const travel = Math.min(d, e.speed * 0.42 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
+  const alignment = steerTravel(e, dx, dz, dt, d);
+  const travel = Math.min(d, alignment * e.speed * 0.42 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
-  e.heading = Math.atan2(dx, dz);
 }
 
 // 警觉后：绕开家具追玩家，按兵种穿插扑击、侧跳、冲刺。玩家在别的楼层时先去走楼梯。
@@ -404,12 +438,13 @@ function chase(s, e, dt) {
   if (!next) return;
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0;
-  const travel = Math.min(d, speed * dt);
+  const facesPlayer = e.action === 'sidestep' || (e.type === 'shielded' && level &&
+    lineOfSight(S, {x:e.x,y:e.base+.95,z:e.z}, {x:p.x,y:p.y+1,z:p.z}));
+  const alignment = d > .03 && e.hit <= 0
+    ? steerTravel(e, facesPlayer ? p.x-e.x : dx, facesPlayer ? p.z-e.z : dz, dt, Math.hypot(p.x-e.x,p.z-e.z))
+    : 1;
+  const travel = Math.min(d, alignment * speed * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
-  if (d > 0.03 && e.hit <= 0) {
-    const sidestep = e.action === 'sidestep';
-    e.heading = Math.atan2(sidestep ? p.x - e.x : dx, sidestep ? p.z - e.z : dz);
-  }
 }
 
 // ---------- 伤害 ----------
@@ -437,8 +472,10 @@ function damage(s, e, amount, dx, dz, impulse, source = 'ball', meta = {}) {
   const offsetX = (meta.contactX ?? e.x) - e.x, offsetZ = (meta.contactZ ?? e.z) - e.z;
   const twist = (offsetX * dz - offsetZ * dx) / e.radius;
   e.reactionTwist = Math.abs(twist) > 0.08 ? clamp(twist, -1, 1) : (e.id % 2 ? 1 : -1) * 0.7;
-  s.events.push({ type: 'hit', id: e.id, ...at(e), dx, dz, heavy: weapon === 'heavy', source, amount, hp: e.hp, maxHp: e.maxHp,
-    impulse: impulse * e.resistance, strength: e.reactionStrength, ...meta, weapon });
+  const hit = { type: 'hit', id: e.id, ...at(e), dx, dz, heavy: weapon === 'heavy', source, amount, hp: e.hp, maxHp: e.maxHp,
+    impulse: impulse * e.resistance, strength: e.reactionStrength, ...meta, weapon };
+  s.events.push(hit);
+  if (s.challenge) recordChallengeHit(s.challenge, hit, e, s.time);
   if (e.hp <= 0) knockdown(s, e, dx, dz, source);
 }
 
@@ -460,7 +497,7 @@ function ballHit(s, b, e, incoming) {
   amount *= 1 + (back ? 1 : 0) + (sneak ? 1 : 0);
   b.hitTimes[e.id] = s.time; b.enemyHits++;
   s.hits++; if (back) s.backHits++; if (sneak) s.sneakHits++;
-  damage(s, e, amount, dx, dz, b.impulse, 'ball', { ballId: b.id, weapon: b.weapon, stun: b.stun, charged:b.power>=.6, back, sneak, armored: !!e.armor && !back && !b.pierceArmor, contactX: b.x, contactY: b.y, contactZ: b.z });
+  damage(s, e, amount, dx, dz, b.impulse, 'ball', { ballId: b.id, afterSurface: b.lastSurfaceId, weapon: b.weapon, stun: b.stun, charged:b.power>=.6, back, sneak, armored: !!e.armor && !back && !b.pierceArmor, contactX: b.x, contactY: b.y, contactZ: b.z });
 }
 
 // ---------- 毛球 ----------
@@ -515,16 +552,20 @@ function launchEnemyProjectile(s,e,target){
  const b={id:s.nextId++,owner:e.id,x:e.x+Math.sin(e.heading)*muzzle.forward+Math.cos(e.heading)*muzzle.side,y,z:e.z+Math.cos(e.heading)*muzzle.forward-Math.sin(e.heading)*muzzle.side,r:.085,age:0,life:2.8,destroyed:false};const mx=target.x-b.x,my=target.y-b.y,mz=target.z-b.z,m=Math.hypot(mx,my,mz)||1;b.vx=mx/m*ARROW_SPEED;b.vy=my/m*ARROW_SPEED;b.vz=mz/m*ARROW_SPEED;s.enemyShots.push(b);s.events.push({type:'enemy-shot',id:b.id,x:b.x,y,z:b.z});
 }
 const attackApi={hurt:hurtPlayer,knockdown,projectile:launchEnemyProjectile,bomb:launchBomb};
+function settleEnemyShot(s,b,impact){
+ b.destroyed=true;
+ if(s.challenge)recordChallengeArrow(s.challenge,impact);
+}
 function advanceEnemyShot(s,b,dt){
- b.age+=dt;if(b.age>b.life){b.destroyed=true;return;}
+ b.age+=dt;if(b.age>b.life){settleEnemyShot(s,b,'expired');return;}
  const end={x:b.x+b.vx*dt,y:b.y+b.vy*dt,z:b.z+b.vz*dt};let t=1,kind=null,enemy=null;
  for(const solid of s.level.solids){const h=segmentBox(b,end,solid,b.r);if(h&&h.t<=t){t=h.t;kind='wall';}}
  const playerHit=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,s.player.x,s.player.z,CONFIG.playerRadius+b.r,s.player.y+.05,s.player.y+1.7);
  if(playerHit!==null&&playerHit<t){t=playerHit;kind='player';}
  for(const e of s.enemies){if(!e.enabled||!e.alive||e.id===b.owner)continue;const h=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,e.x,e.z,e.radius+b.r,e.y+.04,e.y+e.height);if(h!==null&&h<t){t=h;kind='enemy';enemy=e;}}
  b.x+=(end.x-b.x)*t;b.y+=(end.y-b.y)*t;b.z+=(end.z-b.z)*t;
- if(kind){b.destroyed=true;if(kind==='player')hurtPlayer(s,s.enemies.find(e=>e.id===b.owner)||{id:b.owner,x:b.x-b.vx,z:b.z-b.vz},'arrow');else if(kind==='enemy'){const n=Math.hypot(b.vx,b.vz)||1;damage(s,enemy,1,b.vx/n,b.vz/n,.7,'enemy-arrow',{weapon:'single'});}s.events.push({type:'enemy-shot-impact',id:b.id,x:b.x,y:b.y,z:b.z});}
- const B=s.level.bounds;if(b.x<B.minX||b.x>B.maxX||b.z<B.minZ||b.z>B.maxZ)b.destroyed=true;
+ if(kind){settleEnemyShot(s,b,kind);if(kind==='player')hurtPlayer(s,s.enemies.find(e=>e.id===b.owner)||{id:b.owner,x:b.x-b.vx,z:b.z-b.vz},'arrow');else if(kind==='enemy'){const n=Math.hypot(b.vx,b.vz)||1;damage(s,enemy,1,b.vx/n,b.vz/n,.7,'enemy-arrow',{weapon:'single'});}s.events.push({type:'enemy-shot-impact',id:b.id,x:b.x,y:b.y,z:b.z});}
+ else {const B=s.level.bounds;if(b.x<B.minX||b.x>B.maxX||b.z<B.minZ||b.z>B.maxZ)settleEnemyShot(s,b,'bounds');}
 }
 
 // 一帧内逐段扫掠：每次推进到最近的接触点，反弹后用剩余时间继续，快球不会穿过薄墙。
@@ -595,6 +636,7 @@ function advanceBall(s, b, dt) {
     const dot = b.vx * hit.nx + b.vy * hit.ny + b.vz * hit.nz, retain = b.fuse ? 0.5 : hit.e ? 0.98 : 0.985;
     b.vx = (b.vx - 2 * dot * hit.nx) * retain; b.vy = (b.vy - 2 * dot * hit.ny) * retain; b.vz = (b.vz - 2 * dot * hit.nz) * retain;
     if (hit.kind === 'floor') b.vy = b.fuse ? b.vy * 0.7 : Math.max(1.05, b.vy * 0.88);
+    b.lastSurfaceId = hit.box?.id; // Actual previous contact, independent of throttled visual bounce events.
     b.bounceCount++; s.bounces++;
     b.lastNormal = { x: hit.nx, y: hit.ny, z: hit.nz };
     if (s.time - (b.lastBounceEvent ?? -1) > 0.04) {
@@ -612,8 +654,22 @@ function advanceBall(s, b, dt) {
 
 // 毛线团炸开：blast 米内、没被墙挡住的僵尸掉血（越近越多）、被推开，并被毛线缠住。玩家站太近只会被推一下。
 function explode(s, b) {
-  blast(s, b.x, b.y, b.z, WEAPONS[weaponIndex(b.weapon)]);
+  const w = WEAPONS[weaponIndex(b.weapon)];
+  blast(s, b.x, b.y, b.z, w);
+  if (w.tangle) {
+    const y = surfaceY(s.level, b.x, b.z, b.y) + .035;
+    s.tangleFields.push({ id: b.id, x: b.x, y, z: b.z, radius: w.blast, start: s.time, until: s.time + w.tangle });
+  }
   expireBall(s, b, 'explode');
+}
+
+function advanceTangleFields(s) {
+  s.tangleFields = s.tangleFields.filter(field => field.until > s.time);
+  for (const field of s.tangleFields) for (const e of s.enemies) {
+    if (!e.alive || !e.enabled || Math.abs(e.base - field.y) > .45 || Math.hypot(e.x - field.x, e.z - field.z) > field.radius) continue;
+    const origin = { x: field.x, y: field.y + .16, z: field.z };
+    if (lineOfSight(s.level, origin, { x: e.x, y: e.base + .25, z: e.z })) e.tangle = Math.max(e.tangle, .22);
+  }
 }
 // 在 (x, y, z) 炸开一团毛线：手雷和颜料桶共用。
 function blast(s, x, y, z, w, source = null) {
@@ -692,7 +748,8 @@ function investigate(s, e, dt) {
     t.arrived = true; e.hop *= Math.exp(-dt * 12);
     let turn = Math.atan2(t.lookX - e.x, t.lookZ - e.z) - e.heading;
     turn = Math.atan2(Math.sin(turn), Math.cos(turn));
-    e.heading += clamp(turn, -dt * 4, dt * 4);
+    if(e.type==='shielded')steerTravel(e,t.lookX-e.x,t.lookZ-e.z,dt,far);
+    else e.heading += clamp(turn, -dt * 4, dt * 4);
     return;
   }
   e.navIn -= dt;
@@ -704,9 +761,10 @@ function investigate(s, e, dt) {
   e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
   const lift = Math.sin(clamp(e.hopPhase / 0.78, 0, 1) * Math.PI), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   e.hop = lift * e.hopHeight * 0.7;
-  const travel = Math.min(d, (e.hit <= 0 ? e.speed * 0.75 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  const alignment = d > .03 && e.hit <= 0 ? steerTravel(e,dx,dz,dt,d) : 1;
+  const travel = Math.min(d, (e.hit <= 0 ? alignment * e.speed * 0.75 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
-  if (d > 0.03 && e.hit <= 0) e.heading = Math.atan2(dx, dz);
+
 }
 
 // 任务物品拿齐了：没出场的（守墓巨像）现在出现。先愣 wake 秒（画面上是先亮眼睛、再现身），然后开始追。
@@ -737,11 +795,17 @@ function collect(s) {
       if (index < 0) continue;
       got = { weapon: WEAPONS[index].id, amount: k.amount ?? WEAPONS[index].pack ?? WEAPONS[index].mag };
       s.ammo[index].reserve += got.amount;
-      if (index === GRENADE) s.owned[GRENADE] = true;
+      if (WEAPONS[index].kind === 'grenade') {
+        if (!s.owned[s.grenade]) s.grenade = index;
+        s.owned[index] = true;
+      }
     } else if (k.kind === 'weapon') {
       const index = weaponIndex(k.weapon), w = WEAPONS[index], second = secondOf(s);
       if (index < 0) continue;
-      if (index === GRENADE) { s.ammo[index].reserve += k.amount ?? 1; s.owned[index] = true; }
+      if (w.kind === 'grenade') {
+        if (!s.owned[s.grenade]) s.grenade = index;
+        s.ammo[index].reserve += k.amount ?? 1; s.owned[index] = true;
+      }
       else if (s.owned[index]) s.ammo[index].reserve += (k.amount ?? w.reserve) + (k.mag ?? 0);   // 已经有这把：只加备弹
       else if (second < 0) { s.owned[index] = true; s.ammo[index] = { mag: k.mag ?? w.mag, reserve: k.amount ?? w.reserve }; selectWeapon(s, index); }   // 第二把还空着：直接装备
       else continue;   // 手里已经有另一把：留在地上，走近了按键才换（exchangeWeapon）
@@ -768,7 +832,7 @@ export function offeredWeapon(s) {
   for (const k of s.pickups) {
     if (k.taken || k.hidden || k.kind !== 'weapon' || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     const index = weaponIndex(k.weapon), d = length(k.x - p.x, k.z - p.z);
-    if (index < 0 || index === GRENADE || s.owned[index] || d > nearest) continue;
+    if (index < 0 || WEAPONS[index].kind === 'grenade' || s.owned[index] || d > nearest) continue;
     nearest = d; best = k;
   }
   return best;
@@ -791,6 +855,7 @@ export function exchangeWeapon(s) {
 // 任务：clear = 清空所有僵尸；fetch = 拿到目标物后回到出口区域。
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
+  if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
@@ -885,6 +950,11 @@ export function step(s, dt, input = {}) {
   }
   for (const e of s.enemies) if (e.enabled) resolveBody(storeyAt(L, e.base), e, e.radius);
 
+  if (s.nets.length) {
+    for (const net of s.nets) advanceNet(s, net, dt);
+    s.nets = s.nets.filter(net => s.time < net.until);
+  }
+  if (s.tangleFields.length) advanceTangleFields(s);
   for (const ball of s.balls) advanceBall(s, ball, dt);
   s.balls = s.balls.filter(b => !b.destroyed);
   advanceBombs(s,dt,hurtPlayer);for(const b of s.enemyShots)advanceEnemyShot(s,b,dt);s.enemyShots=s.enemyShots.filter(b=>!b.destroyed);
@@ -919,6 +989,11 @@ export function step(s, dt, input = {}) {
 
   collect(s);
 
+  if (s.challenge) {
+    const phase = challengeOutcome(s.challenge, s);
+    if (phase) finish(s, phase);
+    return;
+  }
   if (s.health <= 0) { finish(s, 'lost'); return; }
   if (s.endIn !== null) { s.endIn -= dt; if (s.endIn <= 0) finish(s, 'won'); }
   else if (missionStatus(s).done) { s.enemyShots=[];s.enemyBombs=[];s.endIn = CONFIG.endDelay; s.events.push({ type: 'mission-complete' }); }

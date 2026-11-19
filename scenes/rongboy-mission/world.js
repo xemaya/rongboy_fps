@@ -68,6 +68,18 @@ function pickupModel(k, weapons) {
 // toys / floor：会动的那几样（骨架模型、地球仪、小黄鸭、盆栽）不并进整块网格，交给 toys 单独造在第 floor 层上
 function furniture(k, M, c, toys = null, floor = 0) {
   const look = c.look || c.kind;
+  if (look === 'sewing-board') {
+    // All decoration stays flush with the board face.
+    const face=c.z+c.d/2, rim=.082;
+    k.soft(M('boards',0xb58b59),c.w,c.h,c.d,c.x,c.h/2,c.z,{r:.045});
+    k.soft(M('felt',c.color),c.w-2*rim,c.h-2*rim,.045,c.x,c.h/2,face-.022,{r:.018});
+    for(const y of [rim+.08,c.h-rim-.08]) {
+      for(let x=c.minX+.20;x<c.maxX-.14;x+=.20) {
+        k.soft(M('felt',0xe0c496),.098,.018,.012,x,y,face+.002,{r:.005,rz:.06});
+      }
+    }
+    return;
+  }
   // 博物馆的展品
   if (c.kind === 'plinth' && toys && look === 'skeleton') return toys.rattler(floor, c.id, c.x, c.z, kit => skeletonModel(kit, M, { ...c, x: 0, z: 0 }));
   if (c.kind === 'plinth' && toys && c.item === 'globe') {

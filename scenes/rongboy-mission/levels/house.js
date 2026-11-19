@@ -12,7 +12,7 @@ export default {
     eyebrow: '第一关 · 家（三层楼与花园）',
     title: '上阁楼，<br>把毛线篮拿回来。',
     intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
-    how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：棉被炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
+    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
     start: '进入花园',
     hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
     got: '拿到毛线篮了！',
@@ -32,7 +32,7 @@ export default {
   // 想改回"清空全部"只要换成 { type: 'clear', title: '清空整栋房子里的僵尸' }。
   mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 13, exit: garden },
   // 开局带的：手枪、一把特殊枪（霰弹）、手雷。手里只拿得下两把，其余的特殊枪在屋里（pickups 里 kind: 'weapon'），走到跟前按 F 换。
-  arsenal: ['single', 'scatter', 'yarn'],
+  arsenal: ['single', 'scatter', 'yarn', 'jack'],
   // 折返楼梯：西边一跑往北上到半层平台，东边一跑往南上到上一层。
   stairs: { minX: -1.4, maxX: 1.4, mouthZ: -9, landingZ: -11.2, endZ: -12.5 },
 
@@ -165,7 +165,7 @@ export default {
     { kind: 'heart', amount: 1, x: -8.3, z: 2.4 },
     { kind: 'heart', amount: 1, x: 1.0, z: -6.6 },
     { kind: 'weapon', weapon: 'stun', amount: 4, x: -1.4, z: 9.0 },      // 静电枪：就在院门边，开局就能拿
-    { kind: 'weapon', weapon: 'sewing', amount: 48, x: 5.6, z: -6.5 },   // 缝纫机枪：书房，棉甲僵尸睡在旁边
+    { kind: 'weapon', weapon: 'sewing', amount: 48, x: 5.6, z: -6.5 },   // 订书机枪：书房，棉甲僵尸睡在旁边
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: -8.3, z: -6.3 },
   ],
   upper: [
@@ -312,13 +312,13 @@ export default {
       ],
 
       enemies: [
-        { type: 'shielded', x: 0, z: 1.4, state: 'idle', heading: Math.PI, patrol: [[0, -5.5], [0, 1.4]] },   // 第一只持盾者：走廊里绕不到背后，要用棉被炮、蓄力球或者反弹
+        { type: 'shielded', x: -3.5, z: -1.4, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.2, -1.4], [-3.5, -1.4]] },   // 储藏间的空地留出横移路线，阁楼走廊可用于撤离
         { type: 'leaper', x: -3.2, z: -7.6, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.4, -7.4], [-3.2, -7.6]] },
         { type: 'walker', x: -6.6, z: -4.4, state: 'asleep', heading: Math.PI / 2 },
         { type: 'archer', x: -3.4, z: 2.0, state: 'idle', heading: Math.PI },
         { type: 'bomber', x: -6.6, z: -1.4, state: 'asleep', heading: Math.PI / 2 },
         { type: 'leaper', x: 3.4, z: -6.9, state: 'idle', heading: Math.PI / 2, patrol: [[7.4, -7.2], [3.4, -6.9]] },
-        { type: 'shielded', x: 7.2, z: -4.0, state: 'idle', heading: -Math.PI / 2 },
+        { type: 'shielded', x: 7.6, z: -6.25, state: 'idle', heading: -Math.PI / 2 },
         { type: 'heavy', x: 6.6, z: -0.8, state: 'idle', heading: -Math.PI / 2 },
         { type: 'leaper', x: 3.0, z: 1.4, state: 'asleep', heading: Math.PI / 2 },
         // 守墓巨像（开场片结尾的那一位）：开局不在场上，拿起毛线篮的那一刻在藏宝间的西北角现身，在玩家身后。

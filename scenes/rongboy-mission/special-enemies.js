@@ -32,7 +32,7 @@ export function contactAttack(e){if(!SPECIAL_TYPES.has(e.type))return true;retur
 export function advanceSpecial(s,e,dt,api,S=s.level){
  e.actionAge+=dt;e.actionCooldown=Math.max(0,e.actionCooldown-dt);e.moveMultiplier=1;e.sideLean=0;e.guardBroken=Math.max(0,e.guardBroken-dt);
  const p=s.player,dx=p.x-e.x,dz=p.z-e.z,d=Math.hypot(dx,dz)||1,a=ATTACKS[e.type],los=visible(s,e);
- if(e.action==='special-recover'){if(e.actionAge<.7)return still;set(e,'chase');}
+ if(e.action==='special-recover'){const hold=e.recoverFrom==='shield-charge'?1.35:.7;if(e.actionAge<hold)return still;set(e,'chase');}
  if(e.action==='crawler-strike'||e.action==='shield-charge'){
   const duration=e.type==='crawler'?.36:.50;if(e.actionAge>=duration){recovery(e,a.cooldown);return still;}
   const speed=e.type==='crawler'?3.5:5.0;return {x:e.attackX*speed,z:e.attackZ*speed,y:0};
@@ -49,7 +49,7 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
   if(e.actionAge<a.windup)return still;
   if(e.action==='crawler-windup'||e.action==='shield-windup'){
    const target={x:e.aimX,z:e.aimZ};if(!clearPath(S,e,target,e.radius+.025,true)){recovery(e,1.2);return still;}
-   const n=Math.hypot(target.x-e.x,target.z-e.z)||1;e.attackX=(target.x-e.x)/n;e.attackZ=(target.z-e.z)/n;set(e,e.type==='crawler'?'crawler-strike':'shield-charge');return still;
+   const n=Math.hypot(target.x-e.x,target.z-e.z)||1;e.attackX=e.type==='shielded'?Math.sin(e.heading):(target.x-e.x)/n;e.attackZ=e.type==='shielded'?Math.cos(e.heading):(target.z-e.z)/n;set(e,e.type==='crawler'?'crawler-strike':'shield-charge');return still;
   }
   if(e.action==='bomber-throw'){api.bomb(s,e,{x:e.aimX,z:e.aimZ});s.rangedGate=s.time+RANGED_GAP;recovery(e,a.cooldown);return still;}
   if(e.action==='warden-call'){activateReserve(s,e,api,S);recovery(e,a.cooldown);return still;}
@@ -69,13 +69,21 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
   if(d<1.2&&api.hurt(s,e,'leech-drain')){e.hp=Math.min(e.maxHp,e.hp+2);s.events.push({type:'drain',id:e.id,x:e.x,z:e.z});recovery(e,a.cooldown);}return still;
  }
  if(e.hit>0)return null;
- if(los)e.heading=Math.atan2(dx,dz);
+ if(los&&e.type!=='shielded')e.heading=Math.atan2(dx,dz);
  const ready=e.actionCooldown<=0;
  // 远程出手要排队：别的弓手或炸弹客正在蓄势、或者上一次出手刚过，就先等着
  const rangedFree=s.time>=(s.rangedGate||0)&&!s.enemies.some(o=>o!==e&&o.alive&&o.enabled&&(o.action==='archer-aim'||o.action==='bomber-throw'));
  const begin=action=>{set(e,action);e.aimX=p.x;e.aimZ=p.z;s.events.push({type:'attack-windup',id:e.id,enemyType:e.type,action,x:e.x,z:e.z});return still;};
  if(e.type==='crawler'&&ready&&d<a.range&&los)return begin('crawler-windup');
- if(e.type==='shielded'&&ready&&e.guardBroken<=0&&d<a.range&&d>1.0&&los)return begin('shield-windup');
+ if(e.type==='shielded' && ready && e.guardBroken<=0 && d<a.range && los){
+  const fx=Math.sin(e.heading),fz=Math.cos(e.heading);
+  if((fx*dx+fz*dz)/d>Math.cos(Math.PI/15)){
+   set(e,'shield-windup');
+   e.aimX=e.x+fx*d;e.aimZ=e.z+fz*d;
+   s.events.push({type:'attack-windup',id:e.id,enemyType:e.type,action:e.action,x:e.x,z:e.z});
+   return still;
+  }
+ }
  if(e.type==='bomber'&&los){if(d<2.8)return {x:-dx/d*.8,z:-dz/d*.8,y:0};if(ready&&rangedFree&&d<a.range)return begin('bomber-throw');if(d<a.range)return still;}
  if(e.type==='archer'&&los){
   if(d<2.5){const tx=e.x-dx/d*.5,tz=e.z-dz/d*.5;if(freePoint(S,tx,tz,e.radius))return {x:-dx/d*.9,z:-dz/d*.9,y:0};}

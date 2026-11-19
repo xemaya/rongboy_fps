@@ -421,18 +421,19 @@ test('the yarn grenade has its own key: it is thrown without leaving the gun in 
   // 正式地图：开局都是手枪加一把，外加手雷
   for (const id of ORDER) {
     const g = createGame({ level: compileLevel(LEVELS[id]) }), guns = g.owned.map((o, i) => o && WEAPONS[i].id).filter(Boolean);
-    assert.deepEqual(guns, ['single', 'scatter', 'yarn'], id);
+    assert.deepEqual(guns, ['single', 'scatter', 'yarn', 'jack'], id);
   }
 });
 
 
-test('static gun: freezes its target, the arc jumps to neighbours, and a frozen zombie cannot bite', () => {
+test('static gun: a travelling, widening net freezes zombies it crosses and cannot cross cover', () => {
   const s = armed('stun'), w = WEAPONS[s.weapon];
   const a = spawn(s, { x: 2, z: 0 }), b = spawn(s, { x: 3.6, z: 0.8 }), c = spawn(s, { x: 5.2, z: 0 }), far = spawn(s, { x: 9, z: 6 });
   assert.ok(fire(s, 0, aimEast));
+  assert.ok(a.stun===0 && s.nets.length===1, 'the projectile must reach the target');
+  run(s,.46);
   const zapEvent = consumeEvents(s).find(e => e.type === 'zap');
-  assert.deepEqual(zapEvent.struck, [a.id, b.id, c.id], 'first target, then two hops');
-  assert.equal(zapEvent.points.length, 4);
+  assert.deepEqual(zapEvent.struck, [a.id, b.id, c.id], 'one widening net catches three targets');
   assert.ok(a.stun > 2 && b.stun > 2 && c.stun > 2 && far.stun === 0);
   assert.equal(a.hp, a.maxHp - 1, 'barely any damage');
   const before = { x: a.x, z: a.z };
@@ -445,10 +446,10 @@ test('static gun: freezes its target, the arc jumps to neighbours, and a frozen 
   // 电弧被墙挡住；棉甲定身时间短；被电住时挨打算偷袭
   const walled = armed('stun', { furniture: [{ id: 'wall', kind: 'cabinet', x: 0, z: 0, w: 0.4, d: 3, h: 2.4 }] });
   const hidden = spawn(walled, { x: 2, z: 0 });
-  fire(walled, 0, aimEast);
+  fire(walled, 0, aimEast);run(walled,.35);
   assert.equal(hidden.stun, 0);
   const t = armed('stun'), heavy = spawn(t, { type: 'heavy', x: 2, z: 0, heading: WEST });
-  fire(t, 0, aimEast);
+  fire(t, 0, aimEast);run(t,.2);
   assert.ok(heavy.stun > 1 && heavy.stun < w.stun * 0.7);
   selectWeapon(t, 0); run(t, 0.6); consumeEvents(t);   // 等静电枪的冷却过去，棉甲还定着
   assert.ok(heavy.stun > 0.5);
@@ -496,11 +497,11 @@ test('knitting needle: flies straight, goes through three zombies in a row and s
   assert.equal(99 - target.hp, w.damage * 2 + w.chargeDamage, 'an aimed one hits harder');
 });
 
-test('yarn grenade: bounces, bursts after its fuse, hurts and tangles what it can see', () => {
-  const s = armed('yarn', { furniture: [{ id: 'wall', kind: 'cabinet', x: 4.0, z: 0, w: 0.4, d: 2, h: 2.4 }] }), w = WEAPONS[s.weapon];
+test('steamer: bounces, bursts after its fuse, hurts and tangles what it can see', () => {
+  const s = game({ arsenal:['single','yarn'], furniture: [{ id: 'wall', kind: 'cabinet', x: 4.0, z: 0, w: 0.4, d: 2, h: 2.4 }] }), w = WEAPONS[GRENADE];
   const near = spawn(s, { x: 2.0, z: 0.9 }), edge = spawn(s, { x: 3.2, z: -1.8 }), hidden = spawn(s, { x: 4.8, z: 0 }), far = spawn(s, { x: 8, z: -6 });
   for (const e of [near, edge, hidden, far]) e.awareness = 'idle';
-  fire(s, 0, { origin: { x: -1.4, y: 1.0, z: 0 }, direction: { x: 1, y: 0.1, z: 0 } });
+  throwGrenade(s, 0, { origin: { x: -1.4, y: 1.0, z: 0 }, direction: { x: 1, y: 0.1, z: 0 } });
   run(s, w.fuse - 0.1);
   assert.equal(s.balls.length, 1, 'still rolling');
   assert.ok(s.bounces >= 1);
@@ -517,8 +518,8 @@ test('yarn grenade: bounces, bursts after its fuse, hurts and tangles what it ca
   a.tangle = 3; run(slow, 2); run(fast, 2);
   assert.ok(6 - a.x < (6 - b.x) * 0.5, `tangled ${(6 - a.x).toFixed(2)} m vs free ${(6 - b.x).toFixed(2)} m`);
   // 直接砸中：不等引信
-  const direct = armed('yarn'), hit = spawn(direct, { x: 1.2, z: 0 });
-  fire(direct, 0, aimEast); run(direct, 0.4);
+  const direct = game({arsenal:['single','yarn']}), hit = spawn(direct, { x: 1.2, z: 0 });
+  throwGrenade(direct, 0, aimEast); run(direct, 0.4);
   assert.ok(hit.hp < hit.maxHp && direct.balls.length === 0);
 });
 

@@ -1,0 +1,36 @@
+{
+  "tool": "built-in image_gen",
+  "concepts": "scenes/rongboy-mission/review/menu-flow-20261119",
+  "plates": {
+    "garden": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Remove all text, logotype, selection rows, stitches around selection row, and keycap labels. Restore the dark vegetation seamlessly at left. Keep the first person spool gun at lower right, quilted gate, house exterior and same zombie behind hedge and sunset. Same composition.",
+      "reference": "01-main.png",
+      "output": "menu-garden.webp"
+    },
+    "museum": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Remove ALL text on screen, top left logo, navigation badge, entire row of chapter cards, key hints and orange button. Recover real museum floor continuing down to bottom edge. Keep the blue-hour felt dinosaur museum and hero at far right, same framing.",
+      "reference": "02-chapters.png",
+      "output": "menu-museum.webp"
+    },
+    "school": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Reimagine this game's SCHOOL thumbnail at full 16:9 depth as a background without any controls. Actual warm indoor craft felt school hallway, cream walls above sage patterned wainscot, green cloth lockers down left wall, large openings to a tiny toy playground on right, daylit off-white hand-sewn pendants and amber wood plank floor. No people. Dusk-like lower gradient or naturally darker floor so a chapter carousel can overlay it. The school thumbnail is the only content reference; stage it as a full immersive movie frame, no text or borders.",
+      "reference": "02-chapters.png",
+      "output": "menu-school.webp"
+    },
+    "cottage": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Reimagine this game's grandma's cottage thumbnail, one small cozy felt cottage with red patchwork roof and glowing window next to a miniature vegetable patch of cabbage, carrots and pumpkins, low pale wooden felt garden fence, warm afternoon natural light, ground level from path, trees backlit, all real handmade wool needle-felt craft materials. Only the fourth thumbnail is the content reference, frame full width as an immersive film still. No labels, no controls. Darker ground at bottom for chapter carousel.",
+      "reference": "02-chapters.png",
+      "output": "menu-cottage.webp"
+    },
+    "practice": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Remove all HUD including title label, three hearts, floating Zzz, any aiming ring, ammo and buttons, and rebuild felt grass where labels were. Keep the exact first-person training wall, hedge, zombie partly behind hedge, kite-shield zombie and spooled wool gun, same framing.",
+      "reference": "07-practice-ready.png",
+      "output": "menu-practice.webp"
+    },
+    "workbench": {
+      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Remove ALL text, logo, the whole white info patch, buttons, view tabs, character, doodle sheet and circular plinth. Replace with a quiet dark handmade felt craft workbench with out of focus alcove and warm lamp lighting on the RIGHT; empty flat warm desk plane and subtle olive drape, camera at tabletop level, leave left half dark. Image is used behind a real 3D turntable model; physically clean negative space.",
+      "reference": "09-codex-detail.png",
+      "output": "menu-workbench.webp"
+    }
+  }
+}

@@ -1,0 +1,79 @@
+:root {
+  --ui-title: "Kaiti SC", STKaiti, KaiTi, "Songti SC", "Noto Serif CJK SC", serif;
+  --ui-text: "Songti SC", STSong, "Noto Serif CJK SC", serif;
+  --ui-symbol: ui-monospace, Menlo, Consolas, monospace;
+  --ui-cream: #fff1d0;
+  --ui-parchment: #dfcdab;
+  --ui-gold: #efbf69;
+  --ui-edge: #c9aa7280;
+  --ui-felt: #17271e;
+}
+
+.ui-key {
+  display: inline-grid;
+  place-items: center;
+  min-inline-size: 1.65em;
+  block-size: 1.65em;
+  padding-inline: .34em;
+  border: 1px solid #cfb683;
+  border-radius: 3px;
+  margin: 0;
+  background: #111d16;
+  box-shadow: 0 2px 0 #080f0a, inset 0 1px 0 #f1d9a62e;
+  color: #ffe8ad;
+  font: 700 .88em/1 var(--ui-symbol);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+.ui-key[data-shape=pad] { border-radius: 50%; padding-inline: 0; }
+.ui-keys { display: inline-flex; align-items: center; gap: 4px; }
+.ui-hints { display: flex; flex-wrap: wrap; align-items: center; gap: .65em 1.4em; }
+.ui-command { display: inline-flex; align-items: center; gap: .52em; white-space: nowrap; }
+.ui-hints, .ui-command {
+  color: var(--ui-cream);
+  font: 700 clamp(14px, 1.26vw, 18px)/1.32 var(--ui-title);
+  letter-spacing: .045em;
+}
+.ui-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6em;
+}
+.ui-hints .ui-key, .ui-trigger .ui-key { flex-shrink: 0; }
+.ui-trigger .ui-key { font-size: min(.76em, 16px); }
+.ui-return {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55em;
+  min-height: 40px;
+  padding: .48em .92em;
+  border: 1px solid var(--ui-edge);
+  border-radius: 4px;
+  background: linear-gradient(150deg, #2c3b2c, #16251b);
+  box-shadow: 0 3px 0 #0b150f;
+  color: var(--ui-cream);
+  font: 700 clamp(15px, 1.42vw, 21px)/1.18 var(--ui-title);
+  letter-spacing: .05em;
+  text-decoration: none;
+}
+.ui-return:hover, .ui-return:focus-visible { border-color: var(--ui-gold); color: #ffe3a1; }
+.ui-return:focus-visible { outline: 2px solid var(--ui-gold); outline-offset: 3px; }
+.ui-seam {
+  border-block-start: 1px dashed var(--ui-edge);
+  padding-block-start: .75em;
+}
+.ui-stamp {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7em;
+  aspect-ratio: 1;
+  border: .08em double currentColor;
+  border-radius: 50%;
+  color: #9e442f;
+  font: 900 34px/1 var(--ui-title);
+  box-shadow: 0 0 0 1px currentColor, inset 0 0 0 1px currentColor;
+  transform: rotate(-9deg);
+}

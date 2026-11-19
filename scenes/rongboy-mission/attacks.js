@@ -8,7 +8,7 @@ export const ATTACKS={
  leaper:{name:'敏捷扑击',counter:'看到金圈后侧移，开枪打断'},
  heavy:{name:'棉甲推进',counter:'正面减伤，绕后打'},
  crawler:{name:'贴地扑抓',counter:'低头瞄准，避开短扑；命中会缠线减速',windup:.65,cooldown:2.6,range:1.9},
- shielded:{name:'格挡盾冲',counter:'绕后，或用棉被炮/蓄力球破防',windup:.9,cooldown:3.2,range:3.8},
+ shielded:{name:'格挡盾冲',counter:'绕后，或用探照灯炮/蓄力球破防',windup:.9,cooldown:3.2,range:3.8},
  bomber:{name:'抛掷毛线炸弹',counter:'看到举弹后移动，避开落地延时爆圈',windup:.95,cooldown:3.6,range:7.5,radius:2.2},
  archer:{name:'拉弓射箭',counter:'瞄准线变红后换个方向走，或躲到掩体后；打中它会打断',windup:1.15,lock:.35,lead:1,cooldown:2.8,range:11},
  'boss-warden':{name:'震地与召援',counter:'退离震地圈、利用掩体，重弹打断',windup:1.3,cooldown:3.7,range:2.65,radius:3.2},

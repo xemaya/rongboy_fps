@@ -20,8 +20,9 @@ node scripts/map.mjs                                    # 地图工具：出草�
 | 页面 | 内容 |
 |---|---|
 | `dist/rongboy-op.html` | 开场片《嘘——》（64 秒）。从这里进游戏：按任意键或手柄 ✕ 开始，Esc / 手柄任意键跳过，播完进主界面。默认放事先渲好的 `rongboy-op.mp4`，加 `?live=1` 实时渲染 |
-| `dist/rongboy-mission.html` | 轻量选图菜单：左侧切地图、右侧楼层预览；W / S 或 A / D 选，Enter 确认后才加载关卡；手柄用十字键 / 左摇杆选，✕ 出发。`?level=house`（默认）、`museum`、`school`；`?level=training` 是九类僵尸的试战庭院，加 `&type=<兵种>` 只练一种 |
+| `dist/rongboy-mission.html` | 绒仔主菜单：选关、设置、练习、挑战簿。方向键或手柄十字键选，Enter / ✕ 确认，Esc / ○ 返回。挑战簿可直开三个短局，达标后在本浏览器盖章。`?level=house` 等直达选关，`?level=training` 直达兵种试战和模型招式预览 |
 | `dist/rongboy-play.html` | 确认后的实际关卡页，先显示 loading，再直接进入第一人称；`?level=<id>` 选择关卡 |
+| `dist/rongboy-play.html?level=weapon-range` | 练习里的武器试验场。键盘 1–6 试玩各把枪，3 探照灯炮、4 电网、6 毛衣针。G / 手柄十字键↓切换炸弹，E / L2 投掷。手柄 △ 切下一把试射武器。 |
 | `dist/rongboy-zombies.html` | 九类僵尸手办图鉴 |
 | `dist/rongboy-figures.html` | 主角和僵尸的手办预览 |
 | `dist/rongboy-shooter-fps.html` | 工坊版：60 秒生存，任务版的前身 |
