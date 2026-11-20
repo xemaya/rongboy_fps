@@ -10,7 +10,7 @@ const isBatchRoot=o=>isRig(o)||isMechanism(o);
 function fuzzMaterial(){
  const material=new T.MeshStandardMaterial({vertexColors:true,roughness:1,side:T.DoubleSide,transparent:true,opacity:.48,depthWrite:false,alphaTest:.012});
  material.onBeforeCompile=shader=>{
-  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 woolNormal; attribute float woolSurface; varying vec3 vWoolRootNormal; varying float vWoolSurface;').replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvWoolRootNormal = normalMatrix * woolNormal; vWoolSurface=woolSurface;');
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute vec3 woolNormal; attribute float woolSurface; varying vec3 vWoolRootNormal; varying float vWoolSurface;').replace('#include <defaultnormal_vertex>','#include <defaultnormal_vertex>\nvec3 woolN = woolNormal;\n#ifdef USE_SKINNING\nwoolN = (skinMatrix * vec4(woolN, 0.0)).xyz;\n#endif\nvWoolRootNormal = normalMatrix * woolN; vWoolSurface=woolSurface;');
   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vWoolRootNormal; varying float vWoolSurface;').replace('#include <alphatest_fragment>','float woolRim=smoothstep(0.45, 0.85, 1.0 - abs(dot(normalize(vWoolRootNormal), normalize(vViewPosition)))); diffuseColor.a *= mix(woolRim, 1.35+.25*woolRim, vWoolSurface);\n#include <alphatest_fragment>');
  };material.customProgramCacheKey=()=> 'rongboy-curved-surface-wool-v3';return material;
 }
@@ -29,8 +29,8 @@ function feltFibreFinish(material){
  };
  material.customProgramCacheKey=()=>oldKey+'|rongboy-neutral-fibre-luminance-v7-'+(material.userData.rongboy_felt_finish||0);
 }
-export function optimizeFigurine(root){root.updateMatrixWorld(true);const nodes=[];root.traverse(o=>{if(isBatchRoot(o))nodes.push(o);});const canon=new Map();const fuzzMat=fuzzMaterial();
- for(const part of nodes){const groups=new Map(),hair=[],gearLabels=new Set(part.userData.gearLabels||[]);const inverse=part.matrixWorld.clone().invert();function visit(o,fuzz=false){if(o!==part&&isBatchRoot(o))return;if(o.userData.gear)gearLabels.add(o.userData.gear);fuzz ||=!!o.userData.fuzz||o.name.startsWith('fuzz');if(o.isMesh){let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();for(const n of Object.keys(g.attributes))if(!['position','normal','uv','color'].includes(n))g.deleteAttribute(n);g.applyMatrix4(new T.Matrix4().multiplyMatrices(inverse,o.matrixWorld));
+export function optimizeFigurine(root,{skin=false}={}){root.updateMatrixWorld(true);const nodes=[];root.traverse(o=>{if(isBatchRoot(o))nodes.push(o);});const canon=new Map();const fuzzMat=fuzzMaterial();
+ for(const part of nodes){const groups=new Map(),hair=[],gearLabels=new Set(part.userData.gearLabels||[]);const inverse=part.matrixWorld.clone().invert();function visit(o,fuzz=false){if(o!==part&&isBatchRoot(o))return;if(o.userData.gear)gearLabels.add(o.userData.gear);fuzz ||=!!o.userData.fuzz||o.name.startsWith('fuzz');if(o.isMesh){let g=fuzz?(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()):o.geometry.clone();if(!fuzz&&!g.index)g.setIndex([...Array(g.attributes.position.count).keys()]);for(const n of Object.keys(g.attributes))if(!['position','normal','uv','color'].includes(n))g.deleteAttribute(n);g.applyMatrix4(new T.Matrix4().multiplyMatrices(inverse,o.matrixWorld));
  if(fuzz){g.deleteAttribute('uv');g.deleteAttribute('tangent');const colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){const n=i/3,c=g.getAttribute('color');colors[i]=o.material.color.r*(c?c.getX(n):1);colors[i+1]=o.material.color.g*(c?c.getY(n):1);colors[i+2]=o.material.color.b*(c?c.getZ(n):1);}g.setAttribute('color',new T.BufferAttribute(colors,3));const surface=o.userData.wool_profile==='curled_surface';woolNormals(g,surface);g.setAttribute('woolSurface',new T.BufferAttribute(new Float32Array(g.attributes.position.count).fill(surface?1:0),1));hair.push(g);}else{const m=o.material,k=[textureKey(m.map),textureKey(m.normalMap),m.normalScale?.toArray().join(','),m.userData.rongboy_felt_finish||0,m.roughness,m.metalness,m.sheen||0,m.sheenRoughness,m.sheenColor?.getHexString(),m.side,m.opacity,m.alphaTest,m.emissive?.getHexString()].join('|');
  // Base colours are exact per vertex. Constant-colour V2 cloth can share a draw call
  // without the coloured UV atlas that made the close-up faces look mottled.
@@ -41,7 +41,40 @@ export function optimizeFigurine(root){root.updateMatrixWorld(true);const nodes=
  for(const [key,gs]of groups){for(const g of gs)g.deleteAttribute('tangent');const g=mergeGeometries(gs,false);if(!g)throw new Error('Native model merge failed');const mesh=new T.Mesh(g,canon.get(key));mesh.castShadow=mesh.receiveShadow=true;part.add(mesh);for(const q of gs)q.dispose();}
  if(hair.length){const g=mergeGeometries(hair,false);const mesh=new T.Mesh(g,fuzzMat);mesh.receiveShadow=true;mesh.castShadow=false;mesh.userData.fuzz=true;part.add(mesh);for(const q of hair)q.dispose();}
  }
+ if(skin)skinFigurine(root,nodes.filter(isRig));
  return root;
+}
+// 游戏里同屏十几只僵尸：每只 6 个关节 × 3 种布料 + 6 团绒毛 = 16 次绘制，影子再来一遍，差一点的机器光是提交绘制就吃掉一帧。
+// 关节都是硬的（布偶的胳膊腿整块转），所以把同一种布料跨关节并成一块"刚性蒙皮"网格：每个顶点只跟一个关节，权重 1。
+// 关节节点原样留着当骨头，所有摆姿势、攻击、爬行的代码照旧改 part.rotation/position，画出来一样，一只只剩 4 次绘制。
+// 会单独显隐的机关（炸弹、箭、弓弦）不并。贴地爬行要的每个关节的底面轮廓另存在 root.rigGround 里。
+function skinFigurine(root,rigs){
+ if(!rigs.length)return;
+ root.updateMatrixWorld(true);const rootInv=root.matrixWorld.clone().invert();
+ const boneInverses=rigs.map(p=>new T.Matrix4().multiplyMatrices(rootInv,p.matrixWorld).invert());
+ const byMaterial=new Map(),ground=new Map(),owners=new Map();
+ rigs.forEach((part,bone)=>{
+  const rel=boneInverses[bone].clone().invert(),normal=new T.Matrix3().getNormalMatrix(rel);
+  for(const mesh of part.children.filter(o=>o.isMesh&&!o.isSkinnedMesh)){
+   if(!mesh.userData.fuzz){const g=new T.BufferGeometry();g.setAttribute('position',mesh.geometry.getAttribute('position'));if(!ground.has(part.userData.part))ground.set(part.userData.part,[]);ground.get(part.userData.part).push(g);}
+   const g=mesh.geometry.clone();g.applyMatrix4(rel);g.getAttribute('woolNormal')?.applyNormalMatrix(normal);
+   const n=g.attributes.position.count,index=new Uint16Array(n*4),weight=new Float32Array(n*4);for(let i=0;i<n;i++){index[i*4]=bone;weight[i*4]=1;}
+   g.setAttribute('skinIndex',new T.Uint16BufferAttribute(index,4));g.setAttribute('skinWeight',new T.Float32BufferAttribute(weight,4));
+   if(!byMaterial.has(mesh.material))byMaterial.set(mesh.material,[]);byMaterial.get(mesh.material).push(g);
+   if(!owners.has(mesh.material))owners.set(mesh.material,[]);owners.get(mesh.material).push(mesh);
+  }
+ });
+ const skeleton=new T.Skeleton(rigs,boneInverses);
+ for(const [material,gs]of byMaterial){
+  const g=mergeGeometries(gs,false);if(!g){for(const q of gs)q.dispose();continue;}   // 属性对不上就保持原样（不并）
+  const first=owners.get(material)[0],mesh=new T.SkinnedMesh(g,material);
+  mesh.castShadow=first.castShadow;mesh.receiveShadow=first.receiveShadow;if(first.userData.fuzz)mesh.userData.fuzz=true;
+  mesh.bind(skeleton,new T.Matrix4());
+  g.computeBoundingSphere();mesh.boundingSphere=g.boundingSphere.clone();mesh.boundingSphere.radius*=1.3;   // 按站姿算的，抬手迈腿留点余量
+  for(const o of owners.get(material)){o.removeFromParent();o.geometry.dispose();}
+  for(const q of gs)q.dispose();root.add(mesh);
+ }
+ root.rigSkin={boneInverses};root.rigGround=ground;
 }
 // Early walker GLBs lost empty-node pivots during export. Rebase the children without
 // changing the bind pose; reaching and knee bends must rotate at the joints, not the floor.
@@ -50,15 +83,18 @@ export function repairWalkerRig(root){
  root.traverse(o=>{const p=pivots[o.userData.part];if(!p||!isRig(o)||o.position.lengthSq()>.000001)return;const shift=new T.Vector3(...p);for(const child of o.children)child.position.sub(shift);o.position.copy(shift);});root.updateMatrixWorld(true);return root;
 }
 // Native prefab roster; only requested templates are optimized.
-export async function loadFigurines(data){
+// skin：僵尸并成刚性蒙皮（见 skinFigurine），只给游戏用；主角的第一人称手臂要按部件显隐，不并。
+export async function loadFigurines(data,{skin=false}={}){
  const loader=new GLTFLoader();const [hero,zombies]=await Promise.all([data.scout?loader.parseAsync(decode(data.scout),''):null,loader.parseAsync(decode(data.zombies||data.walker),'')]);
  const templates={},raw=new Map();if(hero)templates.scout=optimizeFigurine(hero.scene);
  if(data.zombies){for(const root of zombies.scene.children)if(root.userData.zombieType)raw.set(root.userData.zombieType,root);if(!raw.size)throw new Error('Expected native zombie prefabs');}
  else templates.walker=repairWalkerRig(optimizeFigurine(zombies.scene));
  const resolve=kind=>kind==='tank'?'heavy':kind==='runner'||kind==='weaver'?'leaper':kind;
- function template(kind){const id=resolve(kind);if(!templates[id]){const root=raw.get(id);if(!root)throw new Error('Unknown figurine: '+kind);templates[id]=optimizeFigurine(root);}return templates[id];}
- return {templates,kinds:[...(hero?['scout']:[]),...(raw.size?raw.keys():['walker'])],create(kind){
-  const id=resolve(kind),model=template(id).clone(true),world=new T.Group(),tilt=new T.Group();world.add(tilt);tilt.add(model);model.scale.multiplyScalar(ACTOR_SCALE);model.position.y=-.017;
+ function template(kind){const id=resolve(kind);if(!templates[id]){const root=raw.get(id);if(!root)throw new Error('Unknown figurine: '+kind);templates[id]=optimizeFigurine(root,{skin});}return templates[id];}
+ return {templates,kinds:[...(hero?['scout']:[]),...(raw.size?raw.keys():['walker'])],prepare(kind){template(kind);},create(kind){
+  const id=resolve(kind),source=template(id),model=source.clone(true),world=new T.Group(),tilt=new T.Group();world.add(tilt);tilt.add(model);model.scale.multiplyScalar(ACTOR_SCALE);model.position.y=-.017;
+  // 复制出来的蒙皮网格还指着模板的骨头：换成这一只自己的关节（顺序和模板一样）
+  if(source.rigSkin){const bones=[];model.traverse(o=>{if(isRig(o))bones.push(o);});const skeleton=new T.Skeleton(bones,source.rigSkin.boneInverses);model.traverse(o=>{if(o.isSkinnedMesh)o.bind(skeleton,new T.Matrix4());});}
   const parts=new Map(),rest=new Map(),materials=new Map(),gear=new Map(),mechanisms=new Map(),mechanismRest=new Map();
   model.traverse(o=>{
    if(isRig(o)){if(parts.has(o.userData.part))throw new Error('Duplicate native pivot: '+o.userData.part);parts.set(o.userData.part,o);for(const name of o.userData.gearLabels||[])gear.set(name,o);rest.set(o.userData.part,{p:o.position.clone(),r:o.rotation.clone(),s:o.scale.clone()});}
@@ -66,7 +102,7 @@ export async function loadFigurines(data){
    if(isMechanism(o)){mechanisms.set(o.userData.mechanism,o);mechanismRest.set(o.userData.mechanism,{p:o.position.clone(),r:o.rotation.clone(),s:o.scale.clone()});}
    if(o.isMesh){if(!materials.has(o.material.uuid)){const material=o.material.clone();material.onBeforeCompile=o.material.onBeforeCompile;material.customProgramCacheKey=o.material.customProgramCacheKey;materials.set(o.material.uuid,material);}o.material=materials.get(o.material.uuid);o.frustumCulled=false;}
   });
-  return {world,tilt,model,parts,rest,gear,mechanisms,mechanismRest,materials:[...materials.values()],kind:id,nativeVariant:raw.has(id)?id:null,
+  return {world,tilt,model,parts,rest,gear,mechanisms,mechanismRest,materials:[...materials.values()],kind:id,ground:source.rigGround||null,nativeVariant:raw.has(id)?id:null,
    reset(){for(const [n,o]of parts){const r=rest.get(n);o.position.copy(r.p);o.rotation.copy(r.r);o.scale.copy(r.s);}for(const [n,o]of mechanisms){const r=mechanismRest.get(n);o.position.copy(r.p);o.rotation.copy(r.r);o.scale.copy(r.s);}tilt.quaternion.identity();model.position.y=-.017;},
    dispose(){for(const m of materials.values())m.dispose();this.bowString?.geometry.dispose();this.bowString?.material.dispose();},
    flash(n){for(const m of materials.values())m.emissive?.setRGB(n*.25,n*.15,n*.06);}};

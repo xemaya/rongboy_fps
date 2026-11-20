@@ -11,7 +11,7 @@ import { LEVELS } from '../rongboy-mission/levels/index.js';
 import { extendWeaponKit, projectileModels, createEffects } from '../rongboy-mission/arsenal.js';
 import { loadFigurines, createWoolBall, woolMaterial, addScoutHair } from '../../library/games/rongboy-runtime.js';
 import { dressWalker, createWeaponKit } from '../../library/games/rongboy-workshop.js';
-import assetData from '../rongboy-shooter-fps/models.js';
+import assetData from '../rongboy-shooter-fps/models-full.js';   // 开场片有特写，用没减面的原件
 import { attachMood, layoutMoods } from './puppet.js';
 
 export const WEAPON_INDEX = Object.fromEntries(WEAPONS.map((w, i) => [w.id, i]));

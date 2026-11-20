@@ -246,6 +246,9 @@ export function resolveBody(level, body, r) {
 
 // 寻路分普通、厚身与首领三档体宽，避免每种半径各建一张图。
 export function navRadius(radius) { return radius <= 0.33 ? 0.345 : radius<=.46?.455:.675; }
+// 找路用的图（每层楼 × 每种体型一张）头一回要用时才建，一张几毫秒到十几毫秒，正好卡在僵尸第一次发现玩家的那一下。
+// 载入时调一次，全建好（play.js 的 boot）。
+export function prepareNavigation(level, radii = [0.345, 0.455, 0.675]) { for (const S of level.storeys) for (const r of radii) graphFor(S, r); }
 
 // 拐角可见图：每个挡路盒子的四个外角是节点，互相看得见就连边。每个关卡、每档体宽建一次。
 const graphs = new WeakMap();

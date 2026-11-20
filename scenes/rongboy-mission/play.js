@@ -10,7 +10,7 @@ import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-
 import { createWoolAudio } from '../rongboy-shooter-fps/sound.js';
 import assetData from '../rongboy-shooter-fps/models.js';
 import { actionPose } from './actions.js';
-import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
+import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex, prepareNavigation } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS, ENEMY_TYPES, TANGLE_SPEED,
   PISTOL, GRENADE, secondOf, grenades, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow, beginJump } from './game.js';
@@ -101,7 +101,7 @@ addEventListener('unhandledrejection', e => fail(e.reason));
 // 光线按关卡取（level.look），预设在 looks.js（开场片也用同一份）。
 const look = (LOOK_PRESETS[level.look] || LOOK_PRESETS.afternoon)();
 const B = level.bounds;
-// 清晰度：先保光影，再保分辨率，目标 30 帧。调节器在 governor.js（为什么不用引擎自带的，也写在那里），引擎自带的关掉了。
+// 清晰度：先争 60 帧，到不了再保 30 帧；同一个目标下先保光影，再保分辨率。调节器在 governor.js（为什么不用引擎自带的，也写在那里），引擎自带的关掉了。
 // 分三档，每档有自己的像素数范围；第 0 档的光影和导出视频时一样（4 倍抗锯齿、环境遮蔽、16 次采样的软阴影），只动像素数：
 const LOOKS = [
   { q: { ...QUALITY.high }, min: 0.55e6, max: 3.6e6 },                  // Retina 原生是 360 万像素；最低相当于 990×557
@@ -109,16 +109,37 @@ const LOOKS = [
   { q: { ...QUALITY.low, scale: 1 }, min: 0.25e6, max: 1.0e6 },         // 最后才关抗锯齿和环境遮蔽
 ];
 const fixedQuality = QUALITY[q.get('q')] || null, governed = !fixedQuality && q.get('dynres') !== '0';   // 网址加 ?q=medium / ?q=low 手动定档；?dynres=0 固定在第 0 档的最高像素数
-const governor = createGovernor(LOOKS, { start: governed ? 1.6e6 : LOOKS[0].max });   // 从 160 万像素起步，头几秒里自己往上或往下找
+const GOVERNOR_KEY = 'rongboy-governor-v1', gpuName = governed ? gpuRenderer() : '';
+const governor = createGovernor(LOOKS, governed ? governorStart() : { start: LOOKS[0].max });
 const cine = createCineRenderer({
-  canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[0].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
-  dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
+  canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[governor.tier].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
+  dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7, static: !q.has('liveshadow') }, onError: fail,
 });
 // 每帧把帧间隔喂给调节器。窗口不在前台时浏览器会把出帧压到很慢，那种帧间隔说明不了显卡快慢，不喂。
 function govern(now, elapsed) {
   if (!governed || document.hidden || (document.hasFocus && !document.hasFocus())) return;
   const r = Math.min(devicePixelRatio || 1, 2), next = governor.feed(now, elapsed, innerWidth * r * innerHeight * r);
-  if (next) cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
+  if (next) {
+    cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
+    try { localStorage.setItem(GOVERNOR_KEY, JSON.stringify({ gpu: gpuName, target: governor.target, tier: next.tier, pixels: Math.round(next.pixels) })); } catch {}
+  }
+}
+// 起步：这台机器（按显卡名认）上次找到的帧数目标和设置记在本机，下次直接从那儿起步，不用再花十几秒从头试。
+// 头一回来：一般从第 0 档 160 万像素起步；显卡名像核显、手机、软件渲染的，从第 1 档 60 万像素起步，少卡几秒。
+function gpuRenderer() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2'); if (!gl) return '';
+    const info = gl.getExtension('WEBGL_debug_renderer_info'), name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+    gl.getExtension('WEBGL_lose_context')?.loseContext(); return name;
+  } catch { return ''; }
+}
+function governorStart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GOVERNOR_KEY) || 'null');
+    if (saved && saved.gpu === gpuName && LOOKS[saved.tier] && saved.pixels > 0)
+      return { targets: saved.target === 30 ? [30] : [60, 30], startTier: saved.tier, start: saved.pixels };
+  } catch {}
+  return /Intel|UHD|Iris|Mali|Adreno|PowerVR|SwiftShader|llvmpipe|Basic Render/i.test(gpuName) ? { startTier: 1, start: 0.6e6 } : { start: 1.6e6 };
 }
 const world = buildWorld(cine, level, WEAPONS);
 // 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
@@ -519,7 +540,7 @@ function wardenLook(e, a, dt) {
 function updateModels(dt) {
   animateHero(dt, mode === 'playing' && !paused);
   const present = new Set(s.enemies.map(e => e.id));
-  for (const [id, a] of enemyModels) if (!present.has(id)) { a.world.removeFromParent(); a.dispose(); enemyModels.delete(id); }
+  for (const [id, a] of enemyModels) if (!present.has(id)) { cine.shadows.removeDynamic(a.world); a.world.removeFromParent(); a.dispose(); enemyModels.delete(id); }
   for (const e of s.enemies) {
     if(!e.enabled){const hidden=enemyModels.get(e.id);if(hidden)hidden.world.visible=false;continue;}
     let a = enemyModels.get(e.id);
@@ -527,6 +548,9 @@ function updateModels(dt) {
       a = actors.create(e.type); dressWalker(a, e.type, e.scale);
       a.model.traverse(m => { if (m.isMesh) m.frustumCulled = true; });
       world.light(a.world);   // 角色和墙、家具查同一份烘焙光照：站在灯下亮，躲进角落暗
+      // 房子的影子只画一次存起来（见引擎的 createShadowCache）；僵尸是会动的，只有站在晒得到太阳的地方才把它的影子叠上去，
+      // 屋里深处靠脚下那块软影
+      cine.shadows.addDynamic(a.world, () => e.alive && world.volume.skyAt(e.x, e.base + 0.9, e.z) > 0.05);
       enemyModels.set(e.id, a); cine.scene.add(a.world);
     }
     const distance = Math.hypot(e.x - s.player.x, e.z - s.player.z);
@@ -586,7 +610,7 @@ function updateModels(dt) {
 }
 function clearModels() {
   combatFx.clear();
-  for (const a of enemyModels.values()) { a.world.removeFromParent(); a.dispose(); }
+  for (const a of enemyModels.values()) { cine.shadows.removeDynamic(a.world); a.world.removeFromParent(); a.dispose(); }
   enemyModels.clear();
   for (const o of ballModels.values()) { o.removeFromParent(); for (const m of o.userData.ownMaterials) m.dispose(); }
   ballModels.clear(); fx.length = 0; effects.clear();
@@ -864,8 +888,9 @@ function snapshot() {
   };
 }
 function diagnostics() {
+  if (ready) pinPrograms();   // 载入时没料到、玩的时候才编的着色器，也留住
   $('diagnostics').dataset.state = JSON.stringify(snapshot());
-  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), tier: governor.tier, pixels: Math.round(governor.pixels), frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
+  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), tier: governor.tier, pixels: Math.round(governor.pixels), fpsTarget: governor.target, frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
   $('diagnostics').dataset.ready = ready ? 'true' : 'false';
   if (q.has('debug')) $('diagnostics').textContent = `${cine.stats().quality} · ${cine.stats().calls} draws · ${s.balls.length} balls`;
 }
@@ -1074,6 +1099,9 @@ function advance(dt) {
 function resize() { cine.resize(); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize);
 
+// 换层时隐藏和显示的是整层的室内，它们也是投影的东西：存着的影子要重画一次
+let shownFloor = -1;
+function setFloor(f) { if (f === shownFloor) return; shownFloor = f; world.setFloor(f); cine.shadows.invalidate(); }
 function frame(now) {
   requestAnimationFrame(frame);
   const elapsed = now - last, dt = Math.min(0.05, elapsed / 1000);
@@ -1086,11 +1114,44 @@ function frame(now) {
   if (mode === 'playing' && !paused && !awaitingApproach && !window.__rb.hold) advance(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  world.setFloor(floorIndex(level, s.player.y));
+  setFloor(floorIndex(level, s.player.y));
+  world.occlusion.update(camera.position, now / 1000);
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
 
+// 载入画面后面，每种僵尸、每种毛线球各摆一个到镜头前，让着色器（身体、绒毛、配件、影子、球）在这时候编译，而不是第一次碰面、第一次开枪时。
+// 这些画完就从场景里拿掉，但不释放：three 在最后一个用某个着色器的材质释放时会把着色器也删掉——
+// 球落地就释放材质，不留一份的话，场上的球全落了地，下一枪又得现编一遍（Windows 上一次几十到上百毫秒）；僵尸死光一种、重开一局也一样。
+const warmKeep = [];
+function warmActors() {
+  const kinds = new Set([...s.enemies, ...s.dormant].map(e => e.type)), ahead = camera.getWorldDirection(new T.Vector3()).setY(0).normalize(), side = new T.Vector3(-ahead.z, 0, ahead.x);
+  const n = kinds.size + ballTemplates.length; let i = 0;
+  const place = (o, y) => o.position.copy(camera.position).addScaledVector(ahead, 3).addScaledVector(side, (i++ - (n - 1) / 2) * 0.9).setY(camera.position.y + y);
+  for (const k of kinds) {
+    const a = actors.create(k); dressWalker(a, k, 1); world.light(a.world); place(a.world, -1.2);
+    cine.shadows.addDynamic(a.world, () => true); cine.scene.add(a.world); warmKeep.push(a);
+  }
+  for (const tpl of ballTemplates) {   // 和 updateModels 里造球的做法一样
+    const o = tpl.clone(true); o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; } });
+    world.light(o); place(o, -0.3); o.scale.setScalar(0.12); cine.scene.add(o); warmKeep.push({ world: o });
+  }
+  const fx = combatFx.samples(); place(fx, -0.8); fx.scale.setScalar(0.3); cine.scene.add(fx); warmKeep.push({ world: fx });
+  combatFx.update(s, 0);   // 每只僵尸的攻击预告（圈、扇形、瞄准线）现在就建好，下面一起编
+  return warmKeep;
+}
+// 着色器一旦编过就一直留着：three 默认在最后一个用它的材质释放时删掉它，下回用到再现编——
+// 球落地、预告圈消失、重开一局都会释放材质，于是同一个着色器反复编，每次卡一下（Windows 上一次几十毫秒）。
+// 这里给每个编过的着色器多记一次引用，它就不会被删（一共六七十个，占不了多少）。动的是 three 的内部计数（WebGLProgram.usedTimes）。
+function pinPrograms() {
+  for (const p of cine.renderer.info.programs || []) if (!p.rongboyPinned) { p.rongboyPinned = true; p.usedTimes++; }
+}
+// 藏着的东西 compileAsync 不编：别的楼层、还没用上的特效（枪口闪光、爆炸光球、扎墙的针）、藏起来的配件。编的时候先全亮出来，编完原样藏回去。
+// 灯不动：灯的数目一变，所有材质都得重编。
+async function compileEverything() {
+  const hidden = []; cine.scene.traverse(o => { if (!o.visible && !o.isLight) { hidden.push(o); o.visible = true; } });
+  try { await cine.warmup(); } finally { for (const o of hidden) o.visible = false; }
+}
 async function boot() {
  applyTexts(); loadingProgress(26, '正在收拾房间…'); await paint();
  let models = assetData;
@@ -1099,15 +1160,22 @@ async function boot() {
    if (!response.ok) throw new Error('三只样板加载失败');
    models = {scout: assetData.scout, zombies: new Uint8Array(await response.arrayBuffer())};
  }
- actors = await loadFigurines(models);
+ actors = await loadFigurines(models, { skin: !q.has('noskin') });
  loadingProgress(56, '正在准备绒仔和毛绒伙伴…'); await paint();
+ // 关卡里会出现的每种僵尸（含后来才醒的、援兵）都在载入时做好模板，免得第一次碰面时现场减面合并卡一下
+ for (const k of new Set([...s.enemies, ...s.dormant].map(e => e.type))) actors.prepare(k);
+ prepareNavigation(level);   // 找路的图也现在建，不留到僵尸第一次发现玩家那一帧
  fpHero = actors.create('scout'); fpHero.model.scale.setScalar(0.48);
  gun = attachGun(fpHero); loadedBall = fpHero.loaded; makeHandsOnly(fpHero);
  world.light(fpHero.world); camera.add(fpHero.world); fpHero.world.scale.setScalar(FP_SCALE); fpHero.world.visible = true;
  if (!q.has('nofront')) drawInFront(fpHero.world);
  cameraFrame(0); resize(); updateModels(0);
  loadingProgress(78, '就快准备好了…'); await paint();
- await cine.warmup();
+ const warm = warmActors();
+ await compileEverything();
+ cine.frame(1 / 60); cine.frame(1 / 60);   // 第一帧烘影子缓存，第二帧走"动的东西叠影子"那条路，两套着色器都编好
+ for (const a of warm) { cine.shadows.removeDynamic(a.world); a.world.removeFromParent(); }
+ pinPrograms();
  ready = true; window.__ready = true; start(); cameraFrame(0); cine.frame(1 / 60);
  loadingProgress(100, '准备好了'); await paint(); $('loading').hidden = true; diagnostics();
 }
@@ -1133,7 +1201,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') { animateHero(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { cameraFrame(0); if (mode !== 'playing') { animateHero(0, false);  } else updateModels(0); setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, (window.__rb.cullClock = (window.__rb.cullClock || 0) + 1), true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },
