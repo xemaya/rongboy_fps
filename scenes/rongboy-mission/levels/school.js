@@ -1,22 +1,22 @@
-// 学校（Q 版）。一层的小教学楼加一个小操场；24 × 21 米，米制，x 向东，z 向南。玩家从南面的校门进来，面朝北。
+// 学校：教学楼、小操场和校门内的课间活动区。活动区的短掩体适合先学反弹。
 //
 //   一班教室（西） │ 美术教室（中） │ 科学教室（东）
 //   ───────────────────── 走廊 ─────────────────────
 //                        操场
 //
 // 造型往 Q 版走：颜色像蜡笔盒，东西又圆又胖。铅笔围栏、蜡笔门柱、积木墙、彩色储物柜，远处有一道彩虹。
-// 任务：把学校里的僵尸全部清走（20 只，不会再多）。
+// 任务：把学校里的僵尸全部清走。
 export default {
   id: 'school',
   name: '学校 · 三间教室和小操场',
   look: 'morning',
-  bounds: { minX: -12, maxX: 12, minZ: -9, maxZ: 12 },
+  bounds: { minX: -12, maxX: 12, minZ: -9, maxZ: 17.5 },
   height: 2.8,
   wallThickness: 0.2,
   doorHeight: 2.05,
-  par: 420,
-  player: { x: 0, z: 11.2, yaw: 0 },
-  menu: { x: 0, z: 10.6 },   // 主界面的两个角色站在校门里、积木墙前面
+  par: 480,
+  player: { x: 0, z: 16.55, yaw: 0 },
+  menu: { x: 0, z: 15.85 },
   arsenal: ['single', 'scatter', 'yarn', 'jack'],
   mission: { type: 'clear', title: '把学校里的僵尸全部清走' },
   theme: {
@@ -27,15 +27,16 @@ export default {
     short: '学校',
     eyebrow: '第三关 · 学校（三间教室和小操场）',
     title: '上课铃响之前，<br>把僵尸请出去。',
-    intro: '操场上、走廊里、三间教室里一共 20 只僵尸，不会再多。把它们全部击倒就过关。它们有的睡着，有的在巡逻，还没发现你。',
-    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '校门边有一把静电枪 · 订书机枪在美术教室，毛衣针在科学教室', '积木墙和滑梯能挡住视线，储物柜后面可以躲', '3 颗心 · 受伤少、7 分钟内清完可得三星'],
+    intro: '从课间活动区打到操场，经两侧进教学楼，合计清理 24 只僵尸。',
+    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '活动区有一把静电枪 · 订书机枪在美术教室，毛衣针在科学教室', '积木墙和滑梯能挡住视线，储物柜后面可以躲', '3 颗心 · 受伤少、8 分钟内清完可得三星'],
     start: '走进校门',
-    hint: '积木墙挡着你 · 从左边或右边绕出去',
+    hint: '用积木做掩体 · 从活动区两侧绕进操场',
     won: '清空了！',
   },
 
   rooms: [
     { id: 'yard', name: '操场', minX: -12, maxX: 12, minZ: 0.5, maxZ: 12, outdoor: true, floor: 0xb4dc8c },
+    { id: 'recess', name: '课间活动区', minX: -12, maxX: 12, minZ: 12, maxZ: 17.5, outdoor: true, floor: 0xa3ca7f },
     { id: 'corridor', name: '走廊', minX: -12, maxX: 12, minZ: -2.5, maxZ: 0.5, surface: 'boards', floor: 0xecc98c, accent: 0x9fd8c4 },
     { id: 'class', name: '一班教室', minX: -12, maxX: -4, minZ: -9, maxZ: -2.5, surface: 'boards', floor: 0xe6c088, accent: 0x8fc3e8 },
     { id: 'art', name: '美术教室', minX: -4, maxX: 4, minZ: -9, maxZ: -2.5, surface: 'quilt', floor: 0xf6ecd6, accent: 0xf2a6b8 },
@@ -58,7 +59,6 @@ export default {
   rugs: [{ x: -6, z: 1.3, w: 1.8, d: 0.8, color: 0xf2a6b8 }, { x: 6, z: 1.3, w: 1.8, d: 0.8, color: 0x8fc3e8 }],
   // 黑板（motif: 'board'）和墙上的画
   pictures: [
-    { x: -12, z: -5.75, y: 1.75, normal: [1, 0], w: 3.2, h: 1.3, motif: 'board' },
     { x: -4.1, z: -5.75, y: 1.6, normal: [-1, 0], w: 1.0, h: 0.8, color: 0xf2dfb0 },
     { x: -1.2, z: -9, y: 1.7, normal: [0, 1], w: 0.8, h: 0.9, color: 0xa9cfe0 }, { x: 1.9, z: -9, y: 1.7, normal: [0, 1], w: 0.8, h: 0.9, color: 0xf2c9d6 },
     { x: 3.9, z: -8.0, y: 1.7, normal: [-1, 0], w: 0.9, h: 0.7, color: 0xbfe0d0 },
@@ -75,6 +75,9 @@ export default {
   ],
 
   furniture: [
+    { id:'recess-blocks-w', kind:'crate', look:'blocks', x:-4.4, z:13.6, w:2.8, d:.95, h:1.2, color:0xb383cc },
+    { id:'recess-blocks-e', kind:'crate', look:'blocks', x:4.5, z:14.55, w:3.2, d:1.0, h:1.3, color:0x94bcd6 },
+    { id:'recess-box', kind:'crate', look:'chest', x:0, z:13.05, w:2.0, d:.85, h:.8, color:0xf2b881 },
     // 操场
     { id: 'block-wall', kind: 'crate', look: 'blocks', x: 0, z: 8.8, w: 3.0, d: 1.0, h: 2.0 },      // 校门里的积木墙：开局是安全的
     { id: 'blocks-east', kind: 'crate', look: 'blocks', x: 3.6, z: 5.4, w: 1.0, d: 2.0, h: 1.0 },
@@ -83,7 +86,7 @@ export default {
     { id: 'playhouse', kind: 'crate', look: 'playhouse', face: 'w', x: 8.4, z: 9.0, w: 2.2, d: 2.2, h: 1.8, color: 0x8fc3e8 },
     { id: 'seesaw', kind: 'bench', look: 'seesaw', x: -3.8, z: 6.4, w: 2.8, d: 0.6, h: 0.6, color: 0x9fd8a4 },
     { id: 'tree-sw', kind: 'tree', x: -10.8, z: 10.6, w: 0.7, d: 0.7, h: 2.6, color: 0xb58a62 },
-    { id: 'tree-ne', kind: 'tree', x: 11.65, z: 0.95, w: 0.7, d: 0.7, h: 2.6, color: 0xb58a62 },
+    { id: 'tree-ne', kind: 'tree', x: 11.55, z: 2.85, w: 0.7, d: 0.7, h: 2.6, color: 0xb58a62 },
     { id: 'planter', kind: 'planter', x: 0, z: 0.95, w: 3.0, d: 0.7, h: 0.45, color: 0xf2a6b8 },
     { id: 'yard-bench', kind: 'bench', look: 'bench', face: 's', x: -9.6, z: 0.9, w: 2.0, d: 0.6, h: 0.5, color: 0x8fc3e8 },
     // 走廊：三组彩色储物柜，两头各一张软凳
@@ -111,13 +114,21 @@ export default {
   ],
 
   // 机关（docs/fun-design.md 第 9 节）：这张图用颜料桶，打一下炸开，和毛线团手雷一样。位置用 node scripts/map.mjs suggest 找的。
+  easterEggs: [
+    { id: 'locker', x: 0, y: 0.91, z: -2.1, w: 0.78, d: 0.56, h: 1.7, replaces: 'lockers-m' },
+    { id: 'chalk', x: -11.954, y: 1.74, z: -5.75, yaw: Math.PI / 2, w: 3.1, d: 0.16, h: 1.35 },
+    { id: 'globe', x: 11.5, y: 1.20, z: -4.2, yaw: -Math.PI / 2, w: 0.69, d: 0.62, h: 0.77, replaces: 'lab-globe' },
+    { id: 'seesaw', x: -3.8, y: 0.46, z: 6.4, w: 2.8, d: 0.6, h: 0.54, replaces: 'seesaw' },
+  ],
   gadgets: [
-    { kind: 'bucket', x: -3.55, z: 8.45 },   // 操场：从校门就看得到，巡逻的那只会走过来,
-    { kind: 'bucket', x: 1.55, z: 0.08 },    // 走廊,
     { kind: 'bucket', x: 0.8, z: -8.68 },    // 美术教室,
   ],
 
   enemies: [
+    { type:'walker', x:-6.2, z:15.65, state:'asleep', heading:Math.PI/2 },
+    { type:'walker', x:7.7, z:13.8, state:'asleep', heading:-Math.PI/2 },
+    { type:'leaper', x:-8.2, z:13.1, state:'asleep', heading:0 },
+    { type:'crawler', x:6.8, z:16.25, state:'asleep', heading:-Math.PI/2 },
     // 操场
     { type: 'walker', x: -6.0, z: 4.2, state: 'idle', heading: Math.PI / 2, patrol: [[6.0, 4.2], [-6.0, 4.2]] },
     { type: 'leaper', x: -10.6, z: 4.6, state: 'asleep', heading: Math.PI / 2 },
@@ -150,7 +161,7 @@ export default {
     { kind: 'heart', amount: 1, x: -8.07, z: -0.2, stash: { x: -8.07, z: 0.4, normal: [0, -1] } },   // 走廊南墙,
     { kind: 'ammo', x: 10.13, z: -8.4, stash: { x: 10.13, z: -9, normal: [0, 1] } },             // 科学教室北墙,
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: 8.15, z: 1.2, stash: { x: 8.15, z: 0.6, normal: [0, 1] } },   // 教学楼朝操场的外墙,
-    { kind: 'weapon', weapon: 'stun', amount: 4, x: 1.7, z: 10.6 },
+    { kind: 'weapon', weapon: 'stun', amount: 4, x: 1.7, z: 15.2 },
     { kind: 'weapon', weapon: 'sewing', amount: 48, x: -2.6, z: -4.2 },
     { kind: 'weapon', weapon: 'needle', amount: 6, x: 11.3, z: -6.2 },
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: -4.0, z: -0.9 },

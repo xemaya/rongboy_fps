@@ -137,8 +137,11 @@ test('all four shipped maps pass the hard checks', () => {
   assert.ok(LEVELS.cottage);
   // 三张正式的图各有自己的测试把"真的跑一遍"那部分跑过了，这里只跑静态的；示例图全跑
   for (const id of ORDER.filter(id => id !== 'cottage')) assert.deepEqual(checkMap(LEVELS[id], { play: false }).errors.map(e => `${id}: ${e.msg}`), []);
-  const example = checkMap(LEVELS.cottage);
-  assert.deepEqual(example.errors, []); assert.deepEqual(example.warnings, []);
+  const cottage = checkMap(LEVELS.cottage);
+  assert.deepEqual(cottage.errors, []);
+  assert.equal(cottage.facts.storeys, 2);
+  assert.equal(cottage.facts.zombies, 27);
+  assert.deepEqual(cottage.warnings.filter(w => w.code !== 'enemy-untested'), []);
 });
 
 test('random drafts pass the hard checks for every theme, and a seed always gives the same plan', () => {
@@ -153,15 +156,16 @@ test('random drafts pass the hard checks for every theme, and a seed always give
 });
 
 test('the review reports the numbers an author tunes, and the two bots tell lazy play from attentive play', () => {
-  const r = reviewMap(LEVELS.cottage), sum = runs => runs.reduce((n, b) => n + b.hurt, 0);
-  assert.equal(r.facts.zombies, 15); assert.ok(r.flow.loops >= 1); assert.equal(r.rooms[0].name, '菜园'); assert.equal(r.ranged.length, 4);
-  assert.equal(r.gadgets.length, 3); assert.ok(r.gadgets.every(g => g.kind === 'clock' && g.inside > 0 && g.reach)); assert.equal(r.supplies.stashes, 2);
+  const r = reviewMap(LEVELS.school), sum = runs => runs.reduce((n, b) => n + b.hurt, 0);
+  assert.equal(r.facts.zombies, 24); assert.ok(r.flow.loops >= 1); assert.equal(r.rooms[0].name, '课间活动区'); assert.equal(r.ranged.length, 4);
+  assert.equal(r.gadgets.length, 1); assert.ok(r.gadgets.every(g => g.kind === 'bucket' && g.inside + g.passing > 0 && g.reach)); assert.equal(r.supplies.stashes, 3);
   assert.equal(r.bots.runs.lazy.length, 3);
   assert.ok(r.bots.runs.keen.filter(b => b.won).length >= 2 && sum(r.bots.runs.keen) < sum(r.bots.runs.lazy), JSON.stringify([r.bots.runs.lazy.map(b => b.hurt), r.bots.runs.keen.map(b => b.hurt)]));
   assert.deepEqual(r.tips.filter(t => t.level === 'problem'), []);
   assert.match(formatReview(r, r), /留神的：3 遍里打完/);
   assert.deepEqual(playBot(tiny, { attentive: true }), playBot(tiny, { attentive: true }));   // 同一张图跑两次，结果一样
   assert.equal(reviewMap(LEVELS.house).unsupported.includes('多层'), true);
+  assert.equal(reviewMap(LEVELS.cottage).unsupported.includes('多层'), true);
 });
 
 test('a map of nothing but walkers in one open room is flagged as playing itself', () => {

@@ -14,7 +14,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // looks：[{ min, max }, ...]，从好到差；每档的像素数范围。opts 里的毫秒数是帧间隔。
 export function createGovernor(looks, opts = {}) {
   const { start = 1.6e6, slow = 38, fast = 21, every = 1000, settle = 1500, minFrames = 20, firstTry = 15000, maxTry = 120000 } = opts;
-  let tier = 0, pixels = start, nextEval = 0, tryEvery = firstTry, tryAt = firstTry, trying = null;
+  let tier = 0, pixels = start, nextEval = 0, tryEvery = firstTry, tryAt = firstTry, upscaleAfter = 0, trying = null;
   const win = [], log = [];
   const median = () => [...win].sort((a, b) => a - b)[win.length >> 1];
 
@@ -34,7 +34,7 @@ export function createGovernor(looks, opts = {}) {
       tryAt = now + tryEvery;
     } else {
       if (trying && now >= trying.until) { trying = null; tryEvery = Math.max(firstTry, tryEvery / 2); }   // 上一步站住了
-      if (!trying && (med < fast || now >= tryAt)) {
+      if (!trying && now >= upscaleAfter && (med < fast || now >= tryAt)) {
         if (cur < top * 0.97) { trying = { tier, pixels: cur, until: now + (med < fast ? 2000 : 4000) }; np = Math.min(top, cur * 1.25); why = med < fast ? '有余量' : '往上试一步'; }
         else if (tier > 0) { trying = { tier, pixels: cur, until: now + 4000 }; nt = tier - 1; np = Math.min(looks[nt].min * 1.2, native); why = '换回好一档'; }
         tryAt = now + tryEvery;
@@ -45,5 +45,5 @@ export function createGovernor(looks, opts = {}) {
     log.push({ t: Math.round(now), med: +med.toFixed(1), tier, pixels: Math.round(pixels), why }); if (log.length > 80) log.shift();
     return { tier, pixels };
   }
-  return { feed, log, get tier() { return tier; }, get pixels() { return pixels; } };
+  return { feed, log, deferUpscale(until) { upscaleAfter = until; }, get tier() { return tier; }, get pixels() { return pixels; } };
 }

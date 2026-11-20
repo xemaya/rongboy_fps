@@ -129,7 +129,7 @@ export function extendWeaponKit(kit, weapons) {
 }
 
 // The same toy in flight, in the player's hand and when it opens.
-function bombProp(id, deployed=false) {
+export function bombProp(id, deployed=false) {
   const g=new T.Group(), brass=hard(0xb7985a,.52,.37), knit=woolMaterial(0xc8a1cd);
   const oat=woolMaterial(0xf2deb3), rust=woolMaterial(0xa75639);
   if (id==='jack') {

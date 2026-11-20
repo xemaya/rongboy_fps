@@ -1,10 +1,11 @@
 // 警觉后的僵尸动作状态（蓄势、扑击、回收、侧跳、冲刺）。
 // 状态机与工坊版一致，只是碰撞查询改为针对传入的关卡；姿态函数直接复用工坊版。
 import { clearPath, freePoint } from './level.js';
+import { ATTACKS } from './attacks.js';
 export { actionPose } from '../rongboy-shooter-fps/enemy-actions.js';
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-const WINDUP = 0.48, POUNCE = 0.54, RECOVER = 0.34;
+const { windup: WINDUP, strike: POUNCE, recover: RECOVER } = ATTACKS.leaper;
 
 function setAction(e, action) { e.action = action; e.actionAge = 0; }
 

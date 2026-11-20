@@ -33,7 +33,8 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{
       await localeReady;
       showLoading();
       await loadInterfaceFonts(language);
-      await import('../rongboy-mission/play.js');
+      const { boot } = await import('../rongboy-mission/play.js');
+      await boot();
     } catch { fail(); }
   },0);
 }));

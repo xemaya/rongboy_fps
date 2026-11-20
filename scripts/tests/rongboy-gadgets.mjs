@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { compileLevel, freePoint } from '../../scenes/rongboy-mission/level.js';
 import { createGame, spawn, step, fire, throwGrenade, consumeEvents, CONFIG, WEAPONS, ENEMY_TYPES, GRENADE } from '../../scenes/rongboy-mission/game.js';
+import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
 import { GADGETS } from '../../scenes/rongboy-mission/gadgets.js';
 
 let checks = 0;
@@ -151,6 +152,84 @@ test('no zombie type is left out of the lure and the freeze', () => {
     const b = arena('spot'), f = spawn(b, { type, x: 2, z: -8, state: 'idle', heading: 0 });
     shootAt(b, 0, -8, 1.2); run(b, 1.4); assert.ok(f.stun > 0, `${type} is frozen`);
   }
+});
+
+test('each campaign map has five unique Easter eggs, one with a combat effect', () => {
+  const kinds = [];
+  for (const id of ORDER) {
+    const level = compileLevel(LEVELS[id]);
+    assert.equal(level.gadgets.length, 1, id);
+    assert.equal(level.easterEggs.length, 4, id);
+    assert.ok(!JSON.stringify(level.texts).includes('打一下'), id);
+    kinds.push(level.gadgets[0].kind, ...level.easterEggs.map(e => e.id));
+  }
+  assert.equal(kinds.length, 20);
+  assert.equal(new Set(kinds).size, 20);
+});
+
+test('the falling quilt catches only enemies directly below it at the time of landing', () => {
+  const s = arena('quilt'), G = GADGETS.quilt;
+  const caught = spawn(s, { type:'walker', x:.95, z:-8, state:'asleep' });
+  const escaped = spawn(s, { type:'walker', x:-.85, z:-8, state:'asleep' });
+  const excluded = spawn(s, { type:'walker', x:0, z:-9, state:'asleep' });
+  const hp = caught.hp;
+  assert.ok(freePoint(s.level,0,-8,0.3),'the hanging quilt leaves room to walk underneath');
+  shootAt(s,0,-8,2.06);
+  const hit = [];
+  while (!s.gadgets[0].used && s.time < 1.55) run(s,DT,hit);
+  assert.equal(hit.filter(e=>e.type==='gadget').length,1);
+  assert.ok(s.gadgets[0].until > s.time, 'releasing the clips does not instantly stun');
+  assert.equal(caught.stun,0);
+  escaped.z = -7;
+  const land = run(s,G.fall+2*DT).find(e=>e.type==='quilt-land');
+  assert.deepEqual(land?.struck,[caught.id]);
+  assert.equal(caught.hp,hp);
+  assert.ok(caught.stun>0);
+  assert.equal(escaped.stun+excluded.stun,0);
+  run(s,G.stun+.1);
+  assert.equal(caught.stun,0);
+  shootAt(s,0,-8,2.06);
+  assert.ok(!run(s,1.5).some(e=>e.type==='gadget'||e.type==='quilt-land'));
+});
+
+test('the quilt can fall with nobody underneath and leaves player health alone', () => {
+  const s = arena('quilt');
+  spawn(s,{type:'walker',x:13,z:-12,state:'asleep'});
+  shootAt(s,0,-8,2.06);
+  run(s,1.2);
+  Object.assign(s.player,{x:0,z:-8});
+  const event = run(s,.65).find(e=>e.type==='quilt-land');
+  assert.deepEqual(event?.struck,[]);
+  assert.equal(s.health,CONFIG.maxHealth);
+});
+
+test('a shot through a thin scenery target reports one contact and keeps flying', () => {
+  const photo = { id:'photo', x:0,z:-6,y:1.2,w:.8,d:.055,h:.45 };
+  const wall = { x:[-15,15], z:-4, doors:[] };
+  const wallAhead = arena(null,{easterEggs:[photo],walls:[wall]});
+  spawn(wallAhead,{type:'walker',x:13,z:-12,state:'asleep'});
+  shootAt(wallAhead,0,-6,1.20);
+  assert.ok(!run(wallAhead,1.5).some(e=>e.type==='easter-egg'));
+  const open = arena(null,{easterEggs:[photo]});
+  spawn(open,{type:'walker',x:13,z:-12,state:'asleep'});
+  shootAt(open,0,-6,1.20);
+  const events = run(open,1);
+  assert.equal(events.filter(e=>e.type==='easter-egg'&&e.id==='photo').length,1);
+  assert.equal(open.balls.length,1);
+  assert.ok(open.balls[0].z < photo.z);
+});
+
+test('the house cushions sit on the sofa and can still be hit from in front of the seat', () => {
+  const level = compileLevel(LEVELS.house), s = createGame({ level });
+  const cushions = level.easterEggs.find(egg => egg.id === 'cushions');
+  const sofa = level.furnitureBoxes.find(f => f.id === cushions.onSofa);
+  const seat = Math.min(.4, sofa.h * .5) + .11;
+  assert.ok(cushions.minY < seat && cushions.maxY > sofa.maxY);
+  assert.ok(cushions.minX > sofa.minX && cushions.maxX < sofa.maxX);
+  s.enemies = [];
+  Object.assign(s.player, { x:sofa.maxX + 1.5, z:cushions.z });
+  shootAt(s, cushions.x, cushions.z, .91);
+  assert.ok(run(s, .6).some(event => event.type === 'easter-egg' && event.id === 'cushions'));
 });
 
 console.log(`${checks} gadget checks passed`);

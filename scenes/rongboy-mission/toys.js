@@ -4,22 +4,20 @@
 import * as T from 'three';
 import { GADGETS } from './gadgets.js';
 
-const PAINT = [0xf2a6b8, 0x8fc3e8, 0xf2c84b, 0x9fd8a4];
+const PAINT = [0xec7499, 0x80bed8, 0xf4bf61, 0x94ce8b];
+const linear = (a, b, t) => T.MathUtils.clamp((t-a)/(b-a),0,1);
+const ease = (a, b, t) => T.MathUtils.smoothstep(t,a,b);
+const hop = (a, b, t) => Math.sin(Math.PI * linear(a,b,t));
 
-// Kit：造毛绒零件的工具；M：材质；label：画一块小名牌；floors：每层楼一个组（东西挂在所在的那一层上，换层时跟着隐藏）；
+// Kit：造毛绒零件的工具；M：材质；floors：每层楼一个组（东西挂在所在的那一层上，换层时跟着隐藏）；
 // floorY：每层楼地面的高度（组里的坐标都是相对这一层地面的）。
-export function createToys({ Kit, M, label, floors, floorY }) {
+export function createToys({ Kit, M, floors, floorY }) {
   const toys = [], byOwner = new Map(), gadgets = new Map(), zippers = new Map();
   const made = (floor, build, x, y, z, name) => {
     const kit = new Kit(); build(kit);
     const g = new T.Group(); g.name = name; g.add(...kit.build({ name })); g.position.set(x, y, z); floors[floor].add(g); return g;
   };
   const toy = (t) => { toys.push(t); if (t.owner) byOwner.set(t.owner, [...(byOwner.get(t.owner) || []), t]); return t; };
-  const tag = (text, y) => {
-    const s = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 448, height: 96, size: 44 }), transparent: true, depthWrite: false }));
-    s.scale.set(0.84, 0.18, 1); s.position.y = y; return s;
-  };
-
   // ---------- 布景 ----------
   // 吊灯：挂点在天花板上，整盏灯绕挂点摆。返回灯泡的位置（烘焙光照用）。
   function lamp(floor, { x, z, ceiling, drop = 0.6, color = 0xffd9a0 }) {
@@ -70,8 +68,7 @@ export function createToys({ Kit, M, label, floors, floorY }) {
   function gadget(g) {
     const G = GADGETS[g.kind], root = new T.Group(); root.name = 'gadget-' + g.kind; root.position.set(g.x, 0, g.z); floors[g.floor].add(root);
     const part = (build, y = 0) => { const kit = new Kit(); build(kit); const o = new T.Group(); o.add(...kit.build({ name: 'gadget' })); o.position.y = y; root.add(o); return o; };
-    const o = { kind: g.kind, root, used: false, t: 0, tag: tag(`${G.name} · 打一下`, G.h + 0.3) };
-    root.add(o.tag);
+    const o = { kind: g.kind, root, used: false, t: 0 };
     if (g.kind === 'clock') {
       part(k => {   // 高脚凳
         k.cyl(M('toy_wood'), 0.21, 0.21, 0.05, 0, 0.905, 0, { seg: 14 });
@@ -79,17 +76,22 @@ export function createToys({ Kit, M, label, floors, floorY }) {
         k.cyl(M('toy_wood'), 0.15, 0.15, 0.025, 0, 0.42, 0, { seg: 12 });
       });
       o.body = part(k => {   // 双铃闹钟：两面都有钟面
-        k.cyl(M('felt', 0xd9584a), 0.17, 0.17, 0.11, 0, 0.21, 0, { seg: 20, rx: Math.PI / 2 });
+        k.cyl(M('felt', 0xd9584a), 0.18, 0.18, 0.13, 0, 0.21, 0, { seg: 20, rx: Math.PI / 2 });
         k.cyl(M.button(0xf6efe0), 0.14, 0.14, 0.125, 0, 0.21, 0, { seg: 20, rx: Math.PI / 2 });
         for (const s of [-1, 1]) {
           k.box(M.button(0x3d342c), 0.018, 0.1, 0.006, 0, 0.255, s * 0.066); k.box(M.button(0x3d342c), 0.075, 0.018, 0.006, 0.03, 0.21, s * 0.066);
-          k.sphere(M.button(0xe9c46a), 0.07, s * 0.1, 0.41, 0, { seg: 10, rings: 8, sy: 0.7 }); k.cyl(M.button(0x8b7655), 0.012, 0.012, 0.06, s * 0.1, 0.36, 0, { seg: 6 });
+          k.cyl(M.button(0x8b7655), 0.012, 0.012, 0.06, s * 0.1, 0.36, 0, { seg: 6 });
           k.sphere(M.button(0x8b7655), 0.03, s * 0.11, 0.025, 0, { seg: 8, rings: 6 });
         }
         k.sphere(M.button(0x8b7655), 0.025, 0, 0.44, 0, { seg: 8, rings: 6 });
       }, 0.93);
+      o.bells = [-1,1].map(s => {
+        const bell = part(k => k.sphere(M.button(0xe9c46a), .077, 0, .03, 0, { seg:12,rings:8,sy:.72 }));
+        o.body.add(bell); bell.position.set(s*.106,.377,0);
+        return bell;
+      });
     } else if (g.kind === 'bucket') {
-      const paint = PAINT[Math.round(Math.abs(g.x * 3 + g.z * 7)) % PAINT.length];
+      const paint = PAINT[0];
       part(k => {   // 两只摞起来的木箱
         k.soft(M('boards', 0xc9a67a), 0.56, 0.42, 0.56, 0, 0.21, 0, { r: 0.03 }); k.soft(M('boards', 0xb98a66), 0.48, 0.42, 0.48, 0, 0.63, 0, { r: 0.03 });
       });
@@ -99,22 +101,72 @@ export function createToys({ Kit, M, label, floors, floorY }) {
         for (let i = 0; i < 5; i++) { const a = i * 1.3; k.sphere(M('felt', paint), 0.045, Math.cos(a) * 0.2, 0.25 - (i % 2) * 0.08, Math.sin(a) * 0.2, { seg: 8, rings: 6, sy: 1.5 }); }
         k.tube(M.button(0x8b7655), Array.from({ length: 9 }, (_, i) => [Math.cos(i / 8 * Math.PI) * 0.21, 0.28 + Math.sin(i / 8 * Math.PI) * 0.14, 0]), 0.01, { seg: 5 });
       }, 0.84);
-      o.splat = part(k => {   // 炸开以后留在地上的一摊
-        k.cyl(M('felt', paint), 0.9, 0.9, 0.014, 0, 0.012, 0, { seg: 20 });
-        for (let i = 0; i < 9; i++) { const a = i * 2.4, d = 1.0 + (i % 4) * 0.33, r = 0.16 + (i % 3) * 0.1; k.cyl(M('felt', i % 2 ? paint : PAINT[(i + 1) % PAINT.length]), r, r, 0.014, Math.cos(a) * d, 0.012, Math.sin(a) * d, { seg: 12 }); }
+      o.splat = part(k => {
+        // Soft paint pieces with overlapping irregular edges follow the fall direction.
+        for (let i = 0; i < 12; i++) {
+          const a = i * 2.4, d = 0.18 + (i % 5)*.22, r = .13 + (i % 4)*.072;
+          k.sphere(M('felt', i%4 ? paint : PAINT[1 + i%3]), r, Math.cos(a)*d, .029+i*.002, .57+Math.sin(a)*d, {seg:12,rings:8,sx:1.2,sy:.075,sz:1.45});
+        }
       });
-      o.splat.visible = false; o.paint = paint;
+      const dropGeo = new T.IcosahedronGeometry(1,1);
+      o.drops = Array.from({length:14},(_,i) => {
+        const drop = new T.Mesh(dropGeo,M('felt',PAINT[i%PAINT.length]));
+        root.add(drop); drop.visible = false;
+        return drop;
+      });
+      o.splat.visible = false;
     } else if (g.kind === 'spot') {
-      part(k => {   // 三脚架
-        for (let i = 0; i < 3; i++) { const a = i * Math.PI * 2 / 3 + 0.4; k.tube(M('toy_wood'), [[Math.cos(a) * 0.23, 0, Math.sin(a) * 0.23], [0, 1.46, 0]], 0.02, { seg: 6 }); }
-        k.cyl(M('felt', 0x4a4f55), 0.1, 0.17, 0.26, 0, 1.56, 0, { seg: 16 });
-        k.cyl(M('felt', 0x3d342c), 0.05, 0.05, 0.08, 0, 1.47, 0, { seg: 8 });
+      const headY = G.h - .19;
+      part(k => {
+        for (let i = 0; i < 3; i++) {
+          const a = i*Math.PI*2/3+.4;
+          k.tube(M('toy_wood'),[[Math.cos(a)*.24,0,Math.sin(a)*.24],[0,headY-.12,0]],.024,{seg:6});
+        }
+        k.sphere(M.button(0x9b7b54),.09,0,headY-.12,0,{seg:10,rings:8});
       });
-      // 灯口和地上的光圈：亮度要单独调，所以各用自己的材质
-      o.lens = new T.Mesh(new T.CylinderGeometry(0.15, 0.15, 0.02, 20), new T.MeshStandardMaterial({ color: 0xfff0c8, emissive: 0xffe6a0, emissiveIntensity: 0.6 }));
-      o.lens.position.y = 1.435; root.add(o.lens);
-      o.ring = new T.Mesh(new T.TorusGeometry(G.radius, 0.022, 6, 96), new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffd060, emissiveIntensity: 1.1 }));
-      o.ring.rotation.x = Math.PI / 2; o.ring.position.y = 0.035; root.add(o.ring);
+      o.body = part(k => {
+        k.cyl(M('felt',0x505358),.124,.216,.26,0,.04,0,{seg:18});
+        k.cyl(M.button(0xb89159),.221,.221,.038,0,-.089,0,{seg:18});
+      },headY);
+      o.lens = new T.Mesh(new T.CylinderGeometry(.179,.179,.024,20),
+        new T.MeshStandardMaterial({color:0xf3ddb0, emissive:0xffcf82, emissiveIntensity:.22}));
+      o.lens.position.y = -.11; o.body.add(o.lens);
+      // Real light with a shadow map keeps the floor, cases and characters in the same beam.
+      o.light = new T.SpotLight(0xffd697,0,Math.hypot(G.radius,G.lightY)+.75,Math.atan2(G.radius,G.lightY),.28,1.2);
+      o.light.position.y = G.lightY;
+      o.light.castShadow = true;
+      o.light.shadow.mapSize.set(512,512);
+      // Prime the shadow map during loading, then stop redraws while the lamp is off.
+      o.light.shadow.autoUpdate = false;
+      o.light.shadow.needsUpdate = true;
+      o.light.shadow.camera.near = .1;
+      o.light.shadow.normalBias = .023;
+      o.light.target.position.y = .02;
+      root.add(o.light, o.light.target);
+    } else if (g.kind === 'quilt') {
+      part(k => {
+        const end = G.w*.5+.08;
+        for (const side of [-1,1]) {
+          k.tube(M('toy_wood'),[[side*end,0,0],[side*end,G.h+.05,0]],.045,{seg:7});
+          k.sphere(M.button(0xe3bc7b),.067,side*end,G.h+.066,0,{seg:10,rings:8});
+        }
+        k.tube(M('knit',0xf0deaf),[[-end,G.h,0],[0,G.h-.1,0],[end,G.h,0]],.025,{seg:6});
+      });
+      o.body = part(k => {
+        const w = G.w - .09, h = G.h - G.minY;
+        k.soft(M('quilt',0xbd665b),w,h,.09,0,-h/2,0,{r:.042,seg:3});
+        for (const side of [-1,1]) {
+          for (const x of [-.91,-.3,.3,.91]) {
+            k.soft(M('gingham',0xf4d29e),.56,.57,.022,x,-h/2,side*.051,{r:.008});
+            k.soft(M('felt',0xa2767a),.21,.21,.022,x,-h/2,side*.067,{r:.008,rz:Math.PI/4});
+          }
+          k.tube(M('knit',0xf2d5a8),[[-1.24,-h+.07,side*.05],[0,-h+.09,side*.05],[1.24,-h+.07,side*.05]],.016,{seg:6});
+        }
+      },G.h-.045);
+      o.clips = [-.94,.94].map(x => {
+        const peg = part(k => k.soft(M('toy_wood'),.075,.23,.11,0,0,0,{r:.016}));
+        peg.position.set(x,G.h-.07,0); return peg;
+      });
     }
     gadgets.set(g.id, o);
     return o;
@@ -174,7 +226,40 @@ export function createToys({ Kit, M, label, floors, floorY }) {
     return hit[0] || null;
   }
   // 机关触发（gadget 事件）
-  function fire(e) { const o = gadgets.get(e.id); if (!o) return null; o.used = true; o.t = 0; o.tag.visible = false; return o; }
+  function fire(e) { const o = gadgets.get(e.id); if (!o) return null; o.used = true; o.t = 0; return o; }
+  function land(e) {
+    const o = gadgets.get(e.id);
+    if (o) o.landed = e.struck.length ? 'caught' : 'floor';
+  }
+  let quiltCover;
+  function cover() {
+    if (!quiltCover) {
+      const k = new Kit(), cloth = M('quilt',0xbd665b), trim = M('gingham',0xf4d29e);
+      // Rounded shoulders with an uneven hem, open below so shoes can still be seen.
+      k.sphere(cloth, .5, 0, .62, 0, {seg:18,rings:12,sx:1.18,sy:.69,sz:1.05});
+      for (const side of [-1,1]) {
+        k.soft(cloth,1.02,.55,.075,0,.29,side*.415,{r:.034,rx:side*.18,rz:side*.045});
+        k.soft(trim,.81,.35,.026,-.016,.32,side*.455,{r:.01,rx:side*.18,rz:side*.045});
+        k.soft(M('felt',0xa2767a),.18,.18,.022,.13,.39,side*.476,{r:.008,rz:Math.PI/4});
+        k.soft(cloth,.085,.53,.71,side*.52,.29,0,{r:.027,rz:side*.14});
+      }
+      quiltCover = new T.Group();
+      quiltCover.add(...k.build({name:'quilt-cover'}));
+    }
+    return quiltCover.clone(true);
+  }
+  let paintFlecks;
+  function makePaintFlecks() {
+    if (!paintFlecks) {
+      const k = new Kit();
+      for (const [i,x,y,z] of [[0,-.39,.51,.84],[1,.31,.66,.85],[0,.64,.39,.83],[2,-.71,.83,.46],[1,.57,.91,.55],[3,.19,.35,.65]]) {
+        k.sphere(M('felt',PAINT[i]), .1, x,y,z, {seg:9,rings:6,sy:.39+i*.16,sz:.44});
+      }
+      paintFlecks = new T.Group();
+      paintFlecks.add(...k.build({name:'paint-flecks'}));
+    }
+    return paintFlecks.clone(true);
+  }
   function unzip(id) { const z = zippers.get(id); if (!z || z.isOpen) return; z.isOpen = true; z.shut.visible = false; z.open.visible = true; z.pull.position.y = -0.46; }
 
   function update(dt, time) {
@@ -205,18 +290,45 @@ export function createToys({ Kit, M, label, floors, floorY }) {
       }
     }
     for (const o of gadgets.values()) {
-      if (!o.used) { if (o.kind === 'clock') o.body.rotation.z = Math.sin(time * 1.3) * 0.02; continue; }
+      if (!o.used) continue;
       o.t += dt;
+      const t = o.t;
       if (o.kind === 'clock') {
-        const ringing = o.t < GADGETS.clock.time;
-        o.body.rotation.z = ringing ? Math.sin(o.t * 52) * 0.11 : Math.min(0.55, o.body.rotation.z + dt * 2);   // 响的时候直哆嗦，响完歪倒在凳子上
-        o.body.position.x = ringing ? Math.sin(o.t * 37) * 0.012 : 0.05;
+        const ringing = t < GADGETS.clock.time;
+        o.body.rotation.z = ringing ? .32*hop(0,.33,t) + Math.sin(t*39)*.065 : .30*ease(GADGETS.clock.time,GADGETS.clock.time+.4,t);
+        o.body.position.set(ringing ? Math.sin(t*37)*.014 : .035, .93 + .19*hop(0,.42,t) + .04*hop(.42,.65,t), 0);
+        o.bells.forEach((bell,i) => { bell.rotation.z = ringing ? Math.sin(t*43+i*2.3)*.39 : 0; });
       } else if (o.kind === 'bucket') {
-        o.body.visible = false; o.splat.visible = true;
-        const s = Math.min(1, o.t / 0.25); o.splat.scale.set(s, 1, s);
+        const flip = ease(.09,.53,t);
+        o.body.position.set(.09*flip,.84-.64*flip,.63*flip);
+        o.body.rotation.x = 1.64*flip;
+        o.body.scale.set(1+.17*hop(0,.21,t),1-.30*hop(0,.21,t),1+.14*hop(0,.21,t));
+        const spread = ease(.15,.57,t);
+        o.splat.visible = spread > 0;
+        o.splat.scale.set(Math.max(.01,spread),1,Math.max(.01,spread));
+        o.drops.forEach((drop,i) => {
+          const p = linear(.07+i*.007,.47+i%4*.047,t), a = i*2.399, r = .5 + i%6*.18;
+          drop.visible = p > 0 && p < 1;
+          drop.position.set(Math.cos(a)*p*r,1.13*(1-p)+(.62+i%4*.14)*hop(0,1,p),.52*p+Math.sin(a)*p*r);
+          drop.scale.set(.08,.14,.065);
+          drop.rotation.set(p*4+i,p*3,0);
+        });
       } else if (o.kind === 'spot') {
-        o.lens.material.emissiveIntensity = o.t < GADGETS.spot.stun ? 9 * Math.max(0.25, 1 - o.t / GADGETS.spot.stun) : 0.02;   // 亮一下，慢慢暗下去，然后灭了
-        o.ring.visible = o.t < GADGETS.spot.stun; o.ring.material.emissiveIntensity = 6 * Math.max(0, 1 - o.t / GADGETS.spot.stun);
+        const gain = ease(0,.16,t) * (1-ease(2.65,GADGETS.spot.stun,t));
+        o.body.rotation.x = .31*hop(0,.34,t);
+        o.light.intensity = 46*gain;
+        if (gain > 0) o.light.shadow.needsUpdate = true;
+        o.lens.material.emissiveIntensity = .22+6.5*gain;
+      } else if (o.kind === 'quilt') {
+        const G = GADGETS.quilt, fall = linear(0,G.fall,t), settle = ease(G.fall*.73,G.fall+.15,t);
+        o.clips.forEach((peg,i) => {
+          peg.rotation.z = (i ? -1 : 1)*1.23*ease(0,.14,t);
+          peg.position.y = G.h-.07+.14*hop(0,.26,t);
+        });
+        o.body.position.y = G.h-.045 - (G.h-.13)*fall*fall;
+        o.body.rotation.x = Math.sin(t*16)*.24*hop(0,G.fall,t) + 1.54*settle;
+        o.body.scale.z = 1 + .31*hop(0,G.fall,t);
+        o.body.visible = o.landed !== 'caught';
       }
     }
     for (const z of zippers.values()) z.pull.rotation.z = z.isOpen ? 0 : Math.sin(time * 1.7 + z.phase) * 0.3;
@@ -225,14 +337,25 @@ export function createToys({ Kit, M, label, floors, floorY }) {
   // 新开一局：机关复原，拉链合上
   function reset() {
     for (const o of gadgets.values()) {
-      o.used = false; o.t = 0; o.tag.visible = true;
-      if (o.body) { o.body.visible = true; o.body.rotation.set(0, 0, 0); o.body.position.x = 0; }
-      if (o.splat) o.splat.visible = false;
-      if (o.lens) { o.lens.material.emissiveIntensity = 0.6; o.ring.visible = true; o.ring.material.emissiveIntensity = 1.1; }
+      o.used = false; o.t = 0; o.landed = null;
+      o.body.visible = true; o.body.rotation.set(0,0,0); o.body.scale.setScalar(1);
+      if (o.kind === 'clock') {
+        o.body.position.set(0,.93,0);
+        for (const bell of o.bells) bell.rotation.z = 0;
+      } else if (o.kind === 'bucket') {
+        o.body.position.set(0,.84,0);
+        o.splat.visible = false;
+        for (const drop of o.drops) drop.visible = false;
+      } else if (o.kind === 'spot') {
+        o.lens.material.emissiveIntensity = .22; o.light.intensity = 0;
+      } else if (o.kind === 'quilt') {
+        o.body.position.y = GADGETS.quilt.h-.045;
+        for (const peg of o.clips) { peg.rotation.z = 0; peg.position.y = GADGETS.quilt.h-.07; }
+      }
     }
     for (const z of zippers.values()) { z.isOpen = false; z.shut.visible = true; z.open.visible = false; z.pull.position.y = 0.46; }
     for (const t of toys) { if ('ax' in t) { t.ax = t.az = t.vx = t.vz = 0; t.group.rotation.set(0, 0, 0); } if (t.kind === 'duck') { t.h = t.vy = 0; t.group.position.y = t.baseY; } if (t.kind === 'globe') t.w = 0; }
   }
 
-  return { lamp, duck, plant, globe, rattler, gadget, zipper, react, sweep, fire, unzip, update, reset, gadgets, zippers, toys };
+  return { lamp, duck, plant, globe, rattler, gadget, zipper, react, sweep, fire, land, cover, makePaintFlecks, unzip, update, reset, gadgets, zippers, toys };
 }

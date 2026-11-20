@@ -1,4 +1,4 @@
-// 博物馆（奇妙夜）。一层，28 × 24 米，净高 4.4 米；米制，x 向东，z 向南。玩家从南面正门进来，面朝北。
+// 博物馆（奇妙夜）。楼上是修复区和织物展厅，蓝宝石移到二楼珍宝库。
 //
 //   画廊（西北） │ 北走廊 │ 珍宝馆（东北）
 //   ─────────────┼────────┼──────────────
@@ -13,11 +13,12 @@ export default {
   id: 'museum',
   name: '博物馆 · 奇妙夜',
   look: 'night',
-  bounds: { minX: -14, maxX: 14, minZ: -12, maxZ: 12 },
+  bounds: { minX: -14, maxX: 14, minZ: -17, maxZ: 12 },
+  stairs: { minX: -1.4, maxX: 1.4, mouthZ: -12, landingZ: -15.6, endZ: -17 },
   height: 4.4,
   wallThickness: 0.3,
   doorHeight: 2.8,
-  par: 600,
+  par: 720,
   player: { x: 0, z: 11.2, yaw: 0 },
   menu: { x: 0, z: 9.4 },   // 开始画面里两个角色站在门厅中间，背后是大厅里的恐龙
   arsenal: ['single', 'scatter', 'yarn', 'jack'],
@@ -27,16 +28,17 @@ export default {
     wall: 0xe6dfd0, ceiling: 0xd8d4c8, trim: 0xcbbf9f, beams: false, roof: false, lamp: 'spot', night: true,
     // 光照：射灯是暖白的一圈一圈，照不到的地方是月色的蓝；天窗进来的夜空光放大很多倍才看得出
     lampColor: 0xffe6c0, lampPower: 7, lampRange: 8, skyGain: 14, lightAmbient: [0.16, 0.24, 0.44], bounce: null,
-    sheer: [0xdfe9ff, 0x9fbdf0, 0.55],
+    sheer: [0xdfe9ff, 0x9fbdf0, 0.55], lightCell: .7,
   },
   texts: {
     short: '博物馆',
     eyebrow: '第二关 · 博物馆（奇妙夜）',
     title: '闭馆之后，<br>把展品找回来。',
-    intro: '夜里的博物馆被 27 只僵尸占了，三件展品被它们拿走：埃及厅的黄金面具、自然厅的恐龙蛋、珍宝馆的蓝宝石。木乃伊、头骨和恐龙骨架都只是展品，不用怕。三件都找到后，送回中央大厅的恐龙面前。',
-    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药包在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心 · 受伤少、10 分钟内送回可得三星'],
+    intro: '一楼找黄金面具和恐龙蛋，再从北走廊上楼找蓝宝石。三件展品送回一楼恐龙面前。',
+    brief: '一楼埃及厅找面具，自然厅找恐龙蛋。走北走廊上二楼珍宝库取蓝宝石，再把三件展品送回恐龙面前。',
+    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药包在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心 · 受伤少、12 分钟内送回可得三星'],
     start: '走进博物馆',
-    hint: '面具在西边的埃及厅 · 恐龙蛋在东边的自然厅 · 蓝宝石在东北角的珍宝馆',
+    hint: '埃及厅的面具、自然厅的恐龙蛋、二楼珍宝库的蓝宝石',
     got: '找到了！',
     carry: '三件都齐了 · 送回中央大厅的恐龙面前',
     won: '展品都回来了！',
@@ -53,6 +55,7 @@ export default {
     { id: 'gallery', name: '画廊', minX: -14, maxX: -2, minZ: -12, maxZ: -4, surface: 'boards', floor: 0xcdb089, accent: 0xa0525a },
     { id: 'corridor', name: '北走廊', minX: -2, maxX: 2, minZ: -12, maxZ: -4, surface: 'quilt', floor: 0xdcd6c8, accent: 0x8f7fa0 },
     { id: 'vault', name: '珍宝馆', minX: 2, maxX: 14, minZ: -12, maxZ: -4, surface: 'terry', floor: 0x6f7fa8, accent: 0x4f5f8f },
+    { id: 'stairs', name: '楼梯间', minX: -1.4, maxX: 1.4, minZ: -17, maxZ: -12, tower: true },
   ],
 
   walls: [
@@ -71,12 +74,8 @@ export default {
     { z: 12, at: -2.5, w: 1.6, sill: 1.3, head: 3.5 }, { z: 12, at: 2.5, w: 1.6, sill: 1.3, head: 3.5 },
     { z: 12, at: -5.6, w: 1.6, sill: 1.3, head: 3.5 }, { z: 12, at: 6.6, w: 2.2, sill: 1.3, head: 3.5 }, { z: 12, at: 11.4, w: 2.2, sill: 1.3, head: 3.5 },
     { x: 14, at: 9.0, w: 2.4, sill: 1.5, head: 3.5 }, { x: 14, at: -0.6, w: 1.5, sill: 1.6, head: 3.6 }, { x: 14, at: 2.6, w: 1.5, sill: 1.6, head: 3.6 }, { x: 14, at: -8.0, w: 2.4, sill: 1.3, head: 3.5 },
-    { z: -12, at: -10, w: 2.2, sill: 1.3, head: 3.5 }, { z: -12, at: -5, w: 2.2, sill: 1.3, head: 3.5 }, { z: -12, at: 0, w: 1.3, sill: 1.5, head: 3.5 },
+    { z: -12, at: -10, w: 2.2, sill: 1.3, head: 3.5 }, { z: -12, at: -5, w: 2.2, sill: 1.3, head: 3.5 },
     { x: -14, at: -8, w: 2.4, sill: 1.3, head: 3.5 },
-  ],
-  // 天窗（天花板上的玻璃顶，只影响画面）：月光从这里落在展品上。
-  skylights: [
-    { x: 0, z: 0.8, w: 3.4, d: 7.2 }, { x: -9.5, z: 1.0, w: 3.2, d: 2.2 }, { x: 9.6, z: 1.0, w: 2.8, d: 2.8 }, { x: -8, z: -8, w: 4.2, d: 1.8 },
   ],
   lamps: [
     { x: 0, z: 9 },
@@ -94,7 +93,7 @@ export default {
   ],
   // 画：x、z 是墙面上的位置，normal 指向展厅里。画廊里的大一些。
   pictures: [
-    { x: -14, z: -5.6, y: 2.0, normal: [1, 0], w: 1.6, h: 1.2, color: 0xa9cfe0 }, { x: -14, z: -10.4, y: 2.0, normal: [1, 0], w: 1.4, h: 1.1, color: 0xf2dfb0 },
+    { x: -14, z: -10.4, y: 2.0, normal: [1, 0], w: 1.4, h: 1.1, color: 0xf2dfb0 },
     { x: -12.6, z: -4.15, y: 2.0, normal: [0, -1], w: 1.5, h: 1.1, color: 0xe9c9d9 }, { x: -6.8, z: -4.15, y: 2.0, normal: [0, -1], w: 2.2, h: 1.4, color: 0xbfe0d0 }, { x: -3.8, z: -4.15, y: 2.0, normal: [0, -1], w: 1.3, h: 1.1, color: 0xf0d9a8 },
     { x: -2.15, z: -5.8, y: 2.0, normal: [-1, 0], w: 1.6, h: 1.2, color: 0xd9c9a0 }, { x: -2.15, z: -10.8, y: 2.0, normal: [-1, 0], w: 1.4, h: 1.1, color: 0xa9cfe0 },
     { x: -7.5, z: -12, y: 2.0, normal: [0, 1], w: 1.8, h: 1.3, color: 0xf2dfb0 }, { x: -12.4, z: -12, y: 2.0, normal: [0, 1], w: 1.3, h: 1.1, color: 0xe9c9d9 },
@@ -161,12 +160,14 @@ export default {
   ],
 
   // 机关（docs/fun-design.md 第 9 节）：这张图用聚光灯，打一下，光圈里的僵尸定住几秒。位置用 node scripts/map.mjs suggest 找的。
+  easterEggs: [
+    { id: 'dinosaur', x: 0, y: 1.83, z: 0.8, w: 1.7, d: 6.4, h: 2.68, replaces: 'dino' },
+    { id: 'cat', x: -12.0, y: 1.06, z: -3.4, w: 0.64, d: 0.54, h: 0.91, replaces: 'anubis-w' },
+    { id: 'sailboat', x: -13.958, y: 1.85, z: -5.6, yaw: Math.PI / 2, w: 1.66, d: 0.16, h: 1.21 },
+    { id: 'cup', x: 7.03, y: 0.99, z: 8.4, yaw: Math.PI / 2, w: 0.7, d: 0.54, h: 0.46 },
+  ],
   gadgets: [
-    { kind: 'spot', x: 1.2, z: 7.95 },      // 门厅：一进门就看得到，售票台后面睡着一只,
     { kind: 'spot', x: -3.3, z: 2.7 },      // 中央大厅,
-    { kind: 'spot', x: -7.8, z: 2.95 },     // 埃及厅,
-    { kind: 'spot', x: -11.05, z: -7.05 },  // 画廊,
-    { kind: 'spot', x: 6.95, z: 10.45 },    // 咖啡厅,
   ],
 
   enemies: [
@@ -215,7 +216,6 @@ export default {
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: 2.75, z: -10.35, stash: { x: 2.15, z: -10.35, normal: [1, 0] } },   // 珍宝馆西墙,
     { kind: 'objective', item: 'mask', name: '黄金面具', x: -11.4, z: 1.0 },
     { kind: 'objective', item: 'egg', name: '恐龙蛋', x: 12.2, z: 1.0 },
-    { kind: 'objective', item: 'gem', name: '蓝宝石', x: 8.5, z: -10.2 },
     { kind: 'weapon', weapon: 'stun', amount: 4, x: 1.3, z: 9.8 },
     { kind: 'weapon', weapon: 'sewing', amount: 48, x: -12.6, z: 10.9 },
     { kind: 'weapon', weapon: 'needle', amount: 6, x: -13.2, z: -5.0 },
@@ -228,4 +228,65 @@ export default {
     { kind: 'heart', amount: 1, x: 0, z: -10.4 },
     { kind: 'heart', amount: 1, x: -5.0, z: 10.8 },
   ],
+  upper: [{
+    rooms: [
+      { id: 'archive', name: '档案室', minX: -14, maxX: -3, minZ: -12, maxZ: -5, surface: 'boards', floor: 0xc4a073, accent: 0x907966 },
+      { id: 'landing', name: '二楼门厅', minX: -3, maxX: 3, minZ: -12, maxZ: -5, surface: 'quilt', floor: 0xc3b8c9, accent: 0x8d7f9d },
+      { id: 'restoration', name: '修复工坊', minX: 3, maxX: 14, minZ: -12, maxZ: -5, surface: 'boards', floor: 0x9bada5, accent: 0x608078 },
+      { id: 'textiles', name: '织物展厅', minX: -14, maxX: -3, minZ: -5, maxZ: 12, surface: 'quilt', floor: 0xa9868e, accent: 0x8d6474 },
+      { id: 'upper-gallery', name: '二楼展廊', minX: -3, maxX: 3, minZ: -5, maxZ: 12, surface: 'boards', floor: 0xc5ac91, accent: 0xa48b77 },
+      { id: 'upper-vault', name: '珍宝库', minX: 3, maxX: 14, minZ: -5, maxZ: 12, surface: 'terry', floor: 0x777d9a, accent: 0x706596 },
+    ],
+    walls: [
+      { z: -5, x: [-14, 14], doors: [[-9.8,-7.4],[-1.3,1.3],[7.5,10]] },
+      { x: -3, z: [-12, 12], doors: [[-9,-6.7],[-1.7,.7],[7.2,9.5]] },
+      { x: 3, z: [-12, 12], doors: [[-9,-6.7],[-1.7,.7],[7.2,9.5]] },
+    ],
+    skylights: [
+      { x:0, z:1, w:2.6, d:5.6 },
+      { x:-8.3, z:1.5, w:3.7, d:2.6 },
+      { x:9.6, z:6.9, w:2.7, d:3.2 },
+    ],
+    lamps: [{x:0,z:-9},{x:-9,z:-8},{x:9,z:-8},{x:0,z:-3.15},{x:0,z:8},{x:-8,z:-1.75},{x:-10,z:8},{x:8,z:1},{x:10,z:10}],
+    rugs: [
+      { x:0, z:3.2, w:2.5, d:13.2, color:0x6d647e },
+      { x:-8.8, z:-8.2, w:5.4, d:2.6, color:0xa17f65 },
+      { x:-9.2, z:6.5, w:4.7, d:2.9, color:0x7d5264 },
+      { x:10.5, z:9.5, w:3.8, d:3.3, color:0x4f567e },
+    ],
+    pictures: [
+      { x:-9.7, z:-12, y:2.05, normal:[0,1], w:2.4, h:1.25, color:0xc8a975 },
+      { x:9.8, z:-12, y:2.10, normal:[0,1], w:2.65, h:1.25, color:0x76988d },
+      { x:-14, z:1.5, y:2.1, normal:[1,0], w:2.3, h:1.35, color:0xc09098 },
+      { x:-14, z:6.0, y:2.1, normal:[1,0], w:1.95, h:1.2, color:0xbe9f7e },
+      { x:14, z:8.4, y:2.1, normal:[-1,0], w:2.1, h:1.2, color:0x8293b6 },
+    ],
+    furniture: [
+      { id:'rolls', kind:'cabinet', look:'bookshelf', x:-12.7, z:-8.1, w: .8, d: 4, h:2, color:0x9a7458 },
+      { id:'repair-a', kind:'bench', look:'labbench', x:7, z:-9.9, w:3, d:1.1, h:.95, color:0x9c8066 },
+      { id:'repair-b', kind:'case', item:'jars', x:11.4, z:-7.1, w:1.1, d:2.2, h:1.95, color:0x75958d },
+      { id:'textile-a', kind:'case', item:'crowns', x:-9.8, z:-.7, w:4.3, d:1.2, h:1.7, color:0xaa7c85 },
+      { id:'textile-b', kind:'bench', look:'ottoman', x:-8.8, z:6.7, w:3.2, d:1.5, h:.65, color:0xab8c95 },
+      { id:'gallery-bench-upper', kind:'bench', look:'ottoman', x:0, z:4, w:2.5, d:1, h:.52, color:0x8e697c },
+      { id:'vault-case-upper', kind:'case', item:'gem-green', x:8.7, z:1.6, w:2.4, d:1.4, h:1.9, color:0x666d93 },
+      { id:'vault-turn', kind:'case', item:'gem-red', x:9.7, z:7.5, w:1.75, d:2.5, h:1.9, color:0x7375a0 },
+      { id:'vault-display', kind:'plinth', item:'gem-empty', x:12.25, z:9.9, w:1.1, d:1.1, h:.65, color:0xc7a56a },
+    ],
+    enemies: [
+      { type:'walker', x:-6, z:-9.6, state:'asleep' },
+      { type:'crawler', x:-8.5, z:1.4, state:'asleep' },
+      { type:'archer', x:-10.6, z:9.4, heading:-1.7, state:'idle' },
+      { type:'bomber', x:11.2, z:-10.6, heading:-1.6, state:'idle' },
+      { type:'walker', x:5.2, z:-6.7, state:'asleep' },
+      { type:'shielded', x:0, z:6.3, heading:Math.PI, state:'idle' },
+      { type:'heavy', x:10.1, z:-2.5, heading:-1.6, state:'idle' },
+      { type:'boss-leech', x:11.6, z:5.4, heading:Math.PI, state:'asleep' },
+    ],
+    pickups: [
+      { kind:'objective', item:'gem', name:'蓝宝石', x:11.1, z:10 },
+      { kind:'ammo', x:-10.8, z:-7 },
+      { kind:'weapon', weapon:'needle', amount:5, x:1.95, z:-8.7 },
+      { kind:'heart', amount:1, x:-12.2, z:4.5 },
+    ],
+  }],
 };

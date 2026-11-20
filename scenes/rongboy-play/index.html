@@ -11,6 +11,14 @@ body.locked #view { cursor: none; }
   --hud-y: clamp(18px, 4.4dvh, 52px);
   position: absolute; inset: 0; z-index: 4; pointer-events: none;
 }
+#missionHud {
+  position: absolute; top: var(--hud-y); left: var(--hud-x);
+  max-width: min(310px, 43vw); padding: 8px 12px;
+  border-inline-start: 3px solid #eac17a; border-radius: 8px;
+  color: #fff0cd; background: #23392de8; font: 500 clamp(13px, 1.45vw, 17px)/1.4 var(--ui-text);
+}
+#missionHud strong { display: block; margin-bottom: 3px; color: #f1ca83; font: 600 .9em var(--ui-title); }
+body:has(#bossHud:not([hidden])) #missionHud { max-width: min(310px, 26vw); }
 .hearts { position: absolute; display: flex; align-items: center; gap: clamp(3px, .48vw, 10px); left: var(--hud-x); bottom: var(--hud-y); }
 .heart {
   display: block; width: clamp(33px, 3.25vw, 62px); aspect-ratio: 62 / 58;
@@ -263,6 +271,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
 }
 </style></head><body class="loading game-interface"><section id="loading" role="status" aria-live="polite"><div><div class="loadingBrand"><strong>绒仔</strong><span>RONGBOY</span></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a class="ui-return" id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 投掷，G 或十字键下切换炸弹，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
 <div id="fightHud" hidden>
+  <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span></div>
   <div class="hearts" id="hearts" role="img" aria-label="3 颗心">
     <span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span>
   </div>

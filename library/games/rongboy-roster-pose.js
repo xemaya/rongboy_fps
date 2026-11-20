@@ -1,26 +1,57 @@
-import {galleryBossPose} from './rongboy-final-boss-pose.js';
-import {poseCrawl} from './rongboy-crawl.js';
-import {updateActionGear} from './rongboy-action-gear.js';
-// Representative model-review poses. Combat state machines remain authoritative in game scenes.
-export function poseRosterFigurine(actor,time=0,moving=false){
- actor.reset();actor.tilt.position.y=0;actor.tilt.scale.setScalar(1);actor.world.position.y=0;
- const kind=actor.nativeVariant||actor.kind,part=name=>actor.parts.get(name),add=(name,axis,value)=>{const p=part(name);if(p)p.rotation[axis]+=value;};
- if(actor.model.userData.final_costume && kind.startsWith('boss-')){galleryBossPose(actor,time,moving);return;}
- if(kind==='crawler'){poseCrawl(actor,time*.72,moving?1:0);return;}
- const period=kind==='runner'?8:kind==='heavy'||kind==='boss-warden'?3.6:5,t=time*period;
- const hop=moving?Math.max(0,Math.sin(t)):0;
- for(const name of ['ArmL','ArmR'])add(name,'x',-1.07);
- if(moving){actor.world.position.y=hop*(kind==='heavy'||kind==='boss-warden'?.06:.16);add('LegL','x',Math.sin(t)*.22);add('LegR','x',-Math.sin(t)*.22);add('Head','z',Math.sin(time*2)*.03);}
- if(kind==='runner'){for(const name of ['ArmL','ArmR'])add(name,'x',.45);add('Body','x',.15);if(moving){add('ArmL','x',Math.sin(t)*.20);add('ArmR','x',-Math.sin(t)*.20);}}
- if(kind==='weaver'){actor.tilt.rotation.z=moving?Math.sin(time*3)*.11:-.07;add('ArmL','z',-.10);add('ArmR','z',.10);}
- if(kind==='leaper'){add('ArmL','x',-.20);add('ArmR','x',-.20);if(moving){actor.world.position.y=hop*.35;add('LegL','x',hop*.5);add('LegR','x',hop*.5);}}
+import { poseGroundedGait } from './rongboy-gait.js';
+import { applyAttackPose } from '../../scenes/rongboy-mission/attack-pose.js';
+import { actionPose } from '../../scenes/rongboy-mission/actions.js';
+import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 
- if(kind==='shielded'){part('ArmL').rotation.x=actor.rest.get('ArmL').r.x;add('ArmR','x',.12);add('Body','y',-.06);}
- if(kind==='bomber'){part('ArmL').rotation.x=actor.rest.get('ArmL').r.x-.70;part('ArmR').rotation.x=actor.rest.get('ArmR').r.x-(moving?1.1+Math.sin(time*3)*.8:1.0);add('Body','z',moving?Math.sin(time*3)*.07:0);}
- if(kind==='spawner'){actor.world.position.y=0;for(const name of ['ArmL','ArmR'])part(name).rotation.x=actor.rest.get(name).r.x-.20;add('Head','z',moving?Math.sin(time*2)*.045:0);}
- if(kind==='archer'){part('ArmL').rotation.x=actor.rest.get('ArmL').r.x-1.14;part('ArmR').rotation.x=actor.rest.get('ArmR').r.x-1.0;add('ArmR','y',-.78-(moving?(Math.sin(time*3)*.5+.5)*.25:0));add('Body','y',-.12);}
- if(kind==='boss-warden'){add('ArmL','x',.55);add('ArmR','x',.55);add('Head','y',moving?Math.sin(time)*.10:0);}
- if(kind==='heavy'){add('ArmL','x',.4);add('ArmR','x',.4);}
- if(kind==='boss-leech'){actor.world.position.y=moving?Math.sin(time*2)*.015:0;add('ArmL','z',-.18);add('ArmR','z',.18);add('Head','z',moving?Math.sin(time*1.6)*.04:0);}
- updateActionGear(actor,{draw:kind==='archer'?(moving?(Math.sin(time*3)*.5+.5):.35):0,arrow:true,bomb:true});
+const DEMOS = {
+ leaper: ['windup','pounce'],
+ crawler: ['crawler-windup','crawler-strike'],
+ shielded: ['shield-windup','shield-charge'],
+ archer: ['archer-aim'],
+ bomber: ['bomber-throw'],
+ 'boss-warden': ['warden-windup'],
+ 'boss-leech': ['leech-windup','leech-pull'],
+};
+const DEMO_SPEED = {leaper:1.70,heavy:.82,shielded:1.05,bomber:1,archer:.95,'boss-warden':.69,'boss-leech':.93};
+
+function sampleAction(type,time) {
+  const [prep,strike] = DEMOS[type], spec = ATTACKS[type];
+  const wind = spec.windup || 0, active = spec.strike || 0, recovery = spec.recover || .70;
+  const moving = 1.45, age = time % (moving+wind+active+recovery) - moving;
+  if (age<0) return {action:'chase',actionAge:age+moving};
+  if (age<wind) return {action:prep,actionAge:age};
+  if (strike && age<wind+active) return {action:strike,actionAge:age-wind};
+  return {action:type==='leaper'?'recover':'special-recover',actionAge:age-wind-active,recoverFrom:strike||prep};
+}
+
+function leapPose(actor, enemy) {
+  const spec = ATTACKS.leaper, pose = actionPose(enemy);
+  actor.world.position.y = enemy.action === 'pounce' ? Math.sin(Math.PI*enemy.actionAge/spec.strike)*.65 : 0;
+  actor.tilt.scale.set(1,1-pose.crouch,1);
+  actor.parts.get('Body').rotation.x += .12+pose.lean;
+  for (const side of ['L','R']) {
+    actor.parts.get('Arm'+side).rotation.x -= 1.18+pose.reach;
+    actor.parts.get('Leg'+side).rotation.x += pose.legTuck;
+  }
+}
+
+// The turntable uses the same locomotion and attack poses as the mission renderer.
+export function poseRosterFigurine(actor,time=0,moving=false,demonstrateAttack=false) {
+  actor.reset();actor.tilt.position.set(0,0,0);actor.tilt.scale.setScalar(1);actor.world.position.y=0;
+  const type=actor.nativeVariant || actor.kind;
+  const action = moving && demonstrateAttack && DEMOS[type] ? sampleAction(type,time) : {action:'chase',actionAge:0};
+  if (type === 'walker') {
+    const period=(time*5)%(Math.PI*2), hop=moving?Math.max(0,Math.sin(period)):0;
+    actor.world.position.y=hop*.16;
+    for (const side of ['L','R']) {
+      actor.parts.get('Arm'+side).rotation.x-=1.07+hop*.1;
+      actor.parts.get('Leg'+side).rotation.x+=hop*.22;
+    }
+    return;
+  }
+  const enemy = {type,...action,age:time,awareness:'alert',stepForward:1,stepWeight:moving?1:0,
+    stepDistance: time*(DEMO_SPEED[type] || .8),crawlDistance:time*.72,crawlWeight:moving?1:0};
+  if (type==='leaper' && enemy.action!=='chase') leapPose(actor,enemy);
+  else poseGroundedGait(enemy,actor);
+  applyAttackPose(enemy,actor);
 }

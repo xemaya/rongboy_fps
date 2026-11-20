@@ -60,10 +60,14 @@ export function reviewMap(def, { bots = true } = {}) {
   // ---- 机关：用不用得上（范围里站着几只、冲向出生点的路上会经过几只）、打不打得到（3–12 米外有没有看得见它的地方）
   const nearLine = (p, a, b) => { const dx = b.x - a.x, dz = b.z - a.z, t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / (dx * dx + dz * dz || 1))); return Math.hypot(p.x - a.x - dx * t, p.z - a.z - dz * t); };
   const gadgets = L.gadgets.map(g => {
-    const G = GADGETS[g.kind], top = { x: g.x, y: G.h + 0.35, z: g.z };
-    const inside = L.enemies.filter(e => dist(e, g) <= G.radius && (g.kind === 'clock' && dist(e, g) < G.radius * 0.5 || lineOfSight(L, top, { x: e.x, y: g.kind === 'clock' ? 0 : 1.0, z: e.z })));
+    const G = GADGETS[g.kind], top = { x: g.x, y: G.lightY ?? G.h + 0.35, z: g.z };
+    const inside = L.enemies.filter(e => {
+      if (g.kind === 'quilt') return Math.abs(g.x-e.x) <= G.w/2 && Math.abs(g.z-e.z) <= G.depth/2;
+      return dist(e, g) <= G.radius && (g.kind === 'clock' && dist(e, g) < G.radius * 0.5 ||
+        lineOfSight(L, top, { x: e.x, y: g.kind === 'clock' ? 0 : 1.0, z: e.z }, 1.2, g.id));
+    });
     const passing = g.kind === 'clock' ? [] : L.enemies.filter(e => !inside.includes(e) && nearLine(g, e, L.player) < G.radius * 0.75);
-    const reach = cells.some(c => dist(c, g) >= 3 && dist(c, g) <= 12 && lineOfSight(L, { x: c.x, y: 1.05, z: c.z }, top));
+    const reach = cells.some(c => dist(c, g) >= 3 && dist(c, g) <= 12 && lineOfSight(L, { x: c.x, y: 1.05, z: c.z }, top, 1.2, g.id));
     return { kind: g.kind, name: G.name, x: g.x, z: g.z, room: roomAt(L, g.x, g.z)?.name, inside: inside.length, passing: passing.length, reach };
   });
   const stashes = L.pickups.filter(k => k.stash).length;
@@ -100,7 +104,7 @@ export function reviewMap(def, { bots = true } = {}) {
     if (g.inside + g.passing === 0) problem(`${g.room}的${g.name} ${at(g)} 用不上：它的范围（${GADGETS[g.kind].radius} 米）里没有僵尸，也没有僵尸冲向出生点时会经过。挪到僵尸旁边，或者挪到它们追过来的路上（准则 3.8）`);
     if (!g.reach) problem(`${g.room}的${g.name} ${at(g)} 打不到：3–12 米外没有一个看得见它的站位。别让高家具把它围住（准则 3.8）`);
   }
-  if (L.enemies.length >= 8 && !gadgets.length) idea('这张图没有机关：每张图配一种（家是闹钟、学校是颜料桶、博物馆是聚光灯），放在僵尸多的两三间屋里（准则 3.7）');
+  if (L.enemies.length >= 8 && !gadgets.length) idea('这张图没有机关：每张图配一种（家是闹钟、学校是颜料桶、博物馆是聚光灯、奶奶家是晒被绳），放在僵尸会经过的地方（准则 3.7）');
   for (const r of table) {
     if (r.zombies >= 3 && r.tall + r.low === 0) problem(`${r.name}里有 ${r.zombies} 只僵尸，却没有一件能挡身体的家具：只能在空地上硬拼。加一两件（准则 2.1）`);
     if (!r.outdoor && r.free < 35) problem(`${r.name}只有 ${r.free}% 的地面走得了人（现有的图里最挤的教室是 37%）：太挤，僵尸和玩家都会卡。拿掉一两件家具，或者把房间画大（准则 2.1）`);

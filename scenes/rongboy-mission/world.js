@@ -1,3 +1,5 @@
+import { uiCanvasFont } from './interface-font.js';
+import { t } from './language.js';
 // 把编译好的关卡搭成毛绒的家：墙、地面、屋顶、窗、灯和家具都用 library 里的毛绒零件拼。
 // 楼有几层就搭几层：每层在自己的坐标里从 y = 0 建起，整组抬到那一层的高度；楼梯间是通高的一个竖井。
 // 碰撞仍然只认 level.js 的盒子；这里画出来的东西都落在那些盒子里，盒子外只有贴地、贴墙或高过头顶的装饰。
@@ -10,28 +12,42 @@ import { plinth, displayCase, sarcophagus, dinosaur, whale, banner, reception, o
 import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel, slide, swings, playhouse, seesaw, blockStack, playground, rainbow } from '../../cine-engine/library/structures/school.js';
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 import { createToys } from './toys.js';
+import { createEasterEggProps } from './easter-egg-props.js';
+import { ammoPouch, cottonHeart, displayedWeapon, pickupFabric, yarnBasket } from './pickup-props.js';
+import { bombProp } from './arsenal.js';
+import { createVapor } from './vapor.js';
 
 const WALL = 0xf0e4c8, CEILING = 0xf6eedb, ROOF = 0xd98468, HEDGE = 0x7caa66, LAWN = 0xa5c57c;
+
+function distantScenery(bounds, x, z, angle, distance, clearance) {
+  const dx = Math.cos(angle), dz = Math.sin(angle);
+  const awayX = (dx < 0 ? x - bounds.minX : bounds.maxX - x) + clearance;
+  const awayZ = (dz < 0 ? z - bounds.minZ : bounds.maxZ - z) + clearance;
+  const safe = Math.max(distance, Math.min(awayX / Math.abs(dx), awayZ / Math.abs(dz)));
+  return [x + dx * safe, z + dz * safe];
+}
 
 function label(text, { width = 512, height = 128, size = 64, ink = '#4d5c47', paper = '#efe3c4' } = {}) {
   const c = document.createElement('canvas'); c.width = width; c.height = height;
   const a = c.getContext('2d');
   a.fillStyle = paper; a.beginPath(); a.roundRect(4, 4, width - 8, height - 8, 22); a.fill();
   a.strokeStyle = '#8b7655'; a.lineWidth = 3; a.setLineDash([10, 8]); a.beginPath(); a.roundRect(12, 12, width - 24, height - 24, 16); a.stroke();
-  a.fillStyle = ink; a.textAlign = 'center'; a.textBaseline = 'middle'; a.font = `bold ${size}px Georgia, "Songti SC", serif`;
+  a.fillStyle = ink; a.textAlign = 'center'; a.textBaseline = 'middle'; a.font = uiCanvasFont(size);
+  const widthLimit = width - 36;
+  const measured = a.measureText(text).width;
+  if (measured > widthLimit) a.font = uiCanvasFont(size * widthLimit / measured);
   a.fillText(text, width / 2, height / 2 + 2);
   const t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 
-function pickupModel(k, weapons) {
+function pickupModel(k, weapons, variants, fabric) {
   const g = new T.Group(), heart = k.kind === 'heart', objective = k.kind === 'objective', gun = k.kind === 'weapon';
-  const weapon = weapons.find(w => w.id === k.weapon);
-  const color = heart ? 0xd9705f : objective ? 0xe9bf65 : weapon?.color ?? 0xf3dfa5;
+  const index = weapons.findIndex(w => w.id === k.weapon), weapon = weapons[index];
   const body = new T.Group(); g.add(body);
+  let labelHeight = .42;
   const add = (geometry, material, x, y, z) => { const m = new T.Mesh(geometry, material); m.position.set(x, y, z); body.add(m); return m; };
   if (heart) {
-    for (const sign of [-1, 1]) add(new T.SphereGeometry(0.11, 12, 10), woolMaterial(color), sign * 0.075, 0.06, 0);
-    add(new T.ConeGeometry(0.155, 0.2, 12), woolMaterial(color), 0, -0.07, 0).rotation.x = Math.PI;
+    cottonHeart(body, fabric);
   } else if (objective) {
     const shiny = (c, e = 0) => new T.MeshStandardMaterial({ color: c, roughness: 0.3, emissive: c, emissiveIntensity: e });
     if (k.item === 'mask') {          // 黄金面具
@@ -43,30 +59,32 @@ function pickupModel(k, weapons) {
       for (const [x, y, z] of [[0.09, 0.1, 0.1], [-0.08, 0.0, 0.12], [0.02, -0.08, 0.13], [-0.1, 0.12, -0.08], [0.11, -0.03, -0.09]]) add(new T.SphereGeometry(0.03, 6, 5), woolMaterial(0xb9a07c), x, y + 0.03, z);
     } else if (k.item === 'gem') {    // 蓝宝石：八面体
       add(new T.SphereGeometry(0.17, 4, 2), shiny(0x5f9cf0, 1.6), 0, 0.05, 0).scale.y = 1.3;
-    } else {                          // 毛线篮：一只藤篮装着三团毛线
-      add(new T.CylinderGeometry(0.26, 0.2, 0.24, 16), woolMaterial(0xb58a62), 0, -0.04, 0);
-      for (const [x, z, c] of [[-0.1, 0.04, 0xe7836f], [0.11, 0.02, 0x9fc3e0], [0, -0.1, 0xf2d27a]]) add(new T.SphereGeometry(0.11, 12, 10), woolMaterial(c), x, 0.13, z);
+    } else {
+      yarnBasket(body, fabric);
+      labelHeight = .49;
     }
     const glow = add(new T.TorusGeometry(0.36, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffd060, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
-  } else {
-    add(new T.BoxGeometry(0.3, 0.2, 0.22), woolMaterial(0xb58a62), 0, -0.02, 0);
-    for (const x of [-0.08, 0.08]) add(new T.SphereGeometry(0.075, 10, 8), woolMaterial(color), x, 0.12, 0);
-  }
+  } else if (weapon?.kind === 'grenade') {
+    const model = bombProp(weapon.id);
+    model.scale.setScalar(.30);
+    body.add(model);
+  } else if (gun && variants?.[index]) displayedWeapon(body, variants[index]);
+  else ammoPouch(body, fabric);
   if (gun) {   // 一把枪：底下一圈光
     const glow = add(new T.TorusGeometry(0.34, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x7fd8ff, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
   }
-  const text = heart ? '♥ +1' : objective ? `★ ${k.name || '毛线篮'}` : gun ? `★ ${weapon?.name ?? ''}` : weapon ? `${weapon.name} +${k.amount}` : '弹药包';   // 不写 weapon 的弹药包：补手里那把特殊枪
+  const text = heart ? '♥ +1' : objective ? `★ ${k.name || t('毛线篮')}` : gun ? `★ ${weapon?.name ?? ''}` : weapon ? `${weapon.short} +${k.amount ?? 1}` : t('弹药包');
   const sprite = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 384, height: 96, size: 46 }), transparent: true, depthWrite: false }));
-  sprite.scale.set(0.72, 0.18, 1); sprite.position.y = 0.42; g.add(sprite);
+  sprite.scale.set(0.72, 0.18, 1); sprite.position.y = labelHeight; g.add(sprite);
   g.position.set(k.x, (k.y ?? 0) + 0.55, k.z);
-  g.userData.body = body; g.userData.baseY = (k.y ?? 0) + 0.55;
+  g.userData.body = body; g.userData.label = sprite; g.userData.baseY = (k.y ?? 0) + 0.55;
   return g;
 }
 
 // toys / floor：会动的那几样（骨架模型、地球仪、小黄鸭、盆栽）不并进整块网格，交给 toys 单独造在第 floor 层上
-function furniture(k, M, c, toys = null, floor = 0) {
+function furniture(k, M, c, toys = null, floor = 0, authoredEggs = false) {
   const look = c.look || c.kind;
   if (look === 'sewing-board') {
     // All decoration stays flush with the board face.
@@ -87,7 +105,12 @@ function furniture(k, M, c, toys = null, floor = 0) {
     return toys.globe(floor, c.id, x, c.h, z, Math.min(l.across, l.depth) * 0.9);
   }
   if (c.kind === 'plinth') return look === 'dino' ? dinosaur(k, M, c) : look === 'skeleton' ? skeletonModel(k, M, c) : plinth(k, M, c);
-  if (c.kind === 'case') return displayCase(k, M, c);
+  if (c.kind === 'case') {
+    const display = Object.assign((type, color) => M(type, color), M, {
+      glow: (color, strength) => M.glow(color, strength * .43),
+    });
+    return displayCase(k, display, c);
+  }
   if (c.kind === 'sarcophagus') return sarcophagus(k, M, c);
   if (look === 'ottoman') return ottoman(k, M, c);
   if (look === 'reception') return reception(k, M, c);
@@ -118,7 +141,7 @@ function furniture(k, M, c, toys = null, floor = 0) {
     for (const sx of [-1, 1]) for (const sz of [-1, 1]) k.sphere(M.button(0xe9c46a), 0.07, c.x + sx * (c.w / 2 - 0.2), 0.06, c.z + sz * (c.d / 2 - 0.16), { seg: 8, rings: 6 });
     k.soft(M.button(0x9fd6e4), c.w - 0.3, 0.03, c.d - 0.3, c.x, c.h - 0.012, c.z, { r: 0.012 });
     for (let i = 0; i < 7; i++) k.sphere(M('felt', 0xffffff), 0.07 + (i % 3) * 0.02, c.x - c.w * 0.3 + (i % 4) * 0.13, c.h + 0.02, c.z - 0.12 + (i % 3) * 0.12, { seg: 8, rings: 6 });
-    if (toys) toys.duck(floor, c.id, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05);
+    if (toys && !authoredEggs) toys.duck(floor, c.id, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05);
     else {
       k.sphere(M('felt', 0xf2cf62), 0.085, c.x + c.w * 0.18, c.h + 0.05, c.z + 0.05, { seg: 10, rings: 8, sy: 0.8 });
       k.sphere(M('felt', 0xf2cf62), 0.055, c.x + c.w * 0.18 + 0.07, c.h + 0.13, c.z + 0.05, { seg: 8, rings: 6 });
@@ -157,7 +180,7 @@ function furniture(k, M, c, toys = null, floor = 0) {
   else crate(k, M, c, look);
 }
 
-export function buildWorld(cine, level, weapons) {
+export function buildWorld(cine, level, weapons, variants) {
   const scene = cine.scene, B = level.bounds, H = level.height, WT = level.wallThickness, SH = level.storeyHeight, N = level.storeys.length, T0 = level.stairs;
   const root = new T.Group(); scene.add(root);
   // 没有房子的图（试战庭院：整张图都是露天）：把“房子”当成北边界上一条零进深的线，院子就是整张图，
@@ -196,7 +219,9 @@ export function buildWorld(cine, level, weapons) {
     if (h.maxX <= r.minX || h.minX >= r.maxX || h.maxZ <= r.minZ || h.minZ >= r.maxZ) return [r];
     return [{ ...r, maxX: h.minX }, { ...r, minX: h.maxX }, { ...r, minX: h.minX, maxX: h.maxX, maxZ: h.minZ }, { ...r, minX: h.minX, maxX: h.maxX, minZ: h.maxZ }].filter(q => q.maxX - q.minX > 0.02 && q.maxZ - q.minZ > 0.02);
   });
-  const holes = S => S.skylights.map(q => ({ minX: q.x - q.w / 2, maxX: q.x + q.w / 2, minZ: q.z - q.d / 2, maxZ: q.z + q.d / 2 }));
+  const holes = S => S.index === N - 1
+    ? S.skylights.map(q => ({ minX: q.x - q.w / 2, maxX: q.x + q.w / 2, minZ: q.z - q.d / 2, maxZ: q.z + q.d / 2 }))
+    : [];
   const rnd = mulberry32(20261115);
 
   // ================================================================== 每一层
@@ -204,7 +229,12 @@ export function buildWorld(cine, level, weapons) {
   const facadeDeco = new PlushKit();
   // 会动的小东西（机关、拉链、吊灯之类）：每层一个组，稍后挂到那一层的室内组上，换层时一起隐藏
   const toyFloors = level.storeys.map(() => new T.Group());
-  const toys = createToys({ Kit: PlushKit, M, label, floors: toyFloors, floorY: level.storeys.map(q => q.y) });
+  const toys = createToys({ Kit: PlushKit, M, floors: toyFloors, floorY: level.storeys.map(q => q.y) });
+  const eggProps = createEasterEggProps({ Kit: PlushKit, M, floors: toyFloors, level });
+  const authoredEggs = level.easterEggs.length > 0;
+  function sceneFurniture(k, c, S) {
+    if (!S.easterEggs.some(egg => egg.replaces === c.id)) furniture(k, M, c, toys, S.index, authoredEggs);
+  }
   function buildStorey(S) {
     const shell = new PlushKit(), k = new PlushKit(), top = S.index === N - 1, ground = S.index === 0;
     const deco = new PlushKit();   // 外立面上的小装饰：一直画，但不投影（阴影那一趟已经很重）
@@ -369,7 +399,7 @@ export function buildWorld(cine, level, weapons) {
     for (const g of S.hangings) (g.kind === 'whale' ? whale : banner)(k, M, { ...g, ceiling: H });
     for (const r of S.rugs) rug(k, M, { ...r, y: inHouse(r.x, r.z) ? 0.026 : 0.012 });
     S.pictures.forEach((p, i) => picture(k, M, { ...p, seed: S.index * 31 + i + 1 }));
-    for (const c of S.furnitureBoxes) if (!ground || inHouse(c.x, c.z)) furniture(k, M, c, toys, S.index);
+    for (const c of S.furnitureBoxes) if (!ground || inHouse(c.x, c.z)) sceneFurniture(k, c, S);
     if (T0 && top) {   // 顶层西边那一跑的口上：栏杆
       const x0 = T0.minX, x1 = -T0.spine, z = T0.mouthZ;
       for (const x of [x0 + 0.06, (x0 + x1) / 2, x1 - 0.06]) k.soft(wood, 0.08, 1.0, 0.08, x, 0.5, z, { r: 0.02 });
@@ -428,7 +458,7 @@ export function buildWorld(cine, level, weapons) {
   // ================================================================== 花园：草地、围篱、院门、石板路
   const k = new PlushKit(), far = new PlushKit();   // far：屋顶和远景，不投影
   k.soft(M('terry', TH.lawn ?? LAWN), 120, 0.2, 120, hx, -0.1, (B.minZ + B.maxZ) / 2, { r: 0 });   // 草地顶面在 y = 0，室内地面高出 1.2 厘米
-  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) furniture(k, M, c, toys, 0);
+  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) sceneFurniture(k, c, level.storeys[0]);
   const G = level.outdoor.length ? { minX: house.minX, maxX: house.maxX, minZ: house.maxZ, maxZ: B.maxZ } : null;
   if (G && TH.yard === 'playground') playground(k, M, { G, gateX: level.player.x, yard: level.yard || [] });   // 学校：铅笔围栏、蜡笔校门、地上的画线
   else if (G) {
@@ -476,9 +506,16 @@ export function buildWorld(cine, level, weapons) {
     for (const x of [house.minX - 0.5, house.maxX + 0.5]) far.quad(M('felt', WALL), [x, eave - 0.05, hz], [x, eave - 0.05, hz + sign * run], [x, eave + rise, hz], [x, eave + rise, hz], [[0, 0], [run, 0], [0, rise], [0, rise]], 1, [Math.sign(x - hx), 0, 0]);
   }
   far.cyl(M('felt', tone(TH.roofColor ?? ROOF, -0.2)), 0.13, 0.13, hw + 1.7, hx, eave + rise + 0.05, hz, { seg: 10, rz: Math.PI / 2 });
-  chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
-  far.soft(M('quilt', 0xb86a55), 0.9, 2.2, 0.9, chimney.x, chimney.top - 1.1, chimney.z, { r: 0.05 });
-  far.soft(M('felt', 0xe9dcc0), 1.06, 0.16, 1.06, chimney.x, chimney.top, chimney.z, { r: 0.05 });
+  if (TH.yard !== 'playground') {
+    chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
+    const { x, z, top } = chimney, cap = M('felt', 0xe4d2ad);
+    far.soft(M('quilt', 0xb86a55), .9, 2.12, .9, x, top - 1.14, z, { r:.050 });
+    far.soft(M('felt', 0x4b3c34), .81, .05, .81, x, top - .07, z, { r:.018 });
+    for (const side of [-1, 1]) {
+      far.soft(cap, 1.03, .15, .17, x, top, z + side * .43, { r:.034 });
+      far.soft(cap, .17, .15, .72, x + side * .43, top, z, { r:.034 });
+    }
+  }
 
   }
 
@@ -486,12 +523,15 @@ export function buildWorld(cine, level, weapons) {
   // ---- 远景：毛毡小山、棒棒糖树（都在围篱外面）
   if (TH.rainbow) rainbow(far, M, { x: hx, z: house.minZ - 34, r: 23 });
   const hills = [0x9dbb7c, 0x8fb074, 0xa9c487, 0x86a86e];
+  const yardZ = (B.minZ + B.maxZ) / 2;
   for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * Math.PI * 2 + rnd() * 0.3, dist = 34 + rnd() * 24, r = 12 + rnd() * 14;
-    far.sphere(M('terry', hills[i % 4]), r, hx + Math.cos(a) * dist, -r * 0.12, (B.minZ + B.maxZ) / 2 + Math.sin(a) * dist, { seg: 22, rings: 10, sy: 0.3 + rnd() * 0.18, uv: 3 });
+    const a = (i / 14) * Math.PI * 2 + rnd() * .3, dist = 34 + rnd() * 24, r = 12 + rnd() * 14;
+    const [x, z] = distantScenery(B, hx, yardZ, a, dist, r + 2.0);
+    far.sphere(M('terry', hills[i % 4]), r, x, -r * .12, z, { seg:22, rings:10, sy:.3 + rnd() * .18, uv:3 });
   }
   for (let i = 0; i < 22; i++) {
-    const a = rnd() * Math.PI * 2, dist = 19 + rnd() * 16, x = hx + Math.cos(a) * dist, z = (B.minZ + B.maxZ) / 2 + Math.sin(a) * dist, s = 0.8 + rnd() * 0.9;
+    const a = rnd() * Math.PI * 2, dist = 19 + rnd() * 16, s = .8 + rnd() * .9;
+    const [x, z] = distantScenery(B, hx, yardZ, a, dist, 1.5 * s + 1.0);
     far.cyl(M('knit', 0x8a6747), 0.16 * s, 0.24 * s, 2.4 * s, x, 1.2 * s, z, { seg: 8 });
     far.sphere(M('leaves', rnd() < 0.3 ? 0xd7a35a : rnd() < 0.5 ? 0x8fb56c : 0x7da762), 1.5 * s, x, 3.3 * s, z, { seg: 14, rings: 10, sy: 0.9 });
   }
@@ -501,30 +541,29 @@ export function buildWorld(cine, level, weapons) {
   const fixed = [...k.build({ name: 'garden' }), ...tower.build({ name: 'stairs' }), ...far.build({ name: 'far', cast: false }), ...facadeDeco.build({ name: 'facade', cast: false })];
   root.add(...fixed);
 
-  // ---- 会动的小东西：烟囱冒的棉花烟、天上的棉花云（一个实例化网格）
+  // ---- 天上的棉花云共用一个实例化网格，烟从烟囱开口往上散开。
   const puffMat = new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1, emissive: 0xfff3dd, emissiveIntensity: 0.22 });
   const cloudSpec = [];
   if (!TH.night) for (let i = 0; i < 9; i++) {
     const a = rnd() * Math.PI * 2, dist = 30 + rnd() * 40, y = 18 + rnd() * 10, s = 2.2 + rnd() * 2.2;
     for (let j = 0; j < 5; j++) cloudSpec.push({ a, dist, y: y + (j % 2) * s * 0.25 - (j === 0 ? 0 : s * 0.1), s: s * (j === 2 ? 1 : 0.62 + rnd() * 0.2), dx: (j - 2) * s * 0.75 });
   }
-  const puffs = new T.InstancedMesh(new T.SphereGeometry(1, 14, 10), puffMat, cloudSpec.length + 4);
-  puffs.count = cloudSpec.length + (chimney ? 4 : 0); puffs.visible = puffs.count > 0;   // 夜里的博物馆没有云也没有烟囱
+  const puffs = new T.InstancedMesh(new T.SphereGeometry(1, 14, 10), puffMat, cloudSpec.length);
+  puffs.visible = cloudSpec.length > 0;
   puffs.frustumCulled = false; puffs.castShadow = false; puffs.receiveShadow = false; root.add(puffs);
+  const chimneySmoke = chimney && createVapor({ parent:root, x:chimney.x, y:chimney.top + .08, z:chimney.z,
+    count:7, duration:9.2, rise:3.0, size:1.85, drift:1.8, opacity:.48, loop:true });
   const dummy = new T.Object3D();
   let lastTime = null;
   function update(time) {
-    toys.update(lastTime === null ? 0 : Math.max(0, Math.min(0.05, time - lastTime)), time); lastTime = time;
+    const dt = lastTime === null ? 0 : Math.max(0, Math.min(0.05, time - lastTime));
+    toys.update(dt, time); eggProps.update(dt); lastTime = time;
     cloudSpec.forEach((c, i) => {
       const a = c.a + time * 0.004;
       dummy.position.set(hx + Math.cos(a) * c.dist - Math.sin(a) * c.dx, c.y, hz + Math.sin(a) * c.dist + Math.cos(a) * c.dx);
       dummy.scale.set(c.s, c.s * 0.62, c.s * 0.8); dummy.updateMatrix(); puffs.setMatrixAt(i, dummy.matrix);
     });
-    if (chimney) for (let j = 0; j < 4; j++) {
-      const t = (time * 0.11 + j / 4) % 1, s = 0.28 + t * 0.6;
-      dummy.position.set(chimney.x + t * t * 1.8 + Math.sin(time * 0.7 + j) * 0.08, chimney.top + 0.2 + t * 3.2, chimney.z - t * 0.6);
-      dummy.scale.setScalar(s * Math.min(1, t * 6) * Math.min(1, (1 - t) * 4)); dummy.updateMatrix(); puffs.setMatrixAt(cloudSpec.length + j, dummy.matrix);
-    }
+    chimneySmoke?.(time);
     puffs.instanceMatrix.needsUpdate = true;
   }
   update(0);
@@ -539,7 +578,7 @@ export function buildWorld(cine, level, weapons) {
       const alongZ = typeof w.x === 'number', edge = alongZ ? w.x : w.z, a0 = w.at - w.w / 2 + 0.06, a1 = w.at + w.w / 2 - 0.06, y0 = S.y + (w.sill ?? 1.0) + 0.06, y1 = S.y + (w.head ?? 2.1) - 0.06;
       vol.carve(alongZ ? [edge - WT - 0.1, y0, a0] : [a0, y0, edge - WT - 0.1], alongZ ? [edge + WT + 0.1, y1, a1] : [a1, y1, edge + WT + 0.1]);
     }
-    for (const q of S.skylights) vol.carve([q.x - q.w / 2, S.y + H - 0.1, q.z - q.d / 2], [q.x + q.w / 2, S.y + H + 0.5, q.z + q.d / 2]);
+    for (const q of holes(S)) vol.carve([q.minX, S.y + H - .1, q.minZ], [q.maxX, S.y + H + .5, q.maxZ]);
   }
   if (T0) for (let i = 0; i < T0.flights; i++) { seeds.push([T0.xA, i * SH + 1.6, (T0.mouthZ + T0.landingZ) / 2]); vol.carve([-0.55, i * SH + T0.rise + 1.0, T0.endZ - WT - 0.1], [0.55, i * SH + T0.rise + 2.0, T0.endZ + 0.1]); }
   for (const l of lampList) { seeds.push(l.p); vol.carve([l.p[0] - 0.3, l.p[1] - 0.3, l.p[2] - 0.3], [l.p[0] + 0.3, l.p[1] + 0.3, l.p[2] + 0.3]); }   // 灯罩不算挡光的东西
@@ -564,14 +603,24 @@ export function buildWorld(cine, level, weapons) {
   const light = (object) => { object.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) if (m.isMeshStandardMaterial) lit(m); }); return object; };
 
   const pickups = new Map();
-  for (const p of level.pickups) { const m = light(pickupModel(p, weapons)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
+  const fabric = pickupFabric(lib);
+  for (const p of level.pickups) { const m = light(pickupModel(p, weapons, variants, fabric)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
   // 换枪以后，地上那一格变成放下的那把：重做它的模型和名牌
   const refreshPickup = (k) => {
     const old = pickups.get(k.id);
-    if (old) { old.removeFromParent(); old.traverse(o => { o.geometry?.dispose?.(); if (o.isSprite) { o.material.map?.dispose(); o.material.dispose(); } }); }
-    const m = light(pickupModel(k, weapons)); pickups.set(k.id, m); root.add(m); return m;
+    if (old) {
+      old.removeFromParent();
+      const materials = new Set();
+      old.traverse(o => {
+        if (o.isMesh && !o.userData.sharedGeometry) o.geometry.dispose();
+        if (o.isSprite) o.material.map?.dispose();
+        if (o.isMesh || o.isSprite) for (const material of [].concat(o.material)) materials.add(material);
+      });
+      for (const material of materials) if (!material.userData.sharedPickupMaterial) material.dispose();
+    }
+    const m = light(pickupModel(k, weapons, variants, fabric)); pickups.set(k.id, m); root.add(m); return m;
   };
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, refreshPickup, toys, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
+  return { root, storeys, pickups, refreshPickup, toys, eggProps, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
 }

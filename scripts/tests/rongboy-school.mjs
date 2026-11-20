@@ -11,8 +11,9 @@ function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 const run = (s, seconds, input = {}) => { for (let i = 0; i < Math.round(seconds * 120); i++) step(s, 1 / 120, input); };
 const L = compileLevel(def), S = L.storeys[0];
 
-test('a one-storey school: three classrooms, a corridor, and a playground outdoors', () => {
-  assert.equal(L.storeys.length, 1); assert.equal(L.rooms.length, 5); assert.equal(L.outdoor.length, 1);
+test('a one-storey school with a separate recess yard at the entrance', () => {
+  assert.equal(L.storeys.length, 1); assert.equal(L.rooms.length, 6); assert.equal(L.outdoor.length, 2);
+  assert.equal(roomAt(L, L.player.x, L.player.z).id, 'recess');
   assert.equal(roomAt(L, 0, 6).id, 'yard'); assert.equal(roomAt(L, -8, -6).id, 'class'); assert.equal(roomAt(L, 0, -6).id, 'art'); assert.equal(roomAt(L, 8, -6).id, 'lab'); assert.equal(roomAt(L, 0, -1).id, 'corridor');
   assert.equal(L.rooms.filter(r => /教室/.test(r.name)).length, 3);
 });
@@ -98,7 +99,7 @@ test('windows, lamps and pictures sit where they can be built', () => {
 
 test('the gate is safe: a minute behind the block wall and nobody has noticed', () => {
   const s = createGame({ level: L });
-  assert.equal(s.total, 20); assert.equal(missionStatus(s).type, 'clear');
+  assert.equal(s.total, 24); assert.equal(missionStatus(s).type, 'clear');
   run(s, 60);
   assert.equal(s.health, CONFIG.maxHealth);
   assert.deepEqual(s.enemies.filter(e => e.awareness !== 'asleep' && e.awareness !== 'idle').map(e => `${e.type}@${e.x.toFixed(1)},${e.z.toFixed(1)}`), []);
@@ -114,18 +115,21 @@ test('the mission: the round ends when the last zombie is down, not before', () 
 });
 
 test('once roused, everyone finds the player in the middle of the playground', () => {
-  const s = createGame({ level: L }); s.invul = 76; // Keep the navigation target in the playground during the 75-second probe.
-  s.player.x = 0; s.player.z = 6.6;
+  const s = createGame({ level: L }); s.invul = 76;
   for (const e of s.enemies) e.awareness = 'alert';
-  run(s, 75);
-  const near = e => (e.type === 'archer' || e.type === 'bomber' ? ATTACKS[e.type].range : 6);   // 弓手和炸弹客停在自己的射程里
+  for (let i = 0; i < 75 * 120; i++) {
+    // Suppress displacement from close combat so all enemies navigate to the same target.
+    Object.assign(s.player, { x: 0, z: 6.6, vx: 0, vz: 0 });
+    step(s, 1/120);
+  }
+  const near = e => (e.type === 'archer' || e.type === 'bomber' ? ATTACKS[e.type].range + .12 : 6); // 留出最后一帧的位移
   const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > near(e));
   assert.deepEqual(lost.map(e => `${e.type}@${e.x.toFixed(1)},${e.z.toFixed(1)}`), []);
   for (const e of s.enemies) assert.ok(freePoint(L, e.x, e.z, e.radius - 0.02) && Number.isFinite(e.x + e.z + e.y), `${e.type} ended inside a solid`);
 });
 
 test('the block wall hides the gate; desks are low enough to shoot over', () => {
-  assert.equal(lineOfSight(L, { x: 0, y: 1.2, z: 11.2 }, { x: 0, y: 1.2, z: 4.0 }), false);
+  assert.equal(lineOfSight(L, { ...L.player, y: 1.2 }, { x: 0, y: 1.2, z: 4.0 }), false);
   assert.equal(lineOfSight(L, { x: -10, y: 1.2, z: -5.75 }, { x: -5, y: 1.2, z: -5.75 }), true);
 });
 

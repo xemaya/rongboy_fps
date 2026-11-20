@@ -461,7 +461,7 @@ export function buildMap(plan) {
   populate(ctx);
   extras(ctx);
   for (const key of ['windows', 'lamps', 'rugs', 'pictures', 'enemies', 'pickups', 'gadgets']) def[key].push(...(plan.raw?.[key] || []));
-  for (const key of ['yard', 'hangings', 'skylights', 'menu']) if (plan.raw?.[key]) def[key] = plan.raw[key];
+  for (const key of ['yard', 'hangings', 'skylights', 'menu', 'easterEggs']) if (plan.raw?.[key]) def[key] = plan.raw[key];
   // 标准时间：每只僵尸 21 秒，取整到半分钟（现有三张图大致是这个数）
   def.par = plan.par ?? Math.max(120, Math.round(def.enemies.length * 21 / 30) * 30);
   def.texts = texts(plan, def, rooms);

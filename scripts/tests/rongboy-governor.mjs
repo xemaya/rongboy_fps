@@ -81,4 +81,18 @@ const report = (name, fr, gov) => console.log(`${name}：最后停在第 ${gov.t
   for (let i = 0; i < 30; i++) g.feed(20000 + i * 1000, 1000, NATIVE);
   assert.equal(g.pixels, before, '后台那种一秒一帧不触发调节');
 }
+// Startup protects against quality increases without blocking a slow machine from scaling down.
+{
+  const fast = createGovernor(LOOKS);
+  fast.deferUpscale(6500);
+  run(fast, 6, () => LIGHT, { speed: 0.25 });
+  assert.equal(fast.log.length, 0);
+  run(fast, 4, () => LIGHT, { speed: 0.25, t0: 6000 });
+  assert.ok(fast.log.some(entry => entry.t >= 6500 && entry.pixels > 1.6e6));
+
+  const slow = createGovernor(LOOKS);
+  slow.deferUpscale(6500);
+  run(slow, 5, () => HEAVY, { speed: 2 });
+  assert.ok(slow.log.some(entry => entry.t < 6500 && entry.pixels < 1.6e6));
+}
 console.log('ok');

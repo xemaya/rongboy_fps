@@ -263,7 +263,13 @@ export function checkMap(def, { play = true } = {}) {
     if (!multi) {   // 多层的图（家）在 rongboy-mission.mjs 里有自己的检查
       s = createGame({ level: L }); s.health = 1e9;
       for (const e of s.enemies) e.awareness = 'alert';
-      run(s, 75);
+      // This probe tests the route to the entry point. Keep enemy hits from
+      // turning the stationary target into a moving destination.
+      const spawn = { x:s.player.x, y:s.player.y, z:s.player.z, vx:0, vz:0, mvx:0, mvz:0 };
+      for (let i=0; i<75*60; i++) {
+        step(s,1/60);
+        Object.assign(s.player,spawn);
+      }
       const hold = e => (e.type === 'archer' || e.type === 'bomber' ? ATTACKS[e.type].range : 6);
       const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > hold(e) && !lineOfSight(L, { x: e.x, y: 1.2, z: e.z }, { x: s.player.x, y: 1.2, z: s.player.z }));
       if (lost.length) err('lost', `全部惊动后过了 75 秒，${lost.slice(0, 3).map(e => `${ENEMY_TYPES[e.type].name} ${at(e)}`).join('、')} 还没找到出生点的玩家：多半卡在了家具之间。看看那附近有没有它过不去的窄缝`);

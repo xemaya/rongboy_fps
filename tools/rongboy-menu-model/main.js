@@ -4,10 +4,6 @@ import { poseRosterFigurine } from '../../library/games/rongboy-roster-pose.js';
 import { ZOMBIE_ROSTER } from '../../library/games/rongboy-roster.js';
 import { initializeLanguage, t } from '../../scenes/rongboy-mission/language.js';
 import { modelPack } from '../../scenes/rongboy-mission/menu-flow.js';
-import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
-import { applyAttackPose } from '../../scenes/rongboy-mission/attack-pose.js';
-import { actionPose } from '../../scenes/rongboy-shooter-fps/enemy-actions.js';
-
 initializeLanguage({platformLocale:false});
 const status = document.getElementById('status'), canvas = document.getElementById('view');
 const scene = new T.Scene(), camera = new T.PerspectiveCamera(33,1,.04,30);
@@ -18,35 +14,6 @@ try {
   status.textContent = t('当前设备无法显示 3D 模型');
 }
 if (renderer) presentModels();
-
-function rehearsal(actor,time,moving) {
-  poseRosterFigurine(actor,time,moving);
-  if (!moving) return;
-  const type=actor.kind, step=time%3.2-.7;
-  if (step<0) return;
-  if (type==='crawler' || type==='shielded') {
-    const windup=ATTACKS[type].windup, strike=type==='crawler'?.36:.5;
-    if (step>=windup+strike) return;
-    const attack=step>=windup, actionAge=attack?step-windup:step;
-    const action=type==='crawler' ? (attack?'crawler-strike':'crawler-windup') : (attack?'shield-charge':'shield-windup');
-    actor.reset();actor.world.position.y=0;
-    applyAttackPose({type,action,actionAge},actor);
-    if (action==='shield-charge') actor.parts.get('Body').rotation.x+=Math.sin(Math.PI*actionAge/strike)*.32;
-  }
-  if (type==='leaper' && step<1.36) {
-    const action=step<.48?'windup':step<1.02?'pounce':'recover';
-    const actionAge=step-(action==='windup'?0:action==='pounce'?.48:1.02);
-    const pose=actionPose({action,actionAge});
-    actor.reset();
-    actor.world.position.y=action==='pounce'?Math.sin(Math.PI*actionAge/.54)*.36:0;
-    actor.tilt.scale.set(1,1-pose.crouch,1);
-    actor.parts.get('Body').rotation.x+=pose.lean;
-    for (const side of ['L','R']) {
-      actor.parts.get('Arm'+side).rotation.x-=1.2+pose.reach;
-      actor.parts.get('Leg'+side).rotation.x+=pose.legTuck;
-    }
-  }
-}
 
 function presentModels() {
   renderer.setPixelRatio(Math.min(1.5,devicePixelRatio));
@@ -124,7 +91,7 @@ function presentModels() {
     const d=Math.max((h+.22)/.55,Math.max(span,2*radius)/(.53*camera.aspect));
     camera.position.set(Math.sin(angle)*d,h*.5+d*.105,Math.cos(angle)*d);
     camera.lookAt(0,h*.47,0);
-    rehearsal(active,time,moving);
+    poseRosterFigurine(active,time,moving,true);
     renderer.render(scene,camera);
   }
   function resize(){

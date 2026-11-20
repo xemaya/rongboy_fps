@@ -6,14 +6,14 @@ import { GADGETS } from '../gadgets.js';
 
 const LETTER = { walker: 'W', leaper: 'L', heavy: 'H', shielded: 'S', archer: 'A', bomber: 'B', crawler: 'C', 'boss-warden': 'K', 'boss-leech': 'K' };
 const GUN = { scatter: 'Gc', heavy: 'Gh', stun: 'Gt', sewing: 'Gw', needle: 'Gn' };
-const GADGET = { clock: 'Ck', bucket: 'Pb', spot: 'Sp' };
+const GADGET = { clock: 'Ck', bucket: 'Pb', spot: 'Sp', quilt: 'Qt' };
 const tokenOf = k => (k.kind === 'heart' ? '<3' : k.kind === 'objective' ? '!!' : k.kind === 'weapon' ? GUN[k.weapon] ?? 'G?' : k.weapon === 'yarn' ? 'ya' : 'am');
 export const LEGEND = [
   '## 墙（门洞是墙上的缺口）   XX 高家具（≥1.3 米，挡视线挡箭）   oo 矮家具（挡身体，能越过去开枪）   :: 很矮（不算掩体）',
   '空白 室内地面    . 室外地面    @@ 出生点（面朝北 = 朝上）',
   '僵尸：W 跳跳  L 跃行者  H 棉甲  S 持盾者  A 弓手  B 炸弹客  C 爬行者  K 首领；后面的 z = 睡着，~ = 巡逻，空 = 醒着站着',
   '拾取：<3 心  am 弹药包  ya 毛线团  Gc 霰弹  Gh 棉被炮  Gt 静电枪  Gw 缝纫机枪  Gn 毛衣针  !! 任务物品',
-  '机关：Ck 闹钟  Pb 颜料桶  Sp 聚光灯（打一下触发，只能用一次）    zz 拉链暗格（打一下拉开，东西掉在旁边的 ?? 处）',
+  '机关：Ck 闹钟  Pb 颜料桶  Sp 聚光灯  Qt 晒被绳（命中触发一次）    zz 拉链暗格（打一下拉开，东西掉在旁边的 ?? 处）',
 ];
 
 // 一格 0.5 米，一格印两个字符（终端里的字符高是宽的两倍，这样比例是对的）。上北下南，左西右东。

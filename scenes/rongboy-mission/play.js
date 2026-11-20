@@ -9,7 +9,6 @@ import { loadFigurines, createWoolBall } from '../../library/games/rongboy-runti
 import { dressWalker, createWeaponKit } from '../../library/games/rongboy-workshop.js';
 import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-shooter-fps/feedback.js';
 import { createWoolAudio } from '../rongboy-shooter-fps/sound.js';
-import assetData from '../rongboy-shooter-fps/models.js';
 import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
@@ -20,6 +19,8 @@ import { extendWeaponKit, projectileModels, createEffects, createWeaponFeedback,
 import { makeAnkleTangle } from './soft-weave.js';
 import { createViewmodel, VIEWMODEL_SCALE } from './viewmodel.js';
 import { enemyHealthMaterial, heartImage, weaponImage } from './combat-hud.js';
+import { poseGroundedGait } from '../../library/games/rongboy-gait.js';
+import { GAITS } from './locomotion.js';
 import { createArsenalAudio } from './sfx.js';
 import { LEVELS, ORDER } from './levels/index.js';
 import { GADGETS } from './gadgets.js';
@@ -68,6 +69,7 @@ const returnTo = exitPlayHref(q,levelId);
 const returnLabel = challenge ? '返回挑战簿' : training ? '返回兵种试战' : garden || weaponShowcase ? '返回练习' : '返回选关';
 let awaitingApproach = false, pauseIndex = 0;
 const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? gardenWallDef() : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : LEVELS[levelId]));
+const missionBriefing = level.mission.type === 'fetch' && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
@@ -78,7 +80,7 @@ const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
 let mode = 'loading', ready = false, paused = false, down = false, lobDown = false;
-let actors, viewmodel;
+let actors, bossActors, viewmodel;
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
@@ -102,8 +104,9 @@ function applyTexts() {
  $('loadingTitle').textContent = TX.short || level.name;
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
- $('ready-title').textContent = t(garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
+ $('ready-title').textContent = t(missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
+ $('ready-brief').textContent = t(missionBriefing ? TX.brief || level.mission.title
+   : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
  $('sound').setAttribute('aria-pressed',sound);
  if(garden && !challenge){
@@ -138,7 +141,7 @@ function applyInputHints() {
     labelAction($(id),L.back,label);
     $(id).firstElementChild.classList.add('pause-action-key');
   }
-  labelAction($('approach'), L.confirm, garden ? '开始练习' : '开打');
+  labelAction($('approach'), L.confirm, missionBriefing ? '出发' : garden ? '开始练习' : '开打');
   labelAction($('again'), L.confirm, challenge ? '再挑战' : '再来一次');
   for (const id of ['back','readyBack']) labelAction($(id), L.back, returnLabel);
   $('loadBack').textContent = t(returnLabel);
@@ -164,38 +167,45 @@ const LOOKS = [
 ];
 const fixedQuality = QUALITY[q.get('q')] || QUALITY[preferences.quality] || null, governed = !fixedQuality && q.get('dynres') !== '0';   // 网址加 ?q=medium / ?q=low 手动定档；?dynres=0 固定在第 0 档的最高像素数
 const governor = createGovernor(LOOKS, { start: governed ? 1.6e6 : LOOKS[0].max });   // 从 160 万像素起步，头几秒里自己往上或往下找
-const cine = createCineRenderer({
-  canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[0].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
-  dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
-});
+let cine, camera, world, combatFx, effects, weaponFeedback, ankleTangle, thread;
+function initRenderer() {
+  cine = createCineRenderer({
+    canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[0].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
+    dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
+  });
+  camera = cine.camera;
+  // 体积光在关卡里只会蒙上一层雾，关闭后省一趟半分辨率步进。
+  if (cine.postChain) cine.postChain.enable.volumetrics = false;
+}
 // 每帧把帧间隔喂给调节器。窗口不在前台时浏览器会把出帧压到很慢，那种帧间隔说明不了显卡快慢，不喂。
 function govern(now, elapsed) {
   if (!governed || document.hidden || (document.hasFocus && !document.hasFocus())) return;
   const r = Math.min(devicePixelRatio || 1, 2), next = governor.feed(now, elapsed, innerWidth * r * innerHeight * r);
   if (next) cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
 }
-const world = buildWorld(cine, level, WEAPONS);
-// 体积光在这里只会给整个画面蒙一层雾（实测看不出光柱），关掉省一趟半分辨率的光线步进。
-if (cine.postChain) cine.postChain.enable.volumetrics = false;
-// 九类僵尸的攻击预告（瞄准线、落点圈、吸引扇区）、敌方的箭和炸弹
-const combatFx = createCombatFx(cine.scene);
-
-const camera = cine.camera, ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
-const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3(0, 0.75, -1);
+const ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
+const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
+const sightEnd = new T.Vector3(), boundaryHit = new T.Vector3();
+const aimBounds = new T.Box3(new T.Vector3(B.minX,0.03,B.minZ),new T.Vector3(B.maxX,level.top,B.maxZ));
 const enemyModels = new Map(), ballModels = new Map();
 const ballTemplate = createWoolBall();
 const ballTemplates = projectileModels(WEAPONS, ballTemplate);
-const effects = createEffects(cine.scene);
-const weaponFeedback = createWeaponFeedback(cine.scene, world.light);
-const ankleTangle = world.light(makeAnkleTangle());
-const thread = polished ? gardenThread(cine.scene,reduced) : null;
 const feelOf = id => { const w = WEAPONS.find(v => v.id === id); return w?.feel || id; };   // 后坐力、受击声借用前三把里的哪一把
 
 // 绒絮粒子：一个实例化网格，上限 360 颗（毛球拖尾和爆炸要用不少）。
 const FX_MAX = 360, fx = [], dummy = new T.Object3D(), tint = new T.Color();
 const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }), FX_MAX);
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
-cine.scene.add(fxMesh);
+function initWorld(kit) {
+  world = buildWorld(cine, level, WEAPONS, kit.userData.variants);
+  combatFx = createCombatFx(cine.scene);
+  effects = createEffects(cine.scene);
+  weaponFeedback = createWeaponFeedback(cine.scene,world.light);
+  ankleTangle = world.light(makeAnkleTangle());
+  thread = polished ? gardenThread(cine.scene,reduced) : null;
+  cine.scene.add(fxMesh);
+
+}
 function burst(x, z, n = 10, force = 1, color = 0xf0dfba, y = 0.55) {
   const floor = Math.max(0, Math.floor((y + 0.25) / SH)) * SH + 0.035;   // 绒絮落到这一层的地面为止
   for (let i = 0; i < n; i++) {
@@ -231,7 +241,13 @@ let sound = preferences.sound, audio = null, soundBus = null, arsenalBus = null,
 const SOUND_OF = { soft: 'thump', wood: 'knock', glass: 'ting', metal: 'clang', stone: 'tock' };
 const SOFT = new Set(['sofa', 'bed', 'ottoman', 'basket', 'hedge', 'tree', 'planter']), METAL = new Set(['fridge', 'locker', 'tub', 'slide', 'swing', 'mailbox']);
 const stuffOf = c => (c.kind === 'case' ? 'glass' : c.kind === 'plinth' || c.kind === 'sarcophagus' ? 'stone' : c.kind === 'gadget' ? 'metal' : SOFT.has(c.look || c.kind) ? 'soft' : METAL.has(c.look || c.kind) ? 'metal' : 'wood');
-function unlock() { if (!sound) return; audio ??= new AudioContext(); soundBus ??= createWoolAudio(audio); arsenalBus ??= createArsenalAudio(audio); audio.resume(); }
+function unlock() {
+  if (!sound) return;
+  audio ??= new AudioContext();
+  soundBus ??= createWoolAudio(audio);
+  arsenalBus ??= createArsenalAudio(audio);
+  if (audio.state === 'suspended') audio.resume().catch(() => {});
+}
 function sfx2(kind, options = {}) { if (sound && audio && audio.state === 'running') arsenalBus.play(kind, options); }
 function sfx(kind, options = {}) { if (sound && audio && audio.state === 'running') soundBus.play(kind, options); }
 function say(text, seconds = 1.2, priority = 0) {
@@ -377,25 +393,28 @@ function updateEnemy(e, a, showHealth) {
     return;
   }
   a.model.rotation.y += response.twist * 0.65;
-  const flight = Math.min(1, e.hopPhase / 0.78), lift = e.hop > 0.001 ? Math.min(1, e.hop / Math.max(0.001, e.hopHeight)) : 0, land = Math.max(0, (e.hopPhase - 0.78) / 0.22), squash = ['chase','rush','sidestep'].includes(e.action)?Math.sin(land * Math.PI):0;
+  const leap = e.type === 'leaper' && ['windup','pounce','recover'].includes(e.action);
+  const grounded = !!GAITS[e.type] && !leap;
+  const lift = e.hop > .001 && e.hopHeight ? Math.min(1,e.hop/e.hopHeight) : 0;
+  const landing = Math.max(0,(e.hopPhase-.78)/.22);
+  const squash = e.type === 'walker' ? Math.sin(landing*Math.PI) : 0;
   a.tilt.scale.set(1 + squash * 0.025, 1 - squash * 0.05, 1 + squash * 0.025);
   const axis = new T.Vector3(e.reactionZ || 0, 0, -(e.reactionX || 0)).normalize();
   a.tilt.quaternion.setFromAxisAngle(axis, response.bend * 0.58 + response.wobble * 0.055);
   a.tilt.position.y = response.lift;
-  const gather = trio && e.type === 'leaper' ? .13 * squash : 0;
-  const actionScale = 1 - pose.crouch - gather;
-  if (trio && e.type === 'heavy' && body) body.position.y -= .055 * squash;
+  const actionScale = 1 - pose.crouch;
   a.tilt.scale.multiply(new T.Vector3(1 / Math.sqrt(actionScale), actionScale, 1 / Math.sqrt(actionScale)));
   a.tilt.quaternion.multiply(new T.Quaternion().setFromAxisAngle(new T.Vector3(Math.sin(e.heading), 0, Math.cos(e.heading)), pose.roll));
   const sy = 1 - Math.min(0.12, response.compression * 0.10);
   a.tilt.scale.multiply(new T.Vector3(1 / Math.sqrt(sy), sy, 1 / Math.sqrt(sy)));
   const forward = (e.reactionX || 0) * Math.sin(e.heading) + (e.reactionZ || 0) * Math.cos(e.heading);
-  // 没发现你时的站姿：睡着的低头垂手，醒着的手自然下垂；警觉后才双手前伸。
+  if (grounded) poseGroundedGait(e,a);
+  // 跳跳和扑击保持双手向前的剪影。其余兵种让脚步和手里的道具带动姿态。
   const calm = e.awareness === 'alert' ? 0 : waking ? Math.max(0, Math.min(1, e.wake / 0.6)) : 1;
   const breathe = asleep ? Math.sin(e.age * 1.6) : 0;
-  const reach = 1.18 * (1 - calm) + (waking ? -0.5 * (1 - calm) : 0);
+  const reach = grounded ? 0 : 1.18 * (1 - calm) + (waking ? -0.5 * (1 - calm) : 0);
   if (body) {
-    body.rotation.x += 0.12 - lift * 0.08 + forward * response.bend * 0.12 + pose.lean + (asleep ? 0.28 + breathe * 0.02 : 0);
+    body.rotation.x += (grounded ? 0 : .12-lift*.08) + forward * response.bend * 0.12 + pose.lean + (asleep ? 0.28 + breathe * 0.02 : 0);
     body.rotation.y += response.twist * 0.30; body.position.y -= squash * 0.025;
   }
   if (head) {
@@ -406,12 +425,13 @@ function updateEnemy(e, a, showHealth) {
   for (const sign of [-1, 1]) {
     const leg = part(a, sign < 0 ? 'LegL' : 'LegR'), arm = part(a, sign < 0 ? 'ArmL' : 'ArmR');
     if (leg) {
-      leg.rotation.x += lift * 0.38 - squash * 0.15 + sign * Math.sin(e.age * 7) * 0.035 * (1 - calm) + response.flail * (sign > 0 ? 0.40 : -0.22) + pose.legTuck;
+      leg.rotation.x += lift * 0.38 - squash * 0.15 + (grounded ? 0 : sign * Math.sin(e.age * 7) * .035 * (1-calm)) + response.flail * (sign > 0 ? .40 : -.22) + pose.legTuck;
       leg.rotation.z += sign * (lift * 0.08 + response.flail * 0.12);
     }
     if (arm) {
       arm.rotation.x -= reach + lift * 0.10 + response.flail * 0.40 + pose.reach;
-      arm.rotation.z += sign * (0.08 + lift * 0.035 + response.flail * 0.52 + pose.spread + (waking ? 0.35 * calm : 0));
+      const spread = grounded ? 0 : .08 + lift*.035 + (waking ? .35*calm : 0);
+      arm.rotation.z += sign * (spread + response.flail * .52 + pose.spread);
       arm.rotation.y += response.twist * 0.35;
     }
   }
@@ -426,10 +446,33 @@ function updateEnemy(e, a, showHealth) {
     if(e.guardBroken>0)shield.rotation.z-=.83*Math.min(1,e.guardBroken*6,(1.8-e.guardBroken)*18);
     else if(elapsed>=0 && elapsed<.26)shield.rotation.x-=.32*Math.sin(elapsed/.26*Math.PI*2)*Math.exp(-elapsed*8);
   }
-  if (specialists && e.type === 'bomber') a.mechanisms.get('heldBomb').visible = e.action !== 'special-recover';
   a.flash(Math.max(response.flash * 0.7, e.action === 'bomber-throw' ? (reduced ? 0.04 : 0.10 + Math.sin(e.actionAge * 12) * 0.08) : 0));
-  // 被电住：浑身发蓝、发抖，身上窜着小电弧
-  if (e.stun > 0) {
+  const quiltTime = (e.quiltUntil ?? -1) - s.time;
+  if (quiltTime > -.42 && !a.quilt) {
+    a.quilt = world.toys.cover();
+    a.world.add(a.quilt);
+  }
+  if (a.quilt) {
+    a.quilt.visible = quiltTime > -.42 && e.alive;
+    const peel = T.MathUtils.clamp(-quiltTime/.42,0,1);
+    const struggle = Math.sin(s.time*20+e.id) * Math.min(1, Math.max(0,quiltTime)*5);
+    a.quilt.position.set(.64*peel,.38*e.height+.54*Math.sin(Math.PI*peel)-.66*peel,0);
+    a.quilt.scale.set(Math.max(.82,e.radius*2.65),e.height*.73,Math.max(.8,e.radius*2.6));
+    a.quilt.rotation.set(.32*peel,e.heading,.095*struggle+1.2*peel);
+    a.tilt.rotation.z += .065*struggle;
+  }
+  const painted = (e.paintUntil ?? 0) > s.time;
+  if (painted && !a.paintFlecks) {
+    a.paintFlecks = world.toys.makePaintFlecks();
+    a.world.add(a.paintFlecks);
+  }
+  if (a.paintFlecks) {
+    a.paintFlecks.visible = painted && e.alive;
+    a.paintFlecks.scale.set(e.radius*1.18,e.height,e.radius*1.12);
+    a.paintFlecks.rotation.y = e.heading;
+  }
+  // 聚光灯用照明，棉被用布套。只有电网定身才画电弧。
+  if (e.stun > 0 && (e.spotUntil ?? 0) <= s.time && quiltTime <= 0) {
     const pulse = 0.5 + 0.5 * Math.sin(s.time * 38 + e.id);
     for (const m of a.materials) m.emissive?.setRGB(.02+.035*pulse,.07+.09*pulse,.13+.13*pulse);
     a.model.position.x += Math.sin(s.time * 71 + e.id) * 0.012; a.model.position.z += Math.cos(s.time * 83) * 0.012;
@@ -509,19 +552,20 @@ function tuckArms(e, a, dt) {
   });
 }
 
-// 守墓巨像：两只发亮的眼睛一直亮着；出场时先只有眼睛（眨一下），过一半时间身子才从一团暗絮里现出来（开场片第 17 镜的演法）。
-const emerging = new Map(), eyeGeo = new T.SphereGeometry(0.075, 12, 8), eyeMat = new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffc94a, emissiveIntensity: 4 });
+// 守墓巨像先露出两只眼睛，现身后交给定稿的面部模型。
+const emerging = new Map(), eyeGeo = new T.SphereGeometry(.056, 12, 8), eyeMat = new T.MeshStandardMaterial({ color: 0xffe08a, emissive: 0xffc94a, emissiveIntensity: 4 });
 function wardenLook(e, a, dt) {
+  const st = emerging.get(e.id);
+  if (!st) { if (a.eyes) a.eyes.visible = false; return; }
   if (!a.eyes) {
     a.eyes = new T.Group();
     for (const sx of [-1, 1]) { const m = new T.Mesh(eyeGeo, eyeMat); m.position.set(sx * 0.2, e.height * 0.84, e.radius * 0.8); a.eyes.add(m); }
     a.world.add(a.eyes);
   }
-  a.eyes.rotation.y = e.heading; a.eyes.visible = e.alive; a.eyes.scale.y = 1;
-  const st = emerging.get(e.id);
-  if (!st) return;
+  a.eyes.rotation.y = e.heading; a.eyes.scale.y = 1;
   st.t += dt;
   const shown = st.t > st.time * 0.5;
+  a.eyes.visible = e.alive && !shown;
   a.model.visible = shown; a.blob.visible = shown; if (a.healthBar && !shown) a.healthBar.visible = false;
   if (st.t > 0.45 && st.t < 0.6) a.eyes.scale.y = 0.12;   // 眨一下
   if (shown && !st.done) { st.done = true; burst(e.x, e.z, 28, 1.3, 0x3d342c, e.base + 1.2); sfx2('rumble'); }
@@ -551,7 +595,8 @@ function updateModels(dt) {
     if(!e.enabled){const hidden=enemyModels.get(e.id);if(hidden)hidden.world.visible=false;continue;}
     let a = enemyModels.get(e.id);
     if (!a) {
-      a = actors.create(e.type); dressWalker(a, e.type, e.scale);
+      const bank = e.type.startsWith('boss-') ? bossActors || actors : actors;
+      a = bank.create(e.type); dressWalker(a, e.type, e.scale);
       a.model.traverse(m => { if (m.isMesh) m.frustumCulled = true; });
       world.light(a.world);   // 角色和墙、家具查同一份烘焙光照：站在灯下亮，躲进角落暗
       enemyModels.set(e.id, a); cine.scene.add(a.world);
@@ -591,7 +636,7 @@ function updateModels(dt) {
     }
     o.position.set(b.x, b.y, b.z);
     // 擦到会动的布景（吊灯、地球仪、骨架、小黄鸭、盆栽）：它动一下，响一声
-    const touched = world.toys.sweep(b, floorIndex(level, b.y - 1));
+    const touched = world.eggProps.eggs.size ? null : world.toys.sweep(b, floorIndex(level, b.y - 1));
     if (touched) { sfx2({ lamp: 'ting', globe: 'knock', rattler: 'rattle', duck: 'squeak', plant: 'thump' }[touched.kind], { strength: 0.6 }); burst(b.x, b.z, 4, 0.4, 0xf6efe0, b.y); }
     // 贴脸的球淡出，免得挡住命中反馈。
     const nearFade = Math.max(0, Math.min(1, (o.position.distanceTo(camera.position) - b.r - 0.30) / 0.6));
@@ -615,7 +660,16 @@ function updateModels(dt) {
     const o = world.pickups.get(k.id);
     if (!o) continue;
     o.visible = !k.taken && !k.hidden;   // 藏在拉链暗格里的，拉开之前看不见
-    o.userData.body.rotation.y += dt * 1.4; o.position.y = o.userData.baseY + Math.sin(s.time * 2.2 + k.id) * 0.05;
+    if (!o.visible) continue;
+    const distance = Math.hypot(k.x - s.player.x, (k.y ?? 0) - s.player.y, k.z - s.player.z);
+    const label = o.userData.label;
+    label.visible = distance < (k.kind === 'objective' ? 8 : 4);
+    if (label.visible) {
+      const scale = Math.min(1, Math.max(.35, distance / 3.7));
+      label.scale.set(.72 * scale, .18 * scale, 1);
+    }
+    o.userData.body.rotation.y += dt * .85;
+    o.position.y = o.userData.baseY + Math.sin(s.time * 2.2 + k.id) * .045;
   }
 }
 function clearModels() {
@@ -689,14 +743,18 @@ function processEvents() {
       const distance=Math.hypot(e.x-s.player.x,e.z-s.player.z);
       const accent=jack?0xffbf86:0xd2b0f3;
       if(jack) weaponFeedback.burst(e,s.time);
-      if(bucket) effects.boom(e,e.radius,accent);
-      else effects.ring(e,accent,e.radius*1.55,.32);
-      sfx2(bucket?'boom':jack?'jack-pop':'steamer-open',{strength:Math.min(1.2,6/Math.max(3,distance))});
-      const colors=bucket?[0xf2a6b8,0x8fc3e8,0xf2c84b,0x9fd8a4]:[accent,0xf6efe0];
-      for (const color of colors) burst(e.x,e.z,16,jack?2.75:1.7,color,e.y+.15);
-      if (distance<9) shake=Math.max(shake,jack?.033:.012);
-      const effect = bucket ? copy('颜料飞溅','Paint splash') : jack ? copy('小丑盒弹击','Jack-in-the-box') : copy('蒸笼绒网','Steamer net');
-      say(effect+(e.struck.length ? copy(` · ${e.struck.length} 只受伤`,` · ${e.struck.length} hit`) : copy(' · 没打中',' · Missed')),1.35);
+      const strength = Math.min(1.2,6/Math.max(3,distance));
+      if (bucket) {
+        sfx2('splash',{strength}); sfx2('clang',{strength:strength*.65,delay:.16});
+        burst(e.x,e.z,10,.75,0xf2a6b8,e.y);
+      } else {
+        effects.ring(e,accent,e.radius*1.55,.32);
+        sfx2(jack?'jack-pop':'steamer-open',{strength});
+        for (const color of [accent,0xf6efe0]) burst(e.x,e.z,16,jack?2.75:1.7,color,e.y+.15);
+        if (distance<9) shake=Math.max(shake,jack?.033:.012);
+        const effect = jack ? copy('小丑盒弹击','Jack-in-the-box') : copy('蒸笼绒网','Steamer net');
+        say(effect+(e.struck.length ? copy(` · ${e.struck.length} 只受伤`,` · ${e.struck.length} hit`) : copy(' · 没打中',' · Missed')),1.35);
+      }
     }
     else if (e.type === 'interrupted') say('打断了攻击！', 0.8);
     else if (e.type === 'pounce') { if (near(6)) sfx('switch'); }
@@ -704,8 +762,11 @@ function processEvents() {
     else if (e.type === 'hop') { sfx2('thump', { strength: 0.18 }); }
     else if (e.type === 'hop-land') { burst(s.player.x, s.player.z, 3, 0.16, 0xeadbb9, s.player.y + 0.04); sfx2('thump', { strength: 0.3 }); }
     else if (e.type === 'land') { if (near(5)) burst(e.x, e.z, e.enemyType === 'heavy' ? 5 : 2, 0.16, 0xb8c2a4, base + 0.04); }
+    else if (e.type === 'footstep' && near(6) && ['heavy','shielded','boss-warden'].includes(e.enemyType)) {
+      sfx2('thump', { strength: e.enemyType === 'boss-warden' ? .56 : .25 });
+    }
     else if (e.type === 'shot') {
-      if(e.thrown){sfx2('throw');continue;}
+      if (e.thrown) { sfx2('throw'); say(WEAPONS[s.grenade].short + ' ×' + grenades(s), .75); continue; }
       if(e.weapon==='sewing') lastPress=s.time;
       reloadReadyUntil = -1;
       const w = WEAPONS.find(v => v.id === e.weapon), light = e.weapon === 'sewing';
@@ -720,7 +781,7 @@ function processEvents() {
       burst(e.contactX ?? e.x, e.contactZ ?? e.z, e.heavy ? 14 : e.weapon === 'scatter' ? 4 : 7, e.heavy ? 1.4 : 0.85, e.heavy ? 0xe6c5a8 : 0xe7ddbc, e.contactY ?? 0.75);
       // 命中光圈：带加成的更大、偏金色
       if (e.source === 'ball') effects.ring({ x: e.contactX ?? e.x, y: e.contactY ?? base + 0.8, z: e.contactZ ?? e.z }, e.back || e.sneak ? 0xffd27a : 0xfff0d8, e.heavy ? 1.2 : e.back || e.sneak ? 0.8 : 0.5, e.heavy ? 0.26 : 0.18);
-      if (e.source === 'ball' && e.armored) say('棉甲减伤 · 绕后或用毛衣针',1.5);
+      if (e.source === 'ball' && e.armored) say('护甲减伤 · 绕后或用毛衣针',1.5);
       else if (polished && returnHit) say(copy('回弹打中后背 · −','Bank shot to the back · −')+e.amount,1.35);
       if (!strongest || e.strength > strongest.strength) strongest = e;
     } else if (e.type === 'knockdown') {
@@ -733,16 +794,27 @@ function processEvents() {
         const stuff = stuffOf(e.solid);
         burst(e.x + (e.nx || 0) * 0.05, e.z + (e.nz || 0) * 0.05, stuff === 'soft' ? 9 : 5, stuff === 'soft' ? 0.7 : 0.5, e.solid.color ?? 0xd9c9a8, e.y);
         if (performance.now() - lastKnockSound > 70) { sfx2(SOUND_OF[stuff], { strength: Math.min(1, 4 / Math.max(2, Math.hypot(e.x - s.player.x, e.z - s.player.z))) }); lastKnockSound = performance.now(); }
-        const moved = world.toys.react(e, -(e.nx || 0), -(e.nz || 0));
+        const moved = world.eggProps.eggs.size ? null : world.toys.react(e, -(e.nx || 0), -(e.nz || 0));
         if (moved) sfx2({ globe: 'knock', rattler: 'rattle', duck: 'squeak', plant: 'thump' }[moved.kind] ?? 'knock', { strength: 0.6 });
       }
+    } else if (e.type === 'easter-egg') {
+      const egg = world.eggProps.fire(e);
+      if (egg && near(15)) {
+        const strength = Math.min(.8,4/Math.max(3,Math.hypot(e.x-s.player.x,e.z-s.player.z)));
+        sfx2(egg.sounds[0], { strength });
+        sfx2(egg.sounds[1], { strength:strength*.75, delay:.24 });
+      }
     } else if (e.type === 'gadget') {
-      // 机关触发（docs/fun-design.md 第 9 节）
       world.toys.fire(e);
-      const n = e.struck.length, top = base + GADGETS[e.kind].h;
-      effects.ring({ x: e.x, y: top, z: e.z }, e.kind === 'spot' ? 0xfff0c8 : 0xffe08a, e.kind === 'clock' ? 2.4 : 3.2, 0.5);
-      if (e.kind === 'clock') { sfx2('ring'); say(n ? copy(`闹钟响了 · ${n} 只僵尸过去看了`, `Clock rang · ${n} zombies distracted`) : copy('闹钟响了 · 附近没有僵尸听见','Clock rang · No zombies nearby'), 1.6); }
-      else if (e.kind === 'spot') { sfx2('flash'); burst(e.x, e.z, 16, 1.6, 0xfff0c8, top); say(n ? copy(`灯亮了 · 定住了 ${n} 只`,`Lights on · ${n} stunned`) : copy('灯亮了 · 光圈里没有僵尸','Lights on · No zombies in range'), 1.6); }
+      if (e.kind === 'clock') {
+        sfx2('ring');
+        effects.ring({ x:e.x, y:base+GADGETS.clock.h, z:e.z },0xffe3ac,1.7,.36,1);
+      } else if (e.kind === 'spot') sfx2('flash');
+      else if (e.kind === 'quilt') { sfx2('knock'); sfx2('flop',{delay:.14}); }
+    } else if (e.type === 'quilt-land') {
+      world.toys.land(e);
+      sfx2('thump',{strength:.64});
+      burst(e.x,e.z,10,.5,0xebd5b3,e.y+.17);
     } else if (e.type === 'emerge') {
       // 没出场的首领现身（任务物品拿齐的那一刻）：这句提示盖过"拿到了"
       emerging.set(e.id, { t: 0, time: e.time, done: false }); sfx2('rumble', { strength: 0.6 });
@@ -759,7 +831,9 @@ function processEvents() {
       } else if (e.reason === 'bounce-limit' || e.reason === 'range') effects.spark(e, 0xfff0d8, 0.35);
     }
     else if (e.type === 'pickup') {
-      burst(e.x, e.z, 10, 0.5, e.kind === 'heart' ? 0xd9705f : 0xf3dfa5, base + 0.6);
+      const tint = e.kind === 'heart' ? 0xed8790 : e.kind === 'ammo' ? 0x9cdbc0 : 0xeac474;
+      burst(e.x, e.z, 14, .42, tint, base + .58);
+      if (e.kind !== 'weapon') effects.ring({ x: e.x, y: base + .55, z: e.z }, tint, e.kind === 'objective' ? 1.15 : .70, .34);
       if (e.kind === 'weapon') { sfx2('weapon'); effects.ring({ x: e.x, y: base + 0.8, z: e.z }, 0xffe08a, 1.6, 0.4); } else sfx('switch');
       const got = WEAPONS.find(w => w.id === e.weapon);
       if (e.kind === 'objective') say(objectiveText(missionStatus(s)), 2.6, 2);
@@ -824,7 +898,7 @@ function clearHurt() {
 // 沿准星找到最近的东西（僵尸、墙、家具、场地边界），返回距离；枪口朝那一点开火。
 function aim() {
   camera.updateMatrixWorld(true); camera.getWorldDirection(lookDir);
-  const from = camera.position, far = from.clone().addScaledVector(lookDir, FAR);
+  const from = camera.position, far = sightEnd.copy(from).addScaledVector(lookDir, FAR);
   let distance = FAR, picked = null;
   for (const e of s.enemies) {
     if (!e.alive||!e.enabled) continue;
@@ -833,7 +907,11 @@ function aim() {
   }
   for (const c of level.solids) { const h = segmentBox(from, far, c); if (h && h.t * FAR < distance) { distance = h.t * FAR; picked = null; } }
   ray.set(from, lookDir);
-  const edge = ray.ray.intersectBox(new T.Box3(new T.Vector3(B.minX, 0.03, B.minZ), new T.Vector3(B.maxX, level.top, B.maxZ)), new T.Vector3());
+  for (const egg of level.easterEggs) {
+    const contact = segmentBox(from, far, egg);
+    if (contact && contact.t * FAR < distance) { distance = contact.t * FAR; picked = null; }
+  }
+  const edge = ray.ray.intersectBox(aimBounds,boundaryHit);
   if (edge) { const d = edge.distanceTo(from); if (d < distance) { distance = d; picked = null; } }
   aimedEnemy = picked;
   target.copy(from).addScaledVector(lookDir, Math.max(0.18, distance));
@@ -968,6 +1046,11 @@ function bossHud(active) {
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
   $('fightHud').hidden = !active;
+  $('missionHud').hidden = !missionBriefing || !active;
+  if (missionBriefing && active) {
+    const status = missionStatus(s);
+    textOf('missionStep', !status.carrying && TX.route ? t(TX.route) : objectiveText(status));
+  }
   ammoHud(active);
   $('challenge-run').hidden = !challenge || !active;
   if (challenge && active) challengeHud();
@@ -1055,12 +1138,10 @@ function start() {
   s = createGame({ level });
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;
-  awaitingApproach = !challenge && (garden || trio || finalStudy || menuTrial);
+  awaitingApproach = !challenge && (missionBriefing || garden || trio || finalStudy || menuTrial);
   $('ready-actions').hidden = !awaitingApproach;
   document.body.classList.toggle('practice-ready',awaitingApproach);
   if(finalStudy || menuTrial) for(const e of s.enemies){
-    if(e.type==='boss-warden') { e.height=2.03; e.hopHeight=0; }
-    if(e.type==='boss-leech') { e.height=2.07; e.hopHeight=0; }
     if(menuTrial && e.type==='leaper') e.height=1.76;
     if(menuTrial && e.type==='bomber') { e.height=1.47; e.muzzle={side:.357572,y:.821297,forward:.503111}; }
   }
@@ -1072,7 +1153,7 @@ function start() {
       enemy.muzzle = {side: 0.357572, y: 0.821297, forward: 0.503111};
     }
   }
-  mode = 'playing'; world.toys.reset(); emerging.clear();
+  mode = 'playing'; world.toys.reset(); world.eggProps.reset(); emerging.clear();
   document.body.classList.remove('menu', 'paused', 'result', 'leaving', 'loading');
   $('pausePanel').hidden = true; $('result').hidden = true;
   viewmodel.root.visible = true;
@@ -1086,6 +1167,7 @@ function beginApproach() {
   $('ready-actions').hidden = true;
   document.body.classList.remove('practice-ready');
   $('view').focus();
+  unlock();
 }
 $('approach').onclick = beginApproach;
 function setPause(value) {
@@ -1277,7 +1359,7 @@ function gamepadFrame() {
   let crossUsed = false;
   if (pad.pressed('cross')) {
     if (awaitingApproach && !paused && ready) { beginApproach(); crossUsed = true; }
-    else if (mode === 'result') { start(); crossUsed = true; }
+    else if (mode === 'result') { confirmAction(); crossUsed = true; }
     else if (paused) { confirmAction(); crossUsed = true; }
   }
   if(paused && pad.pressed('up'))focusPause(pauseIndex-1);
@@ -1329,7 +1411,7 @@ function advance(dt) {
   const lookX = pad.axes.lookX, lookY = pad.axes.lookY;
   yaw -= lookX * Math.abs(lookX) * dt * 2.6 * turn;
   pitch = Math.max(-0.78, Math.min(0.72, pitch - lookY * Math.abs(lookY) * dt * 1.9 * turn));
-  cameraFrame(0); aim();
+  cameraFrame(0); camera.getWorldDirection(lookDir);
   const side = ((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0)) + padSide;
   const forward = ((keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)) + padForward;
   const move = cameraMove(side, forward, yaw);
@@ -1338,7 +1420,8 @@ function advance(dt) {
   acc += dt;
   while (acc >= 1 / 120) { step(s, 1 / 120, input); acc -= 1 / 120; }
   stepRecoil(recoil, dt); hitMarkerTime = Math.max(0, hitMarkerTime - dt);
-  processEvents(); updateModels(dt); cameraFrame(dt); updateFx(dt); effects.update(dt);
+  processEvents();
+  cameraFrame(dt); updateModels(dt); updateFx(dt); effects.update(dt);
   thread?.update(s.balls,s.time);
   if(polished){
     const ready=s.charging && s.charge >= .12+.6*(CONFIG.chargeTime-.12);
@@ -1347,7 +1430,7 @@ function advance(dt) {
     document.body.classList.toggle('thread-tight',ready);
   }
 }
-function resize() { cine.resize(); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); }
+function resize() { cine?.resize(); }
 addEventListener('resize', resize);
 
 function frame(now) {
@@ -1358,8 +1441,8 @@ function frame(now) {
   govern(now, elapsed);
   gamepadFrame();
   if (mode === 'playing' && !paused) { frameIntervals.push(elapsed); if (frameIntervals.length > 180) frameIntervals.shift(); }
-  cameraFrame(dt);
   if (mode === 'playing' && !paused && !awaitingApproach && !window.__rb.hold) advance(dt);
+  else cameraFrame(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
   world.setFloor(floorIndex(level, s.player.y));
@@ -1367,38 +1450,63 @@ function frame(now) {
   if (++frameCount % 8 === 0) diagnostics();
 }
 
-async function boot() {
- applyTexts(); loadingProgress(26, '正在收拾房间…'); await paint();
- let zombies = assetData.zombies;
- if (garden || trio || finalStudy || menuTrial || challenge) {
-   const model= garden ? 'garden-wall.glb'
-     : finalStudy || challenge?.id==='dodge-arrows' ? 'final-trio.glb'
-     : menuTrial ? modelPack(practiceType) : specialists ? 'second-trio.glb' : 'walker-trio.glb';
-   const response = await fetch(model);
-   if (!response.ok) throw new Error(t('僵尸模型加载失败'));
-   zombies = new Uint8Array(await response.arrayBuffer());
- }
- actors = await loadFigurines({zombies});
- loadingProgress(56, '正在准备绒仔和毛绒伙伴…'); await paint();
- const kit=extendWeaponKit(createWeaponKit(),WEAPONS);
- viewmodel=createViewmodel(kit,ballTemplate.clone(true),GRENADE_TYPES.map(index=>({index,model:ballTemplates[index].clone(true)})));
- world.light(viewmodel.root);
- camera.add(viewmodel.root);viewmodel.equip(s.weapon);
- if (!q.has('nofront')) drawInFront(viewmodel.root);
- cameraFrame(0); resize(); updateModels(0);
- loadingProgress(78, '就快准备好了…'); await paint();
- await cine.warmup();
- ready = true; window.__ready = true; start(); cameraFrame(0); cine.frame(1 / 60);
- loadingProgress(100, '准备好了'); await paint(); $('loading').hidden = true; diagnostics();
+export async function boot() {
+  applyTexts();
+  loadingProgress(18,'正在加载毛绒模型…');
+  const pack = garden ? 'garden-wall.glb'
+    : finalStudy || (training && practiceType?.startsWith('boss-')) || challenge?.id==='dodge-arrows' ? 'final-trio.glb'
+    : menuTrial ? modelPack(practiceType) : specialists ? 'second-trio.glb' : trio || challenge ? 'walker-trio.glb' : 'zombie-roster.glb';
+  async function fetchPack(name) {
+    const response = await fetch(name);
+    if (!response.ok) throw new Error(copy('僵尸模型加载失败 · ','Could not load figures · ') + name);
+    return new Uint8Array(await response.arrayBuffer());
+  }
+  // Download only the packs the selected map uses, including the boss that will appear later.
+  const usesBosses = level.enemies.some(e => e.type.startsWith('boss-'));
+  const downloads = Promise.all([fetchPack(pack), usesBosses && pack !== 'final-trio.glb' ? fetchPack('final-trio.glb') : null]);
+  // Attach a handler before yielding to the loading screen.
+  downloads.catch(() => {});
+  await paint();
+  initRenderer();
+  loadingProgress(42,'正在收拾房间…');
+  await paint();
+  const kit = extendWeaponKit(createWeaponKit(), WEAPONS);
+  initWorld(kit);
+  const [roster,bossRoster] = await downloads;
+  loadingProgress(63,'正在准备绒仔和毛绒伙伴…');
+  await paint();
+  [actors,bossActors] = await Promise.all([loadFigurines({zombies:roster}),bossRoster && loadFigurines({zombies:bossRoster})]);
+  viewmodel=createViewmodel(kit,ballTemplate.clone(true),GRENADE_TYPES.map(index=>({index,model:ballTemplates[index].clone(true)})));
+  world.light(viewmodel.root);
+  camera.add(viewmodel.root);
+  viewmodel.equip(s.weapon);
+  if (!q.has('nofront')) drawInFront(viewmodel.root);
+  cameraFrame(0); resize(); updateModels(0);
+  loadingProgress(84,'正在准备第一帧…');
+  await paint();
+  await cine.warmup();
+  // Compile and draw while the loading screen is still up, including the post-processing passes.
+  cine.frame(1/60);
+  await paint();
+  cine.frame(1/60);
+  await paint();
+  ready = true;
+  $('loading').hidden = true;
+  start();
+  last = performance.now();
+  governor.deferUpscale(last + 6500);
+  performance.mark('rongboy:playable');
+  window.__ready = true;
+  diagnostics();
 }
 requestAnimationFrame(frame);
-boot().catch(fail);
+
 
 // 自动化验证入口：浏览器面板隐藏时 requestAnimationFrame 基本不跑，
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
-  get state() { return s; },   // 仅供调试：直接读写战斗状态
-  cine, world, effects, governor, pad,
+  get state() { return s; },
+  get cine() { return cine; }, get world() { return world; }, get effects() { return effects; }, governor, pad,
   get inputMode() { return inputMode; }, get padInput() { return { side: padSide, forward: padForward }; },
   gamepadFrame,
   hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },   // 调试：只演一遍受伤的画面，不扣心

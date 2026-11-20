@@ -2,9 +2,9 @@
 //   node scripts/tests/rongboy-warden.mjs
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/house.js';
-import { compileLevel, navGoal, routeTo, storeyAt, navRadius, inStairs, freePoint, clearPath } from '../../scenes/rongboy-mission/level.js';
+import { compileLevel, navGoal, routeTo, storeyAt, navRadius, inStairs, freePoint, clearPath, lineOfSight } from '../../scenes/rongboy-mission/level.js';
 import { createGame, step, consumeEvents, missionStatus, CONFIG, ENEMY_TYPES } from '../../scenes/rongboy-mission/game.js';
-import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
+import { ATTACKS, attackCue, attackProfile } from '../../scenes/rongboy-mission/attacks.js';
 import { checkMap } from '../../scenes/rongboy-mission/mapkit/check.js';
 
 let checks = 0;
@@ -42,6 +42,8 @@ test('taking the basket brings it out: first a pause while it shows itself, then
   assert.ok(missionStatus(s).carrying); assert.ok(out && out.enemyType === 'boss-warden');
   assert.ok(log.indexOf(out) > log.findIndex(e => e.type === 'pickup'), 'its notice comes after "picked up", so it is the one left on screen');
   assert.equal(s.dormant.length, 0); assert.ok(w.enabled && w.alive); assert.equal(w.awareness, 'waking'); assert.equal(w.floor, 2);
+  assert.equal(w.maxHp, 44);
+  assert.ok(w.speed > ENEMY_TYPES['boss-warden'].speed);
   assert.equal(s.total, 39, 'it brings its two reserves, which are not on the floor yet'); assert.equal(s.enemies.filter(e => e.reserveOf === w.id && !e.enabled).length, 2);
   assert.ok(Math.hypot(w.x - basket.x, w.z - basket.z) > ATTACKS['boss-warden'].range + 1, 'it appears well outside its own reach');
   const x0 = w.x, z0 = w.z;
@@ -50,6 +52,33 @@ test('taking the basket brings it out: first a pause while it shows itself, then
   for (let i = 0; i < 0.6 * 120; i++) step(s, DT, {});
   assert.equal(w.awareness, 'alert');
   grab(s); assert.equal(s.enemies.filter(e => e.type === 'boss-warden').length, 1, 'it only happens once');
+});
+
+test('the attic attack preview matches the larger damaging shockwave', () => {
+  const s = createGame({ level: L }); grab(s);
+  const w = warden(s);
+  const practice = ATTACKS['boss-warden'];
+  const attic = attackProfile(w);
+  assert.ok(attic.radius > practice.radius && attic.cooldown < practice.cooldown);
+  w.action = 'warden-windup';
+  const ready = attackCue(w);
+  assert.equal(ready.radius, attic.radius);
+  assert.equal(ready.duration, practice.windup);
+  assert.equal(attackProfile({ type:'boss-warden' }), practice, 'the practice encounter keeps its original timing and range');
+
+  const distance = (attic.radius + practice.radius) / 2, floor = L.storeys[w.floor];
+  const source = { x:w.x, y:w.base + .95, z:w.z };
+  const spot = Array.from({length:24}, (_, i) => ({
+    x:w.x + Math.cos(i * Math.PI / 12) * distance, z:w.z + Math.sin(i * Math.PI / 12) * distance,
+  })).find(p => freePoint(floor, p.x, p.z, CONFIG.playerRadius) && lineOfSight(L, source, { ...p, y:w.base + 1 }));
+  assert.ok(spot, 'test position is outside the practice radius and within the attic radius');
+  s.enemies = [w];
+  Object.assign(s.player, spot, { y:w.base, vx:0, vz:0 });
+  w.awareness = 'alert'; w.wake = 0; w.actionAge = ready.duration - DT / 2;
+  step(s, DT, {});
+  const events = consumeEvents(s);
+  assert.equal(events.find(e => e.type === 'ground-slam')?.radius, ready.radius);
+  assert.ok(events.some(e => e.type === 'hurt' && e.source === 'ground-slam'));
 });
 
 test('you do not have to fight it: walking the shortest way out of the attic, it never lands a blow', () => {

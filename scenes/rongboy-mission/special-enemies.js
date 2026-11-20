@@ -1,7 +1,7 @@
 // New enemy attacks. All damage/activation is routed back through the deterministic game API.
 // Multi-storey: heights are measured from the enemy's own floor (e.base); S is that floor's storey (walls and
 // furniture to path around). Attacks only start when the player stands on the same flat floor (see chase()).
-import {ATTACKS,SPECIAL_TYPES,ARROW_SPEED,RANGED_GAP} from './attacks.js';
+import {attackProfile,SPECIAL_TYPES,ARROW_SPEED,RANGED_GAP} from './attacks.js';
 import {clearPath,freePoint,lineOfSight} from './level.js';
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const still={x:0,z:0,y:0};
@@ -15,7 +15,7 @@ export function interruptSpecial(e,meta={}){
  // 打断要打得够疼：1 点的小伤害（小纽扣、6 米外的手枪球）断不了拉弓和举弹，得靠近打，或者用够劲的枪
  if(vulnerable&&!heavy&&(meta.amount??2)<2)return false;
  if(!vulnerable&&!(strong&&heavy))return false;
- recovery(e,e.type==='boss-warden'||e.type==='boss-leech'?2.8:1.8);e.interrupted=true;e.recoverFrom='interrupted';return true;
+ recovery(e,e.encounter==='attic'?1.65:e.type==='boss-warden'||e.type==='boss-leech'?2.8:1.8);e.interrupted=true;e.recoverFrom='interrupted';return true;
 }
 function activateReserve(s,e,api,S=s.level){
  const sealed=s.enemies.find(o=>o.alive&&!o.enabled&&o.reserveOf===e.id);if(!sealed)return false;
@@ -31,10 +31,10 @@ export function onSpecialDeath(s,e,api){cancelReserves(s,e);}
 export function contactAttack(e){if(!SPECIAL_TYPES.has(e.type))return true;return e.type==='crawler'&&e.action==='crawler-strike'||e.type==='shielded'&&e.action==='shield-charge';}
 export function advanceSpecial(s,e,dt,api,S=s.level){
  e.actionAge+=dt;e.actionCooldown=Math.max(0,e.actionCooldown-dt);e.moveMultiplier=1;e.sideLean=0;e.guardBroken=Math.max(0,e.guardBroken-dt);
- const p=s.player,dx=p.x-e.x,dz=p.z-e.z,d=Math.hypot(dx,dz)||1,a=ATTACKS[e.type],los=visible(s,e);
- if(e.action==='special-recover'){const hold=e.recoverFrom==='shield-charge'?1.35:.7;if(e.actionAge<hold)return still;set(e,'chase');}
+ const p=s.player,dx=p.x-e.x,dz=p.z-e.z,d=Math.hypot(dx,dz)||1,a=attackProfile(e),los=visible(s,e);
+ if(e.action==='special-recover'){const hold=e.recoverFrom==='shield-charge'?a.recover:.7;if(e.actionAge<hold)return still;set(e,'chase');}
  if(e.action==='crawler-strike'||e.action==='shield-charge'){
-  const duration=e.type==='crawler'?.36:.50;if(e.actionAge>=duration){recovery(e,a.cooldown);return still;}
+  if(e.actionAge>=a.strike){recovery(e,a.cooldown);return still;}
   const speed=e.type==='crawler'?3.5:5.0;return {x:e.attackX*speed,z:e.attackZ*speed,y:0};
  }
  if(['crawler-windup','shield-windup','bomber-throw','archer-aim','warden-windup','warden-call','leech-windup'].includes(e.action)){
@@ -63,7 +63,7 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
  }
  if(e.action==='leech-pull'){
   const dot=((e.aimX-e.x)*dx+(e.aimZ-e.z)*dz)/(Math.hypot(e.aimX-e.x,e.aimZ-e.z)*d||1);
-  if(e.actionAge>.65||!los||d>a.range+1||dot<a.cone){recovery(e,a.cooldown);return still;}
+  if(e.actionAge>a.strike||!los||d>a.range+1||dot<a.cone){recovery(e,a.cooldown);return still;}
   // Steering is still available; a wall cancels the tether immediately.
   p.vx-=dx/d*dt*40;p.vz-=dz/d*dt*40;s.pulledUntil=s.time+.08;
   if(d<1.2&&api.hurt(s,e,'leech-drain')){e.hp=Math.min(e.maxHp,e.hp+2);s.events.push({type:'drain',id:e.id,x:e.x,z:e.z});recovery(e,a.cooldown);}return still;
@@ -90,7 +90,7 @@ export function advanceSpecial(s,e,dt,api,S=s.level){
   if(ready&&rangedFree&&d<a.range)return begin('archer-aim');if(d<a.range)return still;
  }
  if(e.type==='boss-warden'){
-  if(ready&&e.attackCount%3===2&&s.enemies.some(o=>o.alive&&!o.enabled&&o.reserveOf===e.id)&&los&&d<10){e.attackCount++;return begin('warden-call');}
+  if(ready&&e.attackCount%3===(a.callAfter??2)&&s.enemies.some(o=>o.alive&&!o.enabled&&o.reserveOf===e.id)&&los&&d<10){e.attackCount++;return begin('warden-call');}
   if(ready&&d<a.range&&los)return begin('warden-windup');
  }
  if(e.type==='boss-leech'&&ready&&d<a.range&&los)return begin('leech-windup');

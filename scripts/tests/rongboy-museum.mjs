@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/museum.js';
 import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
-import { compileLevel, clearPath, freePoint, routeTo, navRadius, roomAt, lineOfSight } from '../../scenes/rongboy-mission/level.js';
+import { compileLevel, clearPath, freePoint, routeTo, navRadius, navGoal, storeyAt, roomAt, lineOfSight } from '../../scenes/rongboy-mission/level.js';
 import { createGame, step, fire, consumeEvents, missionStatus, CONFIG, WEAPONS, ENEMY_TYPES } from '../../scenes/rongboy-mission/game.js';
 
 let checks = 0;
@@ -17,33 +17,36 @@ test('the level table lists every map and each one compiles', () => {
   for (const id of ORDER) { const c = compileLevel(LEVELS[id]); assert.equal(c.id, id); assert.ok(c.texts.short && c.texts.intro && c.look); }
 });
 
-test('one tall storey, nine named rooms, no outdoors', () => {
-  assert.equal(L.storeys.length, 1); assert.equal(L.rooms.length, 9); assert.equal(L.outdoor.length, 0);
+test('the museum has a second floor with a sapphire vault and no outdoors', () => {
+  assert.equal(L.storeys.length, 2); assert.equal(L.rooms.filter(r => !r.tower).length, 9); assert.equal(L.outdoor.length, 0);
+  assert.equal(roomAt(L.storeys[1], 11.1, 10).id, 'upper-vault');
   assert.equal(roomAt(L, 0, 0).id, 'hall'); assert.equal(roomAt(L, -9, 0).id, 'egypt'); assert.equal(roomAt(L, 9, -8).id, 'vault');
   assert.ok(L.solids.some(c => c.kind === 'slab' && Math.abs(c.minY - def.height) < 1e-9), 'a ceiling slab stops woolballs');
 });
 
-test('every spawn, patrol point and pickup is on free floor and can be reached from the entrance', () => {
+test('every spawn, patrol point and pickup can be reached from its floor entrance', () => {
   assert.ok(freePoint(L, L.player.x, L.player.z, CONFIG.playerRadius));
+  const entrance = floor => floor ? { x: 0, z: L.stairs.outZ + .6 } : L.player;
   for (const e of L.enemies) {
-    const r = ENEMY_TYPES[e.type].radius, where = `${e.type} at ${e.x},${e.z}`;
-    assert.ok(freePoint(L, e.x, e.z, r), `${where} overlaps something`);
-    assert.ok(roomAt(L, e.x, e.z), where);
+    const storey = L.storeys[e.floor], r = ENEMY_TYPES[e.type].radius, where = `${e.type} at ${e.x},${e.z}`;
+    assert.ok(freePoint(storey, e.x, e.z, r), `${where} overlaps something`);
+    assert.ok(roomAt(storey, e.x, e.z), where);
     for (const [x, z] of e.patrol || []) {
-      assert.ok(freePoint(L, x, z, r), `${where}: patrol point ${x},${z} blocked`);
-      assert.ok(clearPath(L, e, { x, z }, r) || e.patrol.some(([a, b]) => clearPath(L, { x: a, z: b }, { x, z }, r)), `${where}: patrol leg is not walkable`);
+      assert.ok(freePoint(storey, x, z, r), `${where}: patrol point ${x},${z} blocked`);
+      assert.ok(clearPath(storey, e, { x, z }, r) || e.patrol.some(([a, b]) => clearPath(storey, { x: a, z: b }, { x, z }, r)), `${where}: patrol leg is not walkable`);
     }
-    assert.ok(routeTo(L, e, L.player, navRadius(r)).length > 0, `${where} is cut off`);
+    assert.ok(routeTo(storey, e, entrance(e.floor), navRadius(r)).length > 0, `${where} is cut off`);
   }
   for (const k of L.pickups) {
-    assert.ok(freePoint(L, k.x, k.z, CONFIG.playerRadius), `pickup at ${k.x},${k.z} blocked`);
-    assert.ok(routeTo(L, L.player, k, navRadius(CONFIG.playerRadius)).length > 0, `pickup at ${k.x},${k.z} unreachable`);
+    const storey = L.storeys[k.floor];
+    assert.ok(freePoint(storey, k.x, k.z, CONFIG.playerRadius), `pickup at ${k.x},${k.z} blocked`);
+    assert.ok(routeTo(storey, entrance(k.floor), k, navRadius(CONFIG.playerRadius)).length > 0, `pickup at ${k.x},${k.z} unreachable`);
     if (k.weapon) assert.ok(WEAPONS.some(w => w.id === k.weapon), k.weapon);
   }
 });
 
 test('every room has at least two doorways, and the widest zombie fits through all of them', () => {
-  for (const r of def.rooms) {
+  for (const r of def.rooms.filter(r => !r.tower)) {
     let doors = 0;
     for (const w of def.walls) {
       const alongZ = typeof w.x === 'number', line = alongZ ? w.x : w.z, lo = alongZ ? r.minZ : r.minX, hi = alongZ ? r.maxZ : r.maxX;
@@ -71,7 +74,7 @@ test('no hiding pockets: anywhere the player can stand, a zombie can get close e
 });
 
 test('windows, skylights, lamps and pictures sit where they can be built', () => {
-  const B = def.bounds;
+  const B = L.house;
   for (const w of def.windows) {
     const alongZ = typeof w.x === 'number', line = alongZ ? w.x : w.z, a0 = w.at - w.w / 2, a1 = w.at + w.w / 2, where = `window at ${alongZ ? 'x' : 'z'}=${line}, ${w.at}`;
     assert.ok(alongZ ? [B.minX, B.maxX].includes(line) : [B.minZ, B.maxZ].includes(line), `${where} belongs to an outside wall`);
@@ -88,9 +91,14 @@ test('windows, skylights, lamps and pictures sit where they can be built', () =>
       assert.ok(!(near > -0.05 && near < 0.3 && overlap > 0.2 && c.maxY > w.sill + 0.25), `${where} is blocked by ${c.id}`);
     }
   }
-  for (const k of def.skylights) {
-    const room = def.rooms.find(r => k.x - k.w / 2 > r.minX + 0.4 && k.x + k.w / 2 < r.maxX - 0.4 && k.z - k.d / 2 > r.minZ + 0.4 && k.z + k.d / 2 < r.maxZ - 0.4);
-    assert.ok(room, `skylight at ${k.x},${k.z} lies inside one room`);
+  assert.equal(S.skylights.length, 0, 'intermediate ceilings are solid');
+  const roof = L.storeys.at(-1);
+  assert.ok(roof.skylights.length > 0);
+  for (const k of roof.skylights) {
+    const room = roof.rooms.find(r => k.x - k.w / 2 > r.minX + 0.4 && k.x + k.w / 2 < r.maxX - 0.4 && k.z - k.d / 2 > r.minZ + 0.4 && k.z + k.d / 2 < r.maxZ - 0.4);
+    assert.ok(room, `roof skylight at ${k.x},${k.z} lies inside one room`);
+    assert.ok(roof.lamps.every(lamp => Math.abs(lamp.x - k.x) > k.w / 2 + .15 || Math.abs(lamp.z - k.z) > k.d / 2 + .15),
+      'ceiling lamps have a solid mounting surface outside each skylight');
   }
   for (const l of def.lamps) assert.ok(roomAt(L, l.x, l.z) && S.furnitureBoxes.every(c => c.maxY < def.height - 1.2 || l.x < c.minX - 0.3 || l.x > c.maxX + 0.3 || l.z < c.minZ - 0.3 || l.z > c.maxZ + 0.3), `lamp at ${l.x},${l.z}`);
   for (const p of def.pictures) {
@@ -107,7 +115,7 @@ test('windows, skylights, lamps and pictures sit where they can be built', () =>
 
 test('the entrance is safe: a minute at the door and nobody has noticed', () => {
   const s = createGame({ level: L });
-  assert.equal(s.total, 27); assert.equal(s.objectives, 3);
+  assert.equal(s.total, 35); assert.equal(s.objectives, 3);
   run(s, 60);
   assert.equal(s.health, CONFIG.maxHealth);
   assert.deepEqual(s.enemies.filter(e => e.awareness !== 'asleep' && e.awareness !== 'idle').map(e => `${e.type}@${e.x.toFixed(1)},${e.z.toFixed(1)}`), []);
@@ -128,9 +136,13 @@ test('the mission: all three exhibits, then back to the dinosaur', () => {
   });
   p.x = home.x; p.z = home.z; run(s, 0.2);
   assert.ok(!s.carrying && s.phase === 'playing', 'two out of three is not enough');
-  p.x = prizes[2].x; p.z = prizes[2].z; run(s, 0.2);
+  const gem = prizes[2];
+  p.x = gem.x; p.z = gem.z; run(s, .05);
+  assert.equal(gem.floor, 1);
+  assert.equal(gem.taken, false, 'standing underneath the vault does not collect its sapphire');
+  p.x = gem.x; p.z = gem.z; p.y = gem.y; run(s, 0.2);
   assert.ok(s.carrying);
-  p.x = home.x; p.z = home.z; run(s, CONFIG.endDelay + 0.3);
+  p.x = home.x; p.z = home.z; p.y = 0; run(s, CONFIG.endDelay + 0.3);
   assert.equal(s.phase, 'won');
 });
 
@@ -143,8 +155,34 @@ test('picking up an exhibit rouses that room, not the whole museum', () => {
   assert.ok(roused.every(e => Math.hypot(e.x - mask.x, e.z - mask.z) < def.mission.alarm + 0.5));
 });
 
-test('once roused, everyone finds the player in the central hall', () => {
+test('the player can walk both new flights and return to the ground floor', () => {
+  const walk = (s, target) => {
+    const map = s.level, p = s.player, radius = navRadius(CONFIG.playerRadius);
+    for (let frame = 0; frame < 50 * 60; frame++) {
+      if (Math.hypot(p.x - target.x, p.y - target.y, p.z - target.z) < .45) return;
+      const floor = storeyAt(map, p.y), route = navGoal(map, p, target);
+      const next = route.direct || clearPath(floor, p, route, radius, true) ? route : routeTo(floor, p, route, radius)[0] ?? route;
+      const dx = next.x - p.x, dz = next.z - p.z, length = Math.hypot(dx, dz) || 1;
+      step(s, 1 / 60, { x: dx / length, z: dz / length });
+    }
+    assert.fail(`could not walk from ${p.x.toFixed(2)},${p.y.toFixed(2)},${p.z.toFixed(2)} to ${target.x},${target.y},${target.z}`);
+  };
+  const s = createGame({ level: L });
+  s.enemies = []; // Traverse the route and test the real pickup without combat displacement.
+  walk(s, L.pickups.find(k => k.item === 'gem'));
+  assert.equal(s.collected, 1);
+  walk(s, { x: 0, y: 0, z: 5 });
+
+  const cottage = compileLevel(LEVELS.cottage), garden = createGame({ level: cottage });
+  garden.enemies = [];
+  garden.total = 0; // Suppress the automatic clear when probing routes without enemies.
+  walk(garden, { x: -6.9, z: -1, y: cottage.storeyHeight });
+  walk(garden, { ...cottage.player, y: 0 });
+});
+
+test('once roused, ground-floor enemies find the player in the central hall', () => {
   const s = createGame({ level: L }); s.health = 1e9;
+  s.enemies = s.enemies.filter(e => e.floor === 0);
   s.player.x = 0; s.player.z = 5.0;
   for (const e of s.enemies) e.awareness = 'alert';
   run(s, 90);

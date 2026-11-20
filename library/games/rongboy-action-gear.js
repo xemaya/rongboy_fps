@@ -1,7 +1,7 @@
 import * as T from 'three';
 const p=new T.Vector3(),upper=new T.Vector3(),lower=new T.Vector3(),nockPoint=new T.Vector3();
 // Mechanical props remain native editable nodes, independent of the six body joints.
-export function updateActionGear(a,{draw=0,target=null,arrow=true,bomb=true}={}){
+export function updateActionGear(a,{draw=0,release=0,target=null,arrow=true,bomb=true}={}){
  const m=a.mechanisms;if(!m)return;
  if(m.has('heldBomb'))m.get('heldBomb').visible=bomb;
  const nock=m.get('bowNock'),up=m.get('bowUpper'),low=m.get('bowLower');if(!nock||!up||!low)return;
@@ -10,7 +10,9 @@ export function updateActionGear(a,{draw=0,target=null,arrow=true,bomb=true}={})
  a.world.updateMatrixWorld(true);up.getWorldPosition(upper);low.getWorldPosition(lower);nock.getWorldPosition(nockPoint);
  const hand=m.get('drawHand'),right=a.parts.get('ArmR');
  if(hand&&right){
-  const desired=right.parent.worldToLocal(nockPoint.clone()).sub(right.position),base=a.mechanismRest.get('drawHand').p,restScale=a.rest.get('ArmR').s;
+  const handTarget=nockPoint.clone();
+  if(release>0&&back)handTarget.lerp(back.getWorldPosition(p),release);
+  const desired=right.parent.worldToLocal(handTarget).sub(right.position),base=a.mechanismRest.get('drawHand').p,restScale=a.rest.get('ArmR').s;
   right.quaternion.setFromUnitVectors(base.clone().normalize(),desired.clone().normalize());right.scale.copy(restScale).multiplyScalar(Math.max(.85,Math.min(1.35,desired.length()/(base.length()*restScale.x))));a.world.updateMatrixWorld(true);
  }
  if(!a.bowString){const g=new T.BufferGeometry().setAttribute('position',new T.Float32BufferAttribute(new Float32Array(9),3));a.bowString=new T.Line(g,new T.LineBasicMaterial({color:0xe8d9b7}));a.model.add(a.bowString);}

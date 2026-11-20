@@ -81,7 +81,24 @@ export function compileLevel(def) {
     const walls = (part.walls || []).flatMap((w, k) => wallBoxes(w, k, def, y));
     const furniture = (part.furniture || []).map(f => box({ ...f, solid: 'furniture' }, y));
     // 机关也是实心的：毛球打中它才触发，身体绕着走
-    const gadgets = (part.gadgets || []).map((g, k) => box({ id: g.id ?? `gadget${i}-${k}`, kind: 'gadget', gadget: g.kind, x: g.x, z: g.z, w: GADGETS[g.kind].w, d: GADGETS[g.kind].d, h: GADGETS[g.kind].h }, y));
+    const gadgets = (part.gadgets || []).map((g, k) => {
+      const { w, d, h, minY = 0 } = GADGETS[g.kind];
+      return box({ id: g.id ?? `gadget${i}-${k}`, kind: 'gadget', gadget: g.kind, x: g.x, z: g.z, w, d, minY, h: h - minY }, y);
+    });
+    const easterEggs = (part.easterEggs || []).map(spec => {
+      let egg = spec;
+      if (spec.id === 'cushions' && spec.onSofa) {
+        const sofa = furniture.find(prop => prop.id === spec.onSofa);
+        if (!sofa) throw new Error(`Cushions need a sofa named "${spec.onSofa}" on floor ${i + 1}`);
+        const face = sofa.face ?? (sofa.w >= sofa.d ? 's' : 'e');
+        const yaw = { s:0, e:Math.PI / 2, n:Math.PI, w:-Math.PI / 2 }[face];
+        const depth = face === 'n' || face === 's' ? sofa.d : sofa.w;
+        const fromCenter = .535 - depth / 2, seatY = Math.min(.4, sofa.h * .5) + .11;
+        egg = { ...spec, x:sofa.x + Math.sin(yaw) * fromCenter, y:seatY + .21, z:sofa.z + Math.cos(yaw) * fromCenter, yaw };
+      }
+      const { yaw = 0, w, d } = egg, xAxis = Math.abs(Math.cos(yaw)), zAxis = Math.abs(Math.sin(yaw));
+      return box({ ...egg, w: w * xAxis + d * zAxis, d: w * zAxis + d * xAxis, minY: egg.y - egg.h / 2, floor: i }, y);
+    });
     const extra = [];
     if (indoor.length) {   // 这一层的天花板（也是上一层的楼板）
       const r = rectOf(indoor);
@@ -98,7 +115,7 @@ export function compileLevel(def) {
     return {
       index: i, y, height: def.height, rooms, outdoor: rooms.filter(r => r.outdoor),
       bounds: i === 0 ? B : { minX: B.minX, maxX: B.maxX, minZ: B.minZ, maxZ: house.maxZ },
-      walls, furnitureBoxes: furniture, gadgetBoxes: gadgets, solids,
+      walls, furnitureBoxes: furniture, gadgetBoxes: gadgets, easterEggs, solids,
       blockers: [...solids.filter(b => b.minY - y < BODY_HEIGHT), ...shared],
       windows: part.windows || [], lamps: part.lamps || [], rugs: part.rugs || [], pictures: part.pictures || [],
       skylights: part.skylights || [], hangings: part.hangings || [],
@@ -111,6 +128,7 @@ export function compileLevel(def) {
     solids: [...storeys.flatMap(s => s.solids), ...shared, ...stairBoxes],
     enemies: parts.flatMap((part, i) => (part.enemies || []).map(e => ({ ...e, floor: i }))),
     pickups: parts.flatMap((part, i) => (part.pickups || []).map(k => ({ ...k, floor: i, y: i * SH }))),
+    easterEggs: storeys.flatMap(S => S.easterEggs),
     gadgets: storeys.flatMap(S => S.gadgetBoxes.map(b => ({ id: b.id, kind: b.gadget, x: b.x, z: b.z, floor: S.index, y: S.y }))),
   };
 }
@@ -205,9 +223,9 @@ export function freePoint(level, x, z, r) {
 }
 
 // 眼睛到眼睛的三维视线：矮家具不挡视线，墙和高柜会挡。
-export function lineOfSight(level, a, b, eye = 1.2) {
+export function lineOfSight(level, a, b, eye = 1.2, ignore = null) {
   const p = { x: a.x, y: a.y ?? eye, z: a.z }, q = { x: b.x, y: b.y ?? eye, z: b.z };
-  return !level.solids.some(c => segmentBox(p, q, c));
+  return !level.solids.some(c => c.id !== ignore && segmentBox(p, q, c));
 }
 
 export function roomAt(level, x, z) {

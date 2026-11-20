@@ -9,11 +9,11 @@ export function createArsenalAudio(ctx) {
   for (let i = 0; i < data.length; i++) { seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0; data[i] = seed / 4294967296 * 2 - 1; }
   const last = {};
 
-  function play(kind, { strength = 1, pan = 0 } = {}) {
+  function play(kind, { strength = 1, pan = 0, delay = 0 } = {}) {
     const now = ctx.currentTime, gap = ['stitch','staple'].includes(kind) ? 0.05 : kind === 'crackle' ? 0.12 : 0;
     if (now - (last[kind] ?? -10) < gap) return;
     last[kind] = now;
-    const at = now + 0.002, bus = ctx.createGain(), stereo = ctx.createStereoPanner();
+    const at = now + 0.002 + delay, bus = ctx.createGain(), stereo = ctx.createStereoPanner();
     bus.gain.value = clamp(strength, 0.2, 1.3); stereo.pan.value = clamp(pan, -0.65, 0.65); bus.connect(stereo); stereo.connect(out);
     let end = at + 0.3;
     const tone = (delay, from, to, duration, volume, type = 'sine') => {
@@ -84,10 +84,42 @@ export function createArsenalAudio(ctx) {
       for (let i = 0; i < 7; i++) { tone(i * 0.035 + Math.random() * 0.01, 700 + Math.random() * 500, 500, 0.03, 0.06, 'triangle'); hiss(i * 0.035, 0.015, 0.05, 3200, 'bandpass', 2); }
     } else if (kind === 'squeak') {  // 小黄鸭：吱
       tone(0, 1100, 1900, 0.09, 0.09, 'square'); tone(0.09, 1900, 1300, 0.08, 0.06, 'square');
+    } else if (kind === 'flop') {
+      hiss(0,.16,.13,590,'lowpass'); tone(.044,108,57,.14,.09);
+    } else if (kind === 'splash') {
+      hiss(.03,.17,.15,1280,'bandpass',.7);
+      for (const [t,f] of [[0,510],[.064,760],[.12,620]]) tone(t,f,f*.57,.075,.075);
+    } else if (kind === 'whirr') {
+      for (let i=0;i<6;i++) tone(i*.058,360-i*24,161,.053,.048,'triangle');
+    } else if (kind === 'whip') {
+      hiss(0,.065,.12,2160,'bandpass',1); hiss(.09,.039,.21,4200,'highpass');
+      tone(.08,305,152,.065,.079,'triangle');
+    } else if (kind === 'chalk') {
+      hiss(0,.29,.12,1470,'bandpass',2); hiss(.20,.18,.09,950,'bandpass',1.5);
+    } else if (kind === 'boing') {
+      tone(.025,445,228,.12,.11,'triangle'); tone(.12,315,161,.15,.07,'triangle');
+    } else if (kind === 'jaw') {
+      tone(.32,840,390,.08,.15,'triangle'); hiss(.32,.04,.13,2560,'bandpass',1.25);
+    } else if (kind === 'cat') {
+      tone(.08,491,625,.07,.065,'triangle'); tone(.31,618,490,.105,.065,'triangle');
+    } else if (kind === 'china') {
+      tone(.12,2870,2850,.18,.09); tone(.15,4100,4050,.14,.044);
+    } else if (kind === 'steam') {
+      hiss(.08,.39,.12,2100,'bandpass',.7); tone(.15,920,1180,.20,.028);
+    } else if (kind === 'sew') {
+      for (let i=0;i<10;i++) {
+        hiss(i*.079,.042,.10,2200,'bandpass',1.5);
+        tone(i*.079,270,145,.054,.061,'triangle');
+      }
+    } else if (kind === 'wood-creak') {
+      tone(0,205,120,.26,.11,'triangle'); tone(.18,146,222,.19,.071,'triangle');
     } else if (kind === 'rumble') {  // 守墓巨像现身：一声越来越沉的低音
       tone(0, 78, 34, 1.5, 0.32); tone(0.25, 52, 28, 1.3, 0.22, 'triangle'); hiss(0, 1.2, 0.12, 180, 'lowpass');
     } else if (kind === 'ring') {    // 闹钟：一串很密的铃声
-      for (let i = 0; i < 9; i++) { tone(i * 0.045, i % 2 ? 2100 : 1750, i % 2 ? 2080 : 1730, 0.05, 0.05, 'square'); tone(i * 0.045, 4200, 4100, 0.03, 0.02); }
+      for (const [time, freq] of [[0,1750],[.071,2300],[.161,1750],[.212,2300],[.304,1890]]) {
+        tone(time,freq,freq*.985,.08,.07,'triangle');
+        tone(time,freq*2.03,freq*2,.065,.024);
+      }
     } else if (kind === 'flash') {   // 聚光灯：啪地一亮，嗡一声
       hiss(0, 0.03, 0.2, 3000, 'highpass'); tone(0, 180, 120, 0.5, 0.08, 'sawtooth'); tone(0.02, 1200, 2400, 0.25, 0.04);
     } else if (kind === 'zip') {     // 拉链拉开：一串越来越高的小齿声

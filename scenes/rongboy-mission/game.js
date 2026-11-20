@@ -10,6 +10,7 @@ import {launchBomb,advanceBombs} from './bombs.js';
 import {advanceSpecial,interruptSpecial,contactAttack,onSpecialDeath} from './special-enemies.js';
 import { GADGETS, STASH } from './gadgets.js';
 import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
+import { travelPace, strideTravel } from './locomotion.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -27,15 +28,15 @@ export const CONFIG = {
 
 export const ENEMY_TYPES = {
   walker: { name: '跳跳', hp: 6, radius: 0.32, height: 1.62, scale: 1, speed: 1.45, hopHeight: 0.22, hopPeriod: 0.72, resistance: 1 },
-  leaper: { name: '跃行者', hp: 5, radius: 0.30, height: 1.56, scale: 0.96, speed: 1.9, hopHeight: 0.28, hopPeriod: 0.55, resistance: 0.9 },
-  crawler: {name:'爬行者',hp:4,radius:.37,height:1.02,scale:1,speed:.85,hopHeight:0,hopPeriod:1.1,resistance:1},
-  shielded: {name:'持盾者',hp:7,radius:.36,height:1.71,scale:1,speed:1.15,hopHeight:.12,hopPeriod:.90,resistance:.65},
-  bomber: {name:'炸弹客',hp:5,radius:.40,height:1.58,scale:1,speed:1.15,hopHeight:.16,hopPeriod:.90,resistance:.9,muzzle:{y:0.857034,forward:0.545857,side:0.329657}},
-  archer: {name:'弓手',hp:5,radius:.30,height:1.74,scale:1,speed:1.05,hopHeight:.10,hopPeriod:.9,resistance:1.1,muzzle:{y:0.955520,forward:0.595485,side:-0.117760}},
-  'boss-warden': {name:'守墓巨像',hp:24,radius:.62,height:2.24,scale:1,speed:.75,hopHeight:.06,hopPeriod:1.2,resistance:.20,armor:.65,reserves:2},
-  'boss-leech': {name:'噬连兽',hp:20,radius:.42,height:1.93,scale:1,speed:1.05,hopHeight:.10,hopPeriod:1.1,resistance:.5},
+  leaper: { name: '跃行者', hp: 5, radius: 0.30, height: 1.56, scale: 0.96, speed: 1.9, hopHeight: 0.65, resistance: 0.9 },
+  crawler: {name:'爬行者',hp:4,radius:.37,height:1.02,scale:1,speed:.85,resistance:1},
+  shielded: {name:'持盾者',hp:7,radius:.36,height:1.71,scale:1,speed:1.15,resistance:.65},
+  bomber: {name:'炸弹客',hp:5,radius:.40,height:1.58,scale:1,speed:1.15,resistance:.9,muzzle:{y:0.857034,forward:0.545857,side:0.329657}},
+  archer: {name:'弓手',hp:5,radius:.30,height:1.74,scale:1,speed:1.05,resistance:1.1,muzzle:{y:0.955520,forward:0.595485,side:-0.117760}},
+  'boss-warden': {name:'守墓巨像',hp:24,radius:.62,height:2.03,scale:1,speed:.75,resistance:.20,armor:.65,reserves:2},
+  'boss-leech': {name:'噬连兽',hp:20,radius:.42,height:2.07,scale:1,speed:1.05,resistance:.5},
   // 棉甲正面只吃一半伤害，要绕到背后打。
-  heavy: { name: '棉甲', hp: 8, radius: 0.43, height: 1.81, scale: 1.12, speed: 0.9, hopHeight: 0.12, hopPeriod: 1.02, resistance: 0.38, armor: 0.5 },
+  heavy: { name: '棉甲', hp: 8, radius: 0.43, height: 1.81, scale: 1.12, speed: 0.9, resistance: 0.38, armor: 0.5 },
 };
 
 // damage 在 range 以内是全额，之后线性衰减，到 2×range 降为 minDamage；飞过 maxRange 就散掉。
@@ -103,11 +104,13 @@ export function createGame({ level } = {}) {
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null }) {
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter }) {
   type = type === 'runner' || type === 'weaver' ? 'leaper' : type;
-  const def = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
+  const roster = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
+  const attic = type === 'boss-warden' && encounter === 'attic';
+  const def = attic ? { ...roster, hp: 44, speed: 1.58, resistance: .12, armor: .55 } : roster;
   const e = {
-    ...def, type, enabled, reserveOf, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0, stun: 0, tangle: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
@@ -391,19 +394,16 @@ function steerTravel(e, dx, dz, dt, distance) {
   return clamp(Math.cos(delta-step)*1.5, 0, 1);
 }
 
-// 没发现玩家时：睡着的不动，巡逻的在几个点之间慢慢蹦。
+// 没发现玩家时，睡着的不动，巡逻的按兵种步态走过几个点。
 function idleMove(s, e, dt) {
   e.hop = 0; e.hopPhase = 0;
   if (e.awareness !== 'idle' || !e.patrol || e.hit > 0) return;
   if (e.patrolWait > 0) { e.patrolWait -= dt; return; }
   const [tx, tz] = e.patrol[e.patrolIndex], dx = tx - e.x, dz = tz - e.z, d = length(dx, dz);
   if (d < 0.12) { e.patrolIndex = (e.patrolIndex + 1) % e.patrol.length; e.patrolWait = 1.4; return; }
-  const period = e.hopPeriod * 1.5;
-  e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
-  const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
-  e.hop = lift * e.hopHeight * 0.5;
   const alignment = steerTravel(e, dx, dz, dt, d);
-  const travel = Math.min(d, alignment * e.speed * 0.42 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
+  const pace = travelPace(e, 1.5, .5);
+  const travel = Math.min(d, alignment * e.speed * .42 * pace * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
 }
 
@@ -421,11 +421,9 @@ function chase(s, e, dt) {
     return;
   }
   const action = !level ? null : SPECIAL_TYPES.has(e.type) ? advanceSpecial(s, e, dt, attackApi, S) : advanceAction(S, e, dt, p, s.events);
-  e.hopPhase = e.type === 'crawler' ? 0 : ((e.age + e.id * 0.137) % e.hopPeriod) / e.hopPeriod;
-  const flight = clamp(e.hopPhase / 0.78, 0, 1), lift = Math.sin(flight * Math.PI);
-  e.hop = action ? action.y : lift * e.hopHeight;
-  if (e.hopPhase < prevPhase && !action) s.events.push({ type: 'land', id: e.id, ...at(e), enemyType: e.type });
   if (action) {
+    e.hopPhase = 0;
+    e.hop = action.y;
     if (e.hit <= 0) { const slow = e.tangle > 0 ? TANGLE_SPEED : 1; e.x += action.x * slow * dt; e.z += action.z * slow * dt; }
     return;
   }
@@ -435,9 +433,11 @@ function chase(s, e, dt) {
   else if (e.navIn <= 0) { e.route = routeTo(S, e, goal, r); e.navIn = 0.4; }
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
   const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
-  if (!next) return;
+  if (!next || e.hit > 0) { e.hop *= Math.exp(-dt * 14); return; }
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
-  const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0;
+  const pace = travelPace(e, 1, 1, e.id * .137);
+  const speed = e.speed * e.moveMultiplier * pace * (e.tangle > 0 ? TANGLE_SPEED : 1);
+  if (e.type === 'walker' && e.hopPhase < prevPhase) s.events.push({ type: 'land', id: e.id, ...at(e), enemyType: e.type });
   const facesPlayer = e.action === 'sidestep' || (e.type === 'shielded' && level &&
     lineOfSight(S, {x:e.x,y:e.base+.95,z:e.z}, {x:p.x,y:p.y+1,z:p.z}));
   const alignment = d > .03 && e.hit <= 0
@@ -607,11 +607,21 @@ function advanceBall(s, b, dt) {
       candidate(t, nx, ny, nz, 'enemy', e);
     }
     for (const c of L.solids) {
+      if (c.gadget === 'quilt' && s.gadgets.some(g => g.id === c.id && g.used)) continue;
       const h = segmentBox(b, end, c, b.r);
       // 楼板和踏步的顶面算地面：和落在底层地面上一样弹
       if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, h.ny > 0.5 && (c.kind === 'slab' || c.kind === 'stair') ? 'floor' : 'solid', null, c);
     }
     const t = hit ? hit.t : 1;
+    // 动态布景只吃到障碍物之前飞过的那一段，快球也不会漏掉薄相框。
+    for (const egg of L.easterEggs || []) {
+      if (b.eggHits?.has(egg.id)) continue;
+      const touch = segmentBox(b, end, egg, b.r);
+      if (!touch || touch.t > t) continue;
+      (b.eggHits ??= new Set()).add(egg.id);
+      const x = b.x + (end.x-b.x)*touch.t, y = b.y + (end.y-b.y)*touch.t, z = b.z + (end.z-b.z)*touch.t;
+      s.events.push({ type:'easter-egg', id:egg.id, x,y,z, base:egg.floorY, side:Math.sign(x-egg.x) || 1 });
+    }
     b.travel += Math.hypot(end.x - b.x, end.y - b.y, end.z - b.z) * t;
     b.x += (end.x - b.x) * t; b.y += (end.y - b.y) * t; b.z += (end.z - b.z) * t;
     if (b.travel >= b.maxRange) { expireBall(s, b, 'range'); break; }
@@ -705,7 +715,7 @@ function struck(s, b, box) {
 }
 
 function trigger(s, g) {
-  const L = s.level, G = GADGETS[g.kind], S = L.storeys[g.floor], top = { x: g.x, y: g.y + G.h + 0.35, z: g.z }, hit = [];   // 声音和灯光从机关顶上发出来（在它自己的盒子外面）
+  const L = s.level, G = GADGETS[g.kind], S = L.storeys[g.floor], top = { x: g.x, y: g.y + (G.lightY ?? G.h + 0.35), z: g.z }, hit = [];   // 声音和灯光从机关顶上发出来（在它自己的盒子外面）
   g.used = true;
   const here = e => e.alive && e.enabled && Math.abs(e.base - g.y) < 1;
   if (g.kind === 'clock') {
@@ -729,14 +739,40 @@ function trigger(s, g) {
     }
   } else if (g.kind === 'bucket') {
     hit.push(...blast(s, g.x, top.y, g.z, WEAPONS[GRENADE], 'bucket'));
+    for (const e of s.enemies) if (hit.includes(e.id)) e.paintUntil = s.time + WEAPONS[GRENADE].tangle;
   } else if (g.kind === 'spot') {
     for (const e of s.enemies) {
-      if (!here(e) || Math.hypot(e.x - g.x, e.z - g.z) > G.radius + e.radius || !lineOfSight(L, top, { x: e.x, y: e.y + e.height * 0.6, z: e.z })) continue;
-      e.stun = Math.max(e.stun, G.stun * (e.armor ? 0.6 : 1));
+      if (!here(e)) continue;
+      const dx = e.x-g.x, dz = e.z-g.z, distance = Math.hypot(dx,dz);
+      const reach = Math.min(e.radius*.66,distance), edge = 1-reach/(distance || 1);
+      const lit = [0.16,0.42,0.68].some(height => {
+        const y = e.y + e.height*height, beamRadius = G.radius*(top.y-y)/G.lightY;
+        return distance-reach <= beamRadius &&
+          lineOfSight(L,top,{x:g.x+dx*edge,y,z:g.z+dz*edge},1.2,g.id);
+      });
+      if (!lit) continue;
+      const duration = G.stun * (e.armor ? 0.6 : 1);
+      e.stun = Math.max(e.stun, duration);
+      e.spotUntil = s.time + duration;
       hit.push(e.id);
     }
+  } else if (g.kind === 'quilt') {
+    g.until = s.time + G.fall;
   }
   s.events.push({ type: 'gadget', id: g.id, kind: g.kind, x: g.x, y: g.y, z: g.z, base: g.y, radius: G.radius, struck: hit });
+}
+
+function landQuilt(s, g) {
+  g.until = 0;
+  const G = GADGETS.quilt, hit = [];
+  for (const e of s.enemies) {
+    if (!e.alive || !e.enabled || Math.abs(e.base - g.y) > 0.25 || e.y > g.y + G.minY) continue;
+    if (Math.abs(e.x - g.x) > G.w / 2 || Math.abs(e.z - g.z) > G.depth / 2) continue;
+    e.stun = Math.max(e.stun, G.stun);
+    e.quiltUntil = s.time + G.stun;
+    hit.push(e.id);
+  }
+  s.events.push({ type: 'quilt-land', id: g.id, x: g.x, y: g.y, z: g.z, struck: hit });
 }
 
 // 被闹钟引过去的僵尸：走到分给它的空位，面朝闹钟站着，响完为止。路上照样会看见玩家（那就变成追）。
@@ -757,12 +793,9 @@ function investigate(s, e, dt) {
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
   const next = clearPath(S, e, t, r, true) ? t : e.route[0];
   if (!next) return;
-  const period = e.hopPeriod * 1.2;
-  e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
-  const lift = Math.sin(clamp(e.hopPhase / 0.78, 0, 1) * Math.PI), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
-  e.hop = lift * e.hopHeight * 0.7;
+  const pace = travelPace(e, 1.2, .7), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const alignment = d > .03 && e.hit <= 0 ? steerTravel(e,dx,dz,dt,d) : 1;
-  const travel = Math.min(d, (e.hit <= 0 ? alignment * e.speed * 0.75 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  const travel = Math.min(d, (e.hit <= 0 ? alignment * e.speed * .75 * pace * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
 
 }
@@ -912,7 +945,7 @@ export function step(s, dt, input = {}) {
 
   for (const e of s.enemies) {
     if(!e.enabled)continue;
-    const startX=e.x, startZ=e.z;
+    const startX=e.x, startZ=e.z, startHeading=e.heading;
     e.age += dt; e.reactionAge += dt;
     e.hit = Math.max(0, e.hit - dt); e.chainCooldown = Math.max(0, e.chainCooldown - dt);
     e.stun = Math.max(0, e.stun - dt); e.tangle = Math.max(0, e.tangle - dt);
@@ -920,17 +953,14 @@ export function step(s, dt, input = {}) {
     else if (e.stun > 0) e.hop *= Math.exp(-dt * 14);   // 被电住：站在原地发抖，不追、不看、不咬
     else if (e.awareness === 'alert') chase(s, e, dt);
     else { sense(s, e, dt); if (e.awareness === 'alert' || e.awareness === 'waking') e.lure = null; else if (e.lure) investigate(s, e, dt); else idleMove(s, e, dt); }
-    const selfTravel = e.type === 'crawler' ? Math.hypot(e.x-startX,e.z-startZ) : 0;
+    const wantedX = e.x - startX, wantedZ = e.z - startZ;
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
     resolveBody(storeyAt(L, e.base), e, e.radius);
-    if (e.type === 'crawler') {
-      const travel = Math.min(selfTravel, Math.hypot(e.x-startX,e.z-startZ));
-      e.crawlDistance = (e.crawlDistance || 0) + travel;
-      const stepping = travel > .00001 ? 1 : 0;
-      e.crawlWeight = stepping + ((e.crawlWeight || 0)-stepping)*Math.exp(-18*dt);
-    }
     e.base = surfaceY(L, e.x, e.z, e.base); e.y = e.base + e.hop;
+    if (strideTravel(e, startX, startZ, wantedX, wantedZ, startHeading, dt)) {
+      s.events.push({ type: 'footstep', id: e.id, ...at(e), enemyType: e.type });
+    }
   }
 
   // 软身体互相推开；被打飞的僵尸撞到同伴会传递冲量并造成 1 点伤害。
@@ -957,6 +987,7 @@ export function step(s, dt, input = {}) {
   if (s.tangleFields.length) advanceTangleFields(s);
   for (const ball of s.balls) advanceBall(s, ball, dt);
   s.balls = s.balls.filter(b => !b.destroyed);
+  for (const g of s.gadgets) if (g.kind === 'quilt' && g.until > 0 && s.time >= g.until) landQuilt(s, g);
   advanceBombs(s,dt,hurtPlayer);for(const b of s.enemyShots)advanceEnemyShot(s,b,dt);s.enemyShots=s.enemyShots.filter(b=>!b.destroyed);
   s.enemies = s.enemies.filter(e => e.alive || e.deathAge < 1.15);
 

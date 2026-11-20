@@ -15,8 +15,10 @@ export default {
     how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
     start: '进入花园',
     hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
+    brief: '从门厅尽头上楼，到三楼藏宝间拿回毛线篮，再带回院门。途中可以绕过僵尸。',
+    route: '去三楼藏宝间找毛线篮 · 楼梯在门厅尽头',
     got: '拿到毛线篮了！',
-    emerge: '拿到毛线篮了！守墓巨像醒了 · 不用打，带着篮子跑',
+    emerge: '守墓巨像醒了 · 躲开震地，带篮子下楼',
     carry: '带着毛线篮回到院门',
     won: '带回来了！',
     lostCarrying: '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。',
@@ -125,9 +127,12 @@ export default {
   // state: asleep 睡着（靠近或有声音才醒）；idle 醒着站岗或巡逻（靠视线发现你）。
   // heading：0 朝南（+z），π 朝北，π/2 朝东，-π/2 朝西。
   // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
+  easterEggs: [
+    { id: 'cushions', onSofa: 'sofa', w: 1.03, d: 0.34, h: 0.50 },
+    { id: 'photo', x: -1.368, y: 1.55, z: -7.8, yaw: Math.PI / 2, w: 0.83, d: 0.16, h: 0.65 },
+  ],
   gadgets: [
     { kind: 'clock', x: -7.25, z: 3.37 },    // 花园：从院门就看得到，旁边睡着两只,
-    { kind: 'clock', x: -3.75, z: -2.63 },   // 客厅,
   ],
 
   enemies: [
@@ -200,6 +205,9 @@ export default {
         { x: -1.6, z: -1.6, y: 1.65, normal: [-1, 0], w: 0.8, h: 0.55, color: 0xf2dfb0 }, { x: 1.4, z: -3.6, y: 1.55, normal: [-1, 0], color: 0xe9c9d9 },
         { x: -1.4, z: -1.2, y: 1.55, normal: [1, 0], w: 0.5, h: 0.6, color: 0xa9cfe0 }, { x: 6.2, z: -2.9, y: 1.6, normal: [0, 1], w: 0.9, h: 0.6, color: 0xbfe0d0 },
       ],
+      easterEggs: [
+        { id: 'duck', x: -7.47, y: 0.69, z: -8.14, w: 0.43, d: 0.29, h: 0.4 },
+      ],
       furniture: [
         // 走廊
         { id: 'hall2-console', kind: 'bench', look: 'console', face: 'n', x: 0, z: 2.65, w: 1.2, d: 0.7, h: 0.9, color: 0x9db3a0 },
@@ -229,10 +237,6 @@ export default {
         { id: 'play-table', kind: 'bench', look: 'coffee', x: 5.6, z: -6.2, w: 1.3, d: 0.8, h: 0.45, color: 0xbb855d },
         { id: 'play-shelf', kind: 'cabinet', look: 'bookshelf', face: 'w', x: 8.7, z: -6.0, w: 0.6, d: 2.0, h: 2.0, color: 0x9bb07c },
         { id: 'play-crate', kind: 'crate', x: 1.95, z: -3.55, w: 0.7, d: 0.9, h: 0.7, color: 0xb9936d },
-      ],
-      // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
-      gadgets: [
-        { kind: 'clock', x: -5.55, z: -0.8 },    // 主卧,
       ],
 
       enemies: [
@@ -283,6 +287,9 @@ export default {
       ],
       lamps: [{ x: -5.25, z: 0.2 }, { x: -5.0, z: -6.2 }, { x: 5.25, z: 0 }, { x: 5.4, z: -6.9 }, { x: 0, z: -2 }],
       rugs: [{ x: 6.4, z: 1.2, w: 2.6, d: 2.4, color: 0xe2b85a }, { x: 0, z: -2.0, w: 1.3, d: 5.0, color: 0xa87f62 }, { x: 5.4, z: -4.3, w: 2.4, d: 1.0, color: 0xd98a8a }],
+      easterEggs: [
+        { id: 'bobbin', x: 5.6, y: 0.195, z: -7.82, w: 0.42, d: 0.46, h: 0.4 },
+      ],
       pictures: [{ x: 1.6, z: -0.8, y: 1.6, normal: [1, 0], w: 0.9, h: 0.6, color: 0xf2dfb0 }, { x: -1.4, z: -3.3, y: 1.55, normal: [1, 0], color: 0xa9cfe0 }],
       furniture: [
         { id: 'hall3-bench', kind: 'cabinet', face: 'w', x: 1.15, z: -2.4, w: 0.5, d: 1.4, h: 1.0, color: 0xa98f72 },
@@ -306,10 +313,6 @@ export default {
         { id: 'treasure-cabinet', kind: 'cabinet', face: 's', x: 4.2, z: -2.6, w: 1.6, d: 0.6, h: 1.6, color: 0xa68fb8 },
         { id: 'treasure-crate', kind: 'crate', x: 5.2, z: 0.2, w: 1.0, d: 1.0, h: 1.0, color: 0xc0a078 },
       ],
-      // 机关（docs/fun-design.md 第 9 节）：这张图用闹钟，打一下，附近没发现你的僵尸走过去围着看。位置用 node scripts/map.mjs suggest 找的。
-      gadgets: [
-        { kind: 'clock', x: -6.55, z: 0.45 },    // 储藏间：拿毛线篮之前可以先把这一头的引开,
-      ],
 
       enemies: [
         { type: 'shielded', x: -3.5, z: -1.4, state: 'idle', heading: -Math.PI / 2, patrol: [[-6.2, -1.4], [-3.5, -1.4]] },   // 储藏间的空地留出横移路线，阁楼走廊可用于撤离
@@ -324,7 +327,7 @@ export default {
         // 守墓巨像（开场片结尾的那一位）：开局不在场上，拿起毛线篮的那一刻在藏宝间的西北角现身，在玩家身后。
         // 不能放在两扇门前面：篮子在东南角，回楼梯最近的路是北门，它站在那儿就把人堵死了（第一版就是这么错的）。
         // 它很慢，身体比楼梯宽、下不了楼：不用打倒，带着篮子跑出阁楼就甩掉了。
-        { type: 'boss-warden', x: 2.6, z: -1.9, dormant: true },
+        { type: 'boss-warden', x: 2.6, z: -1.9, dormant: true, encounter: 'attic' },
       ],
       pickups: [
         // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
