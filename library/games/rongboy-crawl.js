@@ -50,7 +50,8 @@ export function poseCrawl(actor, distance=0, weight=1, action='chase', age=0) {
     const swing=Math.max(0,(phase-STANCE)/(1-STANCE));
     const forward=(STANCE/2-phase+swing*swing*(3-2*swing))*STRIDE*weight;
     const lift=.067*Math.sin(Math.PI*swing)**2*weight;
-    const profiles=part.children.filter(o=>o.isMesh&&!o.userData.fuzz).map(o=>groundProfile(o.geometry));
+    // 并成蒙皮的僵尸（见 rongboy-runtime 的 skinFigurine），关节下面没有网格了，底面轮廓从 actor.ground 拿
+    const profiles=(actor.ground?.get(name)??part.children.filter(o=>o.isMesh&&!o.userData.fuzz).map(o=>o.geometry)).map(groundProfile);
     if (!profiles.length) continue;
     const bottom=bottomAt(profiles,0);
     const reach=forward/actor.model.scale.z+(name==='ArmR'?.14*swipe:0);

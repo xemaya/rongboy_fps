@@ -16,6 +16,7 @@ import { createEasterEggProps } from './easter-egg-props.js';
 import { ammoPouch, cottonHeart, displayedWeapon, pickupFabric, yarnBasket } from './pickup-props.js';
 import { bombProp } from './arsenal.js';
 import { createVapor } from './vapor.js';
+import { createOcclusion } from './occlusion.js';
 
 const WALL = 0xf0e4c8, CEILING = 0xf6eedb, ROOF = 0xd98468, HEDGE = 0x7caa66, LAWN = 0xa5c57c;
 
@@ -228,6 +229,14 @@ export function buildWorld(cine, level, weapons, variants) {
   // shell：外墙、窗、层间腰线（一直画，从花园看得到）；inner：地面、内墙、家具、灯（只画玩家所在层和上下相邻的层）
   const facadeDeco = new PlushKit();
   // 会动的小东西（机关、拉链、吊灯之类）：每层一个组，稍后挂到那一层的室内组上，换层时一起隐藏
+  // Record the wall pieces after cutting window and door openings.
+  const occluders = [];
+  function solid(w, h, d, x, y, z, pad = .02) {
+    if (w > pad * 3 && h > pad * 3 && d > pad * 3) {
+      occluders.push([x - w / 2 + pad, y - h / 2 + pad, z - d / 2 + pad,
+        x + w / 2 - pad, y + h / 2 - pad, z + d / 2 - pad]);
+    }
+  }
   const toyFloors = level.storeys.map(() => new T.Group());
   const toys = createToys({ Kit: PlushKit, M, floors: toyFloors, floorY: level.storeys.map(q => q.y) });
   const eggProps = createEasterEggProps({ Kit: PlushKit, M, floors: toyFloors, level });
@@ -275,6 +284,11 @@ export function buildWorld(cine, level, weapons, variants) {
     const along = (kit, s, mat, len, h, thick, a, y, across, o) => kit.soft(mat, s.alongZ ? thick : len, h, s.alongZ ? len : thick, s.alongZ ? s.line + across : a, y, s.alongZ ? a : s.line + across, o);
     // 朝外的墙是一段段拼起来的（窗洞上下、门楣各是一块）：不倒圆角，拼缝才看不出来；内墙保留一点圆角
     for (const s of pieces) along(facade(s) ? shell : k, s, wall, s.a1 - s.a0, s.y1 - s.y0, s.t, (s.a0 + s.a1) / 2, (s.y0 + s.y1) / 2, 0, { r: facade(s) ? 0 : 0.012 });
+    for (const s of pieces) {
+      const span = s.a1 - s.a0, midpoint = (s.a0 + s.a1) / 2;
+      solid(s.alongZ ? s.t : span, s.y1 - s.y0, s.alongZ ? span : s.t,
+        s.alongZ ? s.line : midpoint, S.y + (s.y0 + s.y1) / 2, s.alongZ ? midpoint : s.line);
+    }
     // 门框和门槛
     for (const s of slabs.filter(s => s.lintel)) {
       const kit = facade(s) ? shell : k;
@@ -342,7 +356,12 @@ export function buildWorld(cine, level, weapons, variants) {
         k.soft(wood, alongX ? w - 0.2 : 0.12, 0.13, alongX ? 0.12 : d - 0.2, cx + (alongX ? 0 : o), H - 0.065, cz + (alongX ? o : 0), { r: 0.02, long: alongX ? 0 : 2 });
       }
       // 每个房间一块天花板（有天窗的挖掉天窗）
-      for (const q of holes(S).reduce(minus, [r])) k.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.06, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.03, (q.minZ + q.maxZ) / 2, { r: 0 });
+      for (const q of holes(S).reduce(minus, [r])) {
+        const width = q.maxX - q.minX, depth = q.maxZ - q.minZ;
+        const x = (q.minX + q.maxX) / 2, z = (q.minZ + q.maxZ) / 2;
+        k.soft(M('felt', TH.ceiling), width, .06, depth, x, H + .03, z, { r:0 });
+        solid(width, .06, depth, x, S.y + H + .03, z, .005);
+      }
     }
     // 天窗：木框、几根窗棂（月光把它们的影子投在地上）、一层玻璃
     for (const q of holes(S)) {
@@ -362,6 +381,7 @@ export function buildWorld(cine, level, weapons, variants) {
       shell.soft(band, hw + 0.56, SH - H + 0.12, 0.1, hx, y, house.maxZ + (ground ? WT / 2 : WT) + 0.03, { r: 0.03, long: 0 });
       for (const sx of [-1, 1]) shell.soft(band, 0.1, SH - H + 0.12, hd + 0.5, hx + sx * (hw / 2 + WT + 0.03), y, hz + 0.05, { r: 0.03, long: 2 });
       shell.soft(M('felt', WALL), hw + 0.4, SH - H - 0.07, hd + 0.2, hx, y, hz + 0.1, { r: 0 });   // 楼板本身：从楼梯口看过去是实心的（上下各让开一点，不和天花板、地板同面）
+      solid(hw + .4, SH - H - .07, hd + .2, hx, S.y + y, hz + .1);
     }
     if (trimOn) {
       // 墙角包边：每层一根方木，两个面各凸出 0.05 米
@@ -420,7 +440,11 @@ export function buildWorld(cine, level, weapons, variants) {
   if (T0) {
     const t = T0, tw = t.maxX - t.minX, depth = t.mouthZ - t.endZ, zc = (t.mouthZ + t.endZ) / 2, hgt = level.top - (SH - H), laneW = -t.minX - t.spine, STEPS = 8, dz = t.run / STEPS;
     // 三面墙；北墙在每个半层平台的高度开一扇窗
-    for (const sx of [-1, 1]) tower.soft(wall, WT, hgt, depth + WT, sx * (tw / 2 + WT / 2), hgt / 2, zc - WT / 2, { r: 0.012 });
+    for (const sx of [-1, 1]) {
+      const x = sx * (tw / 2 + WT / 2), z = zc - WT / 2;
+      tower.soft(wall, WT, hgt, depth + WT, x, hgt / 2, z, { r:.012 });
+      solid(WT, hgt, depth + WT, x, hgt / 2, z);
+    }
     const nz = t.endZ - WT / 2, wins = [];
     for (let i = 0; i < t.flights; i++) wins.push([i * SH + t.rise + 0.95, i * SH + t.rise + 2.05]);
     for (const sx of [-1, 1]) tower.soft(wall, tw / 2 - 0.65, hgt, WT, sx * (0.65 + (tw / 2 - 0.65) / 2), hgt / 2, nz, { r: 0.012 });
@@ -429,6 +453,7 @@ export function buildWorld(cine, level, weapons, variants) {
     for (const [y0, y1] of wins) windowUnit(tower, M, { line: nz, at: 0, w: 1.3, sill: y0, head: y1, t: WT, inside: 1, alongZ: false, glow: 0.5, drape: 0xd9a441 });
     // 两跑之间的隔墙
     tower.soft(M('felt', tone(WALL, -0.08)), t.spine * 2, hgt, t.run, 0, hgt / 2, (t.landingZ + t.mouthZ) / 2, { r: 0.03 });
+    solid(t.spine * 2, hgt, t.run, 0, hgt / 2, (t.landingZ + t.mouthZ) / 2, .04);
     const tread = M('boards', 0xdcc096), runner = M('quilt', 0xc0705a), under = M('boards', 0xcfae82);
     for (let i = 0; i < t.flights; i++) {
       const y = i * SH;
@@ -597,18 +622,34 @@ export function buildWorld(cine, level, weapons, variants) {
     if (f === floor) return;
     floor = f;
     storeys.forEach((s, i) => { s.inner.visible = Math.abs(i - f) <= 1; });
+    cine.shadows.invalidate();
   }
   setFloor(0);
   // 给会动的东西（角色、手里的枪、掉落物）挂上同一份光照
   const light = (object) => { object.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) if (m.isMeshStandardMaterial) lit(m); }); return object; };
 
+  const occlusion = createOcclusion(occluders, { enabled:!new URLSearchParams(globalThis.location?.search).has('nocull') });
+  for (const floor of toyFloors) for (const prop of [...floor.children]) {
+    let castsShadow = false, hasLight = false;
+    prop.traverse(node => {
+      if (node.isMesh && node.castShadow) castsShadow = true;
+      if (node.isLight) hasLight = true;
+    });
+    // An off-screen light can still illuminate what is in view.
+    if (hasLight) continue;
+    // Moving toys and scenery must be kept out of the static sun map.
+    if (castsShadow) cine.shadows.addDynamic(prop);
+    occlusion.wrap(prop);
+  }
+
   const pickups = new Map();
   const fabric = pickupFabric(lib);
-  for (const p of level.pickups) { const m = light(pickupModel(p, weapons, variants, fabric)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); }
+  for (const p of level.pickups) { const m = light(pickupModel(p, weapons, variants, fabric)); pickups.set(p.id ?? pickups.size + 1, m); root.add(m); occlusion.wrap(m); }
   // 换枪以后，地上那一格变成放下的那把：重做它的模型和名牌
   const refreshPickup = (k) => {
     const old = pickups.get(k.id);
     if (old) {
+      occlusion.forget(old);
       old.removeFromParent();
       const materials = new Set();
       old.traverse(o => {
@@ -618,9 +659,9 @@ export function buildWorld(cine, level, weapons, variants) {
       });
       for (const material of materials) if (!material.userData.sharedPickupMaterial) material.dispose();
     }
-    const m = light(pickupModel(k, weapons, variants, fabric)); pickups.set(k.id, m); root.add(m); return m;
+    const m = light(pickupModel(k, weapons, variants, fabric)); pickups.set(k.id, m); root.add(m); occlusion.wrap(m); return m;
   };
   const all = []; root.traverse(o => { if (o.isMesh && o.geometry.attributes.aSky) all.push(o); });
   const tris = all.reduce((n, m) => n + m.geometry.attributes.position.count / 3, 0);
-  return { root, storeys, pickups, refreshPickup, toys, eggProps, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
+  return { root, storeys, pickups, refreshPickup, toys, eggProps, occlusion, volume: vol, light, rebake, lamps: lampList, theme: TH, update, setFloor, lib, stats: { tris, meshes: all.length, ...lib.stats(), bake } };
 }

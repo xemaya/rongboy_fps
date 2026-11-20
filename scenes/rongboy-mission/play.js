@@ -10,7 +10,7 @@ import { dressWalker, createWeaponKit } from '../../library/games/rongboy-worksh
 import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-shooter-fps/feedback.js';
 import { createWoolAudio } from '../rongboy-shooter-fps/sound.js';
 import { actionPose } from './actions.js';
-import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex } from './level.js';
+import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex, prepareNavigation } from './level.js';
 import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS as RAW_WEAPONS, ENEMY_TYPES as RAW_ENEMIES, TANGLE_SPEED,
   PISTOL, GRENADE_TYPES, secondOf, grenades, selectGrenade, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow, beginJump } from './game.js';
@@ -19,6 +19,7 @@ import { extendWeaponKit, projectileModels, createEffects, createWeaponFeedback,
 import { makeAnkleTangle } from './soft-weave.js';
 import { createViewmodel, VIEWMODEL_SCALE } from './viewmodel.js';
 import { enemyHealthMaterial, heartImage, weaponImage } from './combat-hud.js';
+import { measureArmProbe } from '../../library/games/rongboy-rig-geometry.js';
 import { poseGroundedGait } from '../../library/games/rongboy-gait.js';
 import { GAITS } from './locomotion.js';
 import { createArsenalAudio } from './sfx.js';
@@ -158,7 +159,7 @@ addEventListener('unhandledrejection', e => fail(e.reason));
 // 光线按关卡取（level.look），预设在 looks.js（开场片也用同一份）。
 const look = (LOOK_PRESETS[level.look] || LOOK_PRESETS.afternoon)();
 const B = level.bounds;
-// 清晰度：先保光影，再保分辨率，目标 30 帧。调节器在 governor.js（为什么不用引擎自带的，也写在那里），引擎自带的关掉了。
+// 清晰度：先争 60 帧，够不到再保 30 帧。调节器在 governor.js（为什么不用引擎自带的，也写在那里），引擎自带的关掉了。
 // 分三档，每档有自己的像素数范围；第 0 档的光影和导出视频时一样（4 倍抗锯齿、环境遮蔽、16 次采样的软阴影），只动像素数：
 const LOOKS = [
   { q: { ...QUALITY.high }, min: 0.55e6, max: 3.6e6 },                  // Retina 原生是 360 万像素；最低相当于 990×557
@@ -166,12 +167,16 @@ const LOOKS = [
   { q: { ...QUALITY.low, scale: 1 }, min: 0.25e6, max: 1.0e6 },         // 最后才关抗锯齿和环境遮蔽
 ];
 const fixedQuality = QUALITY[q.get('q')] || QUALITY[preferences.quality] || null, governed = !fixedQuality && q.get('dynres') !== '0';   // 网址加 ?q=medium / ?q=low 手动定档；?dynres=0 固定在第 0 档的最高像素数
-const governor = createGovernor(LOOKS, { start: governed ? 1.6e6 : LOOKS[0].max });   // 从 160 万像素起步，头几秒里自己往上或往下找
+const GOVERNOR_KEY = 'rongboy-governor-v1', gpuName = governed ? gpuRenderer() : '';
+const governor = createGovernor(LOOKS, governed ? governorStart() : { start: LOOKS[0].max });
 let cine, camera, world, combatFx, effects, weaponFeedback, ankleTangle, thread;
 function initRenderer() {
   cine = createCineRenderer({
-    canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[0].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
-    dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7 }, onError: fail,
+    canvas: $('view'), look, quality: fixedQuality || { ...LOOKS[governor.tier].q, pixels: governor.pixels }, fov: 65, near: 0.035, far: 150, maxPixelRatio: 2, targetFps: 30,
+    dynamicResolution: false, shadow: { mode: 'box', min: [B.minX - 1.5, -1, B.minZ - 1.5], max: [B.maxX + 1.5, level.top + 1, B.maxZ + 1.5], softness: 0.7,
+      // The spotlight needs to render the moving actors into its own shadow map.
+      static: !q.has('liveshadow') && !level.gadgets.some(g => g.kind === 'spot'),
+    }, onError: fail,
   });
   camera = cine.camera;
   // 体积光在关卡里只会蒙上一层雾，关闭后省一趟半分辨率步进。
@@ -181,7 +186,27 @@ function initRenderer() {
 function govern(now, elapsed) {
   if (!governed || document.hidden || (document.hasFocus && !document.hasFocus())) return;
   const r = Math.min(devicePixelRatio || 1, 2), next = governor.feed(now, elapsed, innerWidth * r * innerHeight * r);
-  if (next) cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
+  if (next) {
+    cine.setQuality({ ...LOOKS[next.tier].q, pixels: next.pixels });
+    try { localStorage.setItem(GOVERNOR_KEY, JSON.stringify({ gpu: gpuName, target: governor.target, tier: next.tier, pixels: Math.round(next.pixels) })); } catch {}
+  }
+}
+// 起步：这台机器（按显卡名认）上次找到的帧数目标和设置记在本机，下次直接从那儿起步，不用再花十几秒从头试。
+// 头一回来：一般从第 0 档 160 万像素起步；显卡名像核显、手机、软件渲染的，从第 1 档 60 万像素起步，少卡几秒。
+function gpuRenderer() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2'); if (!gl) return '';
+    const info = gl.getExtension('WEBGL_debug_renderer_info'), name = String(gl.getParameter(info ? info.UNMASKED_RENDERER_WEBGL : gl.RENDERER) || '');
+    gl.getExtension('WEBGL_lose_context')?.loseContext(); return name;
+  } catch { return ''; }
+}
+function governorStart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GOVERNOR_KEY) || 'null');
+    if (saved && saved.gpu === gpuName && LOOKS[saved.tier] && saved.pixels > 0)
+      return { targets: saved.target === 30 ? [30] : [60, 30], startTier: saved.tier, start: saved.pixels };
+  } catch {}
+  return /Intel|UHD|Iris|Mali|Adreno|PowerVR|SwiftShader|llvmpipe|Basic Render/i.test(gpuName) ? { startTier: 1, start: 0.6e6 } : { start: 1.6e6 };
 }
 const ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
 const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
@@ -204,7 +229,6 @@ function initWorld(kit) {
   ankleTangle = world.light(makeAnkleTangle());
   thread = polished ? gardenThread(cine.scene,reduced) : null;
   cine.scene.add(fxMesh);
-
 }
 function burst(x, z, n = 10, force = 1, color = 0xf0dfba, y = 0.55) {
   const floor = Math.max(0, Math.floor((y + 0.25) / SH)) * SH + 0.035;   // 绒絮落到这一层的地面为止
@@ -500,21 +524,10 @@ function updateEnemy(e, a, showHealth) {
 const ARM_PROBES = new Map(), ARM_PAD = 0.05;   // ARM_PAD：留的余量（米），补上平滑带来的滞后
 const armM = new T.Matrix4(), armV = new T.Vector3(), armPosed = new T.Euler();
 // 每个兵种的每条手臂量一次：从肩到最远的顶点是手臂的轴，靠外那一段的粗细是球的半径
-function armProbe(e, a, name) {
-  const key = e.type + ':' + name; let probe = ARM_PROBES.get(key);
-  if (probe) return probe;
-  const arm = part(a, name), inv = new T.Matrix4(), tip = new T.Vector3(), pts = []; let L = 0;
-  a.world.updateWorldMatrix(true, true); inv.copy(arm.matrixWorld).invert();
-  arm.traverse(m => {
-    if (!m.isMesh || m.userData.fuzz) return;
-    const pos = m.geometry.attributes.position, local = new T.Matrix4().multiplyMatrices(inv, m.matrixWorld), stride = Math.max(1, Math.floor(pos.count / 800));
-    for (let i = 0; i < pos.count; i += stride) { const v = new T.Vector3().fromBufferAttribute(pos, i).applyMatrix4(local); pts.push(v); if (v.length() > L) { L = v.length(); tip.copy(v); } }
-  });
-  const axis = tip.clone().normalize(); let r = 0.02;
-  for (const v of pts) { const t = v.dot(axis); if (t > 0.55 * L) r = Math.max(r, Math.sqrt(Math.max(0, v.lengthSq() - t * t))); }
-  r = Math.min(r, L * 0.45);
-  probe = { r, L, points: [0.45, 0.75, 1].map(f => axis.clone().multiplyScalar(Math.max(0, L - r) * f)) };
-  ARM_PROBES.set(key, probe); return probe;
+function armProbe(e, actor, name) {
+  const key = e.type + ':' + name;
+  if (!ARM_PROBES.has(key)) ARM_PROBES.set(key, measureArmProbe(actor, name));
+  return ARM_PROBES.get(key);
 }
 function tuckArms(e, a, dt) {
   const R = e.radius + 1.6, near = [];
@@ -584,21 +597,24 @@ function healthTarget() {
   return aimedEnemy?.alive && !aimedEnemy.type.startsWith('boss-') ? aimedEnemy.id : null;
 }
 
+const actorBank = type => type.startsWith('boss-') ? bossActors || actors : actors;
+
 function updateModels(dt) {
   camera.updateWorldMatrix(true,false);
   actorFrustum.setFromProjectionMatrix(viewProjection.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse));
   animateViewmodel(dt, mode === 'playing' && !paused);
   const healthFocus = healthTarget();
   const present = new Set(s.enemies.map(e => e.id));
-  for (const [id, a] of enemyModels) if (!present.has(id)) { a.world.removeFromParent(); a.dispose(); enemyModels.delete(id); }
+  for (const [id, a] of enemyModels) if (!present.has(id)) { cine.shadows.removeDynamic(a.world); a.world.removeFromParent(); a.dispose(); enemyModels.delete(id); }
   for (const e of s.enemies) {
     if(!e.enabled){const hidden=enemyModels.get(e.id);if(hidden)hidden.world.visible=false;continue;}
     let a = enemyModels.get(e.id);
     if (!a) {
-      const bank = e.type.startsWith('boss-') ? bossActors || actors : actors;
-      a = bank.create(e.type); dressWalker(a, e.type, e.scale);
+      a = actorBank(e.type).create(e.type); dressWalker(a, e.type, e.scale);
       a.model.traverse(m => { if (m.isMesh) m.frustumCulled = true; });
       world.light(a.world);   // 角色和墙、家具查同一份烘焙光照：站在灯下亮，躲进角落暗
+      cine.shadows.addDynamic(a.world, () =>
+        (e.alive || e.deathAge < .78) && world.volume.skyAt(e.x, e.base + .9, e.z) > .05);
       enemyModels.set(e.id, a); cine.scene.add(a.world);
     }
     // Match the rendered storeys. Depth testing against the drawn scenery clips
@@ -675,7 +691,7 @@ function updateModels(dt) {
 function clearModels() {
   combatFx.clear();
   weaponFeedback.clear();
-  for (const a of enemyModels.values()) { a.world.removeFromParent(); a.dispose(); }
+  for (const a of enemyModels.values()) { cine.shadows.removeDynamic(a.world); a.world.removeFromParent(); a.dispose(); }
   enemyModels.clear();
   for (const o of ballModels.values()) { o.removeFromParent(); for (const m of o.userData.ownMaterials) m.dispose(); }
   ballModels.clear(); fx.length = 0; effects.clear();
@@ -1117,8 +1133,9 @@ function snapshot() {
   };
 }
 function diagnostics() {
+  if (ready) pinPrograms();
   $('diagnostics').dataset.state = JSON.stringify(snapshot());
-  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), tier: governor.tier, pixels: Math.round(governor.pixels), frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
+  $('diagnostics').dataset.stats = JSON.stringify({ ...cine.stats(), tier: governor.tier, pixels: Math.round(governor.pixels), fpsTarget: governor.target, frameIntervalMs: frameIntervals.length ? frameIntervals.reduce((a, b) => a + b, 0) / frameIntervals.length : null, measurement: 'observed RAF intervals; not synchronized GPU benchmark' });
   $('diagnostics').dataset.ready = ready ? 'true' : 'false';
   if (q.has('debug')) $('diagnostics').textContent = `${cine.stats().quality} · ${cine.stats().calls} draws · ${s.balls.length} balls`;
 }
@@ -1446,10 +1463,42 @@ function frame(now) {
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
   world.setFloor(floorIndex(level, s.player.y));
+  world.occlusion.update(camera.position, now / 1000);
   hud(); cine.frame(dt);
   if (++frameCount % 8 === 0) diagnostics();
 }
 
+// 载入画面后面，每种僵尸、每种毛线球各摆一个到镜头前，让着色器（身体、绒毛、配件、影子、球）在这时候编译，而不是第一次碰面、第一次开枪时。
+// 这些画完就从场景里拿掉，但不释放：three 在最后一个用某个着色器的材质释放时会把着色器也删掉——
+// 球落地就释放材质，不留一份的话，场上的球全落了地，下一枪又得现编一遍（Windows 上一次几十到上百毫秒）；僵尸死光一种、重开一局也一样。
+const warmKeep = [];
+function warmActors(kinds) {
+  const ahead = camera.getWorldDirection(new T.Vector3()).setY(0).normalize(), side = new T.Vector3(-ahead.z, 0, ahead.x);
+  const n = kinds.size + ballTemplates.length; let i = 0;
+  const place = (o, y) => o.position.copy(camera.position).addScaledVector(ahead, 3).addScaledVector(side, (i++ - (n - 1) / 2) * 0.9).setY(camera.position.y + y);
+  for (const k of kinds) {
+    const a = actorBank(k).create(k); dressWalker(a, k, 1); world.light(a.world); place(a.world, -1.2);
+    cine.shadows.addDynamic(a.world, () => true); cine.scene.add(a.world); warmKeep.push(a);
+  }
+  for (const tpl of ballTemplates) {   // 和 updateModels 里造球的做法一样
+    const o = tpl.clone(true); o.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.transparent = true; } });
+    world.light(o); place(o, -0.3); o.scale.setScalar(0.12); cine.scene.add(o); warmKeep.push({ world: o });
+  }
+  const fx = combatFx.samples(); place(fx, -0.8); fx.scale.setScalar(0.3); cine.scene.add(fx); warmKeep.push({ world: fx });
+  combatFx.update(s, 0);   // 每只僵尸的攻击预告（圈、扇形、瞄准线）现在就建好，下面一起编
+}
+// 着色器一旦编过就一直留着：three 默认在最后一个用它的材质释放时删掉它，下回用到再现编——
+// 球落地、预告圈消失、重开一局都会释放材质，于是同一个着色器反复编，每次卡一下（Windows 上一次几十毫秒）。
+// 这里给每个编过的着色器多记一次引用，它就不会被删（一共六七十个，占不了多少）。动的是 three 的内部计数（WebGLProgram.usedTimes）。
+function pinPrograms() {
+  for (const p of cine.renderer.info.programs || []) if (!p.rongboyPinned) { p.rongboyPinned = true; p.usedTimes++; }
+}
+// 藏着的东西 compileAsync 不编：别的楼层、还没用上的特效（枪口闪光、爆炸光球、扎墙的针）、藏起来的配件。编的时候先全亮出来，编完原样藏回去。
+// 灯不动：灯的数目一变，所有材质都得重编。
+async function compileEverything() {
+  const hidden = []; cine.scene.traverse(o => { if (!o.visible && !o.isLight) { hidden.push(o); o.visible = true; } });
+  try { await cine.warmup(); } finally { for (const o of hidden) o.visible = false; }
+}
 export async function boot() {
   applyTexts();
   loadingProgress(18,'正在加载毛绒模型…');
@@ -1475,7 +1524,14 @@ export async function boot() {
   const [roster,bossRoster] = await downloads;
   loadingProgress(63,'正在准备绒仔和毛绒伙伴…');
   await paint();
-  [actors,bossActors] = await Promise.all([loadFigurines({zombies:roster}),bossRoster && loadFigurines({zombies:bossRoster})]);
+  const skin = !q.has('noskin');
+  [actors, bossActors] = await Promise.all([
+    loadFigurines({ zombies:roster }, { skin }),
+    bossRoster && loadFigurines({ zombies:bossRoster }, { skin }),
+  ]);
+  const kinds = new Set([...s.enemies, ...s.dormant].map(enemy => enemy.type));
+  for (const kind of kinds) actorBank(kind).prepare(kind);
+  prepareNavigation(level);
   viewmodel=createViewmodel(kit,ballTemplate.clone(true),GRENADE_TYPES.map(index=>({index,model:ballTemplates[index].clone(true)})));
   world.light(viewmodel.root);
   camera.add(viewmodel.root);
@@ -1484,11 +1540,16 @@ export async function boot() {
   cameraFrame(0); resize(); updateModels(0);
   loadingProgress(84,'正在准备第一帧…');
   await paint();
-  await cine.warmup();
-  // Compile and draw while the loading screen is still up, including the post-processing passes.
+  warmActors(kinds);
+  await compileEverything();
   cine.frame(1/60);
   await paint();
   cine.frame(1/60);
+  for (const { world:object } of warmKeep) {
+    cine.shadows.removeDynamic(object);
+    object.removeFromParent();
+  }
+  pinPrograms();
   await paint();
   ready = true;
   $('loading').hidden = true;
@@ -1521,7 +1582,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

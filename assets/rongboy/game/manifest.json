@@ -1,0 +1,157 @@
+{
+ "note": "由 scripts/optimize-models.mjs 生成，不要手改",
+ "models": {
+  "zombie-roster": {
+   "source": "assets/rongboy/zombies-v7/zombie-roster.glb",
+   "sourceSha": "336580160a4b18b7",
+   "outSha": "6ea71b97752bd755",
+   "settings": {
+    "ratio": 0.15,
+    "error": 0.008,
+    "minTris": 160
+   },
+   "bytes": [
+    12021888,
+    8891560
+   ],
+   "figures": [
+    {
+     "name": "ActorRoot",
+     "tris": [
+      84704,
+      16936
+     ],
+     "fuzz": 13600,
+     "verts": [
+      72313,
+      36221
+     ]
+    },
+    {
+     "name": "Zombie / leaper",
+     "tris": [
+      84704,
+      16936
+     ],
+     "fuzz": 13600,
+     "verts": [
+      72313,
+      36221
+     ]
+    },
+    {
+     "name": "Zombie / heavy",
+     "tris": [
+      93116,
+      21205
+     ],
+     "fuzz": 13600,
+     "verts": [
+      77256,
+      38797
+     ]
+    },
+    {
+     "name": "Zombie / crawler",
+     "tris": [
+      84704,
+      16936
+     ],
+     "fuzz": 13600,
+     "verts": [
+      72313,
+      36221
+     ]
+    },
+    {
+     "name": "Zombie / shielded",
+     "tris": [
+      90104,
+      18121
+     ],
+     "fuzz": 13600,
+     "verts": [
+      75432,
+      37021
+     ]
+    },
+    {
+     "name": "Zombie / bomber",
+     "tris": [
+      125888,
+      38017
+     ],
+     "fuzz": 14068,
+     "verts": [
+      98097,
+      50364
+     ]
+    },
+    {
+     "name": "Zombie / archer",
+     "tris": [
+      90480,
+      19114
+     ],
+     "fuzz": 13716,
+     "verts": [
+      76691,
+      38591
+     ]
+    },
+    {
+     "name": "Zombie / boss-warden",
+     "tris": [
+      41944,
+      14095
+     ],
+     "fuzz": 13648,
+     "verts": [
+      51889,
+      37102
+     ]
+    },
+    {
+     "name": "Zombie / boss-leech",
+     "tris": [
+      35440,
+      13301
+     ],
+     "fuzz": 13616,
+     "verts": [
+      47880,
+      35846
+     ]
+    }
+   ]
+  },
+  "scout": {
+   "source": "assets/rongboy/runtime-v2/scout.glb",
+   "sourceSha": "078ed1a791fc5012",
+   "outSha": "53664af4fac8cbbd",
+   "settings": {
+    "ratio": 0.15,
+    "error": 0.008,
+    "minTris": 160
+   },
+   "bytes": [
+    4512192,
+    1280492
+   ],
+   "figures": [
+    {
+     "name": "ActorRoot",
+     "tris": [
+      171302,
+      30261
+     ],
+     "fuzz": 3268,
+     "verts": [
+      105375,
+      29613
+     ]
+    }
+   ]
+  }
+ }
+}

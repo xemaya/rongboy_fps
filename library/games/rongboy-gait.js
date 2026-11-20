@@ -1,5 +1,6 @@
 import * as T from 'three';
 import { GAITS } from '../../scenes/rongboy-mission/locomotion.js';
+import { forEachPartGeometry } from './rongboy-rig-geometry.js';
 
 const feet = new WeakMap();
 const clamp = (v, low, high) => Math.max(low,Math.min(high,v));
@@ -8,16 +9,15 @@ const sample = new T.Vector3();
 const posedContact = new T.Vector3();
 const fraction = n => clamp(n,0,1);
 
-function supportProfile(leg, rest) {
+function supportProfile(actor, name, leg, rest) {
   if (feet.has(leg)) return feet.get(leg);
-  leg.updateWorldMatrix(true,true);
-  const inverse = leg.matrixWorld.clone().invert(), vertices = [];
+  const vertices = [];
   let low = Infinity;
-  leg.traverse(mesh => {
-    if (!mesh.isMesh || mesh.userData.fuzz) return;
-    const matrix = inverse.clone().multiply(mesh.matrixWorld), positions = mesh.geometry.attributes.position;
+  forEachPartGeometry(actor, name, (geometry, matrix) => {
+    const positions = geometry.getAttribute('position');
     for (let i=0; i<positions.count; i++) {
-      const v = new T.Vector3().fromBufferAttribute(positions,i).applyMatrix4(matrix);
+      const v = new T.Vector3().fromBufferAttribute(positions,i);
+      if (matrix) v.applyMatrix4(matrix);
       vertices.push(v); low = Math.min(low,v.y);
     }
   });
@@ -45,7 +45,7 @@ function supportProfile(leg, rest) {
 function gaitFoot(actor, name, x, z, lift, stance, stride) {
   const leg = actor.parts.get(name), rest = actor.rest.get(name);
   if (!leg || !rest) return;
-  const foot = supportProfile(leg,rest);
+  const foot = supportProfile(actor,name,leg,rest);
   const angle = clamp(z / stride * .50, -.27, .27);
   leg.rotation.x -= angle;
   leg.rotation.z += clamp(x / stride * .36, -.20, .20);

@@ -407,6 +407,9 @@ function idleMove(s, e, dt) {
   e.x += dx / d * travel; e.z += dz / d * travel;
 }
 
+const ROUTES_PER_STEP = 3;
+// 这一步还能不能找路（见 step 开头）；不经过 step 直接调的（测试）不限
+const routeTurn = (s) => s.routeBudget === undefined || s.routeBudget-- > 0;
 // 警觉后：绕开家具追玩家，按兵种穿插扑击、侧跳、冲刺。玩家在别的楼层时先去走楼梯。
 function chase(s, e, dt) {
   const L = s.level, p = s.player, S = storeyAt(L, e.base), prevPhase = e.hopPhase, r = navRadius(e.radius);
@@ -430,7 +433,7 @@ function chase(s, e, dt) {
   const goal = navGoal(L, e, p);
   e.navIn -= dt;
   if (goal.direct) e.route = [];
-  else if (e.navIn <= 0) { e.route = routeTo(S, e, goal, r); e.navIn = 0.4; }
+  else if (e.navIn <= 0 && routeTurn(s)) { e.route = routeTo(S, e, goal, r); e.navIn = 0.4; }
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
   const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
   if (!next || e.hit > 0) { e.hop *= Math.exp(-dt * 14); return; }
@@ -789,7 +792,7 @@ function investigate(s, e, dt) {
     return;
   }
   e.navIn -= dt;
-  if (e.navIn <= 0) { e.route = routeTo(S, e, t, r); e.navIn = 0.5; }
+  if (e.navIn <= 0 && routeTurn(s)) { e.route = routeTo(S, e, t, r); e.navIn = 0.5; }
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
   const next = clearPath(S, e, t, r, true) ? t : e.route[0];
   if (!next) return;
@@ -911,6 +914,9 @@ export function step(s, dt, input = {}) {
   dt = clamp(dt, 0, 0.05);
   const L = s.level, p = s.player;
   s.time += dt;
+  // 找路一步最多算这么多只：一群僵尸同时警觉的话，它们的 0.4 秒找路计时会对齐，每 0.4 秒挤在同一帧里一起算
+  // （家里 17 只在 M 系列上一帧 7 毫秒，慢 CPU 上就是每 0.4 秒卡一下）。轮不到的下一步再算，头一轮 0.1 秒内全部找完，之后自然错开。
+  s.routeBudget = ROUTES_PER_STEP;
   s.cooldown = Math.max(0, s.cooldown - dt);
   s.invul = Math.max(0, s.invul - dt);
   s.lobCooldown = Math.max(0, s.lobCooldown - dt);
