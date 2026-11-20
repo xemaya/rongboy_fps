@@ -156,7 +156,8 @@ export function formatReview(r, previous = null) {
     for (const [key, label] of [['lazy', '偷懒的'], ['keen', '留神的']]) {
       const b = r.bots[key], before = previous?.bots?.[key];
       const runs = r.bots.runs?.[key] || [b], won = runs.filter(q => q.won).length, wonBefore = previous?.bots?.runs?.[key]?.filter(q => q.won).length;
-      out.push(`  ${label}：${runs.length} 遍里打完 ${won} 遍${delta(won, wonBefore)} · 各挨 ${runs.map(q => q.hurt).join(' / ')} 下 · 各用 ${runs.map(q => q.time).join(' / ')} 秒`);
+      out.push(`  ${label}：${runs.length} 遍里打完 ${won} 遍${delta(won, wonBefore)} · 各挨 ${runs.map(q => q.hurt).join(' / ')} 下 · 各用 ${runs.map(q => q.time).join(' / ')} 秒` +
+        (runs[0].crowd ? ` · 同时追着的最多 ${runs.map(q => q.crowd.peak).join(' / ')} 只，三只以上 ${runs.map(q => q.crowd.three).join(' / ')} 秒` : ''));
       out.push(`      原地那一遍：${b.won ? '打完了' : b.phase === 'lost' ? `倒下了，还剩 ${b.left} 只` : `机器人自己绕不出来了，还剩 ${b.left} 只（不算这张图的问题）`}${b.hits.length ? ' · 挨打在 ' + b.hits.map(h => `${h.t}秒 ${h.room} ${ZOMBIES[h.by]?.name ?? h.by}`).join('，') : ''}`);
     }
   }

@@ -152,9 +152,74 @@ test('gunfire carries: full radius in the open, half through a wall', () => {
   const walled = game({ walls: [{ x: 1, z: [-10, 10], doors: [] }] });
   const close = spawn(walled, { x: 1.2, z: 0, state: 'asleep' }), muffled = spawn(walled, { x: 3, z: 0, state: 'asleep' });
   emitNoise(walled, -2, 0, 7);
-  assert.equal(close.awareness, 'waking', 'within half radius'); assert.equal(muffled.awareness, 'asleep', 'beyond half radius behind a wall');
+  assert.equal(close.awareness, 'waking', 'within half radius');
+  assert.notEqual(muffled.awareness, 'waking', 'beyond half radius behind a wall: not alerted (it may come to look, see below)');
   // 开枪本身就会发出声音，越大的枪传得越远。
   assert.ok(WEAPONS[0].noise < WEAPONS[1].noise && WEAPONS[1].noise < WEAPONS[2].noise);
+});
+
+test('gunfire a little too far to alert draws the awake ones over to look, the sleepers only from close by', () => {
+  const s = game(); s.player.x = -9;
+  const guard = spawn(s, { x: 9, z: 0, state: 'idle', heading: EAST }), sleeper = spawn(s, { x: 0, z: 6, state: 'asleep' }), deep = spawn(s, { x: 0, z: -9.5, state: 'asleep' });
+  emitNoise(s, 0, 0, 5);   // 守卫 9 米、睡着的 6 米和 9.5 米：都超过 5 米，惊动不了；守卫在 2 倍以内，睡着的只有 6 米那只在 1.5 倍以内
+  assert.equal(guard.awareness, 'idle'); assert.equal(guard.lure?.kind, 'noise', 'the guard comes to look');
+  assert.equal(sleeper.awareness, 'idle', 'the near sleeper is stirred awake'); assert.equal(sleeper.lure?.kind, 'noise');
+  assert.equal(deep.awareness, 'asleep'); assert.equal(deep.lure ?? null, null);
+  assert.ok(consumeEvents(s).filter(e => e.type === 'search').length === 2);
+  const from = Math.hypot(guard.x, guard.z);
+  run(s, 9.5);
+  assert.ok(Math.hypot(guard.x, guard.z) < 1.2 && from > 8, `walked over to where the shot was (${Math.hypot(guard.x, guard.z).toFixed(2)} m away now)`);
+  assert.equal(guard.awareness, 'idle', 'nobody there, so it never noticed anything');
+  run(s, 5);
+  assert.equal(guard.lure, null, 'after a look round it gives up'); assert.ok(Math.hypot(guard.x, guard.z) < 1.5, 'and stays where it looked, not back at its post');
+});
+
+test('a zombie coming to look still has its eyes open, and a clock outranks gunfire', () => {
+  const s = game(); s.player.x = -9; s.player.z = 0;
+  const e = spawn(s, { x: 9, z: 0, state: 'idle', heading: EAST });
+  emitNoise(s, 0, 0, 5);
+  run(s, 1); assert.equal(e.lure?.kind, 'noise');
+  s.player.x = 3; s.player.z = 0;   // 站到它的路上（它正朝西走过来）
+  run(s, 0.6); assert.ok(e.awareness === 'waking' || e.awareness === 'alert', 'sees the player on the way');
+  const c = game(); c.player.x = -9;
+  const lured = spawn(c, { x: 9, z: 0, state: 'idle' }); lured.lure = { x: 9, z: 3, lookX: 9, lookZ: 4, until: 99, arrived: false };
+  emitNoise(c, 0, 0, 5); assert.equal(lured.lure.kind, undefined, 'still watching the clock');
+});
+
+test('two chasers coming from the same side: the one behind swings round to the flank instead of queueing', () => {
+  const s = game(); s.health = 1e9;
+  const front = spawn(s, { x: 1.5, z: 0, state: 'alert', heading: WEST }), back = spawn(s, { x: 5, z: 0.1, state: 'alert', heading: WEST });
+  run(s, 1.8);
+  assert.ok(Math.abs(front.z) < 0.4, `the front one comes straight on (z ${front.z.toFixed(2)})`);
+  assert.ok(Math.abs(back.z) > 0.6, `the one behind has moved off the line to the side (z ${back.z.toFixed(2)})`);
+  const alone = game(); alone.health = 1e9; const solo = spawn(alone, { x: 5, z: 0.1, state: 'alert', heading: WEST });
+  run(alone, 1.8); assert.ok(Math.abs(solo.z) < 0.4, 'a lone chaser just comes straight on');
+});
+
+test('a museum exhibit draws the nearer part of the floor over to look; the last one draws the whole floor', () => {
+  const L = compileLevel(LEVELS.museum), s = createGame({ level: L }), [k1, k2, k3] = L.pickups.filter(q => q.kind === 'objective'), A = L.mission.alarm;
+  s.health = 1e9; s.invul = 1e9;
+  const grab = k => { s.player.x = k.x; s.player.z = k.z; step(s, 1 / 120); consumeEvents(s); };
+  grab(k1);
+  const away = e => Math.hypot(e.x - k1.x, e.z - k1.z);
+  const ring = s.enemies.filter(e => away(e) > A + 1 && away(e) < A * 2 - 1), beyond = s.enemies.filter(e => away(e) > A * 2 + 1);
+  assert.ok(ring.length && ring.every(e => e.lure?.kind === 'noise' && Math.hypot(e.lure.x - k1.x, e.lure.z - k1.z) < 0.01), 'out to twice the alarm they come to where the exhibit was');
+  assert.ok(beyond.length > 3 && beyond.every(e => !e.lure && (e.awareness === 'idle' || e.awareness === 'asleep')), 'the far side of the museum carries on as it was');
+  for (const e of s.enemies) { e.alive = false; }   // 清场，只看最后一件
+  const later = createGame({ level: L }); later.health = 1e9; later.invul = 1e9; later.collected = 2;
+  later.player.x = k3.x; later.player.z = k3.z; step(later, 1 / 120);
+  const far = later.enemies.filter(e => Math.hypot(e.x - k3.x, e.z - k3.z) > A + 1);
+  assert.ok(later.carrying && far.length > 5 && far.every(e => e.lure?.kind === 'noise'), 'with all three in hand the whole floor comes looking: the way back is not empty');
+  assert.ok(k2);
+});
+
+test('upstairs gunfire does not send ground-floor zombies wandering', () => {
+  const s = createGame({ level: house }), p = s.player;
+  const up = s.enemies.find(e => e.floor === 1 && e.awareness === 'idle');
+  const before = s.enemies.filter(e => e.floor === 0).map(e => e.lure ?? null);
+  emitNoise(s, up.x, up.z, 20, SH + 0.76);
+  assert.deepEqual(s.enemies.filter(e => e.floor === 0).map(e => e.lure ?? null), before);
+  assert.ok(p);
 });
 
 test('an alerted zombie calls nearby friends it can see, after a reaction delay', () => {

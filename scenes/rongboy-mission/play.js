@@ -328,9 +328,9 @@ function moodMaterial(text) {
   if (moodMaterials.has(text)) return moodMaterials.get(text);
   const c = document.createElement('canvas'); c.width = 160; c.height = 96;
   const ctx = c.getContext('2d');
-  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `bold ${text === '!' ? 84 : Math.min(52,140/text.length)}px Georgia, serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = `bold ${text === '!' || text === '?' ? 84 : Math.min(52,140/text.length)}px Georgia, serif`;
   ctx.lineWidth = 8; ctx.strokeStyle = '#3e4a38'; ctx.strokeText(text, 80, 50);
-  ctx.fillStyle = text === 'Zzz' ? '#eef2e2' : '#f2b84b'; ctx.fillText(text, 80, 50);
+  ctx.fillStyle = text === 'Zzz' ? '#eef2e2' : text === '?' ? '#e6dcb4' : '#f2b84b'; ctx.fillText(text, 80, 50);
   const map = new T.CanvasTexture(c); map.colorSpace = T.SRGBColorSpace;
   const material = new T.SpriteMaterial({ map, transparent: true, depthWrite: false });
   moodMaterials.set(text, material); return material;
@@ -359,10 +359,11 @@ function updateEnemy(e, a) {
   a.healthBar.material = healthMaterial(e.type, Math.max(0, e.hp), e.maxHp);
   a.healthBar.visible = e.alive && (e.hp < e.maxHp || (e.awareness === 'alert' && distance < 6));
   const asleep = e.awareness === 'asleep', waking = e.awareness === 'waking';
+  const searching = e.awareness === 'idle' && e.lure?.kind === 'noise';   // 听到枪声过来看的：还没发现你
   const cue=attackCue(e);
-  a.mood.visible = e.alive && (asleep || waking || !!cue || e.guardBroken>0);
+  a.mood.visible = e.alive && (asleep || waking || searching || !!cue || e.guardBroken>0);
   if (a.mood.visible) {
-    a.mood.material = moodMaterial(asleep?'Zzz':waking?'!':e.guardBroken>0?'破防':cue?.label||'!');
+    a.mood.material = moodMaterial(asleep?'Zzz':waking?'!':searching?'?':e.guardBroken>0?'破防':cue?.label||'!');
     a.mood.position.set(0.25, e.height + 0.12 + (asleep ? Math.sin(e.age * 1.6) * 0.05 : 0.12), 0);
     a.mood.scale.set(asleep ? 0.5 : 0.42, 0.3, 1);
   }
@@ -791,7 +792,7 @@ function aim() {
   const edge = ray.ray.intersectBox(new T.Box3(new T.Vector3(B.minX, 0.03, B.minZ), new T.Vector3(B.maxX, level.top, B.maxZ)), new T.Vector3());
   if (edge) { const d = edge.distanceTo(from); if (d < distance) { distance = d; picked = null; } }
   if (picked) {
-    const state = picked.awareness === 'asleep' ? ' · 睡着' : picked.awareness === 'idle' ? ' · 没发现你' : '';
+    const state = picked.awareness === 'asleep' ? ' · 睡着' : picked.awareness === 'idle' ? (picked.lure?.kind === 'noise' ? ' · 在找你' : ' · 没发现你') : '';
     $('targetLabel').textContent = `${ENEMY_TYPES[picked.type].name} ${picked.hp}/${picked.maxHp}${state}`;
   } else $('targetLabel').textContent = '';
   target.copy(from).addScaledVector(lookDir, Math.max(0.18, distance));

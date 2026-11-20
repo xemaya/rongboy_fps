@@ -322,13 +322,35 @@ function becomeAlert(s, e) {
 }
 
 // 声音：看得见声源的在 radius 内都会被惊动，隔着墙或楼板只有一半距离。y 是声源的高度。
+// 再远一圈（到 SEARCH.reach 倍）的、醒着但还没发现你的（站岗、巡逻），不会直接扑过来，而是走到响的地方去看一眼（docs/fun-design.md 2.6）。
+// 睡着的只有离得比较近（SEARCH.stir 倍）才被吵醒过来看。僵尸数不变，变的是它们在哪：开过枪的地方会有人来。
+// reach：站岗、巡逻的听多远（开枪声 noise 的几倍）；stir：睡着的听多远（比 1 大才会被远处的枪声吵醒）
+// alarm：拿到任务物品（还没拿齐）时，警报范围几倍以内的过来看；拿齐了是整层
+// travel：最多走多少秒（走不到就算了）；look：到了以后张望多少秒；pace：走得比追人慢多少；arrive：离那个点多近算到了
+// 取值见 docs/fun-design.md 第 7 节 2026-11-20：reach 2 / 3 和 stir 1.5 / 2 用机器人比过。
+export const SEARCH = { reach: 3, stir: 1.5, alarm: 2, travel: 15, look: 4, pace: 0.9, arrive: 1.0 };
 export function emitNoise(s, x, z, radius, y = 1.2) {
+  const floor = storeyAt(s.level, y - 1).y, S = storeyAt(s.level, floor);
+  let spot = null;
   for (const e of s.enemies) {
     if (!e.alive || !e.enabled || !unaware(e)) continue;
     const d = Math.hypot(e.x - x, e.base + 1.2 - y, e.z - z);
-    if (d >= radius) continue;
-    if (d < radius * 0.5 || lineOfSight(s.level, { x, y, z }, feet(e))) notice(s, e, d / 14, 'noise');
+    const heard = (r) => d < r && (d < r * 0.5 || lineOfSight(s.level, { x, y, z }, feet(e)));
+    if (heard(radius)) { notice(s, e, d / 14, 'noise'); continue; }
+    // 过来看：只有同一层的、没被闹钟引住的；已经在过来的路上就改去新响的地方
+    if ((e.lure && e.lure.kind !== 'noise') || Math.abs(e.base - floor) > 1 || !heard(radius * (e.awareness === 'asleep' ? SEARCH.stir : SEARCH.reach))) continue;
+    spot ??= freePoint(S, x, z, 0.45) ? { x, z } : false;   // 响在家具里（手雷贴着柜子炸）：没地方站，不过来看，但上面的惊动照常
+    if (spot) search(s, e, spot);
   }
+}
+// 让一只还没发现你的僵尸到 spot 去看一眼。睡着的先被吵醒（变成站岗的，睁着眼）。
+function search(s, e, spot) {
+  // 已经在往差不多的地方走（缝纫机枪一秒十几声）：路不用重找，到了以后再看一轮
+  const t = e.lure;
+  if (t?.kind === 'noise' && length(t.x - spot.x, t.z - spot.z) < 1.5) { if (t.arrived) t.until = Math.max(t.until, s.time + SEARCH.look); return; }
+  e.awareness = 'idle'; e.patrol = null; e.navIn = 0; e.route = [];
+  e.lure = { kind: 'noise', x: spot.x, z: spot.z, lookX: spot.x, lookZ: spot.z, until: s.time + SEARCH.travel, arrived: false };
+  s.events.push({ type: 'search', id: e.id, ...at(e), toX: spot.x, toZ: spot.z });
 }
 
 function sense(s, e, dt) {
@@ -350,7 +372,7 @@ function sense(s, e, dt) {
     return;
   }
   if (d < CONFIG.closeRange && sees()) { notice(s, e, 0, 'near'); return; }
-  if (e.lure) return;   // 被闹钟引住的只盯着闹钟：贴到跟前、开枪或者打中它才回过神
+  if (e.lure && e.lure.kind !== 'noise') return;   // 被闹钟引住的只盯着闹钟：贴到跟前、开枪或者打中它才回过神；听到枪声过来看的照样睁着眼
   if (d < CONFIG.sightRange) {
     const facing = (Math.sin(e.heading) * dx + Math.cos(e.heading) * dz) / flat;
     if (facing > CONFIG.sightCos && sees()) notice(s, e, 0, 'sight');
@@ -371,6 +393,27 @@ function idleMove(s, e, dt) {
   const travel = Math.min(d, e.speed * 0.42 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   e.heading = Math.atan2(dx, dz);
+}
+
+// 包抄（docs/fun-design.md 2.7）：贴身的僵尸好几只从同一边追过来时，后面那只不排队，绕到玩家侧面再扑。
+// 只有直线走得过去的时候才绕（不为此找路）；离玩家 close 米以内就不绕了，直接追。
+export const FLANK = { types: new Set(['walker', 'leaper', 'crawler', 'heavy', 'shielded']), far: 9, close: 2.4, cos: Math.cos(0.75), angle: 1.25, radius: 2.6, every: 0.3 };
+function flankPoint(s, e, S) {
+  const p = s.player, dx = e.x - p.x, dz = e.z - p.z, d = length(dx, dz);
+  if (!FLANK.types.has(e.type) || d < FLANK.close + 0.6 || d > FLANK.far) return null;
+  const bx = dx / d, bz = dz / d;
+  // 同一边（夹角 43° 以内）有一只离玩家更近、也在追的：自己就是排在后面的那只
+  const behind = s.enemies.some(o => o !== e && o.alive && o.enabled && o.awareness === 'alert' && Math.abs(o.base - e.base) < 0.5 && FLANK.types.has(o.type)
+    && length(o.x - p.x, o.z - p.z) < d && ((o.x - p.x) * bx + (o.z - p.z) * bz) / (length(o.x - p.x, o.z - p.z) || 1) > FLANK.cos);
+  if (!behind) return null;
+  // 屋里家具多：两边、两个角度、两个距离挨个试，挑第一个直线走得到、站得下的点
+  const r = navRadius(e.radius), sides = e.id % 2 ? [1, -1] : [-1, 1];
+  for (const k of [1, 0.65]) for (const reach of [Math.min(d * 0.75, FLANK.radius), 1.8]) for (const side of sides) {
+    const a = FLANK.angle * k * side, c = Math.cos(a), sn = Math.sin(a);
+    const t = { x: p.x + (bx * c - bz * sn) * reach, z: p.z + (bx * sn + bz * c) * reach };
+    if (freePoint(S, t.x, t.z, e.radius + 0.06) && clearPath(S, e, t, r, true)) return t;
+  }
+  return null;
 }
 
 const ROUTES_PER_STEP = 3;
@@ -399,11 +442,17 @@ function chase(s, e, dt) {
     return;
   }
   const goal = navGoal(L, e, p);
+  if (level) { e.flankIn = (e.flankIn ?? 0) - dt; if (e.flankIn <= 0) { e.flankIn = FLANK.every; e.flank = flankPoint(s, e, S); } }
+  else e.flank = null;
+  if (e.flank && e.action !== 'sidestep') {
+    // 包抄：直接朝旁边那个点走；到了、或者已经贴近玩家，就回到正常的追
+    if (length(e.flank.x - e.x, e.flank.z - e.z) < 0.35 || length(p.x - e.x, p.z - e.z) < FLANK.close) { e.flank = null; e.flankIn = FLANK.every * 3; }
+  }
   e.navIn -= dt;
   if (goal.direct) e.route = [];
   else if (e.navIn <= 0 && routeTurn(s)) { e.route = routeTo(S, e, goal, r); e.navIn = 0.4; }
   while (e.route.length && length(e.x - e.route[0].x, e.z - e.route[0].z) < 0.04) e.route.shift();
-  const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
+  const next = e.action === 'sidestep' ? { x: e.flankX, z: e.flankZ } : e.flank ? e.flank : goal.direct || clearPath(S, e, goal, r, true) ? goal : e.route[0];
   if (!next) return;
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const speed = e.hit <= 0 ? e.speed * e.moveMultiplier * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0;
@@ -687,13 +736,16 @@ function trigger(s, g) {
 }
 
 // 被闹钟引过去的僵尸：走到分给它的空位，面朝闹钟站着，响完为止。路上照样会看见玩家（那就变成追）。
+// 听到枪声过来看的（lure.kind === 'noise'）：走到开枪的地方附近，左右张望，看够了就留在那儿站岗（不回原位）。
 function investigate(s, e, dt) {
-  const S = storeyAt(s.level, e.base), t = e.lure, r = navRadius(e.radius);
+  const S = storeyAt(s.level, e.base), t = e.lure, r = navRadius(e.radius), noise = t.kind === 'noise';
   if (s.time > t.until) { e.lure = null; e.hop = 0; return; }
   const far = length(t.x - e.x, t.z - e.z);
-  if (t.arrived || far < 0.15) {
+  if (t.arrived || far < (noise ? SEARCH.arrive : 0.15)) {
+    if (!t.arrived && noise) { t.lookAt = s.time; t.until = s.time + SEARCH.look; }
     t.arrived = true; e.hop *= Math.exp(-dt * 12);
-    let turn = Math.atan2(t.lookX - e.x, t.lookZ - e.z) - e.heading;
+    // 张望：以来的方向为中心左右各转约 80°
+    let turn = noise ? Math.sin((s.time - t.lookAt) * 1.4) * 1.4 + (t.face ??= e.heading) - e.heading : Math.atan2(t.lookX - e.x, t.lookZ - e.z) - e.heading;
     turn = Math.atan2(Math.sin(turn), Math.cos(turn));
     e.heading += clamp(turn, -dt * 4, dt * 4);
     return;
@@ -707,7 +759,7 @@ function investigate(s, e, dt) {
   e.hopPhase = e.type === 'crawler' ? 0 : (e.age % period) / period;
   const lift = Math.sin(clamp(e.hopPhase / 0.78, 0, 1) * Math.PI), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   e.hop = lift * e.hopHeight * 0.7;
-  const travel = Math.min(d, (e.hit <= 0 ? e.speed * 0.75 * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  const travel = Math.min(d, (e.hit <= 0 ? e.speed * (noise ? SEARCH.pace : 0.75) * (e.type === 'crawler' ? .92 : 0.15 + 1.55 * lift) * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
   if (d > 0.03 && e.hit <= 0) e.heading = Math.atan2(dx, dz);
 }
@@ -755,6 +807,11 @@ function collect(s) {
       if (alarm) for (const e of s.enemies) {
         const d = Math.hypot(e.x - p.x, e.base - p.y, e.z - p.z);
         if (alarm === true || d < alarm * (Math.abs(e.base - p.y) > 1.5 ? 0.5 : 1)) notice(s, e, d / 14, 'alarm');
+        // 更远的、同一层还没发现你的，都朝拿东西的地方找过来：回去的路不会是空的（docs/fun-design.md 2.6）
+        // 别的楼层不来：试过让下一层的聚到楼梯口，一层十来只全堵在楼梯里，身后又有首领，休闲玩家下不去（2026-11-20）
+        // 还没拿齐的时候只招警报两倍以内的：博物馆三件展品，第一件就把全馆招过来的话，后面就只剩一场大混战了
+        else if (e.alive && e.enabled && unaware(e) && !(e.lure && e.lure.kind !== 'noise') && Math.abs(e.base - p.y) < 1
+          && (s.carrying || alarm === true || d < alarm * SEARCH.alarm)) search(s, e, { x: p.x, z: p.z });
       }
     }
     k.taken = true;
