@@ -44,6 +44,7 @@ import { challengeArena } from './levels/challenge-arenas.js';
 import { weaponRange } from './levels/weapon-range.js';
 
 import { t, copy, localizeFields, localizeLevel } from './language.js';
+import { cottageStudyDef } from './levels/cottage-study.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
 const ENEMY_TYPES = Object.fromEntries(Object.entries(RAW_ENEMIES).map(([id,enemy])=>[id,localizeFields(enemy,['name'])]));
@@ -61,6 +62,8 @@ const polished = garden && (!!challenge || q.get('feel') !== 'base');
 const receipts = garden ? gardenReceipts() : null;
 let lastBlock = -10, chargeCue = false, gardenShieldId = null;
 const levelId = weaponShowcase ? 'weapon-range' : challenge ? 'challenge' : garden ? 'garden-wall' : training ? 'training' : LEVELS[q.get('level')] ? q.get('level') : ORDER[0];
+const study = q.get('study');
+const cottageStudy = levelId === 'cottage' && ['waves','all-at-once'].includes(study);
 const specialists = levelId === 'school' && q.get('study') === 'specialists';
 const trio = specialists || (levelId === 'school' && q.get('study') === 'trio');
 const source = q.get('from');
@@ -69,7 +72,7 @@ const finalStudy = training && q.get('study') === 'final' && ['archer','boss-war
 const returnTo = exitPlayHref(q,levelId);
 const returnLabel = challenge ? '返回挑战簿' : training ? '返回兵种试战' : garden || weaponShowcase ? '返回练习' : '返回选关';
 let awaitingApproach = false, pauseIndex = 0;
-const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? gardenWallDef() : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : LEVELS[levelId]));
+const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? gardenWallDef() : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : cottageStudy ? cottageStudyDef(study) : LEVELS[levelId]));
 const missionBriefing = level.mission.type === 'fetch' && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
@@ -105,9 +108,10 @@ function applyTexts() {
  $('loadingTitle').textContent = TX.short || level.name;
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
- $('ready-title').textContent = t(missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(missionBriefing ? TX.brief || level.mission.title
+ $('ready-title').textContent = t(cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
+ $('ready-brief').textContent = t(missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
+ if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
  $('sound').setAttribute('aria-pressed',sound);
  if(garden && !challenge){
@@ -719,7 +723,11 @@ function processEvents() {
       sfx2('return-hit');
     }
     combatFx.event(e);
-    if(e.type==='blocked'){if(near(9)){say('盾挡了 · 绕后或蓄力破盾',1.7);if(!polished)sfx('switch');}}
+    if(e.type==='wave-start'){
+      sfx('switch');
+      say(copy(`第 ${e.index + 1} 波来了`,`Wave ${e.index + 1} incoming`),1.4,1);
+    }
+    else if(e.type==='blocked'){if(near(9)){say('盾挡了 · 绕后或蓄力破盾',1.7);if(!polished)sfx('switch');}}
     else if(e.type==='guard-break'){say('盾已破',1);if(!polished)sfx('kill');}
     else if(e.type==='attack-windup'){if(near(11))say(attackNotices[e.enemyType],1.2,1);}
     else if(e.type==='summoned'){if(near(12)){burst(e.x,e.z,12,.5,0xbaa5c2,.5);say('援兵出来了 · 优先击破召唤源',1.2);}}
@@ -1003,6 +1011,21 @@ function describeAmmo(weaponIndex) {
   return WEAPONS[weaponIndex].short + ' ' + mag + '/' + (reserve === Infinity ? '∞' : reserve);
 }
 
+function cottageStudyProgress() {
+  if (!s.wave) {
+    const left = aliveCount(s);
+    return copy(`剩 ${left} / ${s.total} 只`,`${left} / ${s.total} left`);
+  }
+  const { index, nextAt } = s.wave, count = level.waves.count;
+  if (nextAt !== null) {
+    const seconds = Math.max(1, Math.ceil(nextAt - s.time));
+    return copy(`下一波 ${seconds} 秒 · 换弹或走位`,`Next wave in ${seconds}s · Reload or move`);
+  }
+  const left = s.enemies.filter(enemy => enemy.alive && enemy.enabled).length;
+  if (!left && index + 1 === count) return t('三波都打完了！');
+  return copy(`第 ${index + 1} / ${count} 波 · 剩 ${left} 只`, `Wave ${index + 1} / ${count} · ${left} left`);
+}
+
 let shownLoadout;
 function pauseBrief() {
   const status = missionStatus(s);
@@ -1010,6 +1033,7 @@ function pauseBrief() {
   textOf('objective', objectiveText(status));
   textOf('pauseProgress', challenge
     ? challenge.unit + ' ' + s.challenge.progress + '/' + challenge.target + copy(' · 剩余 ',' · Time left ') + Math.max(0, Math.ceil(challenge.seconds - s.time)) + copy(' 秒','s')
+    : cottageStudy ? cottageStudyProgress()
     : copy('剩余 ','Remaining ') + status.alive + '/' + status.total + copy(' · 用时 ',' · Time ') + clock(s.time));
   if ($('pauseDetailView').hidden) return;
   const second = secondOf(s), equipment = [describeAmmo(PISTOL)];
@@ -1062,8 +1086,9 @@ function bossHud(active) {
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
   $('fightHud').hidden = !active;
-  $('missionHud').hidden = !missionBriefing || !active;
-  if (missionBriefing && active) {
+  $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
+  if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
+  else if (missionBriefing && active) {
     const status = missionStatus(s);
     textOf('missionStep', !status.carrying && TX.route ? t(TX.route) : objectiveText(status));
   }
@@ -1155,7 +1180,7 @@ function start() {
   s = createGame({ level });
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;
-  awaitingApproach = !challenge && (missionBriefing || garden || trio || finalStudy || menuTrial);
+  awaitingApproach = !challenge && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
   $('ready-actions').hidden = !awaitingApproach;
   document.body.classList.toggle('practice-ready',awaitingApproach);
   if(finalStudy || menuTrial) for(const e of s.enemies){
@@ -1216,7 +1241,7 @@ function showResult() {
     $('again').focus({preventScroll:true});
     return;
   }
-  $('resultTitle').textContent = t(won ? (level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
+  $('resultTitle').textContent = t(won ? (cottageStudy || level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
   $('resultStars').hidden = !won;
   $('resultStars').textContent = won ? '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '';
   $('resultNote').textContent = won

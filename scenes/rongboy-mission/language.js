@@ -54,6 +54,12 @@ export async function initializeLanguage({platformLocale = true} = {}) {
 }
 
 const words = {
+  '院子里的三波': 'Three waves in the yard', '院子里的对照局': 'All at once in the yard',
+  '院子波次': 'Yard waves', '院子对照局': 'All at once',
+  '三波僵尸会从树篱两侧出来。打完一波，有三秒换弹或挪位置。': 'Clear three waves in the yard. Take three seconds to reload or move between waves.',
+  '这局的九只僵尸开场就会行动。院子、补给和敌人与三波版相同。': 'All nine zombies are active from the start, with the same yard, supplies, and enemy roster as the wave trial.',
+  '打完院子里的三波僵尸': 'Clear all three waves in the yard', '打倒院子里的九只僵尸': 'Knock out all nine zombies in the yard',
+  '三波都打完了！': 'All three waves cleared!', '院子清理完毕！': 'Yard cleared!',
   '当前任务': 'Objective', '出发前': 'Before you go', '出发': 'Go',
   '从门厅尽头上楼，到三楼藏宝间拿回毛线篮，再带回院门。途中可以绕过僵尸。': 'Take the stairs at the end of the hall. Find the yarn basket in the attic and bring it back to the gate. You can sneak past the zombies.',
   '去三楼藏宝间找毛线篮 · 楼梯在门厅尽头': 'Find the attic yarn basket · Stairs at the end of the hall',

@@ -11,6 +11,7 @@ import {advanceSpecial,interruptSpecial,contactAttack,onSpecialDeath} from './sp
 import { GADGETS, STASH } from './gadgets.js';
 import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
 import { travelPace, strideTravel } from './locomotion.js';
+import { advanceWaves } from './encounter-waves.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -97,6 +98,7 @@ export function createGame({ level } = {}) {
   const startWeapon = WEAPONS.findIndex((w, i) => w.id === level.startWeapon && s.owned[i]);
   if (startWeapon >= 0) s.weapon = startWeapon;
   s.challenge = level.mission?.type === 'challenge' ? createChallengeRun(level.mission.challenge) : null;
+  s.wave = level.waves ? { index:0, nextAt:null } : null;
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
@@ -104,13 +106,13 @@ export function createGame({ level } = {}) {
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter }) {
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave }) {
   type = type === 'runner' || type === 'weaver' ? 'leaper' : type;
   const roster = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
   const attic = type === 'boss-warden' && encounter === 'attic';
   const def = attic ? { ...roster, hp: 44, speed: 1.58, resistance: .12, armor: .55 } : roster;
   const e = {
-    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0, stun: 0, tangle: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
@@ -1032,6 +1034,7 @@ export function step(s, dt, input = {}) {
     return;
   }
   if (s.health <= 0) { finish(s, 'lost'); return; }
+  if (s.wave) advanceWaves(s);
   if (s.endIn !== null) { s.endIn -= dt; if (s.endIn <= 0) finish(s, 'won'); }
   else if (missionStatus(s).done) { s.enemyShots=[];s.enemyBombs=[];s.endIn = CONFIG.endDelay; s.events.push({ type: 'mission-complete' }); }
 }
