@@ -1,5 +1,6 @@
 const KEY = 'rongboy.preferences';
-const DEFAULTS = {sound:true, quality:'auto', motion:'system'};
+export const LANGUAGE_CHOICES = ['auto','zh-CN','en'];
+const DEFAULTS = {sound:true, quality:'auto', motion:'system', language:'auto'};
 
 export function readPreferences() {
   try {
@@ -8,11 +9,13 @@ export function readPreferences() {
       sound: typeof value.sound === 'boolean' ? value.sound : DEFAULTS.sound,
       quality: ['auto','high','low'].includes(value.quality) ? value.quality : DEFAULTS.quality,
       motion: ['system','reduced'].includes(value.motion) ? value.motion : DEFAULTS.motion,
+      language: LANGUAGE_CHOICES.includes(value.language) ? value.language : DEFAULTS.language,
     };
   } catch {} // Storage can be disabled in a private embedded browser.
   return {...DEFAULTS};
 }
 
 export function writePreferences(preferences) {
-  try { localStorage.setItem(KEY,JSON.stringify(preferences)); } catch {}
+  try { localStorage.setItem(KEY,JSON.stringify(preferences)); return true; }
+  catch { return false; }
 }

@@ -14,7 +14,7 @@ assert.ok(result.outputFiles[0].contents.byteLength<110000,'map selection script
 console.log('PASS map cards match playable maps and the menu stays independent of3D startup');
 
 // Keep the user's chosen entry when a chapter or enemy encounter ends.
-const { MENU, readMenuRoute, playHref, exitPlayHref, modelPack, challengePlayHref, challengeBookHref } = await import('../../scenes/rongboy-mission/menu-flow.js');
+const { MENU, menuHref, readMenuRoute, playHref, exitPlayHref, modelPack, challengePlayHref, challengeBookHref } = await import('../../scenes/rongboy-mission/menu-flow.js');
 const queryOf = href => new URL(href,'http://localhost/').searchParams;
 assert.equal(readMenuRoute(queryOf('rongboy-mission.html')).screen,'home');
 assert.deepEqual(readMenuRoute(queryOf('rongboy-mission.html?level=museum')),
@@ -31,9 +31,31 @@ assert.equal(exitPlayHref(queryOf(challengePlayHref('static-followup')),'challen
 const { readPreferences, writePreferences } = await import('../../scenes/rongboy-mission/preferences.js');
 const storage = new Map();
 globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
-assert.deepEqual(readPreferences(),{sound:true,quality:'auto',motion:'system'});
+assert.deepEqual(readPreferences(),{sound:true,quality:'auto',motion:'system',language:'auto'});
 writePreferences({sound:false,quality:'low',motion:'reduced'});
-assert.deepEqual(readPreferences(),{sound:false,quality:'low',motion:'reduced'});
+assert.deepEqual(readPreferences(),{sound:false,quality:'low',motion:'reduced',language:'auto'});
+writePreferences({ ...readPreferences(), language:'zh-CN' });
+assert.equal(readPreferences().language,'zh-CN');
+writePreferences({ ...readPreferences(), language:'unsupported' });
+assert.equal(readPreferences().language,'auto');
+
+const { resolveLanguage, english } = await import('../../scenes/rongboy-mission/language.js');
+assert.equal(resolveLanguage('auto',{platform:true,locale:'zh-Hans-CN'}),'zh-CN');
+assert.equal(resolveLanguage('auto',{platform:true,locale:'ja-JP'}),'en');
+assert.equal(resolveLanguage('auto',{platform:true}),'en');
+assert.equal(resolveLanguage('en',{platform:true,locale:'zh-CN'}),'en');
+assert.equal(resolveLanguage('zh-CN',{platform:true,locale:'en-US'}),'zh-CN');
+assert.equal(resolveLanguage('auto',{locale:'en-US'}),'en');
+assert.equal(resolveLanguage('auto'),'zh-CN');
+assert.equal(english('花园首战'),'The Garden');
+assert.equal(english('下一关'),'Next level');
+globalThis.location = { search:'?lang=zh-CN' };
+assert.equal(queryOf(playHref('school','chapters')).get('lang'),'zh-CN');
+assert.equal(queryOf(exitPlayHref(queryOf(playHref('school','chapters')),'school')).get('lang'),'zh-CN');
+assert.equal(queryOf(challengePlayHref('shield-bank')).get('lang'),'zh-CN');
+assert.equal(queryOf(menuHref('settings',null,null,null,null)).get('lang'),null);
+delete globalThis.location;
+
 assert.equal(modelPack('shielded'),'second-trio.glb');
 assert.equal(modelPack('boss-leech'),'final-trio.glb');
 console.log('PASS menu routing and saved input/display preferences');

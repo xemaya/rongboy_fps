@@ -1,79 +1,166 @@
+@font-face {
+  font-family: "Rongboy Rounded";
+  src: url("rongboy-fredoka.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Rongboy Han";
+  src: url("rongboy-kuai-le.woff2") format("woff2");
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 :root {
-  --ui-title: "Kaiti SC", STKaiti, KaiTi, "Songti SC", "Noto Serif CJK SC", serif;
-  --ui-text: "Songti SC", STSong, "Noto Serif CJK SC", serif;
-  --ui-symbol: ui-monospace, Menlo, Consolas, monospace;
-  --ui-cream: #fff1d0;
-  --ui-parchment: #dfcdab;
-  --ui-gold: #efbf69;
-  --ui-edge: #c9aa7280;
+  --ui-text: "Rongboy Rounded", "Rongboy Han", "Kaiti SC", KaiTi, system-ui, sans-serif;
+  --ui-title: var(--ui-text);
+  --ui-symbol: var(--ui-text);
+  --ui-cream: #fff3d8;
+  --ui-parchment: #d9dfc4;
+  --ui-gold: #ffd27f;
+  --ui-edge: #a4b39987;
   --ui-felt: #17271e;
+  --ui-ink: #263422;
+  --ui-focus: #fff0b8;
+  --ui-radius: 14px;
+}
+
+:is(.choice,.pill,.primary,.secondary,.pause-choice,.ui-return) {
+  position: relative;
+  border: 1px solid #a9b79b7d;
+  border-radius: var(--ui-radius);
+  background: linear-gradient(170deg,#3b5341,#243c31);
+  box-shadow: 0 3px 0 #15271c, inset 0 1px 0 #ebf6d328;
+  color: var(--ui-cream);
+  font-family: var(--ui-text);
+  text-shadow: 0 1px 2px #15271c77;
+  transition: background-color 120ms,color 120ms,transform 100ms;
+}
+
+:is(.choice,.pill,.secondary,.pause-choice,.ui-return):hover {
+  border-color: #cad8aa;
+  background: linear-gradient(170deg,#4b6651,#324e3f);
+}
+
+:is(.choice,.pill,.primary,.secondary,.pause-choice,.ui-return,.card):focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 4px;
+}
+
+:is(.choice,.pill,.primary,.secondary,.pause-choice,.ui-return):active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #15271c, inset 0 1px 2px #15271c40;
+}
+
+:is(.primary,.choice[aria-pressed=true],.pill[aria-pressed=true],.pause-choice.selected,.ui-return.selected) {
+  color: var(--ui-ink);
+  border-color: #ffe0a6;
+  background: linear-gradient(170deg,#ffde98,#efb868);
+  box-shadow: 0 3px 0 #a8743d, inset 0 1px 0 #fff0cd;
+  text-shadow: none;
+}
+
+:is(.primary,.choice[aria-pressed=true],.pill[aria-pressed=true],.pause-choice.selected,.ui-return.selected):hover {
+  color: var(--ui-ink);
+  border-color: #fff0be;
+  background: linear-gradient(170deg,#ffe8b3,#f5c476);
+}
+
+:is(.primary,.choice[aria-pressed=true],.pause-choice.selected)::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed #8b603153;
+  border-radius: calc(var(--ui-radius) - 4px);
+  pointer-events: none;
 }
 
 .ui-key {
   display: inline-grid;
   place-items: center;
-  min-inline-size: 1.65em;
+  min-inline-size: 1.75em;
   block-size: 1.65em;
-  padding-inline: .34em;
-  border: 1px solid #cfb683;
-  border-radius: 3px;
+  padding-inline: .4em;
+  border: 1px solid #ffdf9b;
+  border-radius: 7px;
   margin: 0;
-  background: #111d16;
-  box-shadow: 0 2px 0 #080f0a, inset 0 1px 0 #f1d9a62e;
-  color: #ffe8ad;
-  font: 700 .88em/1 var(--ui-symbol);
+  background: linear-gradient(165deg,#fff0cb,#ebd294);
+  box-shadow: 0 2px 0 #a57e43, inset 0 1px 0 #fffae8;
+  color: #333b29;
+  font: 600 .91em/1 var(--ui-symbol);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
+  text-shadow: none;
   white-space: nowrap;
 }
-.ui-key[data-shape=pad] { border-radius: 50%; padding-inline: 0; }
-.ui-keys { display: inline-flex; align-items: center; gap: 4px; }
-.ui-hints { display: flex; flex-wrap: wrap; align-items: center; gap: .65em 1.4em; }
-.ui-command { display: inline-flex; align-items: center; gap: .52em; white-space: nowrap; }
+
+.ui-key[data-shape=pad] {
+  background: linear-gradient(165deg,#dfedc6,#b8c99f);
+  border-color: #eaf3d8;
+  border-radius: 50%;
+  padding-inline: 0;
+  box-shadow: 0 2px 0 #718665;
+}
+
+.ui-keys { display: inline-flex; align-items: center; gap: 5px; }
+.ui-hints { display: flex; flex-wrap: wrap; align-items: center; gap: .64em 1.12em; }
+.ui-command { display: inline-flex; align-items: center; gap: .55em; }
 .ui-hints, .ui-command {
   color: var(--ui-cream);
-  font: 700 clamp(14px, 1.26vw, 18px)/1.32 var(--ui-title);
-  letter-spacing: .045em;
+  font: 500 clamp(14px,1.35vw,18px)/1.34 var(--ui-text);
 }
+
 .ui-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .6em;
 }
-.ui-hints .ui-key, .ui-trigger .ui-key { flex-shrink: 0; }
-.ui-trigger .ui-key { font-size: min(.76em, 16px); }
+
+.ui-hints .ui-key,.ui-trigger .ui-key { flex-shrink: 0; }
+.ui-trigger .ui-key { font-size: min(.76em,16px); }
+.primary .ui-key {
+  background: #3c5040;
+  border-color: #596e56;
+  color: #fff0c4;
+  box-shadow: 0 2px 0 #714a28bb,inset 0 1px 0 #cdddac47;
+}
+
 .ui-return {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: .55em;
-  min-height: 40px;
-  padding: .48em .92em;
-  border: 1px solid var(--ui-edge);
-  border-radius: 4px;
-  background: linear-gradient(150deg, #2c3b2c, #16251b);
-  box-shadow: 0 3px 0 #0b150f;
-  color: var(--ui-cream);
-  font: 700 clamp(15px, 1.42vw, 21px)/1.18 var(--ui-title);
-  letter-spacing: .05em;
+  min-height: 38px;
+  padding: .45em .85em;
+  font: 600 clamp(15px,1.42vw,21px)/1.18 var(--ui-text);
   text-decoration: none;
 }
-.ui-return:hover, .ui-return:focus-visible { border-color: var(--ui-gold); color: #ffe3a1; }
-.ui-return:focus-visible { outline: 2px solid var(--ui-gold); outline-offset: 3px; }
-.ui-seam {
-  border-block-start: 1px dashed var(--ui-edge);
-  padding-block-start: .75em;
-}
+
+.ui-seam { border-block-start: 1px dashed var(--ui-edge); padding-block-start: .72em; }
+
 .ui-stamp {
   display: inline-grid;
   place-items: center;
-  width: 1.7em;
+  inline-size: 1.8em;
   aspect-ratio: 1;
-  border: .08em double currentColor;
-  border-radius: 50%;
+  flex-shrink: 0;
+  border: .075em double currentColor;
+  border-radius: .46em;
   color: #9e442f;
-  font: 900 34px/1 var(--ui-title);
-  box-shadow: 0 0 0 1px currentColor, inset 0 0 0 1px currentColor;
-  transform: rotate(-9deg);
+  font: 700 31px/1 var(--ui-title);
+  transform: rotate(-7deg);
+}
+
+:lang(en) .ui-stamp {
+  inline-size: auto;
+  block-size: 1.55em;
+  aspect-ratio: auto;
+  padding-inline: .34em;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.choice,.pill,.primary,.secondary,.pause-choice,.ui-return) { transition: none; }
 }

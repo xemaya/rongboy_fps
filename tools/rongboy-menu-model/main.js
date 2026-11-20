@@ -2,18 +2,20 @@ import * as T from 'three';
 import { loadFigurines } from '../../library/games/rongboy-runtime.js';
 import { poseRosterFigurine } from '../../library/games/rongboy-roster-pose.js';
 import { ZOMBIE_ROSTER } from '../../library/games/rongboy-roster.js';
+import { initializeLanguage, t } from '../../scenes/rongboy-mission/language.js';
 import { modelPack } from '../../scenes/rongboy-mission/menu-flow.js';
 import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 import { applyAttackPose } from '../../scenes/rongboy-mission/attack-pose.js';
 import { actionPose } from '../../scenes/rongboy-shooter-fps/enemy-actions.js';
 
+initializeLanguage({platformLocale:false});
 const status = document.getElementById('status'), canvas = document.getElementById('view');
 const scene = new T.Scene(), camera = new T.PerspectiveCamera(33,1,.04,30);
 let renderer;
 try {
   renderer = new T.WebGLRenderer({canvas,alpha:true,antialias:true});
 } catch {
-  status.textContent = '当前设备无法显示 3D 模型';
+  status.textContent = t('当前设备无法显示 3D 模型');
 }
 if (renderer) presentModels();
 
@@ -70,7 +72,7 @@ function presentModels() {
   let active=null, generation=0, angle=.20, time=0, last=0, moving=false, frames=0;
   function factory(bank) {
     if (!factories.has(bank)) factories.set(bank,fetch(bank).then(async response => {
-      if (!response.ok) throw Error('模型文件未找到');
+      if (!response.ok) throw Error(t('模型文件未找到'));
       return loadFigurines({zombies:new Uint8Array(await response.arrayBuffer())});
     }).catch(error=>{factories.delete(bank);throw error;}));
     return factories.get(bank);

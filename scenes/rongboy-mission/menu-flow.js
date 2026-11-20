@@ -1,3 +1,4 @@
+import { urlLanguage } from './language.js';
 import { ZOMBIE_ROSTER } from '../../library/games/rongboy-roster.js';
 import { CHALLENGES, findChallenge } from './challenges.js';
 
@@ -20,13 +21,18 @@ export function readMenuRoute(query) {
     challenge: findChallenge(query.get('challenge'))?.id ?? CHALLENGES[0].id };
 }
 
-export function menuHref(screen, level, type, focus) {
+export function pageHref(path, query, locale = urlLanguage()) {
+  if (locale) query.set('lang',locale);
+  return query.size ? path + '?' + query : path;
+}
+
+export function menuHref(screen, level, type, focus, locale) {
   const q = new URLSearchParams();
   if (screen !== 'home') q.set('screen',screen);
   if (screen === 'chapters') q.set('level',level);
   if (screen === 'opponents' && kinds.includes(type)) q.set('type',type);
   if (focus) q.set('focus',focus);
-  return 'rongboy-mission.html' + (q.size ? '?' + q : '');
+  return pageHref('rongboy-mission.html',q,locale);
 }
 
 export const modelPack = type => kinds.indexOf(type) < 3 ? 'walker-trio.glb'
@@ -35,15 +41,15 @@ export const modelPack = type => kinds.indexOf(type) < 3 ? 'walker-trio.glb'
 export function playHref(level, source, type) {
   const q = new URLSearchParams({level,from:source});
   if (type && kinds.includes(type)) q.set('type',type);
-  return 'rongboy-play.html?' + q;
+  return pageHref('rongboy-play.html',q);
 }
 
 export function challengeBookHref(id) {
-  return 'rongboy-mission.html?' + new URLSearchParams({screen:'challenges',challenge:id});
+  return pageHref('rongboy-mission.html',new URLSearchParams({screen:'challenges',challenge:id}));
 }
 
 export function challengePlayHref(id) {
-  return 'rongboy-play.html?' + new URLSearchParams({level:'challenge',challenge:id});
+  return pageHref('rongboy-play.html',new URLSearchParams({level:'challenge',challenge:id}));
 }
 
 export function exitPlayHref(query, level) {

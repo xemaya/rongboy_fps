@@ -113,7 +113,7 @@ if (serve) {
         res.end(html.subarray(a, b + 1));
         return;
       }
-      const mime = {'.webp': 'image/webp', '.glb': 'model/gltf-binary', '.css': 'text/css; charset=utf-8'};
+      const mime = {'.webp': 'image/webp', '.glb': 'model/gltf-binary', '.css': 'text/css; charset=utf-8', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8'};
       const contentType = mime[path.extname(file)] || 'text/html; charset=utf-8';
       res.writeHead(200, { 'content-type': contentType, 'cache-control': 'no-store' });
       res.end(html);
