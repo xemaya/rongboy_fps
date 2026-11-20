@@ -12,7 +12,11 @@ const DIRS = Array.from({ length: 16 }, (_, i) => ({ x: Math.cos(i * Math.PI / 8
 const ranged = e => e.type === 'archer' || e.type === 'bomber';
 
 // shift：出生点往旁边挪多少米（机器人对起点很敏感，体检会换几个起点各跑一遍）
-export function playBot(def, { attentive = false, seconds, shift = 0 } = {}) {
+// wobble：每一枪最多偏多少弧度（0 是百发百中；0.06 大约是 5 米外偏 30 厘米，像个普通玩家）
+// sneaky：对还没发现自己的，蓄满了再打（拿偷袭加成，人一般这么打）
+// eyes：像人一样只知道看得见的：朝向两边各 55° 以内、没被挡住的才看得见，看过的记 1.5 秒；贴到 1.6 米内的不看也知道。
+//       不开的话机器人对整张图了如指掌，从背后、侧面来的僵尸对它没有威胁，量不出这类改动。
+export function playBot(def, { attentive = false, seconds, shift = 0, wobble = 0, sneaky = false, eyes = false } = {}) {
   const L = def.storeys ? def : compileLevel(def);
   if (L.storeys.length > 1) return null;
   const s = createGame({ level: L }), p = s.player, limit = seconds ?? Math.max(240, (L.par || 300) * 2);
@@ -26,13 +30,24 @@ export function playBot(def, { attentive = false, seconds, shift = 0 } = {}) {
   const aim = e => {
     const o = { x: p.x, y: p.y + 1.05, z: p.z }, t = { x: e.x, y: e.y + e.height * 0.55, z: e.z }, d = Math.hypot(t.x - o.x, t.y - o.y, t.z - o.z) || 1;
     const dir = { x: (t.x - o.x) / d, y: (t.y - o.y) / d, z: (t.z - o.z) / d };
+    if (wobble) {   // 像人一样手抖：每一枪左右偏一点（按发数定，结果可重现）
+      const a = Math.sin(s.shots * 91.7) * wobble, c = Math.cos(a), sn = Math.sin(a);
+      [dir.x, dir.z] = [dir.x * c - dir.z * sn, dir.x * sn + dir.z * c];
+    }
     return { origin: { x: o.x + dir.x * 0.5, y: o.y, z: o.z + dir.z * 0.5 }, direction: dir };
   };
   let held = false, strafe = 1, wasLocked = false, goal = null, route = [], planIn = 0, lastSpot = { x: p.x, z: p.z }, stuckFor = 0, shove = null;
   let aimed = null, aimedSince = 0, lastHit = -9, giveUp = new Map();   // 对着同一只打了 3 秒都没打中：先不打它，换个位置
+  const crowd = { peak: 0, three: 0 }, alerted = new Set(); let quietKills = 0;   // quietKills：还没扑过来就被打倒的   // peak：同时追着自己的最多几只；three：三只以上一起追的秒数
+  const seen = new Map(), VIEW = Math.cos(55 * Math.PI / 180); let face = { x: 0, z: -1 };
   let progress = 0;   // 上一次有进展（打中、击倒、挨打、捡到东西）是什么时候；一分钟没进展就是机器人自己绕不出来了，不再耗着
   while (s.time < limit && s.phase === 'playing' && s.time - progress < 60) {
-    const foes = s.enemies.filter(e => e.alive && e.enabled), awake = foes.filter(e => e.awareness === 'alert' || e.awareness === 'waking');
+    const all = s.enemies.filter(e => e.alive && e.enabled), chasing = all.filter(e => e.awareness === 'alert' || e.awareness === 'waking');
+    if (eyes) for (const e of all) {
+      const dx = e.x - p.x, dz = e.z - p.z, d = Math.hypot(dx, dz) || 1;
+      if (d < 1.6 || ((dx * face.x + dz * face.z) / d > VIEW && lineOfSight(L, { x: p.x, y: p.y + 1.2, z: p.z }, { x: e.x, y: e.y + e.height * 0.6, z: e.z }))) seen.set(e.id, s.time);
+    }
+    const foes = eyes ? all.filter(e => s.time - (seen.get(e.id) ?? -9) < 1.5) : all, awake = foes.filter(e => e.awareness === 'alert' || e.awareness === 'waking');
     // 去哪：先对付已经发现自己的；没有，就去找还没拿的任务物品、然后是最近的僵尸；东西齐了就回出口
     planIn -= DT;
     if (planIn <= 0) {
@@ -42,7 +57,7 @@ export function playBot(def, { attentive = false, seconds, shift = 0 } = {}) {
       else if (awake.length) want.push(...awake);
       else {
         if (m.type === 'fetch') want.push(...s.pickups.filter(k => k.kind === 'objective' && !k.taken));
-        if (!want.length || m.type !== 'fetch') want.push(...foes);
+        if (!want.length || m.type !== 'fetch') want.push(...all);   // 没有看得见的：去还没清的地方找（人会挨个房间找）
       }
       // 已经在追的那只还在名单里就接着追，不来回换（不然隔着墙的两只会让它原地打转）
       goal = want.includes(goal) ? goal : want.slice().sort((a, b) => dist(a, p) - dist(b, p))[0] || null;
@@ -89,17 +104,26 @@ export function playBot(def, { attentive = false, seconds, shift = 0 } = {}) {
     if (stuckFor > 3) { shove = { until: s.time + 0.8, ...(DIRS.filter(d => freePoint(L, p.x + d.x, p.z + d.z, CONFIG.playerRadius))[Math.floor(s.time) % 5] || DIRS[0]) }; stuckFor = 0; planIn = 0; }
     if (shove && s.time < shove.until) { mx = shove.x; mz = shove.z; }
     if (target) {
-      const need = attentive && target.type === 'shielded' && target.guardBroken <= 0 ? 0.56 : 0;
+      // sneaky：还没发现自己的，蓄满了再打（人就是这么打的：一枪带偷袭加成）
+      const need = (attentive && target.type === 'shielded' && target.guardBroken <= 0) || (sneaky && (target.awareness === 'asleep' || target.awareness === 'idle')) ? (sneaky ? 0.8 : 0.56) : 0;
       if (!held && s.cooldown <= 0 && !s.reloading) held = beginCharge(s);
       else if (held && s.charge >= need) { releaseCharge(s, aim(target)); held = false; }
     }
+    // 朝哪看：在打的那只；没有就看最近的追兵；再没有就看走的方向（人退着走的时候眼睛还盯着追兵）
+    const look = target || close[0] || awake.slice().sort((a, b) => dist(a, p) - dist(b, p))[0];
+    if (look) { const d = dist(look, p) || 1; face = { x: (look.x - p.x) / d, z: (look.z - p.z) / d }; }
+    else if (Math.hypot(mx, mz) > 0.1) { const d = Math.hypot(mx, mz); face = { x: mx / d, z: mz / d }; }
     step(s, DT, { x: mx, z: mz });
-    for (const e of consumeEvents(s)) if (e.type === 'hit') lastHit = progress = s.time; else if (e.type === 'knockdown' || e.type === 'pickup') progress = s.time; else if (e.type === 'hurt') {
+    // 同时在追自己的有几只（10 米内，不管看不看得见）：难度主要来自这个，而不是总数
+    const near = chasing.filter(e => dist(e, p) < 10).length;
+    crowd.peak = Math.max(crowd.peak, near); if (near >= 3) crowd.three += DT;
+    for (const e of consumeEvents(s)) if (e.type === 'alert') alerted.add(e.id); else if (e.type === 'hit') lastHit = progress = s.time; else if (e.type === 'knockdown' || e.type === 'pickup') { progress = s.time; if (e.type === 'knockdown' && !alerted.has(e.id)) quietKills++; } else if (e.type === 'hurt') {
       progress = s.time;
       const by = s.enemies.find(q => q.id === e.by);
       hits.push({ x: Math.round(e.x * 10) / 10, z: Math.round(e.z * 10) / 10, t: Math.round(s.time), by: by?.type ?? '?', source: e.source, room: roomAt(L, e.x, e.z)?.name ?? '?' });
     }
   }
   return { won: s.phase === 'won', phase: s.phase === 'playing' ? 'stalled' : s.phase, hurt: s.damageTaken, time: Math.round(s.time), left: aliveCount(s), kills: s.kills, hits, stars: s.stars,
+    crowd: { peak: crowd.peak, three: Math.round(crowd.three) }, quietKills,
     leftWhere: s.enemies.filter(e => e.alive && e.enabled).map(e => ({ type: e.type, name: ENEMY_TYPES[e.type].name, room: roomAt(L, e.x, e.z)?.name ?? '?' })) };
 }

@@ -90,7 +90,8 @@ export function reviewMap(def, { bots = true } = {}) {
     kinds: tally(L.enemies.map(e => ZOMBIES[e.type].name)).map(([k, n]) => `${k}×${n}`), states, par: L.par, sight: f1(sight.d), firstLook: firstLook.length, nearest: f1(Math.min(Infinity, ...L.enemies.map(e => dist(e, L.player)))) };
   // 机器人对起点很敏感（差半步，后面遇到僵尸的先后就不一样），所以每个各跑三遍：原地、往左右各挪 0.4 米。
   // lazy / keen 是原地那一遍（报告里列它的细节），runs 是三遍的结果。
-  const three = attentive => [0, 0.4, -0.4].map(shift => playBot(L, { attentive, shift }));
+  // 两种走法都受视野限制，避免预先对付从背后搜查或从侧面包抄的僵尸。
+  const three = attentive => [0, 0.4, -0.4].map(shift => playBot(L, { attentive, shift, eyes: true }));
   const played = bots ? (() => { const lazy = three(false), keen = three(true); return { lazy: lazy[0], keen: keen[0], runs: { lazy, keen } }; })() : null;
 
   // ---- 建议。problem：照准则看是个问题；idea：可以考虑
@@ -160,7 +161,8 @@ export function formatReview(r, previous = null) {
     for (const [key, label] of [['lazy', '偷懒的'], ['keen', '留神的']]) {
       const b = r.bots[key], before = previous?.bots?.[key];
       const runs = r.bots.runs?.[key] || [b], won = runs.filter(q => q.won).length, wonBefore = previous?.bots?.runs?.[key]?.filter(q => q.won).length;
-      out.push(`  ${label}：${runs.length} 遍里打完 ${won} 遍${delta(won, wonBefore)} · 各挨 ${runs.map(q => q.hurt).join(' / ')} 下 · 各用 ${runs.map(q => q.time).join(' / ')} 秒`);
+      out.push(`  ${label}：${runs.length} 遍里打完 ${won} 遍${delta(won, wonBefore)} · 各挨 ${runs.map(q => q.hurt).join(' / ')} 下 · 各用 ${runs.map(q => q.time).join(' / ')} 秒` +
+        (runs[0].crowd ? ` · 同时追着的最多 ${runs.map(q => q.crowd.peak).join(' / ')} 只，三只以上 ${runs.map(q => q.crowd.three).join(' / ')} 秒` : ''));
       out.push(`      原地那一遍：${b.won ? '打完了' : b.phase === 'lost' ? `倒下了，还剩 ${b.left} 只` : `机器人自己绕不出来了，还剩 ${b.left} 只（不算这张图的问题）`}${b.hits.length ? ' · 挨打在 ' + b.hits.map(h => `${h.t}秒 ${h.room} ${ZOMBIES[h.by]?.name ?? h.by}`).join('，') : ''}`);
     }
   }

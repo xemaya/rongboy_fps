@@ -349,12 +349,12 @@ function moodMaterial(text) {
   const c = document.createElement('canvas'); c.width = 160; c.height = 96;
   const ctx = c.getContext('2d');
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  const size = text === '!' ? 78 : 43;
+  const size = text === '!' || text === '?' ? 78 : 43;
   ctx.font = uiCanvasFont(size);
   const measured = ctx.measureText(text).width;
   if (measured > 143) ctx.font = uiCanvasFont(size * 143 / measured);
   ctx.lineWidth = 8; ctx.strokeStyle = '#3e4a38'; ctx.strokeText(text, 80, 50);
-  ctx.fillStyle = text === 'Zzz' ? '#eef2e2' : '#f2b84b'; ctx.fillText(text, 80, 50);
+  ctx.fillStyle = text === 'Zzz' ? '#eef2e2' : text === '?' ? '#e6dcb4' : '#f2b84b'; ctx.fillText(text, 80, 50);
   const map = new T.CanvasTexture(c); map.colorSpace = T.SRGBColorSpace;
   const material = new T.SpriteMaterial({ map, transparent: true, depthWrite: false });
   moodMaterials.set(text, material); return material;
@@ -390,8 +390,9 @@ function updateEnemy(e, a, showHealth) {
   }
   if (a.healthBar) a.healthBar.visible = showHealth;
   const asleep = e.awareness === 'asleep', waking = e.awareness === 'waking';
+  const searching = e.awareness === 'idle' && e.lure?.kind === 'noise';
   const cue = attackCue(e);
-  const mood = e.alive && t(cue?.label || (e.guardBroken > 0 ? '破防' : waking ? '!' : ''));
+  const mood = e.alive && t(cue?.label || (e.guardBroken > 0 ? '破防' : waking ? '!' : searching ? '?' : ''));
   if (mood) {
     const material = moodMaterial(mood);
     if (!a.mood) {
