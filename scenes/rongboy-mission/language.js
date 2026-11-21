@@ -43,12 +43,17 @@ function paintLanguage() {
   for (const [node,name,value] of staticMarkup.attributes) node.setAttribute(name,t(value));
 }
 
-export async function initializeLanguage({platformLocale = true} = {}) {
+export async function initializeLanguage({platformLocale = true, waitForPlatformLocale = false} = {}) {
   const preference = languagePreference();
-  language = resolveLanguage(preference, {platform:crazyGames, locale:browserLocale()});
-  paintLanguage();
-  if (crazyGames && platformLocale && preference === 'auto') {
-    language = resolveLanguage(preference,{platform:true,locale:await crazyGamesLocale()});
+  const usePlatformLocale = crazyGames && platformLocale && preference === 'auto';
+  if (!usePlatformLocale || !waitForPlatformLocale) {
+    language = resolveLanguage(preference, {platform:crazyGames, locale:browserLocale()});
+    paintLanguage();
+  }
+  if (usePlatformLocale) {
+    const locale = await crazyGamesLocale();
+    if (preference !== languagePreference()) return;
+    language = resolveLanguage(preference, {platform:true, locale});
     paintLanguage();
   }
 }
@@ -66,7 +71,7 @@ const words = {
   '守墓巨像醒了 · 躲开震地，带篮子下楼': 'The Grave Guardian is awake · Dodge the slam and take the basket downstairs',
   '常用操作': 'Quick controls', '全部按键': 'All controls', '返回暂停': 'Back to pause',
   '开火': 'Fire', '开火 / 蓄力': 'Fire / charge', '左键': 'LMB',
-  '语言': 'Language', '开始花园': 'Play the garden', '下一关': 'Next level',
+  '语言': 'Language', '开始游戏': 'Play', '下一关': 'Next level',
   '花园首战': 'The Garden', '清空花园': 'Clear the garden', '花园清理完毕！': 'Garden cleared!',
   '左键开火': 'Left click to fire', '按 R2 开火': 'Tap R2 to fire',
   'WASD 移动 · 点击用鼠标瞄准，或用方向键和空格': 'WASD to move · Click to aim, or use arrows + Space',
@@ -94,7 +99,7 @@ const words = {
   '主菜单': 'Main menu', '选关': 'Levels', '选择地图': 'Choose a level', '设置': 'Settings',
   '按键': 'Controls', '查看按键': 'View controls', '练习': 'Practice', '选择练习': 'Choose a practice mode',
   '兵种试战': 'Enemy drills', '选择敌人': 'Choose an enemy', '模型和招式预览': 'Figure and attack preview',
-  '模型角度': 'View angle', '挑战簿': 'Challenge Book', '选择挑战': 'Choose a challenge', '已盖章': 'Stamp earned',
+  '模型角度': 'View angle', '挑战簿': 'Challenge', '选择挑战': 'Choose a challenge', '已盖章': 'Stamp earned',
   '暂停': 'Paused', '操作': 'Controls', '继续': 'Resume', '重玩关卡': 'Restart level', '全屏': 'Fullscreen',
   '返回': 'Back', '返回主菜单': 'Main menu', '返回设置': 'Back to settings', '返回练习': 'Back to practice',
   '返回挑战簿': 'Back to challenges', '返回兵种试战': 'Back to enemy drills', '返回选关': 'Back to levels',
@@ -141,8 +146,8 @@ const words = {
   '试探照灯炮、电网和 4× 毛衣针，也能对比小丑盒和蒸笼的伤害。': 'Try the searchlight cannon, net launcher, 4× needle rifle, and both throwables.',
   '蓄满力打盾面，或让毛球从墙上弹回盾后。': 'Charge a shot to break the shield, or bank a woolball into its back.',
   '清掉花园里的两只僵尸': 'Clear both zombies from the garden',
-  '家': 'The House', '学校': 'The School', '博物馆': 'The Museum', '奶奶家': 'Grandma’s Place',
-  '家 · 三层楼与花园': 'The House', '博物馆 · 奇妙夜': 'The Museum After Dark',
+  '绒仔家': 'Rongboy’s House', '学校': 'The School', '博物馆': 'The Museum', '奶奶家': 'Grandma’s Place',
+  '绒仔家 · 三层楼与花园': 'Rongboy’s House', '博物馆 · 奇妙夜': 'The Museum After Dark',
   '学校 · 三间教室和小操场': 'The School', '奶奶家 · 果园与阁楼': 'Grandma’s Place · Orchard and Loft',
   '上阁楼找回毛线篮，带回院门': 'Find the yarn basket in the attic and return it to the gate',
   '找回三件被拿走的展品，送回恐龙面前': 'Bring all three missing exhibits back to the dinosaur',

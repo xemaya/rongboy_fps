@@ -19,11 +19,11 @@ body[data-screen=chapters] .shade{background:linear-gradient(0deg,#101b15 2%,#10
 body[data-screen=settings] .shade,body[data-screen=controls] .shade{background:linear-gradient(90deg,#132017e6 0%,#142218ab 49%,#111b143a),linear-gradient(0deg,#101a15d0,transparent 30%);backdrop-filter:blur(3px)}
 body[data-screen=opponents] .shade,body[data-screen=challenges] .shade{background:linear-gradient(90deg,#101b15e8,#101a14a0 35%,transparent 65%),linear-gradient(0deg,#101b15da,transparent 35%)}
 .layout{position:relative;min-height:100dvh;isolation:isolate;display:flex;flex-direction:column;padding:clamp(24px,4.1vw,70px) clamp(22px,4.5vw,78px) clamp(16px,2.8vw,44px);gap:24px}
-.brand{align-self:flex-start;position:relative;text-shadow:0 3px 18px #17190c;display:flex;flex-direction:column;color:#f6e6bb;line-height:1}
+.brand{inline-size:100%;position:relative;text-shadow:0 3px 18px #17190c;display:flex;flex-direction:column;color:#f6e6bb;line-height:1}
 .brand strong{font:700 clamp(36px,5vw,80px)/1 var(--ui-title);letter-spacing:.018em}
 :lang(en) .brand strong{text-transform:uppercase}
-:lang(en) .brand span{display:none}
-.brand span{font:600 clamp(11px,1.4vw,17px) var(--ui-text);letter-spacing:.2em;margin-top:9px;padding-left:2px}
+:lang(en) .brand span{visibility:hidden}
+.brand span{font:600 clamp(11px,1.4vw,17px)/1.2 var(--ui-text);letter-spacing:.2em;margin-top:9px;padding-left:2px}
 body[data-screen=home] .brand strong{font-size:clamp(74px,9.4vw,155px)}
 body[data-screen=home] .brand span{font-size:clamp(13px,2vw,27px);margin-top:14px}
 section{flex:1;min-width:0}
@@ -36,35 +36,37 @@ p{line-height:1.5;margin:9px 0}
 .choice{padding:.42em .78em;font:600 clamp(22px,2.8vw,41px)/1.13 var(--ui-text);text-align:left}
 .primary,.secondary{padding:.54em .88em;font:600 clamp(19px,2.1vw,30px)/1.15 var(--ui-text);text-align:center}
 .pill{padding:.35em .72em;min-height:32px;font-weight:600;text-align:center}
-.footer{margin-top:auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px 22px;min-height:42px;border-top:1px solid #e3c18b50;padding-top:12px;text-shadow:0 2px 5px #0b190e}
+.footer{margin-top:auto;display:grid;grid-template-columns:minmax(0,1fr) clamp(153px,22vw,215px);align-items:center;gap:6px 18px;min-height:42px;border-top:1px solid #e3c18b50;padding-top:12px;text-shadow:0 2px 5px #0b190e}
+#go-back{grid-column:2;grid-row:1}
 .chapters{display:flex;flex-direction:column;justify-content:flex-end;gap:19px}
 .location{border-left:4px solid var(--gold);padding-left:16px}
-.location p{font:500 clamp(16px,1.85vw,24px) var(--ui-text);margin:7px 0 0}
-.chapter-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:18px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.location p{font:500 clamp(16px,1.85vw,24px)/1.35 var(--ui-text);min-block-size:2lh;margin:7px 0 0}
+.chapter-actions{display:grid;grid-template-columns:minmax(0,1fr) clamp(126px,17vw,212px);align-items:end;gap:18px}
+.cards{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:10px}
 .card{position:relative;border:2px solid #a9b79b7d;border-radius:var(--ui-radius);overflow:hidden;background:#2b4536;padding:0;font:600 clamp(14px,1.72vw,23px) var(--ui-text);text-align:center;box-shadow:0 3px 0 #14271c}
 .card img{display:block;width:100%;aspect-ratio:1.65;object-fit:cover}
-.card span{display:grid;place-items:center;min-height:2.4em;padding:.27em .32em;line-height:1.18}
+.card span{display:grid;place-items:center;block-size:3em;padding:.27em .32em;line-height:1.18}
 .card:hover,.card[aria-pressed=true]{border-color:#f8c66d}
 .card[aria-pressed=true]{background:#f4c779;color:var(--ui-ink);box-shadow:0 3px 0 #9b6a3a}
 .card[aria-pressed=true]::after{content:"";position:absolute;inset:4px;border:1px dashed #ffeac077;border-radius:10px;pointer-events:none}
-.chapter-actions .primary{white-space:nowrap}
+.chapter-actions .primary{width:100%;white-space:nowrap}
 .panel{width:min(100%,720px);padding:clamp(17px,2.8vw,37px);border:1px solid #bca4708a;background:linear-gradient(145deg,#263629f5,#19271eea);border-radius:20px;box-shadow:0 16px 50px #0c120bb3;outline:1px dashed #b9c8a36b;outline-offset:-7px}
 .setting{display:grid;grid-template-columns:minmax(95px,.88fr) 1.65fr;gap:12px;align-items:center;min-height:54px;padding:9px;border-radius:8px;border:1px solid transparent}
 .setting+.setting{border-top-color:#bfaa7e40}
 .setting.active{border-color:#d9bc7d;background:#78926038}
-.setting .values{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.setting-title{font:500 clamp(16px,2vw,24px) var(--ui-text)}
-.setup-link{margin-top:12px;font-size:clamp(15px,1.7vw,21px)}
-.devices{display:flex;gap:8px}
+.setting .values{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px}
+.setting-title{font:500 clamp(16px,2vw,24px)/1.15 var(--ui-text)}
+#show-controls{width:min(100%,210px);min-height:35px;margin-top:12px;font:600 clamp(15px,1.7vw,21px)/1.2 var(--ui-text)}
+.devices,#views{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);width:min(100%,345px);gap:8px}
 .bindings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px;margin:18px 0 0}
-.bindings div{display:flex;align-items:baseline;gap:8px;border-bottom:1px solid #ddc49648;padding:5px 0}
-.bindings dd{margin:0;font:700 clamp(14px,1.4vw,19px)/1.4 var(--ui-title)}
+.bindings div{display:grid;grid-template-columns:clamp(72px,12vw,114px) minmax(0,1fr);align-items:center;gap:8px;border-bottom:1px solid #ddc49648;padding:3px 0}
+.bindings .ui-key{max-inline-size:100%;min-block-size:1.65em;block-size:auto;padding-block:.28em;white-space:normal;text-align:center}
+.bindings dd{align-content:center;min-block-size:2lh;margin:0;font:700 clamp(14px,1.4vw,19px)/1.25 var(--ui-title)}
 .practice{display:flex;flex-direction:column;justify-content:flex-end;gap:16px;padding-bottom:clamp(10px,6vh,70px)}
-.practice .primary{align-self:flex-start}
+#practice-start{align-self:flex-start;width:min(100%,238px);padding-inline:.6em;font-size:clamp(16px,1.85vw,24px)}
 .practice-brief{width:min(100%,440px);padding:3px 0 4px 15px;border-left:2px solid var(--ui-gold);text-shadow:0 2px 8px #0c170d}
 .practice-brief strong{display:block;font:700 clamp(20px,2.25vw,34px)/1.2 var(--ui-title);color:#ffe1a0}
-.practice-brief p{margin:4px 0 0;color:var(--ui-cream);font:700 clamp(16px,1.55vw,22px)/1.45 var(--ui-text)}
+.practice-brief p{min-block-size:3lh;margin:4px 0 0;color:var(--ui-cream);font:700 clamp(16px,1.55vw,22px)/1.45 var(--ui-text)}
 .enemy-list{position:relative;display:flex;flex-direction:column;max-height:56dvh;overflow:auto;scrollbar-color:#c69f5f #25382b;gap:6px;width:min(36vw,300px);padding:5px}
 .enemy-list .choice{font-size:clamp(16px,2vw,27px);border-color:#d4c09255}
 .opponent-grid{display:grid;grid-template-columns:minmax(105px,.65fr) minmax(0,1.35fr);gap:clamp(12px,3vw,42px)}
@@ -77,27 +79,25 @@ body[data-screen=opponents] h1{font-size:clamp(29px,5.7vh,59px)}
 iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;color-scheme:dark;background:transparent}
 #enemy-preview{width:min(100%,525px);background:#253c2fea;border:1px dashed var(--ui-edge);padding:10px 15px;border-radius:var(--ui-radius)}
 #enemy-attack{margin:0;font:700 clamp(19px,2.2vw,31px) var(--ui-title);color:var(--ui-gold)}
-#enemy-tactic{margin:3px 0 0;font:700 clamp(15px,1.45vw,21px)/1.45 var(--ui-text)}
-#views{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}
-#model-action{align-self:center}
+#enemy-tactic{min-block-size:3lh;margin:3px 0 0;font:700 clamp(15px,1.45vw,21px)/1.45 var(--ui-text)}
+#model-action{align-self:center;width:min(100%,224px)}
 .challenge-book{display:grid;grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr);gap:clamp(12px,3vw,44px);width:min(100%,940px);align-items:start}
 .challenge-list{display:grid;gap:9px}
 .challenge-list .choice{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:58px;font-size:clamp(18px,2.15vw,30px);border-color:var(--ui-edge)}
-.challenge-list .ui-stamp{font-size:.66em;color:#f5bd8d}
-:lang(en) .challenge-list .ui-stamp{font-size:.52em}
+.challenge-list .choice{padding-inline-end:60px}
+.challenge-list .ui-stamp{position:absolute;inset-inline-end:9px;inline-size:46px;block-size:23px;aspect-ratio:auto;font-size:clamp(11px,1.35vw,16px);color:#f5bd8d}
 .challenge-list .choice[aria-pressed=true] .ui-stamp{color:#8b3526}
 .challenge-page{position:relative;background:repeating-linear-gradient(0deg,#9c704708 0 1px,transparent 1px 27px),linear-gradient(130deg,#fff0ce,#eddbb6);color:#233727;box-shadow:0 13px 33px #131a0e9c;border-radius:12px 20px 20px 12px;border:1px solid #feedc1;border-left:5px solid #be9d6b;padding:clamp(18px,3.5vw,45px);outline:1px dashed #a5866570;outline-offset:-8px}
 .challenge-page h2{font:700 clamp(29px,3.8vw,56px)/1.05 var(--ui-title);text-shadow:none}
-.challenge-page:has(#book-stamp:not([hidden])) h2{padding-inline-end:1.6em}
-:lang(en) .challenge-page:has(#book-stamp:not([hidden])) h2{padding-inline-end:4rem}
-#book-stamp{position:absolute;right:clamp(16px,3vw,42px);top:clamp(16px,3vw,42px);font-size:clamp(25px,3.4vw,45px)}
-:lang(en) #book-stamp{font-size:clamp(16px,2vw,25px)}
-#challenge-goal{font:700 clamp(17px,2vw,27px)/1.4 var(--ui-text);margin-top:.65em}
-#challenge-hint{color:#46523d;font:700 clamp(15px,1.5vw,21px)/1.45 var(--ui-text);margin:8px 0 20px}
-.challenge-action{display:flex;align-items:center;flex-wrap:wrap;gap:10px 16px}
+.challenge-page h2{min-block-size:2lh;padding-inline-end:76px}
+#book-stamp{position:absolute;right:clamp(16px,3vw,42px);top:clamp(16px,3vw,42px);inline-size:72px;block-size:32px;aspect-ratio:auto;font-size:clamp(16px,2vw,24px)}
+#challenge-goal{min-block-size:2lh;font:700 clamp(17px,2vw,27px)/1.4 var(--ui-text);margin-top:.65em}
+#challenge-hint{min-block-size:2lh;color:#46523d;font:700 clamp(15px,1.5vw,21px)/1.45 var(--ui-text);margin:8px 0 20px}
+.challenge-action{display:grid;grid-template-columns:minmax(0,215px) minmax(0,1fr);align-items:center;gap:10px 16px}
+#challenge-start{font-size:clamp(16px,1.9vw,23px);padding-inline:.65em}
 #challenge-time{color:#514d37;font:700 17px var(--ui-title)}
 @media (max-height:650px) and (min-width:701px){.layout{padding-top:25px;gap:12px}.home nav{margin-top:5px}.choice{font-size:clamp(21px,3.1vw,39px)}body[data-screen=home] .brand strong{font-size:clamp(55px,8vw,104px)}.card img{aspect-ratio:2.15}.panel{padding:17px}h1{margin-bottom:12px}.enemy-list{max-height:56dvh}}
-@media (max-width:700px){.layout{gap:15px;padding:24px 18px 14px}.chapter-actions{grid-template-columns:1fr;gap:12px}.chapter-actions .primary{justify-self:start}.cards{gap:5px}.card{border-radius:6px}.card span{font-size:clamp(12px,3.4vw,18px)}.stack{width:min(59vw,285px)}.binding div{flex-wrap:wrap}.setting .values{gap:4px}#model-action{font-size:17px}#enemy-preview{padding:9px 12px}.footer{gap:5px 9px}.challenge-book{grid-template-columns:1fr}.challenge-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.challenge-list .choice{min-height:48px;font-size:clamp(15px,3vw,23px);padding:.4em}}
+@media (max-width:700px){.layout{gap:15px;padding:24px 18px 14px}.chapter-actions{grid-template-columns:1fr;gap:12px}.chapter-actions .primary{justify-self:end;width:min(100%,155px)}.cards{gap:5px}.card{border-radius:6px}.card span{font-size:clamp(12px,3.4vw,18px)}.stack{width:min(59vw,285px)}.bindings div{grid-template-columns:minmax(0,82px) minmax(0,1fr)}.setting .values{gap:4px}#model-action{font-size:17px}#enemy-preview{padding:9px 12px}.footer{gap:5px 9px}.challenge-book{grid-template-columns:1fr}.challenge-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.challenge-list .choice{min-height:72px;font-size:clamp(15px,3vw,23px);padding:.4em .4em 24px}.challenge-list .ui-stamp{inset-inline-end:6px;bottom:3px}.location p,#enemy-tactic{min-block-size:3lh}}
 @media (max-height:550px) and (min-width:701px){
   .layout{padding-block:12px 9px;gap:8px}
   .brand strong{font-size:35px}.brand span{margin-top:4px}
@@ -109,7 +109,7 @@ iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;color-s
   .panel{padding:12px 15px}
   .setting{min-height:38px;padding:4px 7px}
   .pill{min-height:27px;padding-block:.23em}
-  .setup-link{margin-top:8px}
+  #show-controls{margin-top:8px}
   .footer{padding-top:7px;min-height:35px}
   .bindings{gap:6px 15px;margin-top:12px}
   body[data-screen=opponents] .layout{padding-block:11px 9px}
@@ -119,6 +119,22 @@ iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;color-s
   .practice{padding-bottom:0;gap:8px}
   .practice-brief p{line-height:1.32}
   .practice .primary{font-size:clamp(17px,2.1vw,22px);padding-block:.48em}
+  .challenge-page{padding:18px 22px}
+}
+@media (max-width:520px){
+  .cards:has(.card:nth-child(5)){grid-auto-flow:row;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .home nav{width:min(100%,240px)}
+  .footer{grid-template-columns:minmax(0,1fr);gap:7px}
+  #go-back{grid-column:1;grid-row:2;justify-self:end;width:min(100%,185px)}
+  #hints{align-content:start;min-block-size:2lh}
+  .bindings{grid-template-columns:minmax(0,1fr)}
+  .bindings div{grid-template-columns:104px minmax(0,1fr)}
+  #enemy-tactic{min-block-size:5lh}
+  .setting{grid-template-columns:90px minmax(0,1fr);gap:6px}
+  .setting-title{font-size:14.5px}
+  .setting .pill{padding-inline:.14em;font-size:clamp(12px,3.3vw,16px)}
+  .challenge-action{grid-template-columns:minmax(0,1fr) minmax(75px,.45fr)}
+  #challenge-start{font-size:clamp(15px,4vw,21px)}
 }
 </style>
 </head>
@@ -132,7 +148,7 @@ iframe{width:100%;height:100%;border:0;display:block;pointer-events:none;color-s
     <div class="chapter-actions"><nav class="cards" id="maps" aria-label="选择地图"></nav><button class="primary ui-trigger" id="start"></button></div>
   </section>
   <section id="settings" aria-label="设置" hidden>
-    <h1>设置</h1><div class="panel"><div id="setting-options"></div><button class="choice setup-link" id="show-controls">查看按键</button></div>
+    <h1>设置</h1><div class="panel"><div id="setting-options"></div><button class="choice" id="show-controls">查看按键</button></div>
   </section>
   <section id="controls" aria-label="按键" hidden>
     <h1>按键</h1><div class="panel"><div id="devices" class="devices"></div><dl class="bindings" id="bindings"></dl></div>

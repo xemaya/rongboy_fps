@@ -1,7 +1,8 @@
-import { copy, language, t, urlLanguage } from './language.js';
+import { crazyGames, firstRound } from './platform.js';
+import { copy, initializeLanguage, language, t, urlLanguage } from './language.js';
 import { MAP_CARDS } from './map-cards.js';
 import { createGamepad } from './gamepad.js';
-import { MENU, CHAPTER_ART, SCREEN_IDS, readMenuRoute, menuHref, playHref, challengeBookHref, challengePlayHref, pageHref } from './menu-flow.js';
+import { MENU, CHAPTERS, CHAPTER_ART, SCREEN_IDS, readMenuRoute, menuHref, playHref, challengeBookHref, challengePlayHref, pageHref } from './menu-flow.js';
 import { readPreferences, writePreferences } from './preferences.js';
 import { ZOMBIE_ROSTER } from '../../library/games/rongboy-roster.js';
 import { ATTACKS } from './attacks.js';
@@ -9,7 +10,8 @@ import { KEYBOARD, GAMEPAD, drawHints, keyBadge, labelAction } from './input-hin
 import { CHALLENGES, findChallenge, hasStamp } from './challenges.js';
 
 const $ = id => document.getElementById(id);
-const cards = MAP_CARDS.filter(card=>card.id!=='training');
+const cards = CHAPTERS.map(id => id === firstRound
+  ? {id, name:'花园首战', mission:'清空花园'} : MAP_CARDS.find(card=>card.id===id));
 const prefs = readPreferences();
 const query = new URLSearchParams(location.search);
 prefs.language = urlLanguage() ?? prefs.language;
@@ -32,14 +34,21 @@ const settings = [
 ];
 let settingIndex = query.get('focus')==='controls' ? settings.length : 0;
 const bindings = [
+  ...(crazyGames ? [[['WASD','移动'],['鼠标','转向'],['鼠标左键','射击 / 蓄力'],['R','换弹'],['Q','换枪'],['Shift','跳跃'],['F','拾取 / 换地上的枪'],['E','投掷'],['G','切换炸弹'],['Esc','暂停']]] : []),
   [['WASD','移动'],['方向键','转向'],['空格','射击 / 蓄力'],['R','换弹'],['Q','换枪'],['Shift','跳跃'],['F','拾取 / 换地上的枪'],['E','投掷'],['G','切换炸弹'],['Esc','暂停']],
   [['左摇杆','移动'],['右摇杆','转向'],['R2','射击 / 蓄力'],['R1','换弹'],['L1','换枪'],['✕','跳跃'],['□','拾取 / 换地上的枪'],['L2','投掷'],['十字↓','切换炸弹'],['Options','暂停']],
 ];
 
+const localLabels = new Map();
+function appendLabel(host, label) {
+  const node = document.createTextNode(t(label));
+  host.append(node);
+  localLabels.set(node,label);
+}
 function buttons(host, labels, style, onClick) {
   return labels.map((label,i)=>{
     const b=document.createElement('button');
-    b.type='button';b.className=style;b.textContent=t(label);b.onclick=()=>onClick(i);
+    b.type='button';b.className=style;appendLabel(b,label);b.onclick=()=>onClick(i);
     host.append(b);return b;
   });
 }
@@ -57,7 +66,7 @@ const homeButtons=buttons($('home-options'),MENU.map(x=>x[1]),'choice',i=>{
 const cardsUI=buttons($('maps'),cards.map(card=>card.name),'card',i=>selectChapter(i,true));
 for(const [i,card] of cards.entries()){
   const img=document.createElement('img'), name=document.createElement('span');
-  img.src='menu-'+CHAPTER_ART[card.id]+'.webp';img.alt='';img.loading='lazy';name.textContent=t(card.name);
+  img.src='menu-'+CHAPTER_ART[card.id]+'.webp';img.alt='';img.loading='lazy';name.append(cardsUI[i].firstChild);
   cardsUI[i].replaceChildren(img,name);
 }
 const practiceButtons=buttons($('practice-options'),practice.map(x=>x.name),'choice',i=>{
@@ -65,11 +74,17 @@ const practiceButtons=buttons($('practice-options'),practice.map(x=>x.name),'cho
 });
 const opponentButtons=buttons($('opponent-options'),ZOMBIE_ROSTER.map(e=>e.name),'choice',i=>selectEnemy(i));
 const challengeButtons=buttons($('challenge-options'),CHALLENGES.map(challenge=>challenge.name),'choice',i=>selectChallenge(i));
+const challengeStamps=challengeButtons.map(button=>{
+  const stamp=document.createElement('span');
+  stamp.className='ui-stamp';stamp.setAttribute('aria-hidden','true');
+  button.append(stamp);
+  return stamp;
+});
 const viewButtons=buttons($('views'),views.map(x=>x[1]),'pill',i=>{viewIndex=i;render(false);});
-const deviceButtons=buttons($('devices'),['键盘','手柄'],'pill',i=>{deviceIndex=i;render(true);});
+const deviceButtons=buttons($('devices'),[...(crazyGames ? ['鼠标'] : []),'键盘','手柄'],'pill',i=>{deviceIndex=i;render(true);});
 const settingRows=settings.map((setting,index)=>{
   const row=document.createElement('div'),label=document.createElement('span'), values=document.createElement('div');
-  row.className='setting';label.className='setting-title';label.textContent=t(setting.label);values.className='values';
+  row.className='setting';label.className='setting-title';appendLabel(label,setting.label);values.className='values';
   row.append(label,values);$('setting-options').append(row);
   const list=buttons(values,setting.choices.map(c=>c[1]),'pill',i=>{
     settingIndex=index;
@@ -84,9 +99,24 @@ function setPreference(setting, value) {
   prefs[setting.key] = value;
   const saved = writePreferences(prefs);
   if (setting.key === 'language') {
-    leaving = true;
-    location.replace(menuHref('settings',null,null,null,saved ? null : value));
+    history.replaceState(null,'',menuHref('settings',null,null,null,saved ? null : value));
+    refreshLocale();
   }
+}
+
+async function refreshLocale() {
+  const previous = language;
+  await initializeLanguage({waitForPlatformLocale:true});
+  for (const [node,label] of localLabels) node.nodeValue=t(label);
+  if (frame && previous!==language) model(false);
+  render(false);
+}
+
+function syncPreferences() {
+  const previous = prefs.language;
+  Object.assign(prefs,readPreferences());
+  prefs.language = urlLanguage() ?? prefs.language;
+  if (prefs.language!==previous) refreshLocale();
 }
 
 const wrap = (value,size) => (value + size) % size;
@@ -136,7 +166,7 @@ function setInput(device) {
 }
 
 function drawCommands() {
-  const {screen,level,type}=route;
+  const {screen}=route;
   const hints={
     home:[[input.vertical,'选择'],[input.confirm,'进入']],
     chapters:[[input.horizontal,'切换地图']],
@@ -151,9 +181,9 @@ function drawCommands() {
   $('go-back').hidden=screen==='home';
   const backTo={controls:'返回设置',opponents:'返回练习'};
   labelAction($('go-back'),input.back,backTo[screen]||'返回主菜单');
-  if (screen==='chapters') labelAction($('start'),input.confirm,copy(level==='house'?'进入花园':'进入'+cards.find(c=>c.id===level).name, 'Play '+t(cards.find(c=>c.id===level).name)));
+  if (screen==='chapters') labelAction($('start'),input === KEYBOARD ? '↵' : input.confirm,'进入');
   if (screen==='practice') labelAction($('practice-start'),input.confirm,['开始练习','选择对手','开始试射'][practiceIndex]);
-  if (screen==='opponents') labelAction($('model-action'),input.confirm,copy('试战'+ZOMBIE_ROSTER.find(e=>e.id===type).name, 'Fight '+t(ZOMBIE_ROSTER.find(e=>e.id===type).name)));
+  if (screen==='opponents') labelAction($('model-action'),input.confirm,'开始试战');
   if (screen==='challenges') labelAction($('challenge-start'),input.confirm,hasStamp(route.challenge)?'再次挑战':'开始挑战');
 }
 
@@ -167,12 +197,10 @@ function drawChallengeBook(id) {
   $('book-stamp').hidden=!hasStamp(id);
   for (const [index,challenge] of CHALLENGES.entries()) {
     const button=challengeButtons[index], earned=hasStamp(challenge.id);
-    button.textContent=t(challenge.name);
+    const stamp=challengeStamps[index];
     button.setAttribute('aria-label',t(challenge.name)+(earned?copy('，已盖章',', stamp earned'):''));
-    if (earned) {
-      const stamp=document.createElement('span');stamp.className='ui-stamp';stamp.textContent=t(challenge.stamp);stamp.setAttribute('aria-hidden','true');
-      button.append(stamp);
-    }
+    stamp.textContent=t(challenge.stamp);
+    stamp.hidden=!earned;
   }
 }
 
@@ -279,8 +307,15 @@ function move(axis,delta) {
 
 $('start').onclick=confirm;$('practice-start').onclick=confirm;$('show-controls').onclick=()=>{settingIndex=settings.length;go('controls');};
 $('model-action').onclick=confirm;$('challenge-start').onclick=confirm;$('go-back').onclick=back;
-addEventListener('popstate',()=>{route=readMenuRoute(new URLSearchParams(location.search));leaving=false;render(true);});
-addEventListener('pageshow',event=>{if(event.persisted){leaving=false;Object.assign(prefs,readPreferences());render(true);}});
+addEventListener('popstate',()=>{
+  route=readMenuRoute(new URLSearchParams(location.search));
+  leaving=false;
+  syncPreferences();
+  render(true);
+});
+addEventListener('pageshow',event=>{
+  if(event.persisted){leaving=false;syncPreferences();render(true);}
+});
 addEventListener('storage',()=>{if(route.screen==='challenges')render(false);});
 const directions={arrowup:['y',-1],w:['y',-1],arrowdown:['y',1],s:['y',1],arrowleft:['x',-1],a:['x',-1],arrowright:['x',1],d:['x',1]};
 addEventListener('keydown',event=>{

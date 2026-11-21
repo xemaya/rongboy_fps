@@ -1,6 +1,13 @@
 export const crazyGames = typeof __RONGBOY_CRAZYGAMES__ !== 'undefined' && __RONGBOY_CRAZYGAMES__;
+export const playPage = 'rongboy-play.html';
+export const firstRound = 'garden-intro';
+const campaign = [firstRound, 'school', 'house', 'museum', 'cottage'];
 
-let sdkPromise;
+export function nextChapter(level) {
+  return crazyGames && campaign.includes(level) ? campaign[campaign.indexOf(level) + 1] : undefined;
+}
+
+let sdkPromise, game, loading = false, playing = false;
 
 function loadCrazyGames() {
   return sdkPromise ??= new Promise(resolve => {
@@ -24,4 +31,27 @@ export async function crazyGamesLocale() {
   if (!crazyGames) return;
   const sdk = await loadCrazyGames();
   try { return sdk?.user?.systemInfo?.locale; } catch { return undefined; }
+}
+
+export async function connectCrazyGames() {
+  if (!crazyGames) return;
+  const sdk = await loadCrazyGames();
+  game = sdk?.game;
+  if (game && !loading) {
+    try { game.loadingStart(); loading = true; }
+    catch { game = undefined; }
+  }
+}
+
+export function platformReady() {
+  if (!loading) return;
+  game.loadingStop();
+  loading = false;
+}
+
+export function platformPlaying(active) {
+  if (!game || active === playing) return;
+  playing = active;
+  if (active) game.gameplayStart();
+  else game.gameplayStop();
 }

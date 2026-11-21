@@ -47,6 +47,8 @@ assert.equal(resolveLanguage('en',{platform:true,locale:'zh-CN'}),'en');
 assert.equal(resolveLanguage('zh-CN',{platform:true,locale:'en-US'}),'zh-CN');
 assert.equal(resolveLanguage('auto',{locale:'en-US'}),'en');
 assert.equal(resolveLanguage('auto'),'zh-CN');
+assert.equal(cards.find(c=>c.id==='house').name,'绒仔家');
+assert.equal(english('绒仔家'),'Rongboy’s House');
 assert.equal(english('花园首战'),'The Garden');
 assert.equal(english('下一关'),'Next level');
 globalThis.location = { search:'?lang=zh-CN' };
@@ -56,6 +58,23 @@ assert.equal(queryOf(challengePlayHref('shield-bank')).get('lang'),'zh-CN');
 assert.equal(queryOf(menuHref('settings',null,null,null,null)).get('lang'),null);
 delete globalThis.location;
 
+
 assert.equal(modelPack('shielded'),'second-trio.glb');
 assert.equal(modelPack('boss-leech'),'final-trio.glb');
 console.log('PASS menu routing and saved input/display preferences');
+
+const releaseBundle=await build({
+  entryPoints:['scenes/rongboy-mission/menu-flow.js'],
+  bundle:true, write:false, format:'esm',
+  define:{__RONGBOY_CRAZYGAMES__:'true'},
+});
+const release = await import('data:text/javascript;base64,'+Buffer.from(releaseBundle.outputFiles[0].contents).toString('base64'));
+assert.deepEqual(release.MENU,[['chapters','开始游戏'],['settings','设置'],['practice','练习'],['challenges','挑战簿']]);
+assert.equal(english(release.MENU[0][1]),'Play');
+assert.equal(release.readMenuRoute(queryOf('index.html')).screen,'home');
+assert.equal(release.readMenuRoute(queryOf(release.menuHref('chapters','garden-intro'))).level,'garden-intro');
+assert.deepEqual(release.CHAPTERS,['garden-intro',...ORDER]);
+const gardenPlay=release.playHref('garden-intro','chapters');
+assert.equal(gardenPlay,'rongboy-play.html?level=garden-intro&from=chapters');
+assert.equal(release.exitPlayHref(queryOf(gardenPlay),'garden-intro'),'rongboy-mission.html?screen=chapters&level=garden-intro');
+console.log('PASS CrazyGames Play opens one level picker with an optional garden and a separate game page');

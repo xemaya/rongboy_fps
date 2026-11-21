@@ -5,8 +5,9 @@
 //   node scripts/build.mjs --serve --port 5192 [page]   same, on a fixed port
 // A page is a folder with main.js + index.html: scenes/<name>/ or tools/<name>/ (tools/showcase).
 import * as esbuild from 'esbuild';
-import { readFile, writeFile, rename, mkdir, readdir, stat, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, rename, mkdir, readdir, stat, copyFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
@@ -16,6 +17,10 @@ await buildMenuCards();
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
 const serve = args.includes('--serve');
+const crazyGames = args.includes('--crazygames');
+const output = path.join(root, 'dist', crazyGames ? 'crazygames' : '');
+const files = new Set();
+const outputName = page => page + '.html';
 // --port <n> pins the dev-server port (same as PORT=<n>); its value is not a page name
 const portAt = args.indexOf('--port');
 const portArg = portAt >= 0 ? Number(args[portAt + 1]) : 0;
@@ -31,7 +36,8 @@ async function pages() {
       if ((await stat(p)).isDirectory() && existsSync(path.join(p, 'main.js')) && existsSync(path.join(p, 'index.html'))) out.push({ name, dir: p });
     }
   }
-  return only.length ? out.filter((p) => only.includes(p.name)) : out;
+  if (crazyGames) return out.filter(p => ['rongboy-play','rongboy-mission','rongboy-menu-model'].includes(p.name));
+  return only.length ? out.filter(p => only.includes(p.name)) : out;
 }
 
 let emitSequence = 0;
@@ -42,23 +48,35 @@ async function atomicWrite(file, content) {
 }
 
 async function emit(page, js) {
-  const outFile = path.join(root, 'dist', page.name + '.html');
+  const name = outputName(page.name);
+  const outFile = path.join(output, name);
+  files.add(name);
   const html = await readFile(path.join(page.dir, 'index.html'), 'utf8');
+
   await mkdir(path.dirname(outFile), { recursive: true });
   // a function replacement keeps `$` sequences in the bundle literal
   const full = html.replace('/*__BUNDLE__*/', () => js.replace(/<\/script/g, '<\\/script'));
   await atomicWrite(outFile, full);
+  if (crazyGames && page.name === 'rongboy-mission') {
+    await atomicWrite(path.join(output, 'index.html'), full);
+    files.add('index.html');
+  }
   // The same page as a fragment (no doctype / html / head / body) for hosts that wrap it in their own skeleton.
   const head = full.slice(full.indexOf('<title>'), full.indexOf('</style>') + 8);
   const body = full.slice(full.indexOf('<body>') + 6, full.lastIndexOf('</body>'));
   const fragment = head.replace('</title>', '</title>\n<meta name="claude:viewport-fit-sides" content="cover">') + body;
-  await atomicWrite(outFile.replace(/\.html$/, '.fragment.html'), fragment);
+  if (!crazyGames) await atomicWrite(outFile.replace(/\.html$/, '.fragment.html'), fragment);
   // A page may list extra files to place next to it (copy.json: ["assets/.../file", ...], paths from the repo root),
   // e.g. the opening film's pre-rendered mp4. Missing files are skipped: the page has to cope without them.
   const copyList = path.join(page.dir, 'copy.json');
   if (existsSync(copyList)) for (const rel of JSON.parse(await readFile(copyList, 'utf8'))) {
+    const name = path.basename(rel);
+    if (crazyGames && ['walker-trio.glb','second-trio.glb','final-trio.glb'].includes(name)) continue;
     const from = path.join(root, rel);
-    if (existsSync(from)) await copyFile(from, path.join(root, 'dist', path.basename(rel)));
+    if (existsSync(from)) {
+      await copyFile(from, path.join(output, name));
+      files.add(name);
+    } else if (crazyGames) throw new Error('Missing release asset: ' + rel);
   }
   console.log(`[build] ${path.relative(root, outFile)}  ${(Buffer.byteLength(js) / 1024).toFixed(0)} kB of script`);
 }
@@ -66,6 +84,7 @@ async function emit(page, js) {
 const options = (page) => ({
   entryPoints: [path.join(page.dir, 'main.js')],
   bundle: true,
+  define: { __RONGBOY_CRAZYGAMES__: JSON.stringify(crazyGames) },
   format: 'iife',
   target: 'es2022',
   loader: { '.glb': 'binary', '.mp3': 'binary' },
@@ -91,7 +110,7 @@ if (!list.length) throw new Error('no page matches ' + only.join(', '));
 if (serve) {
   for (const p of list) await (await esbuild.context(options(p))).watch();
   const server = createServer(async (req, res) => {
-    const name = decodeURIComponent((req.url || '/').split('?')[0].replace(/^\/+/, '')) || list[0].name + '.html';
+    const name = decodeURIComponent((req.url || '/').split('?')[0].replace(/^\/+/, '')) || (crazyGames ? 'index.html' : outputName(list[0].name));
     // POST /__shot?name=<n> with a JPEG data URL as the body: saved to shots/<n>.jpg (gitignored). Pages use it to
     // hand a canvas frame to whoever is checking the picture when the browser window itself cannot be captured.
     if (req.method === 'POST' && name === '__shot') {
@@ -104,7 +123,7 @@ if (serve) {
       return;
     }
     try {
-      const file = path.join(root, 'dist', path.basename(name));
+      const file = path.join(output, path.basename(name));
       const html = await readFile(file);
       // dist/ also holds the opening film's mp4: answer range requests so the <video> element can seek
       if (file.endsWith('.mp4')) {
@@ -127,8 +146,17 @@ if (serve) {
     if (e.code === 'EADDRINUSE' && port < 5200) server.listen(++port, '127.0.0.1');
     else throw e;
   });
-  server.on('listening', () => console.log(list.map((p) => `[serve] http://localhost:${port}/${p.name}.html`).join('\n')));
+  server.on('listening', () => console.log(list.map((p) => `[serve] http://localhost:${port}/${outputName(p.name)}`).join('\n')));
   server.listen(port, '127.0.0.1');
 } else {
   for (const p of list) await esbuild.build(options(p));
+  if (crazyGames) {
+    const archive = path.join(root, 'dist', 'rongboy-crazygames.zip');
+    const temp = path.join(root, 'dist', `rongboy-crazygames-${process.pid}.zip`);
+    try {
+      execFileSync('zip', ['-q','-X',temp,...[...files].sort()], { cwd:output });
+      await rename(temp, archive);
+    } finally { await rm(temp, { force:true }); }
+    console.log('[release] ' + path.relative(root,archive));
+  }
 }
