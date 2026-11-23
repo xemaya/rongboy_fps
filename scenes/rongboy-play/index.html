@@ -19,6 +19,9 @@ body.locked #view { cursor: none; }
 }
 #missionHud strong { display: block; margin-bottom: 3px; color: #f1ca83; font: 600 .9em var(--ui-title); }
 body:has(#bossHud:not([hidden])) #missionHud { max-width: min(310px, 26vw); }
+body.park-tour #missionHud { width:max-content; min-width:112px; padding:8px 13px; }
+body.park-tour #missionHud strong, body.park-tour .ammo-readout { display:none; }
+body.park-tour #missionStep { font-weight:650; }
 .hearts { position: absolute; display: flex; align-items: center; gap: clamp(3px, .48vw, 10px); left: var(--hud-x); bottom: var(--hud-y); }
 .heart {
   display: block; width: clamp(33px, 3.25vw, 62px); aspect-ratio: 62 / 58;

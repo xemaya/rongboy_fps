@@ -483,10 +483,10 @@ export function buildWorld(cine, level, weapons, variants) {
   // ================================================================== 花园：草地、围篱、院门、石板路
   const k = new PlushKit(), far = new PlushKit();   // far：屋顶和远景，不投影
   k.soft(M('terry', TH.lawn ?? LAWN), 120, 0.2, 120, hx, -0.1, (B.minZ + B.maxZ) / 2, { r: 0 });   // 草地顶面在 y = 0，室内地面高出 1.2 厘米
-  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z)) sceneFurniture(k, c, level.storeys[0]);
+  for (const c of level.furnitureBoxes) if (!inHouse(c.x, c.z) && !c.parkStyle) sceneFurniture(k, c, level.storeys[0]);
   const G = level.outdoor.length ? { minX: house.minX, maxX: house.maxX, minZ: house.maxZ, maxZ: B.maxZ } : null;
   if (G && TH.yard === 'playground') playground(k, M, { G, gateX: level.player.x, yard: level.yard || [] });   // 学校：铅笔围栏、蜡笔校门、地上的画线
-  else if (G) {
+  else if (G && TH.yard !== 'park-tour') {
     // 围篱：东、南、西三面，朝外的一面没人看得到
     hedge(k, M, { id: 'edge-s', x: hx, z: G.maxZ + 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 's' });
     if (!built) hedge(k, M, { id: 'edge-n', x: hx, z: G.minZ - 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 'n' });

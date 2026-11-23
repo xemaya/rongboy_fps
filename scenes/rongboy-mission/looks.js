@@ -26,6 +26,15 @@ export const LOOK_PRESETS = {
     Object.assign(look.grade, { key: 0.18, minExposure: 0.85, maxExposure: 1.5, adaptTau: 0.9, exposure: 1, bloom: 0.05, flare: 0.03, streak: 0, dirt: 0, ca: 0, grain: 0.004, vignette: 0.14, saturation: 1.12, contrast: 0.18, sharpen: 0.55 });
     return look;
   },
+  orchard() {
+    const look = cloneLook(LOOKS.clearNoon);
+    Object.assign(look.sun, { azimuth:116,elevation:24,intensity:4.7,color:[1,.87,.65] });
+    look.env.intensity=1.22;
+    Object.assign(look.sky, { zenith:[.23,.38,.56],mid:[.49,.64,.75],horizon:[.94,.83,.68],cloudCover:.36,cloudWarm:.7 });
+    Object.assign(look.air, { sigma:.0012,mist:0,sunScale:.32,aoRadius:.26,aoIntensity:.52,aoStrength:.7 });
+    Object.assign(look.grade, { key:.17,minExposure:.85,maxExposure:1.6,exposure:1,bloom:.06,flare:.015,grain:.004,vignette:.12,saturation:1.08,contrast:.16 });
+    return look;
+  },
   night() {
     const look = cloneLook(LOOKS.blueHour);
     Object.assign(look.sun, { azimuth: 52, elevation: 66, intensity: 2.6, color: [0.62, 0.76, 1.0] });

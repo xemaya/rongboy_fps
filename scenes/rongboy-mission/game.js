@@ -12,6 +12,7 @@ import { GADGETS, STASH } from './gadgets.js';
 import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
 import { travelPace, strideTravel } from './locomotion.js';
 import { advanceWaves } from './encounter-waves.js';
+import { constrainTourWalk } from './park-tour-layout.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -161,7 +162,7 @@ function finishReload(s) {
 }
 
 function canShoot(s) {
-  if (s.phase !== 'playing' || s.reloading) return false;
+  if (s.level.tour || s.phase !== 'playing' || s.reloading) return false;
   if (s.ammo[s.weapon].mag > 0) return true;
   if (!startReload(s)) { s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id }); backToPistol(s); }
   return false;
@@ -951,6 +952,7 @@ export function exchangeWeapon(s) {
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
+  if (s.level.tour) return {type:'explore',alive,total:s.total,done:false};
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
@@ -1079,6 +1081,8 @@ export function step(s, dt, input = {}) {
   }
   resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
   p.y = surfaceY(L, p.x, p.z, p.y);
+
+  if (L.tour) constrainTourWalk(p,fromX,fromZ);
 
   // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
   if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }

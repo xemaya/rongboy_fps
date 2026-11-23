@@ -59,6 +59,7 @@ export async function initializeLanguage({platformLocale = true, waitForPlatform
 }
 
 const words = {
+  '布偶游乐园':'Plushwood Park',
   '院子里的三波': 'Three waves in the yard', '院子里的对照局': 'All at once in the yard',
   '院子波次': 'Yard waves', '院子对照局': 'All at once',
   '三波僵尸会从树篱两侧出来。打完一波，有三秒换弹或挪位置。': 'Clear three waves in the yard. Take three seconds to reload or move between waves.',

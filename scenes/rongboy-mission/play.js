@@ -48,6 +48,8 @@ import { crazyGames, firstRound, nextChapter, platformReady, platformPlaying } f
 import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
+import { createParkTour } from './park-tour-view.js';
+import { nearbyTourStop } from './park-tour-layout.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
 const ENEMY_TYPES = Object.fromEntries(Object.entries(RAW_ENEMIES).map(([id,enemy])=>[id,localizeFields(enemy,['name'])]));
@@ -79,7 +81,8 @@ const returnLabel = intro ? (source === 'chapters' ? '返回选关' : '返回主
 let awaitingApproach = false, pauseIndex = 0, introStage = 0;
 let hadPointerLock = false, pointerReleasedAt = -Infinity;
 const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? (intro ? gardenIntroDef() : gardenWallDef()) : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : cottageStudy ? cottageStudyDef(study) : LEVELS[levelId]));
-const missionBriefing = level.mission.type === 'fetch' && !challenge;
+const parkTour = !!level.tour;
+const missionBriefing = (parkTour || level.mission.type === 'fetch') && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
@@ -90,7 +93,7 @@ const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
-let actors, bossActors, viewmodel;
+let actors, bossActors, viewmodel, tourView;
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
@@ -110,14 +113,15 @@ function applyTexts() {
  document.title = `${t('绒仔')} · ${level.name}`;
  document.body.classList.toggle('reduced-ui',reduced);
  document.body.classList.toggle('challenge-round',!!challenge);
+ document.body.classList.toggle('park-tour',parkTour);
  $('result').querySelector('.eyebrow').textContent = level.name;
  document.body.style.setProperty('--heart-full','url('+heartImage(true)+')');
  document.body.style.setProperty('--heart-empty','url('+heartImage(false)+')');
  $('loadingTitle').textContent = TX.short || level.name;
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
- $('ready-title').textContent = t(cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
+ $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Follow the stitched path to the big top.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -162,12 +166,12 @@ function introPrompt() {
 function setInputMode(value) { if (inputMode === value) return; inputMode = value; applyInputHints(); }
 function applyInputHints() {
   const L = inputLabels();
-  const quick = [[L.move,'移动'],[L.look,'转动视角'],[L.fire,'开火'],[L.reload,'换弹']];
+  const quick = [[L.move,'移动'],[L.look,'转动视角']];
+  if(!parkTour) quick.push([L.fire,'开火'],[L.reload,'换弹']);
   drawPauseBindings($('pauseQuick'),quick);
   const detail = [...quick];
-  detail[2] = [L.fire,'开火 / 蓄力'];
-  detail.push([L.jump,'跳跃']);
-  if (!practiceBindingsOnly) {
+  if(!parkTour) { detail[2] = [L.fire,'开火 / 蓄力']; detail.push([L.jump,'跳跃']); }
+  if (!parkTour && !practiceBindingsOnly) {
     detail.push([L.switch,'换枪']);
     if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
   }
@@ -180,7 +184,7 @@ function applyInputHints() {
     labelAction($(id),L.back,label);
     $(id).firstElementChild.classList.add('pause-action-key');
   }
-  labelAction($('approach'), L.confirm, missionBriefing ? '出发' : garden ? '开始练习' : '开打');
+  labelAction($('approach'), L.confirm, parkTour ? copy('入园','Enter park') : missionBriefing ? '出发' : garden ? '开始练习' : '开打');
   if (!$('nextChapter').hidden) {
     labelAction($('nextChapter'),L.confirm,'下一关');
     $('again').textContent = t('再来一次');
@@ -264,7 +268,8 @@ const FX_MAX = 360, fx = [], dummy = new T.Object3D(), tint = new T.Color();
 const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStandardMaterial({ color: 0xffffff, roughness: 1 }), FX_MAX);
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 function initWorld(kit) {
-  world = buildWorld(cine, level, WEAPONS, kit.userData.variants);
+  world = buildWorld(cine, level, WEAPONS, kit?.userData.variants);
+  if (parkTour) tourView = createParkTour(cine,world,{reduced});
   combatFx = createCombatFx(cine.scene);
   effects = createEffects(cine.scene);
   weaponFeedback = createWeaponFeedback(cine.scene,world.light);
@@ -351,13 +356,15 @@ function drawInFront(root) {
 }
 const weaponImages = new Map();
 function syncWeapon() {
-  viewmodel?.equip(s.weapon);
+  if (!viewmodel) return;
+  viewmodel.equip(s.weapon);
   const weapon = WEAPONS[s.weapon];
   if (!weaponImages.has(weapon.id)) weaponImages.set(weapon.id, weaponImage(weapon.id));
   $('weaponIcon').src = weaponImages.get(weapon.id);
 }
 
 function animateViewmodel(dt, moving) {
+  if (!viewmodel) return;
   const side = ((keys.has('d') ? 1 : 0) - (keys.has('a') ? 1 : 0)) + padAxes.x;
   const forward = ((keys.has('w') ? 1 : 0) - (keys.has('s') ? 1 : 0)) - padAxes.y;
   const speed = Math.min(1,Math.hypot(side,forward));
@@ -1077,7 +1084,7 @@ function pauseBrief() {
   const status = missionStatus(s);
   textOf('pausePlace', level.texts?.short || level.name);
   textOf('objective', objectiveText(status));
-  textOf('pauseProgress', challenge
+  textOf('pauseProgress', parkTour ? copy('游园用时 ','Walk time ')+clock(s.time) : challenge
     ? challenge.unit + ' ' + s.challenge.progress + '/' + challenge.target + copy(' · 剩余 ',' · Time left ') + Math.max(0, Math.ceil(challenge.seconds - s.time)) + copy(' 秒','s')
     : cottageStudy ? cottageStudyProgress()
     : copy('剩余 ','Remaining ') + status.alive + '/' + status.total + copy(' · 用时 ',' · Time ') + clock(s.time));
@@ -1133,12 +1140,15 @@ function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
   $('fightHud').hidden = !active;
   $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
-  if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
+  if (parkTour && active) {
+    const stop=nearbyTourStop(s.player.x,s.player.z);
+    textOf('missionStep',stop?copy(stop.name,stop.en):copy('缝线小径','Stitched path'));
+  } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
     textOf('missionStep', !status.carrying && TX.route ? t(TX.route) : objectiveText(status));
   }
-  ammoHud(active);
+  ammoHud(active && !parkTour);
   $('challenge-run').hidden = !challenge || !active;
   if (challenge && active) challengeHud();
   if (paused) pauseBrief();
@@ -1158,6 +1168,7 @@ function hud() {
     if (offer) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), copy(' 换成',' Swap to ') + WEAPONS.find(w => w.id === offer.weapon).name);
   }
 
+  $('hearts').hidden=parkTour;
   const hearts = Math.max(0, Math.min(CONFIG.maxHealth, s.health));
   if (hearts !== lastHealth) {
     [...$('hearts').children].forEach((el, i) => {
@@ -1183,7 +1194,7 @@ function hud() {
       weapon.kind === 'zap' ? '松手发射电网' : progress > .95 ? '蓄满 · 松手发射' : '蓄力中';
     textOf('chargeLabel', label);
   }
-  $('reticle').hidden = !active;
+  $('reticle').hidden = !active || parkTour;
   $('reticle').style.scale = 1 + Math.min(.35, recoil.back.x * .65);
   $('hitMarker').hidden = !active || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind;
@@ -1253,7 +1264,7 @@ function start() {
   introStage = intro ? 1 : 0;
   applyInputHints();
   platformPlaying(!awaitingApproach);
-  viewmodel.root.visible = true;
+  if (viewmodel) viewmodel.root.visible = true;
   (awaitingApproach ? $('approach') : $('view')).focus(); unlock(); syncWeapon();
   if (weaponShowcase) say('武器试验场 · 暂停可查看操作', 2.1);
   else if (!awaitingApproach && !challenge && !intro) say(level.mission.title, 2.8, 1);
@@ -1444,7 +1455,7 @@ function switchBomb() {
   if(selectGrenade(s)) { say(WEAPONS[s.grenade].name,1);sfx2('swap'); }
 }
 function throwAction(source) {
-  if (throwInput) return;
+  if (parkTour || throwInput) return;
   unlock();
   if (beginThrow(s)) throwInput = source;
   processEvents();
@@ -1455,7 +1466,7 @@ function exchangeAction() {
   processEvents();
 }
 function firePress(source) {
-  if (fireInput) return;
+  if (parkTour || fireInput) return;
   fireInput = source;
   unlock(); beginCharge(s); processEvents();
 }
@@ -1577,7 +1588,7 @@ function gamepadFrame() {
   }
   const active = pad.anyPressed || Math.hypot(axes.x, axes.y) > 0.35 || Math.hypot(axes.lookX, axes.lookY) > 0.35;
   if (active) setInputMode('gamepad');
-  if (!padWasConnected) { padWasConnected = true; say('手柄已连接 · 左摇杆走 · R2 开火', 2); }
+  if (!padWasConnected) { padWasConnected = true; say(parkTour?copy('手柄已连接 · 左摇杆走','Gamepad connected · Use the left stick'):'手柄已连接 · 左摇杆走 · R2 开火', 2); }
   // 浏览器不把"按手柄"当成用户按键，声音可能还锁着。等一秒确认没开声，再提示一次（按键盘能解开）。
   if (sound && active && mode === 'playing' && !paused && !padSoundHint && !padHintTimer && (!audio || audio.state !== 'running')) {
     padHintTimer = setTimeout(() => {
@@ -1699,6 +1710,7 @@ function frame(now) {
   else cameraFrame(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
+  tourView?.update(s.time);
   world.setFloor(floorIndex(level, s.player.y));
   world.occlusion.update(camera.position, now / 1000);
   hud(); cine.frame(dt);
@@ -1738,7 +1750,7 @@ async function compileEverything() {
 }
 export async function boot(sdkReady) {
   applyTexts();
-  loadingProgress(18,'正在加载毛绒模型…');
+  loadingProgress(18,parkTour?copy('正在铺设游乐园小径…','Laying out the park…'):'正在加载毛绒模型…');
   const pack = garden ? 'garden-wall.glb'
     : crazyGames ? 'zombie-roster.glb'
     : finalStudy || (training && practiceType?.startsWith('boss-')) || challenge?.id==='dodge-arrows' ? 'final-trio.glb'
@@ -1750,35 +1762,37 @@ export async function boot(sdkReady) {
   }
   // Download only the packs the selected map uses, including the boss that will appear later.
   const usesBosses = level.enemies.some(e => e.type.startsWith('boss-'));
-  const downloads = Promise.all([fetchPack(pack), usesBosses && !crazyGames && pack !== 'final-trio.glb' ? fetchPack('final-trio.glb') : null]);
+  const downloads = parkTour ? Promise.resolve([null,null]) : Promise.all([fetchPack(pack), usesBosses && !crazyGames && pack !== 'final-trio.glb' ? fetchPack('final-trio.glb') : null]);
   // Attach a handler before yielding to the loading screen.
   downloads.catch(() => {});
   await paint();
   initRenderer();
   loadingProgress(42,'正在收拾房间…');
   await paint();
-  const kit = extendWeaponKit(createWeaponKit(), WEAPONS);
+  const kit = parkTour ? null : extendWeaponKit(createWeaponKit(), WEAPONS);
   initWorld(kit);
   const [roster,bossRoster] = await downloads;
-  loadingProgress(63,'正在准备绒仔和毛绒伙伴…');
+  loadingProgress(63,parkTour?copy('正在摆放游乐设施…','Setting up the rides…'):'正在准备绒仔和毛绒伙伴…');
   await paint();
   const skin = !q.has('noskin');
-  [actors, bossActors] = await Promise.all([
+  if (!parkTour) [actors, bossActors] = await Promise.all([
     loadFigurines({ zombies:roster }, { skin }),
     bossRoster && loadFigurines({ zombies:bossRoster }, { skin }),
   ]);
   const kinds = new Set([...s.enemies, ...s.dormant].map(enemy => enemy.type));
   for (const kind of kinds) actorBank(kind).prepare(kind);
-  prepareNavigation(level);
-  viewmodel=createViewmodel(kit,ballTemplate.clone(true),GRENADE_TYPES.map(index=>({index,model:ballTemplates[index].clone(true)})));
-  world.light(viewmodel.root);
-  camera.add(viewmodel.root);
-  viewmodel.equip(s.weapon);
-  if (!q.has('nofront')) drawInFront(viewmodel.root);
+  if (!parkTour) prepareNavigation(level);
+  if (!parkTour) {
+    viewmodel=createViewmodel(kit,ballTemplate.clone(true),GRENADE_TYPES.map(index=>({index,model:ballTemplates[index].clone(true)})));
+    world.light(viewmodel.root);
+    camera.add(viewmodel.root);
+    viewmodel.equip(s.weapon);
+    if (!q.has('nofront')) drawInFront(viewmodel.root);
+  }
   cameraFrame(0); resize(); updateModels(0);
   loadingProgress(84,'正在准备第一帧…');
   await paint();
-  warmActors(kinds);
+  if (!parkTour) warmActors(kinds);
   await compileEverything();
   cine.frame(1/60);
   await paint();
@@ -1822,7 +1836,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { tourView?.update(s.time); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

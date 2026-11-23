@@ -7,7 +7,7 @@ import { ATTACKS } from '../attacks.js';
 import { PROPS, ZOMBIES, SURFACES, OBJECTIVE_ITEMS } from './catalog.js';
 import { GADGETS, STASH } from '../gadgets.js';
 
-const LOOKS = ['afternoon', 'morning', 'night'];   // looks.js 里的光线预设（那个文件依赖渲染引擎，这里不能直接引）
+const LOOKS = ['afternoon', 'morning', 'night', 'orchard'];   // looks.js 里的光线预设（那个文件依赖渲染引擎，这里不能直接引）
 const KINDS = new Set(Object.values(PROPS).map(p => p.kind));
 const LOOK_NAMES = new Set(Object.values(PROPS).flatMap(p => [p.look, p.kind]).filter(Boolean));
 const ITEMS = new Set([...Object.values(PROPS).map(p => p.item).filter(Boolean), 'gem-green', 'gem-empty']);
@@ -224,7 +224,7 @@ export function checkMap(def, { play = true } = {}) {
     const z = ZOMBIES[t];
     if (z?.answer && !guns.has(z.answer)) warn('no-answer', `图里有${z.name}，但没有${WEAPONS.find(w => w.id === z.answer).name}："打不动"要成对出现（fun-design 3.6）。在它第一次出现的房间之前放一把（pickups 里写 '${z.answer}'）`);
   }
-  if (!L.enemies.length) err('empty', '图里没有僵尸');
+  if (!L.enemies.length && def.mission.type!=='explore') err('empty', '图里没有僵尸');
   if (L.enemies.length && !L.pickups.some(k => k.kind === 'heart')) warn('no-heart', '图里没有心：玩家只有 3 颗心，一张图至少放 2 颗');
   if (def.mission.type === 'fetch') {
     if (!L.pickups.some(k => k.kind === 'objective')) err('no-objective', '找东西的任务，但图里没有任务物品（pickups 里写 { objective: "名字" }）');
@@ -259,8 +259,8 @@ export function checkMap(def, { play = true } = {}) {
       if (s.phase !== 'playing') err('mission-early', '还剩一只僵尸，任务就结束了');
       s.enemies[0].alive = false; run(s, CONFIG.endDelay + 0.5);
       if (s.phase !== 'won') err('mission-stuck', '僵尸都倒了，任务却没结束');
-    } else if (missionStatus(createGame({ level: L })).needed < 1) err('mission-stuck', '找东西的任务没有可找的东西');
-    if (!multi) {   // 多层的图（家）在 rongboy-mission.mjs 里有自己的检查
+    } else if (def.mission.type==='fetch' && missionStatus(createGame({ level: L })).needed < 1) err('mission-stuck', '找东西的任务没有可找的东西');
+    if (!multi && L.enemies.length) {   // 多层的图（家）在 rongboy-mission.mjs 里有自己的检查
       s = createGame({ level: L }); s.health = 1e9;
       for (const e of s.enemies) e.awareness = 'alert';
       // This probe tests the route to the entry point. Keep enemy hits from

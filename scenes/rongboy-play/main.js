@@ -11,7 +11,7 @@ const query=new URLSearchParams(location.search),id=query.get('level') || (crazy
 const selected=MAP_CARDS.find(card=>card.id===id)||MAP_CARDS[0];
 const opponent=ZOMBIE_ROSTER.find(enemy=>enemy.id===query.get('type'));
 const challenge=readPlayChallenge(query);
-const name=id===firstRound?'花园首战':challenge?.name ?? (id==='weapon-range'?'武器试验场':id==='garden-wall'?'花园练习':id==='training'&&opponent?opponent.name+'试战':selected.name);
+const name=id===firstRound?'花园首战':challenge?.name ?? (id==='amusement-tour'?'布偶游乐园':id==='weapon-range'?'武器试验场':id==='garden-wall'?'花园练习':id==='training'&&opponent?opponent.name+'试战':selected.name);
 const theme=Object.hasOwn(CHAPTER_ART,id) ? CHAPTER_ART[id] : ['training','garden-wall','challenge','weapon-range'].includes(id)?'practice':'garden';
 const loading=document.getElementById('loading'),status=document.getElementById('loadingStatus'),back=document.getElementById('loadBack');
 loading.style.setProperty('--level-scene','url("menu-'+theme+'.webp")');

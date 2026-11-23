@@ -5,6 +5,7 @@ import house from './house.js';
 import museum from './museum.js';
 import school from './school.js';
 import cottage from './cottage.js';
+import amusementTour from './amusement-tour.js';
 
-export const LEVELS = { house, museum, school, cottage };
+export const LEVELS = { house, museum, school, cottage, 'amusement-tour':amusementTour };
 export const ORDER = ['house', 'museum', 'school', 'cottage'];
