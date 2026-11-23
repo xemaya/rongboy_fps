@@ -7,7 +7,7 @@ import { mulberry32 } from '../../cine-engine/engine/noise.js';
 import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_TENT, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
-  COASTER, RAPIDS, WHEEL, CAROUSEL, RINK, HAUNT_DOOR, STALLS, STAGE } from './park-tour-layout.js';
+  COASTER, RAPIDS, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, STAGE } from './park-tour-layout.js';
 import { PARK, SPOTS } from './park-rides.js';
 
 const TAU = 2 * Math.PI;
@@ -171,6 +171,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     const stop = stopOf(q.stop); let dx = stop.x - q.x, dz = stop.z - q.z; const d = Math.hypot(dx, dz) || 1; dx /= d; dz /= d;
     let x = q.x, z = q.z; for (let n = 0; n < 40 && isTourWalkable(x, z, 0.3); n++) { x += dx * 0.15; z += dz * 0.15; }
     if (q.id === 'circus') { x = 1.9; z = -1.9; }
+    if (q.id === 'haunt') { x = HAUNT.door.x + 1.4; z = HAUNT.door.z - 0.45; }   // 门廊柱子旁边，不挡门
+    if (q.id === 'portraits') { x = HAUNT.bell.x + 0.78; z = -13.08; }   // 门厅里：立在小桌旁边、靠着后墙
     box(k, cream, 0.12, 1.05, 0.12, x, 0.525, z, 0.04); box(k, red, 0.16, 0.12, 0.16, x, 0.42, z, 0.04);
     const s = obj(root, new T.OctahedronGeometry(0.17, 0), starOn, x, 1.32, z); s.castShadow = false; s.scale.set(1, 1.25, 0.55);
     markers.set(q.id, { mesh: s, stop: q.stop, phase: x + z });
@@ -324,22 +326,27 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
   }
 
   // ====================================================================== 05 鬼屋
-  let door, ghosts;
+  // 主屋是空心的：敲开门能走进门厅（准则第 5c 节）。门厅的地面和外面一样高，所以屋基只是薄薄一层。
+  let door, bell; const windowGhosts = [], portraitGhosts = [], frames = [];
   {
     const h = stopOf('haunt'), wall = quilt(PLUM), dark = felt(PLUM_DARK), roofA = M('shingle', 0x4a3d56), roofB = M('shingle', 0x5c4a66), lit = glow(0xffc95a, 1.5);
-    const front = h.z - 3.3;   // 朝北（朝小径）的那一面
-    box(k, quilt(0x8f8a84), 9.0, 0.5, 7.0, h.x, 0.25, h.z, 0.06);   // 石头屋基
-    box(k, wall, 5.6, 4.1, 6.4, h.x - 0.6, 2.55, h.z, 0.1);   // 主屋
-    box(k, wall, 2.5, 6.3, 2.7, h.x + 2.9, 3.65, h.z - 1.6, 0.1, { rz: -0.035 });   // 歪一点的塔楼
-    box(k, wall, 2.6, 2.9, 3.2, h.x - 4.2, 1.95, h.z + 0.8, 0.1);   // 侧屋
+    const front = h.z - 3.3, dx = HAUNT.door.x, dz = front;   // 朝北（朝小径）的那一面
+    const mx = h.x - 0.6, x0 = mx - 2.8, x1 = mx + 2.8, z0 = h.z - 3.2, z1 = h.z + 3.2, TH = 0.25, top = 4.6, tx = h.x + 3.35, wx = h.x - 4.5;
+    box(k, quilt(0x8f8a84), 9.4, 0.1, 7.0, h.x, 0.05, h.z, 0.04);   // 石头屋基
+    box(k, wall, 5.6, top, TH, mx, top / 2, z1 - TH / 2, 0.04);   // 后墙
+    for (const e of [-1, 1]) box(k, wall, TH, top, 6.4, mx + e * (2.8 - TH / 2), top / 2, h.z, 0.04);   // 两侧的墙
+    box(k, wall, dx - 0.7 - x0, top, TH, (x0 + dx - 0.7) / 2, top / 2, z0 + TH / 2, 0.04); box(k, wall, x1 - dx - 0.7, top, TH, (x1 + dx + 0.7) / 2, top / 2, z0 + TH / 2, 0.04);   // 前墙：门的两边
+    box(k, wall, 1.4, top - 2.4, TH, dx, (top + 2.4) / 2, z0 + TH / 2, 0.04);   // 门上面
+    box(k, wall, 2.5, 6.8, 2.7, tx, 3.4, h.z - 1.6, 0.1, { rz: -0.035 });   // 歪一点的塔楼
+    box(k, wall, 2.6, 3.4, 3.2, wx, 1.7, h.z + 0.8, 0.1);   // 侧屋
     const gable = (x, z, w, d, eave, rise, mat, yaw = 0) => {   // 两片斜屋面合成一个尖顶
       for (const s of [-1, 1]) k.soft(mat, Math.hypot(w / 2 + 0.25, rise) + 0.1, 0.16, d + 0.5, x + s * (w / 4 + 0.05) * Math.cos(yaw), eave + rise / 2, z, { r: 0.05, rz: -s * Math.atan2(rise, w / 2 + 0.25), ry: yaw });
       for (const sz of [-1, 1]) for (let i = 0; i < 7; i++) { const t = (i + 0.5) / 7, hh = rise * (1 - Math.abs(t - 0.5) * 2); box(k, dark, w / 7 + 0.02, hh + 0.04, 0.12, x + (t - 0.5) * w, eave + hh / 2, z + sz * d / 2, 0.02); }
     };
-    gable(h.x - 0.6, h.z, 5.6, 6.4, 4.6, 2.3, roofA); gable(h.x + 2.9, h.z - 1.6, 2.5, 2.7, 6.8, 2.4, roofB); gable(h.x - 4.2, h.z + 0.8, 2.6, 3.2, 3.4, 1.5, roofB);
-    puff(k, gold, 0.1, h.x + 2.9, 9.28, h.z - 1.6); box(k, dark, 0.6, 1.9, 0.6, h.x - 2.0, 6.6, h.z + 1.2, 0.06, { rz: 0.07 }); box(k, felt(PLUM), 0.76, 0.2, 0.76, h.x - 2.07, 7.56, h.z + 1.2, 0.05);
+    gable(mx, h.z, 5.6, 6.4, 4.6, 2.3, roofA); gable(tx, h.z - 1.6, 2.5, 2.7, 6.8, 2.4, roofB); gable(wx, h.z + 0.8, 2.6, 3.2, 3.4, 1.5, roofB);
+    puff(k, gold, 0.1, tx, 9.28, h.z - 1.6); box(k, dark, 0.6, 1.9, 0.6, h.x - 2.0, 6.6, h.z + 1.2, 0.06, { rz: 0.07 }); box(k, felt(PLUM), 0.76, 0.2, 0.76, h.x - 2.07, 7.56, h.z + 1.2, 0.05);
     // 窗：亮着黄灯，十字窗棂，歪歪的百叶
-    const windows = [[h.x - 2.2, 3.1, 0.8, 1.1], [h.x + 0.6, 3.1, 0.8, 1.1], [h.x - 2.2, 1.35, 0.7, 0.8], [h.x + 2.9, 4.9, 0.7, 1.0], [h.x + 2.9, 2.6, 0.7, 0.9], [h.x - 4.2, 2.0, 0.7, 0.9]];
+    const windows = [[h.x - 2.2, 3.1, 0.8, 1.1], [h.x + 0.6, 3.1, 0.8, 1.1], [h.x - 2.2, 1.35, 0.7, 0.8], [tx, 4.9, 0.7, 1.0], [tx, 2.6, 0.7, 0.9], [wx, 2.0, 0.7, 0.9]];
     for (const [x, y, w, hh] of windows) {
       const z = x > h.x + 1.5 ? h.z - 2.98 : x < h.x - 3.4 ? h.z - 0.82 : front + 0.08;
       obj(root, new T.BoxGeometry(w, hh, 0.06), lit, x, y, z).castShadow = false;
@@ -347,27 +354,50 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       box(k, dark, 0.05, hh, 0.08, x, y, z - 0.04, 0.01); box(k, dark, w, 0.05, 0.08, x, y, z - 0.04, 0.01);
       for (const s of [-1, 1]) box(k, felt(0x55455b), 0.3, hh + 0.05, 0.05, x + s * (w / 2 + 0.17), y - 0.02, z - 0.03, 0.02, { rz: s * (0.05 + rand() * 0.12) });
     }
-    // 门廊和门：门是单独一组，绕门轴转
-    const dx = HAUNT_DOOR.x, dz = front;
-    for (const s of [-1, 1]) box(k, dark, 0.16, 2.5, 0.16, dx + s * 1.05, 1.75, dz - 0.9, 0.04);
-    k.soft(roofB, 2.8, 0.14, 1.4, dx, 3.08, dz - 0.5, { r: 0.04, rx: -0.3 }); box(k, M('boards', 0x6f5648), 2.6, 0.2, 1.2, dx, 0.5, dz - 0.55, 0.04); box(k, M('boards', 0x6f5648), 2.2, 0.2, 0.5, dx, 0.3, dz - 1.3, 0.04);
-    box(k, ink, 1.3, 2.25, 0.1, dx, 1.72, dz + 0.1, 0.03);   // 门洞里是黑的
-    box(k, dark, 0.14, 2.4, 0.2, dx - 0.72, 1.8, dz, 0.03); box(k, dark, 0.14, 2.4, 0.2, dx + 0.72, 1.8, dz, 0.03); box(k, dark, 1.6, 0.16, 0.2, dx, 3.0, dz, 0.03);
-    door = part(root, kit => { box(kit, M('boards', 0x4f3d36), 1.26, 2.2, 0.08, 0.63, 1.1, 0, 0.03); for (const y of [0.55, 1.65]) box(kit, felt(0x3d2f2a), 1.0, 0.7, 0.03, 0.63, y, -0.05, 0.02); puff(kit, gold, 0.06, 1.1, 1.1, -0.08); }, dx - 0.63, 0.6, dz - 0.02, true);
-    // 布偶幽灵：一只在门里，两只在窗后；敲门以后探出来
+    // 门廊和门：门是单独一组，绕门轴往里开
+    for (const s of [-1, 1]) box(k, dark, 0.16, 3.0, 0.16, dx + s * 1.05, 1.5, dz - 0.9, 0.04);
+    k.soft(roofB, 2.8, 0.14, 1.4, dx, 3.08, dz - 0.5, { r: 0.04, rx: -0.3 }); box(k, M('boards', 0x6f5648), 2.6, 0.08, 1.5, dx, 0.13, dz - 0.62, 0.03);
+    for (const s of [-1, 1]) box(k, dark, 0.14, 2.5, 0.22, dx + s * 0.77, 1.25, dz, 0.03); box(k, dark, 1.7, 0.16, 0.22, dx, 2.5, dz, 0.03);
+    door = part(root, kit => { box(kit, M('boards', 0x4f3d36), 1.26, 2.2, 0.08, 0.63, 1.1, 0, 0.03); for (const y of [0.55, 1.65]) box(kit, felt(0x3d2f2a), 1.0, 0.7, 0.03, 0.63, y, -0.05, 0.02); puff(kit, gold, 0.06, 1.1, 1.1, -0.08); puff(kit, gold, 0.06, 1.1, 1.1, 0.08); }, dx - 0.63, 0.16, z0 + 0.06, true);
+    // ---- 门厅（照 docs/park-refs/ref-05-haunt.png 右下那一格）：木地板、圆地毯、护墙板、门里两边的帘子、顶上一盏灯
+    const zi0 = z0 + TH, zi1 = z1 - TH, xi0 = x0 + TH, xi1 = x1 - TH, cz = (zi0 + zi1) / 2, warm = glow(0xffc27a, 1.7), boards = M('boards', 0x6f5648);
+    box(k, M('boards', 0x7a5a48), xi1 - xi0, 0.06, zi1 - zi0, mx, 0.13, cz, 0.01); box(k, M('boards', 0x5a463c), xi1 - xi0, 0.12, zi1 - zi0, mx, 3.2, cz, 0.01);   // 地板、天花板
+    puff(k, gold, 1, mx, 0.15, cz - 0.2, { sx: 1.78, sy: 0.03, sz: 1.28, seg: 20 }); puff(k, quilt(0x9c4a4e), 1, mx, 0.165, cz - 0.2, { sx: 1.66, sy: 0.03, sz: 1.16, seg: 20 }); puff(k, gold, 1, mx, 0.18, cz - 0.2, { sx: 0.5, sy: 0.02, sz: 0.36, seg: 14 });
+    box(k, boards, xi1 - xi0, 0.9, 0.05, mx, 0.61, zi1 - 0.03, 0.01); for (const e of [-1, 1]) box(k, boards, 0.05, 0.9, zi1 - zi0, e < 0 ? xi0 + 0.03 : xi1 - 0.03, 0.61, cz, 0.01);   // 护墙板
+    box(k, dark, xi1 - xi0, 0.08, 0.07, mx, 1.08, zi1 - 0.04, 0.01);
+    for (const e of [-1, 1]) { puff(k, quilt(0x7b4f7c), 0.5, dx + e * 1.05, 1.5, zi0 + 0.14, { sx: 0.62, sy: 2.6, sz: 0.3 }); puff(k, quilt(0x7b4f7c), 0.4, dx + e * 1.22, 0.62, zi0 + 0.16, { sx: 0.7, sy: 1.4, sz: 0.34 }); puff(k, gold, 0.07, dx + e * 0.92, 1.25, zi0 + 0.3); }
+    box(k, dark, 2.9, 0.14, 0.12, dx, 2.72, zi0 + 0.1, 0.03);   // 帘杆
+    k.tube(ink, [[mx, 3.14, cz - 0.2], [mx, 2.78, cz - 0.2]], 0.012, { straight: true }); box(k, dark, 0.3, 0.06, 0.3, mx, 2.78, cz - 0.2, 0.02);
+    obj(root, new T.SphereGeometry(0.17, 12, 9), warm, mx, 2.62, cz - 0.2).castShadow = false; box(k, dark, 0.2, 0.05, 0.2, mx, 2.44, cz - 0.2, 0.02);   // 吊灯
+    // 西墙的书架
+    box(k, M('boards', 0x5a463c), 0.36, 2.0, 1.4, xi0 + 0.2, 1.16, cz + 0.9, 0.03);
+    for (let row = 0; row < 3; row++) for (let j = 0; j < 6; j++) box(k, felt([RED, TEAL, GOLD, PLUM, MOSS, CORAL][(row * 2 + j) % 6]), 0.2, 0.34 + ((row + j) % 3) * 0.05, 0.14, xi0 + 0.36, 0.55 + row * 0.6, cz + 0.36 + j * 0.2, 0.02);
+    // 后墙的三张肖像，每张顶上一盏小壁灯；中间那张下面一张小桌：蜡烛和小铃
+    const px = [mx - 1.62, mx, mx + 1.62];
+    px.forEach((x, i) => {
+      const f = picture('haunt-portrait-' + (i + 1) + '.webp', 1.0, 1.25, x, 1.93, zi1 - 0.07, Math.PI, { lit: false }); f.material.color.setScalar(0.86); frames.push(f);
+      obj(root, new T.SphereGeometry(0.06, 8, 6), warm, x, 2.68, zi1 - 0.16).castShadow = false; box(k, dark, 0.14, 0.05, 0.16, x, 2.62, zi1 - 0.1, 0.01);
+    });
+    const bx = HAUNT.bell.x, tz = zi1 - 0.36;
+    box(k, wood, 1.1, 0.07, 0.5, bx, 0.9, tz, 0.02); for (const e of [-1, 1]) for (const f of [-1, 1]) box(k, wood, 0.07, 0.72, 0.07, bx + e * 0.46, 0.52, tz + f * 0.18, 0.02);
+    box(k, felt(0x9c4a4e), 0.7, 0.02, 0.4, bx, 0.945, tz, 0.005); k.cyl(cream, 0.04, 0.045, 0.24, bx - 0.34, 1.07, tz, { seg: 8 }); k.cyl(gold, 0.09, 0.09, 0.03, bx - 0.34, 0.96, tz, { seg: 10 });
+    obj(root, new T.SphereGeometry(0.05, 8, 6), warm, bx - 0.34, 1.23, tz).scale.set(0.8, 1.5, 0.8);
+    bell = part(root, kit => { kit.cyl(gold, 0.03, 0.1, 0.16, 0, -0.14, 0, { seg: 12 }); puff(kit, gold, 0.035, 0, -0.04, 0); kit.cyl(wood, 0.016, 0.016, 0.12, 0, 0.04, 0, { seg: 6 }); }, bx + 0.26, 1.2, tz - 0.04);
+    // 布偶幽灵：敲门时两只从窗后探头；摇铃时三只从三张肖像上面的墙里飘出来
     const ghost = (x, y, z, s = 1) => part(root, kit => {
       puff(kit, white, 0.34 * s, 0, 0.3 * s, 0, { sy: 1.25 }); for (let i = 0; i < 5; i++) { const a = i * TAU / 5; puff(kit, white, 0.13 * s, Math.cos(a) * 0.24 * s, -0.08 * s, Math.sin(a) * 0.2 * s, { sy: 1.3 }); }
       for (const e of [-1, 1]) puff(kit, ink, 0.05 * s, e * 0.12 * s, 0.4 * s, -0.29 * s, { sy: 1.4 }); puff(kit, ink, 0.045 * s, 0, 0.22 * s, -0.31 * s, { sy: 1.5 }); box(kit, felt(0xc8b8d6), 0.14 * s, 0.14 * s, 0.03, 0.14 * s, 0.1 * s, -0.31 * s, 0.02);
     }, x, y, z);
-    ghosts = [[ghost(dx, 1.3, dz + 0.5, 1.15), dx, 1.3, dz + 0.5, 0], [ghost(h.x - 2.2, 2.2, front + 0.4, 0.8), h.x - 2.2, 2.2, front + 0.4, 1], [ghost(h.x + 2.9, 4.0, h.z - 2.6, 0.8), h.x + 2.9, 4.0, h.z - 2.6, 2]];
+    windowGhosts.push([ghost(h.x - 2.2, 2.9, front + 0.45, 0.8), h.x - 2.2, 2.9, front + 0.45], [ghost(tx, 4.0, h.z - 2.6, 0.8), tx, 4.0, h.z - 2.6]);
+    px.forEach(x => portraitGhosts.push([ghost(x, 2.46, z1 + 0.25, 0.8), x, 2.46, z1 + 0.25]));
     // 南瓜（带脸）、枯树、歪栅栏
     for (const [x, z, r] of [[dx - 1.9, dz - 1.5, 0.42], [dx + 1.8, dz - 1.4, 0.36], [dx + 2.4, dz - 1.9, 0.26], [-11.3, -20.4, 0.44]]) {
       puff(k, felt(0xdf8b4d), r, x, r * 0.72, z, { sx: 1.12, sy: 0.81 }); box(k, felt(PINE), 0.1, 0.16, 0.1, x, r * 1.5, z, 0.03);
       for (const e of [-1, 1]) box(k, ink, r * 0.22, r * 0.2, 0.03, x + e * r * 0.36, r * 0.86, z - r * 0.98, 0.01, { rz: e * 0.5 }); box(k, ink, r * 0.6, r * 0.12, 0.03, x, r * 0.5, z - r * 1.04, 0.01);
     }
-    for (const [x, z, s] of [[h.x - 5.6, h.z - 3.4, 1], [h.x + 5.0, h.z - 3.0, 0.85]]) {
+    for (const [x, z, s] of [[h.x - 5.9, h.z - 3.4, 1], [h.x + 5.4, h.z - 3.0, 0.85]]) {
       k.tube(knit(0x5b4a44), [[x, 0, z], [x + 0.1 * s, 1.4 * s, z], [x - 0.2 * s, 2.6 * s, z + 0.1]], 0.16 * s, { straight: true });
-      for (const [bx, by, bz2] of [[0.9, 3.3, 0.2], [-1.0, 3.1, -0.3], [0.5, 3.7, -0.6], [-0.4, 3.9, 0.5]]) k.tube(knit(0x5b4a44), [[x - 0.1 * s, 2.2 * s, z], [x + bx * s * 0.6, by * s * 0.82, z + bz2 * s], [x + bx * s, by * s, z + bz2 * s * 1.6]], 0.06 * s, { straight: true });
+      for (const [bx2, by, bz2] of [[0.9, 3.3, 0.2], [-1.0, 3.1, -0.3], [0.5, 3.7, -0.6], [-0.4, 3.9, 0.5]]) k.tube(knit(0x5b4a44), [[x - 0.1 * s, 2.2 * s, z], [x + bx2 * s * 0.6, by * s * 0.82, z + bz2 * s], [x + bx2 * s, by * s, z + bz2 * s * 1.6]], 0.06 * s, { straight: true });
     }
     for (let i = 0; i < 13; i++) { const x = h.x - 4.8 + i * 0.8; if (Math.abs(x - dx) < 1.5) continue; box(k, dark, 0.12, 0.9 + (i % 3) * 0.12, 0.08, x, 0.45, dz - 2.3, 0.02, { rz: (i % 2 ? 1 : -1) * 0.06 }); if (i < 12 && Math.abs(x + 0.8 - dx) >= 1.5) k.tube(dark, [[x, 0.6, dz - 2.3], [x + 0.8, 0.6, dz - 2.3]], 0.03, { straight: true }); }
   }
@@ -570,9 +600,18 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     cabins.forEach((g, i) => { const a = i * TAU / WHEEL.cars; g.position.set(Math.cos(a) * WHEEL.r, Math.sin(a) * WHEEL.r, 0); g.rotation.z = -park.wheelAngle + Math.sin(t * 0.9 + i) * 0.02; });
     // 碰碰车：被撞的那一下车身抖一抖
     park.cars.forEach((c, i) => { const g = cars[i]; g.position.set(c.x, 0.12, c.z); g.rotation.y = c.heading; g.rotation.z = c.bump > 0 ? Math.sin(c.bump * 60) * 0.06 : 0; });
-    // 鬼屋：门绕门轴转开；幽灵探出来
+    // 鬼屋：门绕门轴往里开；敲门后窗里的幽灵探一下头；摇铃后三只幽灵挨个从肖像上面的墙里飘出来，画框跟着晃
+    const sat = v => Math.max(0, Math.min(1, v));
     door.rotation.y = -park.door * 1.75;
-    ghosts.forEach(([g, x, y, z, i]) => { const out = Math.max(0, Math.min(1, park.door * 1.6 - i * 0.25)); g.position.set(x, y + Math.sin(t * 2.4 + i) * 0.06 * out, z - out * (i === 0 ? 1.1 : 0.55)); g.scale.setScalar(0.4 + out * 0.6); g.visible = out > 0.02; });
+    const peek = park.running.haunt > 0 ? sat(Math.min(park.running.haunt / 0.8, (PARK.haunt.time - park.running.haunt) / 1.0)) : 0;
+    windowGhosts.forEach(([g, x, y, z], i) => { const out = sat(peek * 1.4 - i * 0.3); g.position.set(x, y + Math.sin(t * 2.4 + i) * 0.06 * out, z - out * 0.62); g.scale.setScalar(0.4 + out * 0.6); g.visible = out > 0.02; });
+    const ring = park.running.portraits > 0 ? park.running.portraits : 0;
+    portraitGhosts.forEach(([g, x, y, z], i) => {
+      const out = ring > 0 ? sat(Math.min((ring - i * 0.7) / 0.9, (PARK.haunt.show - ring) / 1.0)) : 0;
+      g.position.set(x + Math.sin(t * 1.7 + i * 2) * 0.1 * out, y + Math.sin(t * 2.4 + i) * 0.06 * out, z - out * 1.02); g.scale.setScalar(0.5 + out * 0.5); g.visible = out > 0.02;
+      frames[i].rotation.z = Math.sin(t * 5 + i * 1.3) * 0.045 * out;
+    });
+    bell.rotation.z = ring > 0 && ring < 1.8 ? Math.sin(ring * 24) * 0.55 * (1 - ring / 1.8) : 0;
     // 游戏摊：毛球飞过去，打中的靶子倒下；一局结束后靶子复位
     for (const [id, st] of Object.entries(stalls)) {
       const running = park.running[id] > 0;

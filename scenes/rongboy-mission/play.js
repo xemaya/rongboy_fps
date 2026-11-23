@@ -1191,7 +1191,7 @@ function parkEvent(e) {
   if (e.what === 'stamp') { sfx2('stamp'); showStampCard(e.stop); say(copy(`盖章 · ${stopName(e.stop)}（${e.count}/${e.needed}）`, `Stamped · ${stopName(e.stop)} (${e.count}/${e.needed})`), 2.2, 1); tourView?.event(e); }
   else if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
   else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
-  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
+  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
   else if (e.what === 'throw') { sfx('shot', { weapon: 'single', power: 0 }); tourView?.event(e); }
   else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); tourView?.event(e); }
   else if (e.what === 'complete') say(copy('十个章集齐了！','All ten stamps!'), 2.4, 2);

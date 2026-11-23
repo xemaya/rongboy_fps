@@ -73,10 +73,27 @@ export function isTourWalkable(x,z,tolerance=0) {
   return x*x+z*z<(r+tolerance)**2 || segments.some(segment=>testSegment(segment,x,z,tolerance));
 }
 
-export function constrainTourWalk(p,oldX,oldZ) {
-  if (isTourWalkable(p.x,p.z,.2)) return;
-  if (isTourWalkable(p.x,oldZ,.2)) p.z=oldZ;
-  else if (isTourWalkable(oldX,p.z,.2)) p.x=oldX;
+// 鬼屋：门、屋子占的那块地（门关着的时候整块都进不去），门开了以后能走的地方（门洞和门厅），和门厅尽头的小铃。
+// 能走的范围比墙往里收 0.4 米：镜头不贴到墙上。门扇是往里开的，开着的时候靠在门洞西边，所以门厅西半从门扇后面才开始。
+export const HAUNT = {
+  door: {x:-6.5,z:-19.0},
+  block: {minX:-11.15,maxX:-1.85,minZ:-19.55,maxZ:-11.8},
+  walk: [
+    {minX:-6.85,maxX:-6.15,minZ:-19.6,maxZ:-17.8},   // 门洞，一直进到帘子后面
+    {minX:-6.85,maxX:-4.95,minZ:-17.9,maxZ:-13.9},   // 门厅东半
+    {minX:-8.75,maxX:-6.85,minZ:-17.3,maxZ:-13.9},   // 门厅西半（西墙有书架，所以收得多一点）
+  ],
+  bell: {x:-7.1,z:-14.4},
+};
+const inRect=(r,x,z)=>x>=r.minX&&x<=r.maxX&&z>=r.minZ&&z<=r.maxZ;
+export const isHauntWalkable=(x,z)=>HAUNT.walk.some(r=>inRect(r,x,z));
+
+// hauntOpen：鬼屋的门是不是开着。屋子占的那块地只有门开着才进得去，而且只能走门洞和门厅。
+export function constrainTourWalk(p,oldX,oldZ,hauntOpen=false) {
+  const ok=(x,z)=>inRect(HAUNT.block,x,z) ? hauntOpen&&isHauntWalkable(x,z) : isTourWalkable(x,z,.2);
+  if (ok(p.x,p.z)) return;
+  if (ok(p.x,oldZ)) p.z=oldZ;
+  else if (ok(oldX,p.z)) p.x=oldX;
   else {p.x=oldX;p.z=oldZ;}
 }
 

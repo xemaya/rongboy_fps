@@ -1086,7 +1086,7 @@ export function step(s, dt, input = {}) {
   resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
   p.y = surfaceY(L, p.x, p.z, p.y);
 
-  if (L.tour) constrainTourWalk(p,fromX,fromZ);
+  if (L.tour) constrainTourWalk(p,fromX,fromZ,s.park.door>0.9);
 
   // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
   if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }
