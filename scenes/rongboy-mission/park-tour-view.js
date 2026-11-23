@@ -41,6 +41,13 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     const panel = obj(parent, new T.PlaneGeometry(w, w * 144 / 544), new T.MeshBasicMaterial({ map, transparent: true, side: T.DoubleSide }), x, y, z);
     panel.rotation.y = yaw; return panel;
   }
+  // 出图 agent 画的图（docs/park-asset-handoff.md 第二节）：一块朝 yaw 方向的平板
+  const loader = new T.TextureLoader();
+  function picture(file, w, h, x, y, z, yaw = 0, { cutout = false, lit = true } = {}) {
+    const map = loader.load(file); map.colorSpace = T.SRGBColorSpace; map.anisotropy = 4;
+    const mat = lit ? world.volume.light(new T.MeshStandardMaterial({ map, roughness: 0.9, transparent: cutout, alphaTest: cutout ? 0.35 : 0 })) : new T.MeshBasicMaterial({ map, transparent: cutout, alphaTest: cutout ? 0.35 : 0 });
+    const panel = obj(root, new T.PlaneGeometry(w, h), mat, x, y, z); panel.rotation.y = yaw; panel.castShadow = false; return panel;
+  }
   for (const stop of TOUR_STOPS) {
     const [x, z, yaw] = stop.sign;
     for (const side of [-1, 1]) box(k, wood, 0.14, 1.95, 0.14, x + Math.cos(yaw) * side * 1.1, 0.975, z - Math.sin(yaw) * side * 1.1, 0.035);
@@ -120,7 +127,9 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
   for (let i = 14; i < TOUR_PATH.length - 26; i += 13) {
     const [x, z] = beside(i, (posts.length % 2 ? 1 : -1) * 1.16);
     if (taken(x, z, -0.42) || Math.hypot(x, z) < 12) continue;
-    box(k, wood, 0.13, 3.1, 0.13, x, 1.55, z, 0.04); puff(k, cream, 0.1, x, 3.14, z); obj(root, new T.SphereGeometry(0.13, 10, 8), bulb, x, 2.92, z).castShadow = false;
+    k.cyl(felt(TEAL), 0.07, 0.1, 2.7, x, 1.35, z, { seg: 10 }); k.cyl(cream, 0.2, 0.24, 0.22, x, 0.11, z, { seg: 12 }); k.cyl(red, 0.15, 0.17, 0.12, x, 0.3, z, { seg: 12 }); k.cyl(felt(TEAL), 0.16, 0.08, 0.14, x, 2.74, z, { seg: 10 });
+    obj(root, new T.SphereGeometry(0.2, 12, 9), bulb, x, 2.95, z).castShadow = false;
+    puff(k, red, 0.27, x, 3.14, z, { sy: 0.5 }); for (let j = 0; j < 6; j++) { const a = j * TAU / 6; puff(k, cream, 0.07, x + Math.cos(a) * 0.24, 3.1, z + Math.sin(a) * 0.24, { sy: 0.8 }); } puff(k, gold, 0.07, x, 3.3, z);
     posts.push([x, z]);
   }
   for (let i = 1; i < posts.length; i++) {
@@ -193,6 +202,11 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     for (const s of [-1, 1]) puff(k, ink, 0.035, bx + s * 0.11, 1.75, bz - 0.13);
     box(k, cream, 0.5, 0.03, 0.34, bx - 0.55, 1.26, bz - 0.95, 0.01);   // 柜台上的一摞游园卡
     for (const [x, z] of [[-19.4, 28.4], [-13.2, 24.4]]) { flowers(x, z, 6, 0.9); bush(x + 0.6, z + 0.3, 0.5); }
+    { const cx = -19.9, cz = 26.4;   // 气球车
+      box(k, red, 1.3, 0.5, 0.7, cx, 0.72, cz, 0.08); box(k, cream, 1.36, 0.1, 0.76, cx, 1.0, cz, 0.04); for (const e of [-1, 1]) { k.cyl(wood, 0.3, 0.3, 0.07, cx - 0.3, 0.32, cz + e * 0.4, { seg: 14, rx: Math.PI / 2 }); puff(k, gold, 0.07, cx - 0.3, 0.32, cz + e * 0.45); box(k, wood, 0.06, 0.5, 0.06, cx + 0.55, 0.25, cz + e * 0.25, 0.02); }
+      for (const ex of [-1, 1]) for (const e of [-1, 1]) box(k, wood, 0.05, 0.9, 0.05, cx + ex * 0.58, 1.45, cz + e * 0.3, 0.015);
+      stripedRoof(k, cx, cz, 0.95, 1.9, 2.4, [teal, cream], 8); puff(k, gold, 0.08, cx, 2.46, cz);
+      [[0.9, 2.5, 0.1, RED], [1.12, 2.86, -0.14, GOLD], [0.74, 3.02, -0.05, TEAL]].forEach(([dx, y, dz, c]) => { puff(k, felt(c), 0.25, cx + dx, y, cz + dz, { sy: 1.2 }); k.tube(ink, [[cx + 0.62, 1.2, cz], [cx + dx, y - 0.3, cz + dz]], 0.008, { straight: true }); }); }
   }
 
   // ====================================================================== 02 旋转木马
@@ -212,21 +226,25 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       for (const y of [0.9, 1.9, 2.9]) kit.cyl(felt(RED), 0.42, 0.42, 0.14, 0, y, 0, { seg: 16 });
       for (let i = 0; i < 8; i++) { const a = i * TAU / 8; box(kit, i % 2 ? cream : coral, 0.26, 1.1, 0.04, Math.sin(a) * 0.4, 1.9, Math.cos(a) * 0.4, 0.02, { ry: a }); }
       stripedRoof(kit, 0, 0, 3.7, 3.78, 5.15, [teal, gold], 24, true);
-      kit.cyl(gold, 3.66, 3.66, 0.14, 0, 3.72, 0, { seg: 40, open: true }); kit.cyl(cream, 0.5, 0.2, 0.3, 0, 5.25, 0, { seg: 12 }); puff(kit, gold, 0.2, 0, 5.5, 0);
+      kit.cyl(gold, 3.66, 3.66, 0.14, 0, 3.72, 0, { seg: 40, open: true });
+      for (let i = 0; i < 24; i++) { const a = (i + 0.5) * TAU / 24, x = Math.sin(a) * 3.74, z = Math.cos(a) * 3.74;   // 伞沿：一格一朵红花饰，花饰之间垂一条金穗
+        puff(kit, red, 0.13, x, 3.72, z, { sz: 0.5, ry: a }); puff(kit, cream, 0.05, x * 1.012, 3.72, z * 1.012);
+        const b = i * TAU / 24; puff(kit, gold, 0.07, Math.sin(b) * 3.72, 3.36, Math.cos(b) * 3.72, { sy: 2.2 }); puff(kit, gold, 0.06, Math.sin(b) * 3.72, 3.56, Math.cos(b) * 3.72); } kit.cyl(cream, 0.5, 0.2, 0.3, 0, 5.25, 0, { seg: 12 }); puff(kit, gold, 0.2, 0, 5.5, 0);
       for (let i = 0; i < 12; i++) { const a = i * TAU / 12; kit.tube(gold, [[Math.sin(a) * 0.4, 3.9, Math.cos(a) * 0.4], [Math.sin(a) * 3.6, 3.74, Math.cos(a) * 3.6]], 0.03, { straight: true }); }
     }, 0, 0, 0, true);
     const horse = (kit, a, tone) => {
-      const x = Math.sin(a) * c.r, z = Math.cos(a) * c.r, body = felt(tone), fx = Math.cos(a), fz = -Math.sin(a);   // 头朝转的方向
+      const x = Math.sin(a) * c.r, z = Math.cos(a) * c.r, body = felt(0xf3ead8), saddle = felt(tone), mane = felt(0xcaa56a), fx = Math.cos(a), fz = -Math.sin(a);   // 头朝转的方向
       kit.cyl(gold, 0.04, 0.04, 3.2, x, 2.1, z, { seg: 8 });
       puff(kit, body, 0.3, x, 1.38, z, { sx: 0.72, sy: 0.8, sz: 0.72 }); puff(kit, body, 0.3, x - fx * 0.3, 1.36, z - fz * 0.3, { sx: 0.7, sy: 0.78, sz: 0.7 }); puff(kit, body, 0.26, x + fx * 0.28, 1.4, z + fz * 0.28, { sx: 0.7, sy: 0.8, sz: 0.7 });
       puff(kit, body, 0.17, x + fx * 0.48, 1.68, z + fz * 0.48, { sy: 1.25 }); puff(kit, body, 0.17, x + fx * 0.62, 1.86, z + fz * 0.62, { sx: 0.95, sy: 0.85 }); puff(kit, cream, 0.1, x + fx * 0.76, 1.8, z + fz * 0.76);
       for (const s of [-1, 1]) { puff(kit, body, 0.05, x + fx * 0.58 - fz * s * 0.09, 2.02, z + fz * 0.58 + fx * s * 0.09, { sy: 1.6 }); puff(kit, ink, 0.03, x + fx * 0.7 - fz * s * 0.11, 1.9, z + fz * 0.7 + fx * s * 0.11); }
-      for (let j = 0; j < 4; j++) puff(kit, cream, 0.07, x + fx * (0.44 - j * 0.07), 1.9 - j * 0.09, z + fz * (0.44 - j * 0.07));   // 鬃毛
+      for (let j = 0; j < 4; j++) puff(kit, mane, 0.075, x + fx * (0.44 - j * 0.07), 1.9 - j * 0.09, z + fz * (0.44 - j * 0.07));   // 鬃毛
       for (const f of [-1, 1]) for (const s of [-1, 1]) box(kit, body, 0.1, 0.5, 0.1, x + fx * f * 0.3 - fz * s * 0.13, 0.98, z + fz * f * 0.3 + fx * s * 0.13, 0.04);
       for (const f of [-1, 1]) for (const s of [-1, 1]) puff(kit, gold, 0.065, x + fx * f * 0.3 - fz * s * 0.13, 0.72, z + fz * f * 0.3 + fx * s * 0.13, { sy: 0.7 });
-      box(kit, red, 0.42, 0.1, 0.4, x - fx * 0.02, 1.62, z - fz * 0.02, 0.04, { ry: a }); puff(kit, cream, 0.09, x - fx * 0.62, 1.44, z - fz * 0.62, { sy: 1.8 });
+      box(kit, saddle, 0.46, 0.12, 0.46, x - fx * 0.02, 1.62, z - fz * 0.02, 0.05, { ry: a }); box(kit, gold, 0.5, 0.05, 0.2, x - fx * 0.02, 1.6, z - fz * 0.02, 0.02, { ry: a });   // 鞍和鞍边
+      kit.tube(saddle, [[x + fx * 0.52, 1.72, z + fz * 0.52], [x + fx * 0.74, 1.78, z + fz * 0.74]], 0.035, { straight: true }); puff(kit, mane, 0.09, x - fx * 0.62, 1.44, z - fz * 0.62, { sy: 1.8 });   // 笼头、尾巴
     };
-    const tones = [0xf1e6d2, 0xd48178, 0x6cb7af, 0xedcb88, 0xf1e6d2, 0xb9a4cf];
+    const tones = [TEAL, RED, GOLD, TEAL, RED, GOLD];   // 鞍的颜色；马身都是米白（参考图）
     horsesA = part(carousel, kit => { for (let i = 0; i < c.horses; i += 2) horse(kit, i * TAU / c.horses, tones[i]); });
     horsesB = part(carousel, kit => { for (let i = 1; i < c.horses; i += 2) horse(kit, i * TAU / c.horses, tones[i]); });
     carousel.children.forEach(g => { g.userData.spin = true; });
@@ -290,6 +308,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     for (const dz of [-3.1, 3.1]) for (const dx of [-1.15, 1.15]) box(k, red, 0.15, 2.2, 0.15, sx + dx, deck + 1.1, sz + dz, 0.045);
     awning(k, sx, sz, deck + 2.3, 3.0, 6.9, red); for (const dx of [-1.5, 1.5]) for (let i = 0; i < 17; i++) puff(k, i % 2 ? cream : red, 0.2, sx + dx, deck + 2.2, sz - 3.2 + i * 0.4, { sx: 0.3, sy: 1.0, seg: 8, rings: 5 });
     for (const dz of [-3.1, 0.6, 3.1]) box(k, wood, 0.1, 0.9, 0.1, sx - 1.15, deck + 0.45, sz + dz, 0.03); k.tube(wood, [[sx - 1.15, deck + 0.85, sz + 0.6], [sx - 1.15, deck + 0.85, sz + 3.1]], 0.04, { straight: true });
+    for (const e of [-1, 1]) k.soft(M('shingle', RED), 1.95, 0.14, 7.1, sx + e * 0.78, deck + 2.82, sz, { r: 0.05, rz: -e * 0.54 });   // 红瓦的人字顶
+    for (const e of [-1, 1]) for (let i = 0; i < 5; i++) { const t = (i + 0.5) / 5, hh = 0.92 * (1 - Math.abs(t - 0.5) * 2); box(k, cream, 3.0 / 5 + 0.02, hh + 0.04, 0.1, sx + (t - 0.5) * 3.0, deck + 2.38 + hh / 2, sz + e * 3.42, 0.02); }
     star(k, gold, 0.3, sx - 1.55, deck + 2.5, sz);
     // 小火车：两节，头一节有圆鼻子和一颗星
     part(train, kit => {
@@ -381,7 +401,9 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       const tone = [teal, coral, gold][i % 3];
       cabins.push(part(wheel, kit => {
         kit.tube(ink, [[0, 0, -half], [0, -0.3, -0.5], [0, -0.3, 0.5], [0, 0, half]], 0.03, { straight: true });
-        box(kit, cream, 1.5, 0.1, 1.24, 0, -0.34, 0, 0.05); puff(kit, tone, 0.2, 0, -0.2, 0, { sx: 3.2, sy: 0.6, sz: 2.6 });   // 顶
+        box(kit, cream, 1.5, 0.1, 1.24, 0, -0.34, 0, 0.05); puff(kit, cream, 0.24, 0, -0.22, 0, { sx: 3.3, sy: 0.9, sz: 2.8 }); puff(kit, tone, 0.1, 0, 0.02, 0);   // 顶：米白的圆顶，一圈扇贝边
+        for (let j = 0; j < 12; j++) { const a = j * TAU / 12; puff(kit, cream, 0.12, Math.cos(a) * 0.76, -0.4, Math.sin(a) * 0.62, { sy: 0.9, seg: 8, rings: 5 }); }
+        puff(kit, tone, 0.62, 0, -1.52, 0, { sx: 1.2, sy: 0.42, sz: 0.98 });   // 圆肚子的舱底
         for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(kit, cream, 0.06, 1.1, 0.06, sx * 0.66, -0.9, sz * 0.52, 0.02);
         box(kit, tone, 1.44, 0.14, 1.16, 0, -1.5, 0, 0.06);   // 底
         for (const sz of [-1, 1]) box(kit, tone, 1.44, 0.36, 0.08, 0, -1.28, sz * 0.56, 0.05);   // 前后的围板（矮一点，坐着能越过去看）
@@ -402,7 +424,10 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       box(k, M('boards', 0x9a7250), 0.14, 2.6, 3.4, back, 1.3, z, 0.04); for (const s of [-1, 1]) { box(k, M('boards', 0x9a7250), 2.6, 2.6, 0.12, x - 0.05, 1.3, z + s * 1.7, 0.04); box(k, accent, 0.14, 2.7, 0.14, x + 1.4, 1.35, z + s * 1.66, 0.04); }
       awning(k, x + 0.55, z, 2.86, 3.6, 3.7, accent); for (let j = 0; j < 9; j++) puff(k, j % 2 ? cream : accent, 0.2, x + 2.36, 2.72, z - 1.6 + j * 0.4, { sx: 0.3, sy: 1.0, seg: 8, rings: 5 });
       for (let j = 0; j < 4; j++) puff(k, felt([0xf5bf55, 0x72aba0, 0xe4a294, 0xb9a4cf][(i + j) % 4]), 0.19, x + 1.2, 2.35 - (j % 2) * 0.18, z - 1.2 + j * 0.8, { sy: 1.15 });   // 挂着的奖品
+      stripedRoof(k, x + 0.2, z, 2.02, 2.94, 4.25, [accent, cream], 12); k.cyl(wood, 0.03, 0.03, 0.8, x + 0.2, 4.6, z, { seg: 6 }); puff(k, gold, 0.07, x + 0.2, 5.02, z);
+      k.quad(accent, [x + 0.2, 4.98, z], [x + 0.2, 4.9, z + 0.6], [x + 0.2, 4.68, z + 0.56], [x + 0.2, 4.66, z], undefined, 1, [1, 0, 0]); k.quad(accent, [x + 0.2, 4.9, z + 0.6], [x + 0.2, 4.98, z], [x + 0.2, 4.66, z], [x + 0.2, 4.68, z + 0.56], undefined, 1, [-1, 0, 0]);
       sign(names[i], x + 2.16, 3.05, z, 2.5, Math.PI / 2);
+      k.cyl(cream, 0.5, 0.5, 0.06, x + 2.2, 3.86, z, { seg: 20, rz: Math.PI / 2 }); picture('stall-' + st.id + '.webp', 0.84, 0.84, x + 2.25, 3.86, z, Math.PI / 2, { cutout: true });
       box(k, wood, 0.5, 0.08, 2.9, back + 0.35, 1.15, z, 0.03);   // 摆靶子的架子
       const items = [];
       if (st.id === 'blocks') [[0, 0], [0, 1], [0, 2], [1, 0.5], [1, 1.5], [2, 1]].forEach(([row, col], j) => items.push(part(root, kit => box(kit, felt([RED, TEAL, GOLD, CORAL, NAVY, MOSS][j]), 0.3, 0.3, 0.3, 0, 0.15, 0, 0.05), back + 0.35, 1.19 + row * 0.3, z + (col - 1) * 0.34)));
@@ -445,13 +470,18 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       const length = Math.max(wall.w, wall.d), wide = wall.w > wall.d, cols = Math.max(1, Math.round(length / 1.3));
       for (let i = 0; i < cols; i++) {
         const delta = length * ((i + 0.5) / cols - 0.5), x = wall.x + (wide ? delta : 0), z = wall.z + (wide ? 0 : delta), w = length / cols;
-        box(k, cream, wide ? 0.1 : 0.2, 2.3, wide ? 0.2 : 0.1, x - (wide ? w / 2 : 0), 1.15, z - (wide ? 0 : w / 2), 0.03); box(k, felt(0x9cc7d0), wide ? w : 0.2, 0.14, wide ? 0.2 : w, x, 2.28, z, 0.04); box(k, felt(0x9cc7d0), wide ? w : 0.2, 0.16, wide ? 0.2 : w, x, 0.08, z, 0.04);
+        box(k, cream, wide ? 0.1 : 0.2, 2.3, wide ? 0.2 : 0.1, x - (wide ? w / 2 : 0), 1.15, z - (wide ? 0 : w / 2), 0.03); puff(k, gold, 0.1, x - (wide ? w / 2 : 0), 2.44, z - (wide ? 0 : w / 2)); box(k, felt(0x9cc7d0), wide ? w : 0.2, 0.14, wide ? 0.2 : w, x, 2.28, z, 0.04); box(k, felt(0x9cc7d0), wide ? w : 0.2, 0.16, wide ? 0.2 : w, x, 0.08, z, 0.04);
         const pane = obj(root, new T.BoxGeometry(wide ? w - 0.12 : 0.09, 2.0, wide ? 0.09 : w - 0.12), mirror, x, 1.18, z); pane.castShadow = false;
       }
     }
     const ax = 20.6, az = 19.9;   // 入口的拱门（东头）
-    for (const s of [-1, 1]) box(k, felt(0x9cc7d0), 0.3, 2.7, 0.3, ax, 1.35, az + s * 1.25, 0.08);
-    k.tube(felt(0x9cc7d0), Array.from({ length: 11 }, (_, i) => { const a = Math.PI * i / 10; return [ax, 2.6 + Math.sin(a) * 0.8, az + Math.cos(a) * 1.25]; }), 0.16, { radial: 8 }); star(k, gold, 0.3, ax + 0.12, 3.5, az);
+    for (const s of [-1, 1]) { box(k, cream, 0.32, 2.7, 0.32, ax, 1.35, az + s * 1.25, 0.08); box(k, wood, 0.4, 0.3, 0.4, ax, 0.15, az + s * 1.25, 0.05); puff(k, gold, 0.16, ax, 2.78, az + s * 1.25); }
+    const hoopLine = r => Array.from({ length: 11 }, (_, i) => { const a = Math.PI * i / 10; return [ax, 2.6 + Math.sin(a) * r * 0.64, az + Math.cos(a) * r]; });
+    k.tube(red, hoopLine(1.25), 0.17, { radial: 8 }); k.tube(gold, hoopLine(1.02).map(([x, y, z]) => [x + 0.06, y - 0.08, z]), 0.07, { radial: 6 }); star(k, gold, 0.3, ax + 0.14, 3.5, az);
+    // 哈哈镜：路上迎面的三块镜板里是被拉长、压扁、扭歪的绒仔
+    picture('mirror-tall.webp', 0.98, 1.96, 13.05 + 0.06, 1.18, 19.935, Math.PI / 2);
+    picture('mirror-wide.webp', 0.98, 1.96, 13.0, 1.18, 13 + 0.06, 0);
+    picture('mirror-wavy.webp', 0.98, 1.96, 9.28 + 0.06, 1.18, 15.2325, Math.PI / 2);
   }
 
   // ====================================================================== 10 马戏团
@@ -466,6 +496,14 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       k.quad(i % 2 ? quilt(0xa05151) : quilt(0xc9aa82), at(b, 0.017, tnt.radius - 0.045), at(a, 0.017, tnt.radius - 0.045), at(a, 3.85, tnt.radius - 0.045), at(b, 3.85, tnt.radius - 0.045), [[0, 0], [1, 0], [1, 3.2], [0, 3.2]], 0.52, [-Math.sin(aa), 0, -Math.cos(aa)]);
     }
     stripedRoof(k, 0, 0, tnt.radius + 0.38, 3.82, 9.2, [red, cream], N, true);
+    for (let i = 0; i < N; i++) { const a = i * TAU / N; puff(k, gold, 0.13, ...at(a, 3.46, tnt.radius + 0.4)); k.tube(gold, [at(a, 3.8, tnt.radius + 0.4), at(a, 3.5, tnt.radius + 0.4)], 0.025, { straight: true });
+      if (i % 2 === 0 && i > 1 && i < N - 1) box(k, gold, 0.36, 0.36, 0.03, ...at(a, 1.7, tnt.radius + 0.03), 0.02, { ry: a, rz: Math.PI / 4 }); }
+    [['poster-circus-1.webp', -2.5, 11.9, 0.34], ['poster-circus-2.webp', 5.3, 12.9, -0.42], ['poster-circus-3.webp', -4.3, 9.6, 0.5]].forEach(([file, x, z, yaw]) => {   // 海报牌：朝着从南边走来的人
+      const fx = Math.sin(yaw), fz = Math.cos(yaw);
+      for (const e of [-1, 1]) box(k, wood, 0.1, 2.5, 0.1, x + e * 0.66 * fz, 1.25, z - e * 0.66 * fx, 0.03);
+      box(k, M('boards', 0x9a6f4c), 1.34, 1.74, 0.07, x, 1.6, z, 0.03, { ry: yaw }); box(k, red, 1.5, 0.14, 0.16, x, 2.56, z, 0.04, { ry: yaw }); puff(k, gold, 0.09, x, 2.72, z);
+      picture(file, 1.2, 1.6, x + fx * 0.05, 1.6, z + fz * 0.05, yaw);
+    });
     for (const side of [-1, 1]) {   // 门口：两根红柱、束起来的门帘
       const x = side * 2.02; box(k, red, 0.44, 4.11, 0.46, x, 2.05, 7.40, 0.10); puff(k, gold, 0.18, x, 3.98, 7.64);
       puff(k, quilt(RED), 0.62, x + side * 0.3, 2.6, 7.5, { sx: 0.9, sy: 1.9, sz: 0.4 }); puff(k, quilt(RED), 0.4, x + side * 0.5, 1.1, 7.5, { sx: 0.8, sy: 1.6, sz: 0.4 }); k.tube(gold, [[x + side * 0.05, 1.75, 7.72], [x + side * 0.75, 1.75, 7.72]], 0.05, { straight: true });

@@ -6,8 +6,8 @@ import { CHALLENGES, findChallenge } from './challenges.js';
 export const MENU = [
   ['chapters',crazyGames ? '开始游戏' : '选关'], ['settings','设置'], ['practice','练习'], ['challenges','挑战簿'],
 ];
-export const CHAPTERS = [...(crazyGames ? [firstRound] : []),'house','museum','school','cottage'];
-export const CHAPTER_ART = {[firstRound]:'practice',house:'garden',museum:'museum',school:'school',cottage:'cottage'};
+export const CHAPTERS = [...(crazyGames ? [firstRound] : []),'house','museum','school','cottage','amusement-tour'];
+export const CHAPTER_ART = {[firstRound]:'practice',house:'garden',museum:'museum',school:'school',cottage:'cottage','amusement-tour':'park'};
 export const SCREEN_IDS = new Set(['home','chapters','settings','controls','practice','opponents','challenges']);
 const kinds = ZOMBIE_ROSTER.map(enemy => enemy.id);
 

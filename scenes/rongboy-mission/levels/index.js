@@ -9,3 +9,5 @@ import amusementTour from './amusement-tour.js';
 
 export const LEVELS = { house, museum, school, cottage, 'amusement-tour':amusementTour };
 export const ORDER = ['house', 'museum', 'school', 'cottage'];
+// EXTRAS：也列在选关里、排在正式关卡后面，但不是打僵尸的关（没有敌人、没有武器），所以不进 ORDER。
+export const EXTRAS = ['amusement-tour'];

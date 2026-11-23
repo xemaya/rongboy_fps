@@ -22,9 +22,19 @@ body:has(#bossHud:not([hidden])) #missionHud { max-width: min(310px, 26vw); }
 body.park-tour #missionHud { width:max-content; min-width:112px; padding:8px 13px; }
 body.park-tour #missionHud strong, body.park-tour .ammo-readout { display:none; }
 body.park-tour #missionStep { font-weight:650; }
-#stampRow { display:flex; gap:5px; margin-top:7px; }
-#stampRow i { width:11px; height:11px; border-radius:50%; border:1.5px dashed #f1ca83; box-sizing:border-box; }
-#stampRow i.on { background:#f1ca83; border-style:solid; }
+#stampRow { display:flex; gap:4px; margin-top:7px; }
+#stampRow i { width:24px; height:24px; border-radius:50%; border:1.5px dashed #f1ca83; box-sizing:border-box; display:block; }
+#stampRow i.on { background:#efe2c4; border:0; }
+#stampRow i img { width:100%; height:100%; display:block; }
+#parkCard { position:fixed; left:50%; bottom:15vh; translate:-50% 0; z-index:6; pointer-events:none; width:min(400px,56vw); filter:drop-shadow(0 8px 14px #0007); }
+.park-card { position:relative; aspect-ratio:1200/700; background:url(stamp-card.webp) center/100% 100%; border-radius:8px; }
+.park-card b { position:absolute; left:0; right:0; top:9%; text-align:center; color:#3d5a41; font:700 clamp(13px,1.9vw,19px)/1 var(--ui-title); letter-spacing:.08em; }
+.park-card img { position:absolute; width:14.6%; translate:-50% -50%; }
+.park-card img.fresh { animation:stamp-down .42s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes stamp-down { from { scale:1.9; opacity:0; } 55% { opacity:1; } to { scale:1; opacity:1; } }
+@media (prefers-reduced-motion: reduce) { .park-card img.fresh { animation:none; } }
+body.paused #parkCard, body.result #parkCard { display:none; }
+#resultCard { width:min(420px,100%); margin:4px auto 12px; }
 #rideFade, #rideVignette { position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; }
 #rideFade { background:#10140f; }
 #rideVignette { background:radial-gradient(ellipse at 50% 55%, transparent 38%, #0b100c 96%); }
@@ -317,7 +327,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
 <div id="bossHud" hidden><span id="bossName"></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
 <div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
 <div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
-<div id="rideVignette" aria-hidden="true"></div><div id="rideFade" aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>
+<div id="rideVignette" aria-hidden="true"></div><div id="rideFade" aria-hidden="true"></div><div id="parkCard" hidden aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>
 <div class="charge" id="charge" hidden><label id="chargeLabel"></label><div class="track"><div class="fill" id="chargeFill"></div></div></div>
 <a class="ui-return" id="gardenCompare" hidden></a>
 
@@ -373,6 +383,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   <div class="stars" id="resultStars"></div>
   <div class="ui-stamp" id="challenge-stamp" role="img" aria-label="挑战印章" hidden></div>
   <p id="gardenReceipt" hidden></p>
+  <div id="resultCard" hidden></div>
   <p id="resultNote"></p>
   <div class="stats" id="resultStats">
     <div><b id="rKills">0</b><span>击倒</span></div>

@@ -210,7 +210,8 @@
       "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one curving pair of coaster rails with three cross-ties. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
       "width": 256,
       "height": 256,
-      "transparent": true
+      "transparent": true,
+      "note": "2026-11-22: replaced. The generated image read as a ladder, not a coaster. The stamp is now drawn by hand as vector art in stamp-04.svg (a coaster hill on a trestle with a two-car train, same ink colour, ring and wear as the other nine) and rasterised from it at 256 px. The prompt above is kept for the record only."
     },
     "assets/rongboy/park/stamp-05.webp": {
       "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one little crooked haunted house with clearly pointed roof. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
@@ -256,7 +257,9 @@
       ],
       "width": 1672,
       "height": 941,
-      "transparent": false
+      "transparent": false,
+      "note": "2026-11-22: the gun in the generated plate (brown leather, red knitted glove) was not the one the other menu plates show. It was replaced with the gun, hands and sleeves cut out of menu-garden.webp along the outline below (pixel coordinates in the 1672x941 garden plate, closed along the right and bottom edges), scaled 1.15 about the lower-right corner and pasted over the generated plate; two small patches of the cobbled path were copied sideways first to hide what the larger gun did not cover. Everything else is the generated image, unchanged.",
+      "gun_outline": [[1100,941],[1135,900],[1165,865],[1195,835],[1220,818],[1228,800],[1238,784],[1255,770],[1278,766],[1298,764],[1302,761],[1296,757],[1284,749],[1272,731],[1264,708],[1259,681],[1258,654],[1264,624],[1275,601],[1292,583],[1315,568],[1339,561],[1365,558],[1395,560],[1422,569],[1442,584],[1472,599],[1505,611],[1535,631],[1559,654],[1575,678],[1586,700],[1600,709],[1620,715],[1642,728],[1660,746],[1672,766]]
     }
   }
 }

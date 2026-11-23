@@ -1147,14 +1147,38 @@ function bossHud(active) {
   $('bossTrack').setAttribute('aria-valuenow', boss.hp);
 }
 
-// 游乐园的集章条：十个圆点，盖过的填实
+// 游乐园的集章条：十个小圆位，盖过的显示那个设施的印章
+const stampImage = id => 'stamp-' + String(TOUR_STOPS.findIndex(q => q.id === id) + 1).padStart(2, '0') + '.webp';
 function stampRow() {
   const n = s.park.stamps.length;
   if (n === lastStamps) return;
   lastStamps = n;
   let row = $('stampRow');
   if (!row) { row = document.createElement('div'); row.id = 'stampRow'; $('missionHud').append(row); }
-  row.replaceChildren(...TOUR_STOPS.map(stop => { const dot = document.createElement('i'); dot.className = s.park.stamps.includes(stop.id) ? 'on' : ''; dot.title = copy(stop.name, stop.en); return dot; }));
+  row.replaceChildren(...TOUR_STOPS.map(stop => {
+    const slot = document.createElement('i'); slot.title = copy(stop.name, stop.en);
+    if (s.park.stamps.includes(stop.id)) { slot.className = 'on'; const img = new Image(); img.src = stampImage(stop.id); img.alt = ''; slot.append(img); }
+    return slot;
+  }));
+}
+// 游园集章卡：一张布卡片，十个圆圈，盖过的章印在自己的圈里。领卡、盖章的时候在屏幕下方亮一下，结算时放在面板里。
+const CARD_SPOTS = [13.96, 31.88, 49.96, 68, 86].flatMap(x => [[x, 46.6]]).concat([13.96, 31.88, 49.96, 68, 86].map(x => [x, 76.8]));
+function stampCard(fresh) {
+  const card = document.createElement('div'); card.className = 'park-card';
+  const title = document.createElement('b'); title.textContent = copy('游园集章卡', 'Park stamp card'); card.append(title);
+  TOUR_STOPS.forEach((stop, i) => {
+    if (!s.park.stamps.includes(stop.id)) return;
+    const img = new Image(); img.src = stampImage(stop.id); img.alt = copy(stop.name, stop.en);
+    img.style.left = CARD_SPOTS[i][0] + '%'; img.style.top = CARD_SPOTS[i][1] + '%'; img.style.rotate = ((i * 37) % 13 - 6) + 'deg';
+    if (stop.id === fresh) img.className = 'fresh';
+    card.append(img);
+  });
+  return card;
+}
+let cardTimer = 0;
+function showStampCard(fresh, seconds = 2.6) {
+  const el = $('parkCard'); el.replaceChildren(stampCard(fresh)); el.hidden = false;
+  clearTimeout(cardTimer); cardTimer = setTimeout(() => { el.hidden = true; }, seconds * 1000);
 }
 // 上下车：黑一下再淡回来，不让人看见镜头从路上跳到座位上（准则 3.6）
 function rideFade() {
@@ -1164,7 +1188,7 @@ function rideFade() {
 }
 function parkEvent(e) {
   const stopName = id => { const q = TOUR_STOPS.find(k => k.id === id); return q ? copy(q.name, q.en) : ''; };
-  if (e.what === 'stamp') { sfx2('stamp'); say(copy(`盖章 · ${stopName(e.stop)}（${e.count}/${e.needed}）`, `Stamped · ${stopName(e.stop)} (${e.count}/${e.needed})`), 2.2, 1); tourView?.event(e); }
+  if (e.what === 'stamp') { sfx2('stamp'); showStampCard(e.stop); say(copy(`盖章 · ${stopName(e.stop)}（${e.count}/${e.needed}）`, `Stamped · ${stopName(e.stop)} (${e.count}/${e.needed})`), 2.2, 1); tourView?.event(e); }
   else if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
   else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
   else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
@@ -1350,6 +1374,7 @@ function showResult() {
     $('resultTitle').textContent = copy('逛完了！','All ten stamps!');
     $('resultStars').hidden = true; $('resultStats').hidden = true;
     $('resultNote').textContent = copy(`十个章都盖上了 · 用时 ${clock(s.time)}`,`Every attraction stamped · ${clock(s.time)}`);
+    $('parkCard').hidden = true; $('resultCard').replaceChildren(stampCard(null)); $('resultCard').hidden = false;
     $('again').focus({preventScroll:true});
     return;
   }
