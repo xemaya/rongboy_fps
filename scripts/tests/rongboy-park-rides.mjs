@@ -1,11 +1,11 @@
-// 游乐园互动的检查（docs/park-design.md）：走近才有提示、按一下演一段、坐着不晕的那几条数、十个章集满就结束。
+// 游乐园互动的检查（docs/park-design.md）：走近才有提示、按一下演一段、坐着不晕的那几条数、看完马戏团的演出就结束。
 //   node scripts/tests/rongboy-park-rides.mjs
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/amusement-tour.js';
 import { compileLevel } from '../../scenes/rongboy-mission/level.js';
 import { createGame, step, consumeEvents, missionStatus, CONFIG } from '../../scenes/rongboy-mission/game.js';
 import { PARK, SPOTS, PLAYER_EYE, parkPrompt, parkInteract } from '../../scenes/rongboy-mission/park-rides.js';
-import { TOUR_STOPS, COASTER, WHEEL, RINK, HAUNT, isTourWalkable, isHauntWalkable, constrainTourWalk } from '../../scenes/rongboy-mission/park-tour-layout.js';
+import { TOUR_STOPS, COASTER, WHEEL, RINK, HAUNT, GATE, CAROUSEL, isTourWalkable, isHauntWalkable, constrainTourWalk } from '../../scenes/rongboy-mission/park-tour-layout.js';
 
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -21,12 +21,12 @@ test('every place you press the key is on the path, and close to its attraction'
     assert.ok(isTourWalkable(q.x, q.z, 0.2) || isHauntWalkable(q.x, q.z), `${q.id} at ${q.x}, ${q.z} is off the path`);   // 鬼屋的小铃在门厅里
     assert.ok(TOUR_STOPS.some(stop => stop.id === q.stop), q.id);
   }
-  assert.deepEqual([...new Set(SPOTS.map(q => q.stop)), 'mirrors'].sort(), TOUR_STOPS.map(stop => stop.id).sort(), 'every attraction can earn its stamp');
+  assert.deepEqual([...new Set(SPOTS.map(q => q.stop)), 'entrance', 'mirrors'].sort(), TOUR_STOPS.map(stop => stop.id).sort(), 'every attraction but the gate and the mirror maze (which you just walk through) has something to press');
 });
 
 test('the prompt shows only when you are near, says what will happen, and goes away while the thing is running', () => {
   const s = game();
-  assert.equal(parkPrompt(s)?.id, 'entrance', 'you start beside the ticket booth');
+  assert.equal(parkPrompt(s), null, 'nothing to press at the gate: you just walk in');
   s.player.x = -20.6; s.player.z = 23.2; assert.equal(parkPrompt(s), null, 'between attractions there is nothing to press');
   const q = at(s, 'carousel'); assert.deepEqual(parkPrompt(s), { id: 'carousel', kind: 'look', zh: q.zh, en: q.en });
   s.player.x += PARK.reach + 0.3; assert.equal(parkPrompt(s), null);
@@ -34,16 +34,8 @@ test('the prompt shows only when you are near, says what will happen, and goes a
   run(s, PARK.carousel.time + 0.2); assert.equal(parkPrompt(s)?.id, 'carousel', 'it can be rung again once it has stopped');
 });
 
-test('the park card: taken once at the booth, and that is the first stamp', () => {
-  const s = game(); at(s, 'entrance');
-  assert.ok(parkInteract(s));
-  const log = parks(consumeEvents(s)); assert.deepEqual(log.map(e => e.what), ['stamp', 'card']); assert.equal(log[0].count, 1);
-  assert.equal(parkPrompt(s), null); assert.equal(parkInteract(s), false); assert.deepEqual(s.park.stamps, ['entrance']);
-});
-
-test('carousel: one ring and it eases up to speed, turns, eases to a stop; the stamp comes with the ring', () => {
+test('carousel: one ring and it eases up to speed, turns, eases to a stop', () => {
   const s = game(); at(s, 'carousel'); parkInteract(s);
-  assert.deepEqual(s.park.stamps, ['carousel']);
   run(s, 1); const early = s.park.carouselAngle;
   run(s, 1); const second = s.park.carouselAngle - early;
   assert.ok(early > 0 && second > early * 1.5, 'it is still speeding up in the second second');
@@ -69,7 +61,7 @@ test('roller coaster: you are carried one lap at child-train pace, the view neve
   assert.ok(fastest < 3.2, `top speed ${fastest.toFixed(2)} m/s`); assert.ok(top > 7, 'it does climb'); assert.ok(steepest < 0.5, 'pitch stays gentle');
   assert.equal(parkPrompt(s).kind, 'leave');
   const end = parks(run(s, 0.2));
-  assert.deepEqual(end.map(e => e.what), ['alight', 'stamp']); assert.equal(s.park.riding, null);
+  assert.deepEqual(end.map(e => e.what), ['alight']); assert.equal(s.park.riding, null);
   assert.deepEqual([s.player.x, s.player.z, s.player.y], [q.x, q.z, 0]); assert.equal(s.player.seat, null); assert.equal(s.park.coasterU, 0);
 });
 
@@ -81,11 +73,11 @@ test('the coaster starts and stops gently', () => {
   run(s, PARK.coaster.time - 5.0); assert.ok(speed() < cruise * 0.5, 'slowing into the station');
 });
 
-test('pressing the key again mid-ride skips it, and the stamp still counts', () => {
+test('pressing the key again mid-ride skips it and puts you back where you got on', () => {
   const s = game(), q = at(s, 'coaster'); parkInteract(s); run(s, 5);
   assert.ok(parkInteract(s));
   const log = parks(consumeEvents(s)); assert.equal(log[0].what, 'alight'); assert.equal(log[0].skipped, true);
-  assert.deepEqual(s.park.stamps, ['coaster']); assert.deepEqual([s.player.x, s.player.z], [q.x, q.z]);
+  assert.equal(s.park.riding, null); assert.deepEqual([s.player.x, s.player.z], [q.x, q.z]);
 });
 
 test('Ferris wheel: you board the car nearest the bottom, rise to the top of the park, and come down after one slow turn', () => {
@@ -96,7 +88,7 @@ test('Ferris wheel: you board the car nearest the bottom, rise to the top of the
   run(s, Math.PI * 2 / PARK.wheel.speed - 0.5, { x: 1 }, g => { if (!g.park.riding) return; top = Math.max(top, g.player.y + PLAYER_EYE); fastest = Math.max(fastest, Math.hypot(g.player.x - last.x, g.player.y - last.y) / DT); last = { ...g.player }; });
   assert.ok(top > WHEEL.y + WHEEL.r - 1.0 && top > 10, `reached ${top.toFixed(1)} m`); assert.ok(fastest < 1.0, `moves at ${fastest.toFixed(2)} m/s`);
   assert.equal(s.player.seat.yaw, null, 'the view direction stays the player\'s own'); assert.ok(s.park.riding);
-  run(s, 1.0); assert.equal(s.park.riding, null); assert.deepEqual(s.park.stamps, ['wheel']);
+  run(s, 1.0); assert.equal(s.park.riding, null);
 });
 
 test('bumper cars: you drive, the padded rim and the other cars bounce you, and you can get out whenever you like', () => {
@@ -109,25 +101,25 @@ test('bumper cars: you drive, the padded rim and the other cars bounce you, and 
   assert.ok(Math.abs(s.player.y + PLAYER_EYE - PARK.bumpers.seat) < 1e-9, 'seated low');
   const more = run(s, 10, { x: -1, z: 0.4 }); assert.ok(bumps([...log, ...more]).some(e => e.car === 0 && !e.wall), 'and bumped another car');
   assert.ok(Math.max(...s.park.cars.map(c => Math.hypot(c.vx, c.vz))) <= PARK.bumpers.top + 1e-6);
-  parkInteract(s); assert.equal(s.park.riding, null); assert.deepEqual([s.player.x, s.player.z], [q.x, q.z]); assert.deepEqual(s.park.stamps, ['bumpers']);
+  parkInteract(s); assert.equal(s.park.riding, null); assert.deepEqual([s.player.x, s.player.z], [q.x, q.z]);
   at(s, 'bumpers'); parkInteract(s); run(s, PARK.bumpers.time + 0.2); assert.equal(s.park.riding, null, 'the turn ends by itself after half a minute');
 });
 
-test('game stalls: one press is a round of three throws; any stall stamps the midway once', () => {
+test('game stalls: one press is a round of three throws, and each stall plays its own round', () => {
   const s = game(); at(s, 'stall-ducks'); parkInteract(s);
   const log = parks(run(s, PARK.stall.time + 0.1));
   assert.deepEqual(log.filter(e => e.what === 'throw').map(e => [e.id, e.n]), [['stall-ducks', 0], ['stall-ducks', 1], ['stall-ducks', 2]]);
-  at(s, 'stall-blocks'); parkInteract(s); run(s, PARK.stall.time + 0.1);
-  assert.deepEqual(s.park.stamps, ['midway']);
+  at(s, 'stall-blocks'); parkInteract(s); const again = parks(run(s, PARK.stall.time + 0.1));
+  assert.deepEqual(again.filter(e => e.what === 'throw').map(e => e.id), ['stall-blocks', 'stall-blocks', 'stall-blocks']);
 });
 
-test('the haunted house: shut until you knock, then you can walk in, ring the bell for the stamp, and the door never shuts on you', () => {
+test('the haunted house: shut until you knock, then you can walk in, ring the bell to bring the ghosts out, and the door never shuts on you', () => {
   const s = game(), inside = { x: HAUNT.door.x, z: HAUNT.door.z + 0.6 }, porch = { x: HAUNT.door.x, z: HAUNT.door.z - 0.7 };
   const walk = (from, to, open) => { const p = { ...to }; constrainTourWalk(p, from.x, from.z, open); return p; };
   assert.deepEqual(walk(porch, inside, false), porch, 'a shut door keeps you on the porch');
   assert.equal(walk(porch, { x: -9, z: -18.4 }, true).z, porch.z, 'even with the door open you cannot walk through the front wall (you slide along it)');
   at(s, 'haunt'); assert.equal(parkPrompt(s).zh, '敲门'); parkInteract(s);
-  assert.deepEqual(s.park.stamps, [], 'knocking alone earns nothing');
+  assert.equal(s.park.running.portraits, 0, 'knocking alone does not bring the ghosts out');
   assert.equal(parkPrompt(s), null, 'nothing more to press on the porch while the door is open');
   run(s, 1.5); assert.equal(s.park.door, 1);
   assert.deepEqual(walk(porch, inside, s.park.door > 0.9), inside, 'the open door lets you in');
@@ -142,28 +134,40 @@ test('the haunted house: shut until you knock, then you can walk in, ring the be
     w.player.x = HAUNT.door.x; go(8, 0, -1); assert.ok(w.player.z < HAUNT.door.z - 0.4 && isTourWalkable(w.player.x, w.player.z, 0.2), 'and walked back out onto the path');
   }
   at(s, 'portraits'); assert.ok(isHauntWalkable(s.player.x, s.player.z)); assert.equal(parkPrompt(s).id, 'portraits');
-  parkInteract(s); assert.deepEqual(s.park.stamps, ['haunt']); assert.equal(parkPrompt(s), null, 'the bell cannot be rung again while the ghosts are out');
+  parkInteract(s); assert.ok(s.park.running.portraits > 0, 'the ghosts come out'); assert.equal(parkPrompt(s), null, 'the bell cannot be rung again while the ghosts are out');
   run(s, PARK.haunt.show + 20); assert.equal(s.park.door, 1, 'still open half a minute later, while you are inside'); assert.equal(parkPrompt(s).id, 'portraits', 'and the bell can be rung again');
   at(s, 'carousel'); run(s, 2); assert.equal(s.park.door, 0, 'it shuts once you have walked away');
   at(s, 'haunt'); assert.equal(parkPrompt(s).zh, '敲门', 'and can be knocked on again');
-  const acts = [];
-  for (let i = 0; i < 4; i++) { at(s, 'circus'); parkInteract(s); acts.push(s.park.act); run(s, PARK.circus.time + 0.1); }
-  assert.deepEqual(acts, [1, 2, 3, 1]);
+  const acts = []; at(s, 'circus'); parkInteract(s);   // 马戏团：一场演出三个节目挨着演
+  for (let i = 0; i < 3; i++) { run(s, i ? PARK.circus.time / 3 : 1); acts.push(s.park.act); }
+  assert.deepEqual(acts, [1, 2, 3]);
 });
 
-test('ten stamps finish the visit: not before, and not while something is still playing', () => {
+test('the gate and the carousel are solid: you go in under the arch, not through a tower, and you stop at the carousel steps', () => {
+  for (const q of SPOTS) for (const c of L.furnitureBoxes) assert.ok(!(q.x > c.minX && q.x < c.maxX && q.z > c.minZ && q.z < c.maxZ), `${q.id} is inside ${c.id}`);
+  const walk = (x, z, seconds, dx, dz) => { const w = game(); w.player.x = x; w.player.z = z; run(w, seconds, { x: dx, z: dz }); return w.player; };
+  const through = walk(L.player.x, L.player.z, 4, 0, -1); assert.ok(through.z < GATE.z - 1, `from the start you walk straight in under the arch (z = ${through.z.toFixed(2)})`);
+  for (const side of [-1, 1]) { const p = walk(GATE.x + side * GATE.half, GATE.z + 2.4, 4, 0, -1); assert.ok(p.z > GATE.z + 0.7, `the ${side < 0 ? 'west' : 'east'} tower stops you (z = ${p.z.toFixed(2)})`); }
+  const booth = walk(GATE.booth.x, GATE.booth.z + 2.6, 4, 0, -1); assert.ok(booth.z > GATE.booth.z + 1.2, `the ticket booth stops you at its counter (z = ${booth.z.toFixed(2)})`);
+  const spot = SPOTS.find(q => q.id === 'carousel'), p = walk(spot.x, spot.z, 5, 0, -1), away = Math.hypot(p.x - CAROUSEL.x, p.z - CAROUSEL.z);
+  assert.ok(away > CAROUSEL.platform, `walking at the carousel you stop outside its platform (${away.toFixed(2)} m from the centre)`);
+  for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8, x = CAROUSEL.x + Math.sin(a) * (CAROUSEL.platform - 0.25), z = CAROUSEL.z + Math.cos(a) * (CAROUSEL.platform - 0.25);
+    assert.ok(L.furnitureBoxes.some(c => x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ), 'the round platform is covered all the way round'); }
+});
+
+test('the visit ends when the circus show is over: not before, and nothing else ends it', () => {
   const s = game();
-  for (const id of ['entrance', 'carousel', 'rapids', 'haunt', 'portraits', 'stall-balloons', 'circus']) { at(s, id); assert.ok(parkInteract(s), id); }
+  for (const id of ['carousel', 'rapids', 'haunt', 'portraits', 'stall-balloons']) { at(s, id); assert.ok(parkInteract(s), id); }
   for (const id of ['coaster', 'wheel', 'bumpers']) { at(s, id); parkInteract(s); parkInteract(s); }
-  assert.equal(s.park.stamps.length, 9); run(s, PARK.carousel.time + 1); assert.equal(missionStatus(s).done, false);
-  at(s, 'rapids'); parkInteract(s);   // 再放一次船：还在演
-  s.player.x = PARK.mirrorsExit.x; s.player.z = PARK.mirrorsExit.z;
-  const log = run(s, 1);
-  assert.equal(s.park.stamps.length, 10); assert.equal(missionStatus(s).done, false, 'the boat is still running');
-  assert.equal(parks(log).filter(e => e.what === 'complete').length, 0);
-  const rest = run(s, PARK.rapids.time + CONFIG.endDelay + 0.5);
+  const before = run(s, PARK.carousel.time + 1);
+  assert.equal(missionStatus(s).done, false, 'playing everything else does not end the visit'); assert.equal(parks(before).filter(e => e.what === 'complete').length, 0);
+  at(s, 'circus'); assert.equal(parkPrompt(s).zh, '敲锣开演'); assert.ok(parkInteract(s));
+  const during = run(s, PARK.circus.time - 1);
+  assert.equal(missionStatus(s).done, false, 'not while the show is still on'); assert.equal(parks(during).filter(e => e.what === 'complete').length, 0);
+  const rest = run(s, 1 + CONFIG.endDelay + 0.5);
   assert.equal(parks(rest).filter(e => e.what === 'complete').length, 1); assert.equal(s.phase, 'won');
-  assert.deepEqual([...s.park.stamps].sort(), TOUR_STOPS.map(stop => stop.id).sort());
+  const straight = game(); at(straight, 'circus'); parkInteract(straight); run(straight, PARK.circus.time + CONFIG.endDelay + 0.5);
+  assert.equal(straight.phase, 'won', 'nothing gates the big top yet: you may walk straight to it');
 });
 
 console.log(`${checks} park ride checks passed`);

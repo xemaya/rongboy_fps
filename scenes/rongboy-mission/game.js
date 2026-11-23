@@ -954,7 +954,7 @@ export function exchangeWeapon(s) {
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
-  if (s.level.tour) return { type: 'explore', alive, total: s.total, stamps: s.park.stamps.length, needed: 10, done: s.park.done && !s.park.riding };
+  if (s.level.tour) return { type: 'explore', alive, total: s.total, done: s.park.done && !s.park.riding };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;

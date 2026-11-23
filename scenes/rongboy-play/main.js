@@ -21,7 +21,8 @@ function showLoading() {
   status.textContent=t('正在准备关卡…');
   back.href=exitPlayHref(query,id||selected.id);
 }
-function fail(){
+function fail(event){
+  window.__loadError=String(event?.error?.stack||event?.message||'');   // 调试用：自动化脚本读这个看是哪一行出的错
   status.textContent=t('加载失败，请返回后重试。');
   back.hidden=false;
 }
@@ -37,6 +38,6 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const { boot } = await import('../rongboy-mission/play.js');
       await loadInterfaceFonts(language);
       await boot(sdkReady);
-    } catch { fail(); }
+    } catch (error) { fail({ error }); }
   },0);
 }));

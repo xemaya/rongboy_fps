@@ -1,7 +1,8 @@
-// 游乐园的规则：走近设施按一个键，设施演一段，演完盖章；十个章集满就逛完了（docs/park-design.md）。
+// 游乐园的规则：走近设施按一个键，设施演一段；走到小径尽头的马戏团、看完一场演出，这一趟就逛完了（docs/park-design.md）。
+// 没有收集、没有进度条。以后往里放战斗时，改成一个设施一个场景：打倒场景里所有敌人、打开开关，才放行去下一个。
 // 确定性、不依赖 DOM。画面（park-tour-view.js）只读这里的状态：木马转到哪、车在轨道的哪一点、门开了多少。
 // 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车：人被带着走）、开（碰碰车：人自己开）。
-import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT } from './park-tour-layout.js';
+import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT } from './park-tour-layout.js';
 
 const TAU = Math.PI * 2, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 // 眼睛离脚底的高度（和 play.js 里的 EYE 是同一个数）：坐着的时候按"眼睛该在哪"反推脚底的高度
@@ -17,13 +18,11 @@ export const PARK = {
   wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
   stall: { time: 4.4, throws: [0.5, 1.7, 2.9] },
   bumpers: { time: 30, accel: 7, top: 3.4, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4 },
-  circus: { time: 16, acts: 3 },
-  mirrorsExit: { x: 9.65, z: 20.2, r: 1.3 },
+  circus: { time: 18, acts: 3 },   // 一场演出三个节目，挨着演，每个 6 秒
 };
 
-// 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开 / take 领。
+// 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开。
 export const SPOTS = [
-  { id: 'entrance', stop: 'entrance', kind: 'take', x: -15.9, z: 27.6, reach: 3.0, zh: '领游园卡', en: 'Take a park card' },
   { id: 'carousel', stop: 'carousel', kind: 'look', x: -26.0, z: 21.0, zh: '摇铃开动木马', en: 'Ring the bell' },
   { id: 'rapids', stop: 'rapids', kind: 'look', x: -36.4, z: 6.6, zh: '开闸放船', en: 'Open the sluice' },
   { id: 'coaster', stop: 'coaster', kind: 'ride', x: -31.4, z: -13.0, reach: 3.2, zh: '坐过山车', en: 'Ride the coaster' },
@@ -36,11 +35,10 @@ export const SPOTS = [
   { id: 'bumpers', stop: 'bumpers', kind: 'drive', x: 35.4, z: 10.0, zh: '开碰碰车', en: 'Drive a bumper car' },
   { id: 'circus', stop: 'circus', kind: 'look', x: 0, z: -1.6, zh: '敲锣开演', en: 'Strike the gong' },
 ];
-const spotOf = id => SPOTS.find(q => q.id === id);
 
 export function createPark() {
   return {
-    time: 0, stamps: [], done: false, riding: null,
+    time: 0, done: false, riding: null,   // done：看完了马戏团的演出，这一趟结束
     watch: false,   // true：过山车只看不坐（系统设了"减少动态效果"的人，准则 3.9）
     // 各设施演到哪了：0 是没在演；大于 0 是已经演了多少秒
     running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, circus: 0, coaster: 0, 'stall-blocks': 0, 'stall-ducks': 0, 'stall-balloons': 0 },
@@ -62,18 +60,11 @@ export function parkPrompt(s) {
   let best = null, near = Infinity;
   for (const q of SPOTS) {
     const d = Math.hypot(q.x - p.x, q.z - p.z);
-    if (d > (q.reach ?? PARK.reach) || d >= near || busy(park, q.id) || (q.id === 'entrance' && park.stamps.includes('entrance'))) continue;
+    if (d > (q.reach ?? PARK.reach) || d >= near || busy(park, q.id)) continue;
     best = q; near = d;
   }
   if (best?.id === 'coaster' && park.watch) return { id: 'coaster', kind: 'look', zh: '发车', en: 'Send the train' };
   return best && { id: best.id, kind: best.kind, zh: best.zh, en: best.en };
-}
-
-function stamp(s, stop) {
-  const park = s.park;
-  if (park.stamps.includes(stop)) return;
-  park.stamps.push(stop);
-  s.events.push({ type: 'park', what: 'stamp', stop, count: park.stamps.length, needed: TOUR_STOPS.length });
 }
 
 // 一圈走到哪了（0–1）：头尾各 ramp 秒缓起缓停，中间匀速
@@ -110,7 +101,6 @@ function alight(s, skipped = false) {
   p.x = ride.from.x; p.z = ride.from.z; p.y = 0; p.seat = null;
   if (ride.id === 'coaster') park.coasterU = 0;
   s.events.push({ type: 'park', what: 'alight', id: ride.id, skipped });
-  stamp(s, spotOf(ride.id).stop);
 }
 
 // 坐着的时候人在哪：p.x / p.y / p.z 是脚底，p.seat 告诉画面车朝哪、镜头被带着转了多少
@@ -137,13 +127,11 @@ export function parkInteract(s) {
   if (!prompt) return false;
   if (prompt.kind === 'leave') { alight(s, true); return true; }
   const { id } = prompt;
-  if (id === 'entrance') { stamp(s, 'entrance'); s.events.push({ type: 'park', what: 'card' }); return true; }
   if (prompt.kind === 'ride' || prompt.kind === 'drive') { board(s, id); return true; }
-  if (id === 'haunt') { park.knocked = true; park.running.haunt = 1e-6; s.events.push({ type: 'park', what: 'start', id }); return true; }   // 敲门：门开，章要进去摇了铃才盖
+  if (id === 'haunt') { park.knocked = true; park.running.haunt = 1e-6; s.events.push({ type: 'park', what: 'start', id }); return true; }   // 敲门：门开，幽灵要进去摇了铃才出来
   park.running[id] = 1e-6;
-  if (id === 'circus') park.act = (park.act % PARK.circus.acts) + 1;
+  if (id === 'circus') park.act = 1;
   s.events.push({ type: 'park', what: 'start', id, act: park.act });
-  stamp(s, spotOf(id).stop);
   return true;
 }
 
@@ -205,7 +193,10 @@ export function stepPark(s, dt, input = {}) {
     if (R.haunt > 0) R.haunt = R.haunt + dt >= H.time ? 0 : R.haunt + dt;
     if (R.portraits > 0) R.portraits = R.portraits + dt >= H.show ? 0 : R.portraits + dt;
   }
-  if (R.circus > 0) R.circus = R.circus + dt >= PARK.circus.time ? 0 : R.circus + dt;
+  if (R.circus > 0) {   // 马戏团：演完一场，这一趟就逛完了
+    R.circus += dt; park.act = Math.min(PARK.circus.acts, 1 + Math.floor(R.circus / (PARK.circus.time / PARK.circus.acts)));
+    if (R.circus >= PARK.circus.time) { R.circus = 0; if (!park.done) { park.done = true; s.events.push({ type: 'park', what: 'complete' }); } }
+  }
   for (const stall of STALLS) {
     const id = 'stall-' + stall.id, t = R[id];
     if (!(t > 0)) continue;
@@ -234,9 +225,5 @@ export function stepPark(s, dt, input = {}) {
     seat(s);
     return true;
   }
-  // 镜子迷宫：走到出口就盖章
-  const M = PARK.mirrorsExit, p = s.player;
-  if (Math.hypot(p.x - M.x, p.z - M.z) < M.r) stamp(s, 'mirrors');
-  if (!park.done && park.stamps.length >= TOUR_STOPS.length && !Object.values(R).some(t => t > 0)) { park.done = true; s.events.push({ type: 'park', what: 'complete' }); }
   return false;
 }

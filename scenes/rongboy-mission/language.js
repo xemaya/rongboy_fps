@@ -155,7 +155,7 @@ const words = {
   '一楼埃及厅找面具，自然厅找恐龙蛋。走北走廊上二楼珍宝库取蓝宝石，再把三件展品送回恐龙面前。': 'Find the mask and dinosaur egg downstairs. Take the north stairs to the sapphire vault, then bring all three exhibits back to the dinosaur.',
   '把学校里的僵尸全部清走': 'Clear the zombies from the school',
   '把奶奶家里的僵尸全部清走': 'Clear the zombies from Grandma’s place',
-  '逛游乐园，集满十个章': 'Visit every ride and collect ten stamps',
+  '逛到马戏团，看一场演出': 'Walk to the big top and watch the show',
   '带着毛线篮回到院门': 'Bring the yarn basket back to the gate',
   '三件都齐了 · 送回中央大厅的恐龙面前': 'All three found · Return them to the dinosaur',
   '拿到篮子后整层楼都醒了：先把楼梯口清出来再拿。': 'Clear the route to the stairs before picking up the basket.',

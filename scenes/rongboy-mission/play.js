@@ -95,7 +95,7 @@ const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 let s = createGame({ level });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
 let actors, bossActors, viewmodel, tourView;
-let rideYaw = 0, rideVignette = 0, lastStamps = -1;   // 游乐园：上车那一刻面朝哪、暗角的深浅、集章条上次画的是几个
+let rideYaw = 0, rideVignette = 0;   // 游乐园：上车那一刻面朝哪、暗角的深浅
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
@@ -123,7 +123,7 @@ function applyTexts() {
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
  $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post: ride the coaster and the wheel, drive a bumper car. Collect all ten stamps.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post: ride the coaster and the wheel, drive a bumper car, knock at the haunted house. Strike the gong in the big top and watch the show.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -1147,39 +1147,6 @@ function bossHud(active) {
   $('bossTrack').setAttribute('aria-valuenow', boss.hp);
 }
 
-// 游乐园的集章条：十个小圆位，盖过的显示那个设施的印章
-const stampImage = id => 'stamp-' + String(TOUR_STOPS.findIndex(q => q.id === id) + 1).padStart(2, '0') + '.webp';
-function stampRow() {
-  const n = s.park.stamps.length;
-  if (n === lastStamps) return;
-  lastStamps = n;
-  let row = $('stampRow');
-  if (!row) { row = document.createElement('div'); row.id = 'stampRow'; $('missionHud').append(row); }
-  row.replaceChildren(...TOUR_STOPS.map(stop => {
-    const slot = document.createElement('i'); slot.title = copy(stop.name, stop.en);
-    if (s.park.stamps.includes(stop.id)) { slot.className = 'on'; const img = new Image(); img.src = stampImage(stop.id); img.alt = ''; slot.append(img); }
-    return slot;
-  }));
-}
-// 游园集章卡：一张布卡片，十个圆圈，盖过的章印在自己的圈里。领卡、盖章的时候在屏幕下方亮一下，结算时放在面板里。
-const CARD_SPOTS = [13.96, 31.88, 49.96, 68, 86].flatMap(x => [[x, 46.6]]).concat([13.96, 31.88, 49.96, 68, 86].map(x => [x, 76.8]));
-function stampCard(fresh) {
-  const card = document.createElement('div'); card.className = 'park-card';
-  const title = document.createElement('b'); title.textContent = copy('游园集章卡', 'Park stamp card'); card.append(title);
-  TOUR_STOPS.forEach((stop, i) => {
-    if (!s.park.stamps.includes(stop.id)) return;
-    const img = new Image(); img.src = stampImage(stop.id); img.alt = copy(stop.name, stop.en);
-    img.style.left = CARD_SPOTS[i][0] + '%'; img.style.top = CARD_SPOTS[i][1] + '%'; img.style.rotate = ((i * 37) % 13 - 6) + 'deg';
-    if (stop.id === fresh) img.className = 'fresh';
-    card.append(img);
-  });
-  return card;
-}
-let cardTimer = 0;
-function showStampCard(fresh, seconds = 2.6) {
-  const el = $('parkCard'); el.replaceChildren(stampCard(fresh)); el.hidden = false;
-  clearTimeout(cardTimer); cardTimer = setTimeout(() => { el.hidden = true; }, seconds * 1000);
-}
 // 上下车：黑一下再淡回来，不让人看见镜头从路上跳到座位上（准则 3.6）
 function rideFade() {
   const el = $('rideFade');
@@ -1187,14 +1154,12 @@ function rideFade() {
   el.style.transition = 'opacity .5s ease'; el.style.opacity = '0';
 }
 function parkEvent(e) {
-  const stopName = id => { const q = TOUR_STOPS.find(k => k.id === id); return q ? copy(q.name, q.en) : ''; };
-  if (e.what === 'stamp') { sfx2('stamp'); showStampCard(e.stop); say(copy(`盖章 · ${stopName(e.stop)}（${e.count}/${e.needed}）`, `Stamped · ${stopName(e.stop)} (${e.count}/${e.needed})`), 2.2, 1); tourView?.event(e); }
-  else if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
+  if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
   else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
   else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
   else if (e.what === 'throw') { sfx('shot', { weapon: 'single', power: 0 }); tourView?.event(e); }
   else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); tourView?.event(e); }
-  else if (e.what === 'complete') say(copy('十个章集齐了！','All ten stamps!'), 2.4, 2);
+  else if (e.what === 'complete') say(copy('演出结束，逛完了！','The show is over. That was the park!'), 2.4, 2);
   else tourView?.event(e);
 }
 
@@ -1205,8 +1170,7 @@ function hud() {
   if (parkTour && active) {
     const stop=nearbyTourStop(s.player.x,s.player.z), riding=s.park.riding && TOUR_STOPS.find(q=>q.id===s.park.riding.id);
     const where=riding||stop;
-    textOf('missionStep',(where?copy(where.name,where.en):copy('缝线小径','Stitched path'))+copy(` · 章 ${s.park.stamps.length}/${TOUR_STOPS.length}`,` · ${s.park.stamps.length}/${TOUR_STOPS.length} stamps`));
-    stampRow();
+    textOf('missionStep',where?copy(where.name,where.en):copy('缝线小径','Stitched path'));
   } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
@@ -1370,11 +1334,10 @@ function showResult() {
   document.body.classList.add('result');
   const won = s.phase === 'won';
   $('result').hidden = false; $('pausePanel').hidden = true;
-  if (parkTour) {   // 游乐园：十个章集齐
-    $('resultTitle').textContent = copy('逛完了！','All ten stamps!');
+  if (parkTour) {   // 游乐园：看完了马戏团的演出
+    $('resultTitle').textContent = copy('逛完了！','That was the park!');
     $('resultStars').hidden = true; $('resultStats').hidden = true;
-    $('resultNote').textContent = copy(`十个章都盖上了 · 用时 ${clock(s.time)}`,`Every attraction stamped · ${clock(s.time)}`);
-    $('parkCard').hidden = true; $('resultCard').replaceChildren(stampCard(null)); $('resultCard').hidden = false;
+    $('resultNote').textContent = copy(`看完了马戏团的演出 · 用时 ${clock(s.time)}`,`You saw the circus show · ${clock(s.time)}`);
     $('again').focus({preventScroll:true});
     return;
   }

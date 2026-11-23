@@ -157,7 +157,10 @@ export const RAPIDS = closedTrack([
 // 摩天轮：轮心、半径、吊舱数。轮面朝南北（在 x–y 平面里转），小径在它北边。
 // 吊舱挂在轮圈上、舱在挂点下面 1.5 米，所以轮心要够高：最低的那只舱底离地约半米
 export const WHEEL = { x: 18.5, y: 6.6, z: -19.1, r: 4.66, cars: 10 };
-export const CAROUSEL = { x: -25.8, z: 15.2, r: 2.32, horses: 6 };
+// r：马站的那一圈；platform：底座的半径（人被挡在外面）；steps：台阶朝哪个方向（弧度，0 朝 +z），对着摇铃的地方
+export const CAROUSEL = { x: -25.8, z: 15.2, r: 2.32, horses: 6, platform: 3.9, steps: -0.03 };
+// 入口：拱门的中心、两座塔楼离中心多远、售票亭的位置（挨着东塔，正面朝 +z）
+export const GATE = { x: -16.2, z: 26.68, half: 2.1, booth: { x: -12.25, z: 26.7 } };
 // 碰碰车场：椭圆，rx / rz 是围挡内沿的两个半轴
 export const RINK = { x: 27.9, z: 8.2, rx: 5.0, rz: 3.38 };
 export const HAUNT_DOOR = { x: -6.5, z: -19.28 };
