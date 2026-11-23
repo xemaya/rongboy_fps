@@ -2,12 +2,12 @@
 export const TOUR_BOUNDS = {minX:-41,maxX:41,minZ:-33,maxZ:33};
 export const TOUR_STOPS = [
   {id:'entrance',en:'Entrance plaza',name:'入口广场',x:-15,z:28,sign:[-12.4,26,-1.28]},
-  {id:'carousel',en:'Carousel',name:'旋转木马',x:-25.8,z:15.2,sign:[-27.1,19.15,.2]},
+  {id:'carousel',en:'Carousel',name:'旋转木马',x:-25.8,z:15.2,sign:[-22.3,19.3,.5]},
   {id:'rapids',en:'River rapids',name:'激流勇进',x:-26.5,z:3.3,sign:[-33.9,10.95,-.95]},
   {id:'coaster',en:'Roller coaster',name:'过山车',x:-23.8,z:-12.7,sign:[-29.0,-16.4,-.95]},
-  {id:'haunt',en:'Haunted house',name:'鬼屋',x:-6.5,z:-15.7,sign:[-5.9,-20.2,Math.PI]},
+  {id:'haunt',en:'Haunted house',name:'鬼屋',x:-6.5,z:-15.7,sign:[-10.9,-19.7,Math.PI]},
   {id:'wheel',en:'Ferris wheel',name:'摩天轮',x:18.5,z:-19.1,sign:[17.0,-23.25,Math.PI]},
-  {id:'midway',en:'Midway',name:'游戏摊街',x:29.3,z:-7.2,sign:[32.8,-10.4,Math.PI/2]},
+  {id:'midway',en:'Midway',name:'游戏摊街',x:29.3,z:-7.2,sign:[32.7,-15.3,Math.PI/2]},
   {id:'bumpers',en:'Bumper cars',name:'碰碰车',x:28.9,z:8.2,sign:[34.05,11.5,2.12]},
   {id:'mirrors',en:'Mirror maze',name:'镜子迷宫',x:13,z:17.4,sign:[21.75,17.95,.82]},
   {id:'circus',en:'Big top',name:'马戏团',x:0,z:0,sign:[3.95,9.65,-.70]},
@@ -95,3 +95,54 @@ export function nearbyTourStop(x,z) {
   }
   return closest ? TOUR_STOPS[closest.index] : null;
 }
+
+// ---------- 设施的尺寸和轨道（规则层和画面共用同一份，坐上去的位置和看到的轨道才对得上）----------
+
+// 过一串点的闭合曲线（Catmull-Rom），按弧长取点。at(u)：u 是 0–1 的一圈，返回位置和切线方向。
+export function closedTrack(points, perSegment = 14) {
+  const n = points.length, pts = [];
+  const cr = (a, b, c, d, t) => 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t);
+  for (let i = 0; i < n; i++) {
+    const a = points[(i + n - 1) % n], b = points[i], c = points[(i + 1) % n], d = points[(i + 2) % n];
+    for (let j = 0; j < perSegment; j++) { const t = j / perSegment; pts.push([cr(a[0], b[0], c[0], d[0], t), cr(a[1], b[1], c[1], d[1], t), cr(a[2], b[2], c[2], d[2], t)]); }
+  }
+  const lengths = [0];
+  for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; lengths.push(lengths[i] + Math.hypot(q[0] - p[0], q[1] - p[1], q[2] - p[2])); }
+  const total = lengths[pts.length];
+  function spot(s) {
+    s = ((s % total) + total) % total;
+    let lo = 0, hi = pts.length;
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (lengths[mid] <= s) lo = mid; else hi = mid; }
+    const p = pts[lo], q = pts[(lo + 1) % pts.length], t = (s - lengths[lo]) / (lengths[lo + 1] - lengths[lo] || 1);
+    return [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t, p[2] + (q[2] - p[2]) * t];
+  }
+  // 切线取前后各 0.4 米两点的连线：折线每一小段的方向是跳变的，直接用会让车头一顿一顿地转
+  function at(u) {
+    const s = ((u % 1) + 1) % 1 * total, p = spot(s), a = spot(s - 0.4), b = spot(s + 0.4);
+    const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], d = Math.hypot(dx, dy, dz) || 1;
+    return { x: p[0], y: p[1], z: p[2], tx: dx / d, ty: dy / d, tz: dz / d };
+  }
+  return { points: pts, length: total, at };
+}
+
+// 过山车：一圈闭合的轨道。站台在 u = 0 那一点旁边。
+// 是给人坐的，所以坡缓（不超过约 25°）、弯大（半径 4 米上下）：出站向北，往东爬到 7 米，在东头掉头，一路缓降绕回来。
+export const COASTER = closedTrack([
+  [-26.4, 1.6, -12.5], [-26.2, 1.7, -15.2], [-24.2, 2.5, -17.0], [-20.6, 4.4, -17.5],
+  [-17.0, 6.4, -17.3], [-14.2, 7.2, -14.8], [-14.2, 6.5, -11.4], [-16.2, 4.8, -8.2],
+  [-19.8, 3.4, -6.4], [-23.4, 3.2, -6.6], [-25.8, 2.4, -8.0], [-26.6, 1.8, -10.2],
+]);
+// 激流勇进的水道：船顺着它漂一圈（爬到石头山顶，再冲下来）
+export const RAPIDS = closedTrack([
+  [-30.7, .42, 4.8], [-33.6, .7, 1.38], [-31.8, 1.63, -1.1], [-27.8, 4.28, -2.37],
+  [-23.15, 5.08, -.64], [-21.6, 3.0, 3.12], [-24.9, .85, 6.2], [-28.3, .51, 6.18],
+]);
+// 摩天轮：轮心、半径、吊舱数。轮面朝南北（在 x–y 平面里转），小径在它北边。
+// 吊舱挂在轮圈上、舱在挂点下面 1.5 米，所以轮心要够高：最低的那只舱底离地约半米
+export const WHEEL = { x: 18.5, y: 6.6, z: -19.1, r: 4.66, cars: 10 };
+export const CAROUSEL = { x: -25.8, z: 15.2, r: 2.32, horses: 6 };
+// 碰碰车场：椭圆，rx / rz 是围挡内沿的两个半轴
+export const RINK = { x: 27.9, z: 8.2, rx: 5.0, rz: 3.38 };
+export const HAUNT_DOOR = { x: -6.5, z: -19.28 };
+export const STALLS = [{ id: 'blocks', x: 30.2, z: -12.5 }, { id: 'ducks', x: 30.2, z: -8.38 }, { id: 'balloons', x: 30.2, z: -4.26 }];
+export const STAGE = { x: 0, z: -4.8 };

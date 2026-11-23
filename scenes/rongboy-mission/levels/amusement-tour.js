@@ -23,12 +23,12 @@ export default {
     solid('bumper-rink',TOUR_STOPS[7].x,TOUR_STOPS[7].z,10,6.8,.60),
   ],
   enemies:[],pickups:[],arsenal:[],
-  mission:{type:'explore',title:'沿缝线小径逛游乐园'},
+  mission:{type:'explore',title:'逛游乐园，集满十个章'},
   texts:{
     short:'布偶游乐园',title:'布偶游乐园',
-    intro:'从入口沿弧形小径绕过外圈设施，最后穿过镜子迷宫走进中央马戏团。',
-    brief:'WASD 移动，方向键转动视角。沿缝线小径走进马戏团。',
-    how:['WASD 移动 · 方向键转动视角'],
+    intro:'从入口沿弧形小径绕过外圈设施，最后穿过镜子迷宫走进中央马戏团。每个设施都能玩一下，玩过盖一个章。',
+    brief:'WASD 移动，方向键转动视角。走近有星星的柱子按 F：木马会转，过山车和摩天轮能坐，碰碰车能开。集满十个章。',
+    how:['WASD 移动 · 方向键转动视角','走近设施按 F 互动 · 坐着的时候再按一次是跳过'],
     start:'入园',won:'到达马戏团',
   },
 };

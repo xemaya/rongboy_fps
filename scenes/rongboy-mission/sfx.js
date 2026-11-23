@@ -115,6 +115,19 @@ export function createArsenalAudio(ctx) {
       tone(0,205,120,.26,.11,'triangle'); tone(.18,146,222,.19,.071,'triangle');
     } else if (kind === 'rumble') {  // 守墓巨像现身：一声越来越沉的低音
       tone(0, 78, 34, 1.5, 0.32); tone(0.25, 52, 28, 1.3, 0.22, 'triangle'); hiss(0, 1.2, 0.12, 180, 'lowpass');
+    } else if (kind === 'stamp') {   // 盖章：咚的一下，带一点纸声
+      tone(0, 210, 120, 0.09, 0.2, 'triangle'); hiss(0, 0.05, 0.12, 1400, 'bandpass', 1.2); tone(0.09, 880, 1320, 0.18, 0.05, 'triangle');
+    } else if (kind === 'bell') {    // 旋转木马的铃：叮——叮
+      for (const d of [0, 0.32]) { tone(d, 1568, 1560, 0.6, 0.09); tone(d, 3136, 3120, 0.3, 0.03); }
+    } else if (kind === 'gong') {    // 马戏团的锣
+      tone(0, 196, 190, 1.4, 0.22); tone(0, 294, 288, 1.1, 0.1, 'triangle'); tone(0, 588, 570, 0.6, 0.05); hiss(0, 0.5, 0.08, 2600, 'bandpass', 0.6);
+    } else if (kind === 'knock') {   // 敲门三下，然后门吱呀一声
+      for (const d of [0, 0.22, 0.44]) { tone(d, 180, 110, 0.07, 0.2, 'triangle'); hiss(d, 0.03, 0.08, 900, 'bandpass', 1.5); }
+      tone(0.75, 320, 520, 0.7, 0.04, 'sawtooth');
+    } else if (kind === 'splash') {  // 开闸放水
+      hiss(0, 0.9, 0.22, 1200, 'bandpass', 0.5); hiss(0.1, 0.7, 0.12, 3800, 'highpass', 0.6); tone(0, 110, 70, 0.4, 0.1);
+    } else if (kind === 'chain') {   // 过山车出站：链条咔哒咔哒
+      for (let i = 0; i < 8; i++) { hiss(i * 0.11, 0.03, 0.14, 2200, 'bandpass', 2.5); tone(i * 0.11, 240, 180, 0.04, 0.06, 'square'); }
     } else if (kind === 'ring') {    // 闹钟：一串很密的铃声
       for (const [time, freq] of [[0,1750],[.071,2300],[.161,1750],[.212,2300],[.304,1890]]) {
         tone(time,freq,freq*.985,.08,.07,'triangle');

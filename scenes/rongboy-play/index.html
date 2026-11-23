@@ -22,6 +22,12 @@ body:has(#bossHud:not([hidden])) #missionHud { max-width: min(310px, 26vw); }
 body.park-tour #missionHud { width:max-content; min-width:112px; padding:8px 13px; }
 body.park-tour #missionHud strong, body.park-tour .ammo-readout { display:none; }
 body.park-tour #missionStep { font-weight:650; }
+#stampRow { display:flex; gap:5px; margin-top:7px; }
+#stampRow i { width:11px; height:11px; border-radius:50%; border:1.5px dashed #f1ca83; box-sizing:border-box; }
+#stampRow i.on { background:#f1ca83; border-style:solid; }
+#rideFade, #rideVignette { position:fixed; inset:0; z-index:5; pointer-events:none; opacity:0; }
+#rideFade { background:#10140f; }
+#rideVignette { background:radial-gradient(ellipse at 50% 55%, transparent 38%, #0b100c 96%); }
 .hearts { position: absolute; display: flex; align-items: center; gap: clamp(3px, .48vw, 10px); left: var(--hud-x); bottom: var(--hud-y); }
 .heart {
   display: block; width: clamp(33px, 3.25vw, 62px); aspect-ratio: 62 / 58;
@@ -311,7 +317,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
 <div id="bossHud" hidden><span id="bossName"></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
 <div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
 <div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
-<div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>
+<div id="rideVignette" aria-hidden="true"></div><div id="rideFade" aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>
 <div class="charge" id="charge" hidden><label id="chargeLabel"></label><div class="track"><div class="fill" id="chargeFill"></div></div></div>
 <a class="ui-return" id="gardenCompare" hidden></a>
 

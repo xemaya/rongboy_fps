@@ -1,0 +1,235 @@
+// 游乐园的规则：走近设施按一个键，设施演一段，演完盖章；十个章集满就逛完了（docs/park-design.md）。
+// 确定性、不依赖 DOM。画面（park-tour-view.js）只读这里的状态：木马转到哪、车在轨道的哪一点、门开了多少。
+// 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车：人被带着走）、开（碰碰车：人自己开）。
+import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, RINK, STALLS } from './park-tour-layout.js';
+
+const TAU = Math.PI * 2, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+// 眼睛离脚底的高度（和 play.js 里的 EYE 是同一个数）：坐着的时候按"眼睛该在哪"反推脚底的高度
+export const PLAYER_EYE = 1.23;
+
+// 每一段演多久（秒）、走多近出提示（米）、坐着的时候镜头被带着转得最快多少（弧度/秒）
+export const PARK = {
+  reach: 2.8, end: 2.2,
+  carousel: { time: 18, ramp: 2.5, speed: 0.55 },
+  rapids: { time: 15 },
+  coaster: { time: 22, ramp: 2.2, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.5 },
+  haunt: { time: 9 },
+  wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
+  stall: { time: 4.4, throws: [0.5, 1.7, 2.9] },
+  bumpers: { time: 30, accel: 7, top: 3.4, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4 },
+  circus: { time: 16, acts: 3 },
+  mirrorsExit: { x: 9.65, z: 20.2, r: 1.3 },
+};
+
+// 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开 / take 领。
+export const SPOTS = [
+  { id: 'entrance', stop: 'entrance', kind: 'take', x: -15.9, z: 27.6, reach: 3.0, zh: '领游园卡', en: 'Take a park card' },
+  { id: 'carousel', stop: 'carousel', kind: 'look', x: -26.0, z: 21.0, zh: '摇铃开动木马', en: 'Ring the bell' },
+  { id: 'rapids', stop: 'rapids', kind: 'look', x: -36.4, z: 6.6, zh: '开闸放船', en: 'Open the sluice' },
+  { id: 'coaster', stop: 'coaster', kind: 'ride', x: -31.4, z: -13.0, reach: 3.2, zh: '坐过山车', en: 'Ride the coaster' },
+  { id: 'haunt', stop: 'haunt', kind: 'look', x: -6.8, z: -21.7, reach: 3.2, zh: '敲门', en: 'Knock' },
+  { id: 'wheel', stop: 'wheel', kind: 'ride', x: 18.5, z: -26.0, reach: 3.2, zh: '坐摩天轮', en: 'Ride the wheel' },
+  { id: 'stall-blocks', stop: 'midway', kind: 'look', x: 35.6, z: -12.5, reach: 2.05, zh: '打积木', en: 'Knock the blocks' },
+  { id: 'stall-ducks', stop: 'midway', kind: 'look', x: 35.7, z: -8.38, reach: 2.05, zh: '打绒鸭', en: 'Hit the ducks' },
+  { id: 'stall-balloons', stop: 'midway', kind: 'look', x: 35.8, z: -4.26, reach: 2.05, zh: '打气球', en: 'Pop the balloons' },
+  { id: 'bumpers', stop: 'bumpers', kind: 'drive', x: 35.4, z: 10.0, zh: '开碰碰车', en: 'Drive a bumper car' },
+  { id: 'circus', stop: 'circus', kind: 'look', x: 0, z: -1.6, zh: '敲锣开演', en: 'Strike the gong' },
+];
+const spotOf = id => SPOTS.find(q => q.id === id);
+
+export function createPark() {
+  return {
+    time: 0, stamps: [], done: false, riding: null,
+    watch: false,   // true：过山车只看不坐（系统设了"减少动态效果"的人，准则 3.9）
+    // 各设施演到哪了：0 是没在演；大于 0 是已经演了多少秒
+    running: { carousel: 0, rapids: 0, haunt: 0, circus: 0, coaster: 0, 'stall-blocks': 0, 'stall-ducks': 0, 'stall-balloons': 0 },
+    carouselAngle: 0, wheelAngle: 0, coasterU: 0, boatU: 0, act: 0, door: 0,
+    // 碰碰车：四辆，在场里自己转悠；玩家上车就接手第 0 辆
+    cars: Array.from({ length: PARK.bumpers.cars }, (_, i) => { const a = i * TAU / PARK.bumpers.cars + 0.4; return { x: RINK.x + Math.cos(a) * RINK.rx * 0.55, z: RINK.z + Math.sin(a) * RINK.rz * 0.55, vx: 0, vz: 0, heading: a + Math.PI / 2, bump: 0 }; }),
+  };
+}
+
+const busy = (park, id) => (id === 'wheel' || id === 'bumpers' ? !!park.riding : id === 'coaster' ? !!park.riding || park.running.coaster > 0 : park.running[id] > 0);
+
+// 现在按互动键会发生什么：{ id, kind, zh, en }；没有可按的返回 null。坐着的时候是"跳过 / 下车"。
+export function parkPrompt(s) {
+  const park = s.park, p = s.player;
+  if (!park || s.phase !== 'playing') return null;
+  if (park.riding) return park.riding.id === 'bumpers' ? { id: 'bumpers', kind: 'leave', zh: '下车', en: 'Get out' } : { id: park.riding.id, kind: 'leave', zh: '跳过', en: 'Skip' };
+  let best = null, near = Infinity;
+  for (const q of SPOTS) {
+    const d = Math.hypot(q.x - p.x, q.z - p.z);
+    if (d > (q.reach ?? PARK.reach) || d >= near || busy(park, q.id) || (q.id === 'entrance' && park.stamps.includes('entrance'))) continue;
+    best = q; near = d;
+  }
+  if (best?.id === 'coaster' && park.watch) return { id: 'coaster', kind: 'look', zh: '发车', en: 'Send the train' };
+  return best && { id: best.id, kind: best.kind, zh: best.zh, en: best.en };
+}
+
+function stamp(s, stop) {
+  const park = s.park;
+  if (park.stamps.includes(stop)) return;
+  park.stamps.push(stop);
+  s.events.push({ type: 'park', what: 'stamp', stop, count: park.stamps.length, needed: TOUR_STOPS.length });
+}
+
+// 一圈走到哪了（0–1）：头尾各 ramp 秒缓起缓停，中间匀速
+function lap(t, time, ramp) {
+  const v = 1 / (time - ramp);
+  if (t <= 0) return 0; if (t >= time) return 1;
+  if (t < ramp) return v * t * t / (2 * ramp);
+  if (t > time - ramp) return 1 - v * (time - t) * (time - t) / (2 * ramp);
+  return v * (t - ramp / 2);
+}
+
+function board(s, id) {
+  const park = s.park, p = s.player;
+  const ride = { id, t: 0, from: { x: p.x, z: p.z }, yaw: 0, pitch: 0, turn: 0 };
+  if (id === 'wheel') {
+    // 上离最低点最近的那只吊舱；它转回最低点就下来
+    let best = 0, gap = Infinity;
+    for (let i = 0; i < WHEEL.cars; i++) { const a = park.wheelAngle + i * TAU / WHEEL.cars + Math.PI / 2; const g = Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); if (g < gap) { gap = g; best = i; } }
+    ride.car = best; ride.turned = 0;
+  } else if (id === 'coaster') {
+    const at = COASTER.at(0); ride.yaw = Math.atan2(-at.tx, -at.tz);
+  } else if (id === 'bumpers') {
+    ride.car = 0; park.cars[0].vx = park.cars[0].vz = 0;
+  }
+  park.riding = ride; p.vx = p.vz = 0; p.jump = 0; p.jumpV = 0;
+  s.events.push({ type: 'park', what: 'board', id });
+  seat(s);
+}
+
+function alight(s, skipped = false) {
+  const park = s.park, p = s.player, ride = park.riding;
+  if (!ride) return;
+  park.riding = null;
+  p.x = ride.from.x; p.z = ride.from.z; p.y = 0; p.seat = null;
+  if (ride.id === 'coaster') park.coasterU = 0;
+  s.events.push({ type: 'park', what: 'alight', id: ride.id, skipped });
+  stamp(s, spotOf(ride.id).stop);
+}
+
+// 坐着的时候人在哪：p.x / p.y / p.z 是脚底，p.seat 告诉画面车朝哪、镜头被带着转了多少
+function seat(s) {
+  const park = s.park, p = s.player, ride = park.riding;
+  if (ride.id === 'wheel') {
+    const a = park.wheelAngle + ride.car * TAU / WHEEL.cars;
+    p.x = WHEEL.x + Math.cos(a) * WHEEL.r; p.z = WHEEL.z; p.y = WHEEL.y + Math.sin(a) * WHEEL.r + PARK.wheel.seat - PLAYER_EYE;
+    p.seat = { id: 'wheel', yaw: null, pitch: 0, turn: 0 };
+  } else if (ride.id === 'coaster') {
+    const at = COASTER.at(park.coasterU);
+    p.x = at.x; p.z = at.z; p.y = at.y + PARK.coaster.seat - PLAYER_EYE;
+    p.seat = { id: 'coaster', yaw: ride.yaw, pitch: ride.pitch, turn: ride.turn };
+  } else {
+    const car = park.cars[0];
+    p.x = car.x; p.z = car.z; p.y = PARK.bumpers.seat - PLAYER_EYE;
+    p.seat = { id: 'bumpers', yaw: null, pitch: 0, turn: 0 };
+  }
+}
+
+// 按下互动键。返回有没有发生什么。
+export function parkInteract(s) {
+  const prompt = parkPrompt(s), park = s.park;
+  if (!prompt) return false;
+  if (prompt.kind === 'leave') { alight(s, true); return true; }
+  const { id } = prompt;
+  if (id === 'entrance') { stamp(s, 'entrance'); s.events.push({ type: 'park', what: 'card' }); return true; }
+  if (prompt.kind === 'ride' || prompt.kind === 'drive') { board(s, id); return true; }
+  park.running[id] = 1e-6;
+  if (id === 'circus') park.act = (park.act % PARK.circus.acts) + 1;
+  s.events.push({ type: 'park', what: 'start', id, act: park.act });
+  stamp(s, spotOf(id).stop);
+  return true;
+}
+
+function bumperCars(s, dt, input) {
+  const park = s.park, B = PARK.bumpers, driving = park.riding?.id === 'bumpers', a = RINK.rx - B.radius, b = RINK.rz - B.radius;
+  park.cars.forEach((car, i) => {
+    let ax = 0, az = 0;
+    if (i === 0 && driving) { ax = (input.x || 0) * B.accel; az = (input.z || 0) * B.accel; }
+    else {   // 没人开的车：各自追一个在场里慢慢画 8 字的点
+      const t = park.time * (0.33 + i * 0.07) + i * 1.9, tx = RINK.x + Math.sin(t) * a * 0.72, tz = RINK.z + Math.sin(t * 2 + i) * b * 0.6;
+      const dx = tx - car.x, dz = tz - car.z, d = Math.hypot(dx, dz) || 1;
+      ax = dx / d * B.accel * 0.42; az = dz / d * B.accel * 0.42;
+    }
+    car.vx += (ax - car.vx * B.drag) * dt; car.vz += (az - car.vz * B.drag) * dt;
+    const v = Math.hypot(car.vx, car.vz);
+    if (v > B.top) { car.vx *= B.top / v; car.vz *= B.top / v; }
+    car.x += car.vx * dt; car.z += car.vz * dt; car.bump = Math.max(0, car.bump - dt);
+    if (v > 0.25) { let turn = Math.atan2(car.vx, car.vz) - car.heading; turn = Math.atan2(Math.sin(turn), Math.cos(turn)); car.heading += clamp(turn, -dt * 5, dt * 5); }
+    // 撞到围挡：弹回来
+    const ex = (car.x - RINK.x) / a, ez = (car.z - RINK.z) / b, e = Math.hypot(ex, ez);
+    if (e > 1) {
+      car.x = RINK.x + ex / e * a; car.z = RINK.z + ez / e * b;
+      let nx = ex / a, nz = ez / b; const n = Math.hypot(nx, nz) || 1; nx /= n; nz /= n;
+      const into = car.vx * nx + car.vz * nz;
+      if (into > 0) { car.vx -= 1.7 * into * nx; car.vz -= 1.7 * into * nz; if (into > 0.8 && car.bump <= 0) { car.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, x: car.x, z: car.z, hard: into, wall: true }); } }
+    }
+  });
+  // 车和车：碰上了互相弹开
+  for (let i = 0; i < park.cars.length; i++) for (let j = i + 1; j < park.cars.length; j++) {
+    const p = park.cars[i], q = park.cars[j], dx = q.x - p.x, dz = q.z - p.z, d = Math.hypot(dx, dz) || 1e-6, gap = B.radius * 2 - d;
+    if (gap <= 0) continue;
+    const nx = dx / d, nz = dz / d, closing = (p.vx - q.vx) * nx + (p.vz - q.vz) * nz;
+    p.x -= nx * gap / 2; p.z -= nz * gap / 2; q.x += nx * gap / 2; q.z += nz * gap / 2;
+    if (closing > 0) {
+      p.vx -= closing * nx * 0.9; p.vz -= closing * nz * 0.9; q.vx += closing * nx * 0.9; q.vz += closing * nz * 0.9;
+      if (closing > 0.8 && p.bump <= 0) { p.bump = q.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, other: j, x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, hard: closing }); }
+    }
+  }
+}
+
+// 每一步：推进所有在演的设施；坐着的时候把人放到座位上。返回玩家这一步是不是坐着（坐着就不走路）。
+export function stepPark(s, dt, input = {}) {
+  const park = s.park, R = park.running;
+  park.time += dt;
+  // 摩天轮一直慢慢转（有人没人都转），所以随时有一只吊舱快到最低点
+  park.wheelAngle += PARK.wheel.speed * dt;
+  // 旋转木马：缓起、匀速、缓停
+  if (R.carousel > 0) {
+    const C = PARK.carousel, t = R.carousel, k = Math.min(1, t / C.ramp, (C.time - t) / C.ramp);
+    park.carouselAngle += C.speed * Math.max(0, k) * dt;
+    R.carousel = t + dt >= C.time ? 0 : t + dt;
+  }
+  if (R.coaster > 0) { R.coaster += dt; park.coasterU = lap(R.coaster, PARK.coaster.time, PARK.coaster.ramp); if (R.coaster >= PARK.coaster.time) { R.coaster = 0; park.coasterU = 0; } }
+  if (R.rapids > 0) { R.rapids += dt; park.boatU = lap(R.rapids, PARK.rapids.time, 2); if (R.rapids >= PARK.rapids.time) { R.rapids = 0; park.boatU = 0; } }
+  if (R.haunt > 0) {
+    const H = PARK.haunt, t = R.haunt; park.door = clamp(Math.min(t / 1.2, (H.time - t) / 1.5), 0, 1);
+    R.haunt = t + dt >= H.time ? 0 : t + dt; if (!R.haunt) park.door = 0;
+  }
+  if (R.circus > 0) R.circus = R.circus + dt >= PARK.circus.time ? 0 : R.circus + dt;
+  for (const stall of STALLS) {
+    const id = 'stall-' + stall.id, t = R[id];
+    if (!(t > 0)) continue;
+    for (const [n, at] of PARK.stall.throws.entries()) if (t < at && t + dt >= at) s.events.push({ type: 'park', what: 'throw', id, n });
+    R[id] = t + dt >= PARK.stall.time ? 0 : t + dt;
+  }
+  bumperCars(s, dt, input);
+
+  const ride = park.riding;
+  if (ride) {
+    ride.t += dt;
+    if (ride.id === 'wheel') {
+      ride.turned += PARK.wheel.speed * dt;
+      if (ride.turned >= TAU - 0.02) { alight(s); return false; }
+    } else if (ride.id === 'coaster') {
+      const C = PARK.coaster;
+      park.coasterU = lap(ride.t, C.time, C.ramp);
+      // 镜头跟着车头转，但转得不超过 maxTurn（急弯的时候镜头会比车头慢一点）；俯仰只跟一半
+      const at = COASTER.at(park.coasterU), want = Math.atan2(-at.tx, -at.tz);
+      let turn = Math.atan2(Math.sin(want - ride.yaw), Math.cos(want - ride.yaw));
+      const step = clamp(turn, -C.maxTurn * dt, C.maxTurn * dt);
+      ride.yaw += step; ride.turn = dt > 0 ? Math.abs(step) / dt : 0;
+      ride.pitch += (Math.asin(clamp(at.ty, -1, 1)) * C.pitch - ride.pitch) * Math.min(1, dt * 3);
+      if (ride.t >= C.time) { alight(s); return false; }
+    } else if (ride.id === 'bumpers' && ride.t >= PARK.bumpers.time) { alight(s); return false; }
+    seat(s);
+    return true;
+  }
+  // 镜子迷宫：走到出口就盖章
+  const M = PARK.mirrorsExit, p = s.player;
+  if (Math.hypot(p.x - M.x, p.z - M.z) < M.r) stamp(s, 'mirrors');
+  if (!park.done && park.stamps.length >= TOUR_STOPS.length && !Object.values(R).some(t => t > 0)) { park.done = true; s.events.push({ type: 'park', what: 'complete' }); }
+  return false;
+}

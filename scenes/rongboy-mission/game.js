@@ -13,6 +13,7 @@ import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChall
 import { travelPace, strideTravel } from './locomotion.js';
 import { advanceWaves } from './encounter-waves.js';
 import { constrainTourWalk } from './park-tour-layout.js';
+import { createPark, stepPark } from './park-rides.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -102,6 +103,7 @@ export function createGame({ level } = {}) {
   s.wave = level.waves ? { index:0, nextAt:null } : null;
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
+  if (level.tour) s.park = createPark();   // 游乐园：设施演到哪、盖了几个章（park-rides.js）
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
   return s;
 }
@@ -952,7 +954,7 @@ export function exchangeWeapon(s) {
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
-  if (s.level.tour) return {type:'explore',alive,total:s.total,done:false};
+  if (s.level.tour) return { type: 'explore', alive, total: s.total, stamps: s.park.stamps.length, needed: 10, done: s.park.done && !s.park.riding };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
@@ -992,6 +994,8 @@ export function step(s, dt, input = {}) {
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }
   else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0 && !startReload(s)) backToPistol(s);   // 打空自动换弹；彻底没弹药就换回手枪
 
+  // 游乐园：设施往前演；坐在设施上的时候人由座位带着走，不走路
+  if (L.tour && stepPark(s, dt, input)) return;
   let mx = input.x || 0, mz = input.z || 0;
   const m = length(mx, mz);
   if (m > 1) { mx /= m; mz /= m; }

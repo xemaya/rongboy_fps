@@ -49,7 +49,8 @@ import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
-import { nearbyTourStop } from './park-tour-layout.js';
+import { nearbyTourStop, TOUR_STOPS } from './park-tour-layout.js';
+import { parkPrompt, parkInteract, PARK } from './park-rides.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
 const ENEMY_TYPES = Object.fromEntries(Object.entries(RAW_ENEMIES).map(([id,enemy])=>[id,localizeFields(enemy,['name'])]));
@@ -94,6 +95,7 @@ const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 let s = createGame({ level });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
 let actors, bossActors, viewmodel, tourView;
+let rideYaw = 0, rideVignette = 0, lastStamps = -1;   // 游乐园：上车那一刻面朝哪、暗角的深浅、集章条上次画的是几个
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
@@ -121,7 +123,7 @@ function applyTexts() {
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
  $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Follow the stitched path to the big top.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post: ride the coaster and the wheel, drive a bumper car. Collect all ten stamps.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -171,6 +173,7 @@ function applyInputHints() {
   drawPauseBindings($('pauseQuick'),quick);
   const detail = [...quick];
   if(!parkTour) { detail[2] = [L.fire,'开火 / 蓄力']; detail.push([L.jump,'跳跃']); }
+  else { quick.push([L.exchange,'互动']); detail.push([L.exchange,'互动 / 跳过 / 下车'],[L.jump,'跳跃']); drawPauseBindings($('pauseQuick'),quick); }
   if (!parkTour && !practiceBindingsOnly) {
     detail.push([L.switch,'换枪']);
     if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
@@ -269,7 +272,7 @@ const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStan
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 function initWorld(kit) {
   world = buildWorld(cine, level, WEAPONS, kit?.userData.variants);
-  if (parkTour) tourView = createParkTour(cine,world,{reduced});
+  if (parkTour) { tourView = createParkTour(cine,world,{reduced}); s.park.watch = reduced; }
   combatFx = createCombatFx(cine.scene);
   effects = createEffects(cine.scene);
   weaponFeedback = createWeaponFeedback(cine.scene,world.light);
@@ -763,6 +766,7 @@ function processEvents() {
   for (const e of consumeEvents(s)) {
     const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r && Math.abs((e.base ?? s.player.y) - s.player.y) < 2;
     const base = e.base ?? 0;
+    if (e.type === 'park') { parkEvent(e); continue; }
     const returnHit=receipts?.event(e,gardenShieldId);
     thread?.event(e,s.time);
     if(polished && e.type==='blocked'){lastBlock=s.time;effects.ring(e,0xbedcec,.67,.20);sfx2('shield-pad');}
@@ -1024,8 +1028,15 @@ function cameraFrame(dt) {
     const focalScale=1+(SCOPE_POWER-1)*zoom;
     camera.fov=scopeFieldOfView(HIP_FOV,focalScale) + recoil.fov.x * motion / focalScale;
     camera.rotation.order = 'YXZ';
-    camera.rotation.set(pitch + recoil.camera.x * motion + hurtPitch, yaw, Math.sin(s.time * 49) * shake * motion + hurtRoll);
-    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + s.player.jump + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
+    // 坐在设施上（准则第 3 节）：过山车带着镜头转（转速有上限、不滚转），玩家的转头叠加在上面；不加走路的起伏
+    const seat = s.player.seat, carried = seat && seat.yaw !== null;
+    const viewYaw = carried ? seat.yaw + (yaw - rideYaw) : yaw, viewPitch = Math.max(-0.9, Math.min(0.9, pitch + (seat ? seat.pitch : 0)));
+    camera.rotation.set(viewPitch + recoil.camera.x * motion + hurtPitch, viewYaw, seat ? 0 : Math.sin(s.time * 49) * shake * motion + hurtRoll);
+    camera.position.set(s.player.x + (seat ? 0 : Math.sin(s.time * 67) * shake * motion), s.player.y + s.player.jump + EYE + (seat ? 0 : bob + Math.sin(s.time * 59) * shake * 0.4 * motion), s.player.z);
+    if (parkTour) {   // 转得快的时候四周压一圈暗角，直行时没有
+      rideVignette += ((seat ? Math.min(1, seat.turn / PARK.coaster.maxTurn) : 0) - rideVignette) * Math.min(1, dt * 4);
+      $('rideVignette').style.opacity = (rideVignette * 0.62).toFixed(3);
+    }
     viewmodel?.project(camera.fov,camera.aspect,zoom<.5);
 
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
@@ -1136,13 +1147,42 @@ function bossHud(active) {
   $('bossTrack').setAttribute('aria-valuenow', boss.hp);
 }
 
+// 游乐园的集章条：十个圆点，盖过的填实
+function stampRow() {
+  const n = s.park.stamps.length;
+  if (n === lastStamps) return;
+  lastStamps = n;
+  let row = $('stampRow');
+  if (!row) { row = document.createElement('div'); row.id = 'stampRow'; $('missionHud').append(row); }
+  row.replaceChildren(...TOUR_STOPS.map(stop => { const dot = document.createElement('i'); dot.className = s.park.stamps.includes(stop.id) ? 'on' : ''; dot.title = copy(stop.name, stop.en); return dot; }));
+}
+// 上下车：黑一下再淡回来，不让人看见镜头从路上跳到座位上（准则 3.6）
+function rideFade() {
+  const el = $('rideFade');
+  el.style.transition = 'none'; el.style.opacity = '1'; void el.offsetWidth;
+  el.style.transition = 'opacity .5s ease'; el.style.opacity = '0';
+}
+function parkEvent(e) {
+  const stopName = id => { const q = TOUR_STOPS.find(k => k.id === id); return q ? copy(q.name, q.en) : ''; };
+  if (e.what === 'stamp') { sfx2('stamp'); say(copy(`盖章 · ${stopName(e.stop)}（${e.count}/${e.needed}）`, `Stamped · ${stopName(e.stop)} (${e.count}/${e.needed})`), 2.2, 1); tourView?.event(e); }
+  else if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
+  else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
+  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
+  else if (e.what === 'throw') { sfx('shot', { weapon: 'single', power: 0 }); tourView?.event(e); }
+  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); tourView?.event(e); }
+  else if (e.what === 'complete') say(copy('十个章集齐了！','All ten stamps!'), 2.4, 2);
+  else tourView?.event(e);
+}
+
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
   $('fightHud').hidden = !active;
   $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
   if (parkTour && active) {
-    const stop=nearbyTourStop(s.player.x,s.player.z);
-    textOf('missionStep',stop?copy(stop.name,stop.en):copy('缝线小径','Stitched path'));
+    const stop=nearbyTourStop(s.player.x,s.player.z), riding=s.park.riding && TOUR_STOPS.find(q=>q.id===s.park.riding.id);
+    const where=riding||stop;
+    textOf('missionStep',(where?copy(where.name,where.en):copy('缝线小径','Stitched path'))+copy(` · 章 ${s.park.stamps.length}/${TOUR_STOPS.length}`,` · ${s.park.stamps.length}/${TOUR_STOPS.length} stamps`));
+    stampRow();
   } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
@@ -1160,12 +1200,15 @@ function hud() {
   textOf('statusEffect', active && s.pulledUntil > s.time ? '吸引中 · 侧移或找掩体' :
     active && s.slowUntil > s.time ? copy('缠线减速 · ','Tangled · ') + (s.slowUntil-s.time).toFixed(1) + copy(' 秒','s') : '');
 
-  const offer = active ? offeredWeapon(s) : null;
-  const offerKey = offer ? offer.id + ':' + offer.weapon + ':' + inputMode : '';
+  // 游乐园：走近设施，同一块提示牌上写"按 F 做什么"
+  const ask = parkTour && active ? parkPrompt(s) : null;
+  const offer = active && !parkTour ? offeredWeapon(s) : null;
+  const offerKey = ask ? 'park:' + ask.id + ':' + ask.kind + ':' + inputMode : offer ? offer.id + ':' + offer.weapon + ':' + inputMode : '';
   if (offerKey !== offerShown) {
     offerShown = offerKey;
-    $('swapPrompt').hidden = !offer;
-    if (offer) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), copy(' 换成',' Swap to ') + WEAPONS.find(w => w.id === offer.weapon).name);
+    $('swapPrompt').hidden = !offer && !ask;
+    if (ask) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), ' ' + copy(ask.zh, ask.en));
+    else if (offer) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), copy(' 换成',' Swap to ') + WEAPONS.find(w => w.id === offer.weapon).name);
   }
 
   $('hearts').hidden=parkTour;
@@ -1303,6 +1346,13 @@ function showResult() {
   document.body.classList.add('result');
   const won = s.phase === 'won';
   $('result').hidden = false; $('pausePanel').hidden = true;
+  if (parkTour) {   // 游乐园：十个章集齐
+    $('resultTitle').textContent = copy('逛完了！','All ten stamps!');
+    $('resultStars').hidden = true; $('resultStats').hidden = true;
+    $('resultNote').textContent = copy(`十个章都盖上了 · 用时 ${clock(s.time)}`,`Every attraction stamped · ${clock(s.time)}`);
+    $('again').focus({preventScroll:true});
+    return;
+  }
   if (challenge) {
     $('resultTitle').textContent=t(won?'挑战完成':'挑战未完成');
     $('resultStars').hidden=true;
@@ -1462,6 +1512,7 @@ function throwAction(source) {
 }
 function exchangeAction() {
   unlock();
+  if (parkTour) { if (canTakeGameplayInput() && parkInteract(s)) processEvents(); return; }   // 游乐园：同一个键是"互动"
   if (exchangeWeapon(s)) cancelFire();
   processEvents();
 }
@@ -1480,7 +1531,7 @@ function throwRelease(source) {
   throwInput = null;
   if (mode === 'playing' && !paused) { releaseThrow(s, shotParams(true)); processEvents(); }
 }
-function jumpAction() { if (beginJump(s)) processEvents(); }
+function jumpAction() { if (!s.park?.riding && beginJump(s)) processEvents(); }
 
 function cancelFire() {
   fireInput = null;
@@ -1710,7 +1761,7 @@ function frame(now) {
   else cameraFrame(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  tourView?.update(s.time);
+  tourView?.update(s, dt);
   world.setFloor(floorIndex(level, s.player.y));
   world.occlusion.update(camera.position, now / 1000);
   hud(); cine.frame(dt);
@@ -1824,7 +1875,9 @@ window.__rb = {
   get cine() { return cine; }, get world() { return world; }, get effects() { return effects; }, governor, pad,
   get inputMode() { return inputMode; }, get padInput() { return { side: padAxes.x, forward: -padAxes.y }; },
   gamepadFrame,
-  hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },   // 调试：只演一遍受伤的画面，不扣心
+  hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },
+  interact() { if (parkTour && parkInteract(s)) processEvents(); return snapshot(); },   // 调试：按一下互动键（不看窗口有没有焦点）
+  get tourView() { return tourView; },   // 调试：只演一遍受伤的画面，不扣心
   gunInFront: true,   // 调试：false 时手和枪照普通物体画（对比穿模用）
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图
   snapshot, start,
@@ -1836,7 +1889,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { tourView?.update(s.time); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { tourView?.update(s, 0); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },
