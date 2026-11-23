@@ -114,6 +114,29 @@ body.scoped #reticle { display:none; }
   background: #172519d9; color: var(--ui-cream); border-radius: 4px;
   font: 700 clamp(15px,1.35vw,20px)/1.28 var(--ui-title); pointer-events: none;
 }
+
+body.park-tour #swapPrompt { bottom: 9%; border-radius: 10px; padding: 7px 10px; }
+#stallHud {
+  position: absolute; top: 17px; right: 16px; z-index: 4;
+  width: min(300px, calc(100vw - 32px)); padding: 12px 15px; box-sizing: border-box;
+  color: var(--ui-cream); background: #23392df2; border: 1px solid var(--ui-edge); border-radius: 13px;
+  outline: 1px dashed #dcd49e5e; outline-offset: -5px; box-shadow: 0 3px 0 #14261d;
+  font: 600 clamp(14px, 1.45vw, 17px)/1.4 var(--ui-text); pointer-events: none;
+}
+#stallHud strong { color: var(--ui-gold); font: 650 1.2em/1.3 var(--ui-title); }
+.stall-totals { display: flex; justify-content: space-between; gap: .5em; margin: .35em 0; font-variant-numeric: tabular-nums; }
+#stallHint { margin: 0; color: var(--ui-parchment); font-size: .92em; }
+#stallFeedback { position: absolute; left: 50%; top: 55%; translate: -50% 0; z-index: 4; color: #fff0ba;
+  font: 700 clamp(18px, 2vw, 26px)/1.3 var(--ui-title); text-shadow: 0 2px 4px #291c10; pointer-events: none; }
+body.park-tour:lang(zh-CN) :is(#ready-brief, #missionStep, #swapPrompt, #stallHint) { line-height: 1.55; letter-spacing: .02em; }
+body.park-tour #ready-brief { text-wrap: pretty; }
+@media (max-width: 480px) { #stallHud { top: 65px; right: 12px; width: min(253px, calc(100vw - 24px)); } }
+#playerHealth { position:absolute; left:var(--hud-x); bottom:var(--hud-y); width: min(180px, 28vw); color: #fff3d8; font: 650 15px/1.3 var(--ui-text); }
+#playerHealthTrack { display:block; margin-top:4px; height: 10px; background:#382922; border:1px solid #ead8acaa; border-radius:6px; overflow:hidden; }
+#playerHealthFill { display:block; height:100%; background:linear-gradient(100deg,#e8a478,#ed6e66); transition:width .17s ease; }
+#bossDetail { display:block; margin-top:4px; font-size:.7em; }
+#parkTrap { display:none; position:absolute; inset:0; pointer-events:none; z-index:2; box-shadow:inset 0 0 13vmin 4vmin #8c4738e0; }
+body.park-boxed #parkTrap { display:block; }
 /* 受伤：整屏边缘的玫红、挨打那一侧更亮、指向来源的一段弧、飞出来的棉絮（准则见 docs/fun-design.md 第 4 节） */
 #hurtFrame,#hurtSide,#cotton{position:absolute;inset:0;pointer-events:none;z-index:2;overflow:hidden}
 #hurtFrame.damage{animation:ouch .85s ease-out}
@@ -298,6 +321,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
 }
 </style></head><body class="loading game-interface"><section id="loading" role="status" aria-live="polite"><div><div class="loadingBrand"><strong>绒仔</strong><span>RONGBOY</span></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a class="ui-return" id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 投掷，G 或十字键下切换炸弹，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
 <div id="fightHud" hidden>
+  <div id="playerHealth" hidden role="meter" aria-label="生命" aria-valuemin="0" aria-valuemax="100"><span id="playerHealthValue"></span><i id="playerHealthTrack"><i id="playerHealthFill"></i></i></div>
   <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span></div>
   <div class="hearts" id="hearts" role="img" aria-label="3 颗心">
     <span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span>
@@ -311,9 +335,11 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   </div>
 </div>
 <div id="challenge-run" hidden><span id="challenge-progress" aria-live="polite"></span><span id="challenge-clock"></span><span id="challenge-window" hidden></span></div>
-<div id="bossHud" hidden><span id="bossName"></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
+<div id="bossHud" hidden><span id="bossName"></span><span id="bossDetail" hidden></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
 <div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
-<div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
+<div id="parkTrap" aria-hidden="true"></div><div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
+<aside id="stallHud" hidden><strong id="stallTitle"></strong><div class="stall-totals"><span id="stallScore"></span><span id="stallShots"></span></div><p id="stallHint"></p></aside>
+<span id="stallFeedback" hidden aria-live="polite"></span>
 <div id="rideVignette" aria-hidden="true"></div><div id="rideFade" aria-hidden="true"></div><div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>
 <div class="charge" id="charge" hidden><label id="chargeLabel"></label><div class="track"><div class="fill" id="chargeFill"></div></div></div>
 <a class="ui-return" id="gardenCompare" hidden></a>

@@ -91,6 +91,18 @@ export function extendWeaponKit(kit, weapons) {
       grip(g);
       g.userData.contacts=contacts;
       g.userData.muzzleZ=.67;
+    } else if (id === 'freeze') {
+      const ice = glowing(0x7bdded, .8), sleeve = woolMaterial(0x689fb0);
+      tube(g,.18,.48,sleeve,0,0,.105);
+      tube(g,.19,.09,cream,0,0,.35);
+      tube(g,.14,.20,slate,0,0,.47);
+      ring(g,.14,.027,cream,0,0,.58);
+      tube(g,.102,.025,ice,0,0,.595);
+      tube(g,.086,.016,dark,0,0,.606);
+      part(g,new T.SphereGeometry(.108,15,10),ice,0,.235,.07);
+      soft(g,.237,.038,.21,.02,brass,0,.152,.055);
+      grip(g);
+      g.userData.muzzleZ=.62;
     } else if (id === 'sewing') {
       // 订书机的翻压臂与纽扣轨，抛离时按每发节奏压一次。
       soft(g,.24,.103,.65,.038,slate,0,-.08,.058);
@@ -172,7 +184,11 @@ export function bombProp(id, deployed=false) {
 export function projectileModels(weapons, ballTemplate) {
   return weapons.map(w => {
     let o;
-    if (w.id === 'sewing') {   // 小纽扣
+    if (w.id === 'freeze') {
+      o = new T.Group(); o.userData.oriented = true;
+      const crystal=part(o,new T.OctahedronGeometry(.8,0),glowing(0x98eafa,1.6));
+      crystal.scale.set(.5,.5,2.2);
+    } else if (w.id === 'sewing') {   // 小纽扣
       o = new T.Group();
       const disc = part(o, new T.CylinderGeometry(1, 1, 0.45, 12), hard(w.color, 0.4)); disc.rotation.x = Math.PI / 2;
       for (const x of [-0.32, 0.32]) part(o, new T.SphereGeometry(0.16, 6, 4), hard(0x5a3a30, 0.6), x, 0, 0.24);

@@ -8,8 +8,9 @@ import { mulberry32 } from '../../cine-engine/engine/noise.js';
 import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_TENT, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
-  COASTER, RAPIDS, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, STAGE, GATE } from './park-tour-layout.js';
+  COASTER, RAPIDS, RAPIDS_DOCK, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, STAGE, GATE } from './park-tour-layout.js';
 import { PARK, SPOTS } from './park-rides.js';
+import { stallTarget } from './park-stalls.js';
 import { createParkKit, RED, CREAM, TEAL, GOLD, INK, CORAL, NAVY, FOREST, MOSS, PINE, PLUM, PLUM_DARK, THREAD, WOOL_WHITE, TIMBER } from './park-kit.js';
 
 const TAU = 2 * Math.PI;
@@ -54,10 +55,13 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
 
   // ---------- 招牌 ----------
   function sign(text, x, y, z, w, yaw = 0, parent = root) {
-    const canvas = document.createElement('canvas'); canvas.width = 544; canvas.height = 144;
-    const ctx = canvas.getContext('2d'); ctx.fillStyle = '#f5dfac'; ctx.beginPath(); ctx.roundRect(4, 4, 536, 136, 28); ctx.fill();
+    const canvas = document.createElement('canvas'); canvas.width = 816; canvas.height = 216;
+    const ctx = canvas.getContext('2d'); ctx.scale(1.5, 1.5); ctx.fillStyle = '#f5dfac'; ctx.beginPath(); ctx.roundRect(4, 4, 536, 136, 28); ctx.fill();
     ctx.strokeStyle = '#99704d'; ctx.lineWidth = 4; ctx.setLineDash([12, 8]); ctx.strokeRect(19, 16, 506, 111);
-    ctx.fillStyle = '#2e4c3e'; ctx.font = uiCanvasFont(56); ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText(text, 272, 74, 490);
+    ctx.fillStyle = '#2e4c3e'; ctx.font = uiCanvasFont(56);
+    const width = ctx.measureText(text).width;
+    if (width > 478) ctx.font = uiCanvasFont(Math.floor(56 * 478 / width));
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'center'; ctx.fillText(text, 272, 74);
     const map = new T.CanvasTexture(canvas); map.colorSpace = T.SRGBColorSpace; map.anisotropy = 4;
     const panel = obj(parent, new T.PlaneGeometry(w, w * 144 / 544), new T.MeshBasicMaterial({ map, transparent: true, side: T.DoubleSide }), x, y, z);
     panel.rotation.y = yaw; return panel;
@@ -221,6 +225,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     if (q.id === 'carousel') { x = CAROUSEL.x + Math.sin(CAROUSEL.steps) * 5.45 - Math.cos(CAROUSEL.steps) * 1.5; z = CAROUSEL.z + Math.cos(CAROUSEL.steps) * 5.45 + Math.sin(CAROUSEL.steps) * 1.5; }   // 台阶旁边
     if (q.id === 'coaster') { x = -31.0; z = -14.3; }   // 站台台阶的旁边，不挡台阶
     if (q.id === 'circus') { x = 1.9; z = -1.9; }
+    if (q.kind === 'stall') { x = q.x - 1.4; z = q.z + 1.28; }
     if (q.id === 'haunt') { x = HAUNT.door.x + 1.4; z = HAUNT.door.z - 0.45; }   // 门廊柱子旁边，不挡门
     if (q.id === 'portraits') { x = HAUNT.bell.x + 0.78; z = -13.08; }   // 门厅里：立在小桌旁边、靠着后墙
     const g = ground(x, z).s;
@@ -411,11 +416,10 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     for (let i = 0; i < 7; i++) { const x = -21.3 + (i - 3) * 0.2; k.tube(wool(i % 2 ? 0xaeefde : 0x71c5c8), [[x, 3.4, 2.2], [x + 0.05, 2.6, 2.9], [x + 0.1, 1.4, 3.9], [x + 0.2, 0.5, 5.0]], 0.11, { straight: true, seg: 5 }); }
     for (let i = 0; i < 14; i++) k.sphere(wool(FOAM), 0.18 + rand() * 0.16, -23.2 + rand() * 3.0, 0.46 + rand() * 0.24, 5.0 + rand() * 1.5, { seg: 8, rings: 5, sy: 0.8 });
     for (let i = 0; i < 5; i++) k.sphere(wool(FOAM), 0.14 + rand() * 0.1, -22.2 + rand() * 0.9, 2.4 + rand() * 1.2, 2.9 + rand() * 1.0, { seg: 7, rings: 5 });
-    // 码头和闸：靠桥这一头
-    box(k, P.timber(0xc9995f), 2.6, 0.2, 1.3, -31.6, 0.38, 6.9, 0.04, { long: 0 });
-    for (const s of [-1, 1]) P.post(k, -31.6 + s * 1.2, 7.5, { h: 1.5, r: 0.08, cap: 0xdcb877 });
-    box(k, wool(RED), 2.5, 0.16, 0.16, -31.6, 1.5, 7.5, 0.05); box(k, felt(TEAL), 0.9, 0.5, 0.08, -31.6, 1.05, 7.5, 0.04);
-    P.stitch(d, [[-32.0, 1.05, 7.545], [-31.2, 1.05, 7.545]], { len: 0.07, gap: 0.06, t: 0.014 });
+    const { x: dockX, z: dockZ, w: dockW, d: dockD } = RAPIDS_DOCK;
+    for (let i = 0; i < 10; i++) box(k, P.timber(i % 2 ? 0xc9995f : 0xb98959), dockW / 10, .17, dockD, dockX + dockW * ((i + .5) / 10 - .5), .075, dockZ, .03, {long: 2});
+    for (const side of [-1, 1]) P.post(k, dockX + side * (dockW / 2 - .16), dockZ + dockD / 2, { h: .9, r: .08, cap: 0xdcb877 });
+    k.tube(felt(CREAM), [[dockX - 2.05, .71, dockZ + .75], [dockX, .55, dockZ + .75], [dockX + 2.05, .71, dockZ + .75]], .035, { seg: 6 });
     // 岸边：灌木、花、草丛
     for (const [x, z, r] of [[-33.4, 8.4, 0.5], [-27.2, 8.3, 0.55], [-24.0, 8.0, 0.45], [-34.6, -0.2, 0.5]]) if (!isTourWalkable(x, z, 0.5)) P.shrub(k, d, x, z, r, seed++);
     for (const [x, z] of [[-29.6, 8.2], [-25.6, 8.4], [-34.9, 1.6], [-19.4, 6.4]]) if (!isTourWalkable(x, z, 0.4)) P.flowerPatch(d, x, z, 4, 0.7, seed++);
@@ -425,6 +429,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       kit.sphere(felt(0x5b4034), 0.42, 0, 0.21, 0, { seg: 10, rings: 6, sx: 0.62, sy: 0.22, sz: 1.32 });
       for (const z of [-0.26, 0.2]) { box(kit, wool(0x9c4f43), 0.5, 0.1, 0.24, 0, 0.3, z, 0.035); box(kit, wool(0x9c4f43), 0.5, 0.22, 0.07, 0, 0.4, z - 0.14, 0.03); }
       P.stitch(det, Array.from({ length: 25 }, (_, i) => { const a = i * TAU / 24; return [Math.sin(a) * 0.335, 0.262, Math.cos(a) * 0.69]; }), { len: 0.06, gap: 0.05, t: 0.014 });
+      kit.tube(felt(0xbd7d58), [[-.31, .38, .57], [-.24, .55, .80], [0, .61, .92], [.24, .55, .80], [.31, .38, .57]], .065, { seg: 8 });
+      P.stitch(det, [[-.22, .60, .82], [0, .675, .92], [.22, .60, .82]], { len: .045, gap: .04, t: .012 });
       for (let i = 0; i < 3; i++) kit.sphere(wool(FOAM), 0.13 - i * 0.02, (i - 1) * 0.2, 0.1, 0.78 + (i % 2) * 0.08, { seg: 7, rings: 5 });   // 船头的水花
     }, 0, 0, 0, true);
     boats.push(boat(0xb9824f), boat(0xa5713f));
@@ -660,7 +666,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
 
   // ====================================================================== 07 游戏摊街（docs/park-refs/ref-07-midway.png）
   use('stalls');
-  const stalls = {};
+  const stalls = [];
   {
     const tones = [RED, TEAL, GOLD], names = [copy('打积木', 'KNOCKDOWN'), copy('打绒鸭', 'DUCK POND'), copy('打气球', 'BALLOON POP')];
     // 挂着的奖品：一只小熊（或小兔）、一颗星
@@ -686,15 +692,22 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       plushie(k, x + 0.9, 2.3, z - 1.0, i === 1 ? 0xf3ead8 : 0xc99a6a, i === 1 ? 'long' : 'round'); plushie(k, x + 0.9, 2.36, z + 0.1, 0x9a6a4c, 'round');
       P.star(k, GOLD, 0.17, x + 0.9, 2.3, z + 1.05, Math.PI / 2, 0.07); k.tube(ink, [[x + 0.9, 2.46, z + 1.05], [x + 0.9, 2.86, z + 1.05]], 0.006, { straight: true, seg: 4 });
       box(k, P.timber(0xc9995f), 0.5, 0.08, 2.9, back + 0.35, 1.15, z, 0.03, { long: 2 });
-      sign(names[i], x + 2.2, 3.26, z, 2.3, Math.PI / 2);
+      for (const side of [-1, 1]) P.dash(k, wood, [x + 1.32, 2.76, z + side * 1.05], [x + 2.63, 2.76, z + side * .88], .065);
+      sign(copy(st.zh, st.en), x + 2.68, 2.78, z, 2.3, Math.PI / 2);
       k.cyl(wool(WOOL_WHITE), 0.5, 0.5, 0.06, x + 2.38, 4.0, z, { seg: 24, rz: Math.PI / 2 }); picture('stall-' + st.id + '.webp', 0.84, 0.84, x + 2.43, 4.0, z, Math.PI / 2, { cutout: true });
       P.stitch(d, Array.from({ length: 25 }, (_, j) => { const a = j * TAU / 24; return [x + 2.42, 4.0 + Math.cos(a) * 0.45, z + Math.sin(a) * 0.45]; }), { color: tone, len: 0.06, gap: 0.05, t: 0.012 });
+      if (st.id === 'ducks') {
+        box(k, felt(TEAL), .54, .11, 2.93, back + .35, 1.19, z, .045);
+        P.stitch(d, [[back + .62, 1.25, z - 1.40], [back + .62, 1.25, z + 1.40]], { len: .09, gap: .05, t: .015 });
+      } else if (st.id === 'balloons') {
+        box(k, felt(PLUM_DARK), .07, 1.30, 2.95, back + .10, 1.82, z, .045);
+      }
       const items = [];
       if (st.id === 'blocks') [[0, 0], [0, 1], [0, 2], [1, 0.5], [1, 1.5], [2, 1]].forEach(([row, col], j) => items.push(part(root, kit => { box(kit, wool(0xf1e3c0), 0.3, 0.3, 0.3, 0, 0.15, 0, 0.05); const c = felt([RED, TEAL, GOLD, CORAL, NAVY, MOSS][j]); for (const [w, hh, y, dz] of [[0.012, 0.16, 0.15, -0.08], [0.012, 0.16, 0.15, 0.08], [0.012, 0.02, 0.23, 0], [0.012, 0.02, 0.07, 0]]) kit.box(c, w, hh, dz ? 0.02 : 0.18, 0.153, y, dz); }, back + 0.35, 1.19 + row * 0.3, z + (col - 1) * 0.34)));   // 积木：米白的方块，朝外那面一个彩色的方框
       else if (st.id === 'ducks') for (let j = 0; j < 3; j++) items.push(part(root, kit => { kit.sphere(wool(0xf2cf62), 0.19, 0, 0.17, 0, { seg: 10, rings: 7, sy: 0.85, sz: 1.2 }); kit.sphere(wool(0xf2cf62), 0.12, 0.02, 0.36, 0.1, { seg: 9, rings: 6 }); kit.sphere(felt(0xe58b3a), 0.05, 0.1, 0.34, 0.14, { seg: 6, rings: 4, sx: 1.6 }); kit.sphere(M.button(INK), 0.022, 0.1, 0.4, 0.06, { seg: 5, rings: 3 }); kit.sphere(wool(0xf2cf62), 0.08, -0.06, 0.2, -0.2, { seg: 6, rings: 4, sy: 0.6 }); }, back + 0.35, 1.19, z + (j - 1) * 0.8));
-      else for (let j = 0; j < 6; j++) items.push(part(root, kit => { kit.sphere(wool([RED, TEAL, GOLD, CORAL, NAVY, 0xb9a4cf][j]), 0.2, 0, 0, 0, { seg: 10, rings: 7, sy: 1.2 }); kit.cyl(felt(INK), 0.006, 0.006, 0.3, 0, -0.38, 0, { seg: 4 }); }, back + 0.24, 1.75 + (j % 2) * 0.5, z - 1.1 + j * 0.44));
+      else for (let j = 0; j < st.targets.length; j++) items.push(part(root, kit => { kit.sphere(wool([RED, TEAL, GOLD, CORAL, NAVY, 0xb9a4cf][j]), 0.2, 0, 0, 0, { seg: 10, rings: 7, sy: 1.2 }); kit.cyl(felt(INK), 0.006, 0.006, 0.3, 0, -0.38, 0, { seg: 4 }); }, back + 0.24, 1.75 + (j % 2) * 0.5, z - 1.1 + j * 0.44));
       const ball = obj(root, new T.SphereGeometry(0.09, 10, 8), raw('felt', 0xf3dfa5), 0, -5, 0); ball.castShadow = false;
-      stalls['stall-' + st.id] = { x, z, items, home: items.map(o => o.position.clone()), down: items.map(() => 0), ball, flight: null, kind: st.id };
+      stalls.push({ stall: st, items, ball });
     });
     // 摊位之间和两头：灌木、花
     for (const [x, z, r] of [[32.4, -14.6, 0.5], [32.5, -10.4, 0.45], [32.5, -6.3, 0.45], [32.4, -2.2, 0.5]]) if (!isTourWalkable(x, z, 0.5)) P.shrub(k, d, x, z, r, seed++);
@@ -881,7 +894,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     horsesA.position.y = Math.sin(park.carouselAngle * 3.2) * 0.16 * bob; horsesB.position.y = -Math.sin(park.carouselAngle * 3.2) * 0.16 * bob;
     // 船：一条在跑（或停在码头），另一条拴在码头边上轻轻晃
     ride(boats[0], RAPIDS.at(park.boatU), 0.05 + Math.sin(t * 2.1) * 0.02);
-    ride(boats[1], RAPIDS.at(0.93), 0.05 + Math.sin(t * 1.7 + 1) * 0.02);
+    const moored = RAPIDS.at(.93);
+    ride(boats[1], { ...moored, z: moored.z + 1.08 }, .05 + Math.sin(t * 1.7 + 1) * .02);
     // 过山车
     ride(train, COASTER.at(park.coasterU), 0.02);
     // 摩天轮：轮子转，吊舱始终朝下
@@ -901,17 +915,25 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       frames[i].rotation.z = Math.sin(t * 5 + i * 1.3) * 0.045 * out;
     });
     bell.rotation.z = ring > 0 && ring < 1.8 ? Math.sin(ring * 24) * 0.55 * (1 - ring / 1.8) : 0;
-    // 游戏摊：毛球飞过去，打中的靶子倒下；一局结束后靶子复位
-    for (const [id, st] of Object.entries(stalls)) {
-      const running = park.running[id] > 0;
-      if (st.flight) { st.flight.t += dt / 0.36; const f = Math.min(1, st.flight.t), a = st.flight.from, b = st.flight.to; st.ball.position.set(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f + Math.sin(f * Math.PI) * 0.35, a.z + (b.z - a.z) * f); if (f >= 1) { st.down[st.flight.n] = 1e-6; st.flight = null; st.ball.position.y = -5; } }
-      st.items.forEach((g, i) => {
-        if (st.down[i] > 0) st.down[i] = Math.min(1, st.down[i] + dt * 3);
-        if (!running && !st.flight) st.down[i] = Math.max(0, st.down[i] - dt * 1.5);
-        const d = st.down[i], home = st.home[i];
-        if (st.kind === 'ducks') { g.position.set(home.x, home.y, home.z + Math.sin(t * 1.3 + i * 2.1) * 0.35); g.rotation.x = -d * 1.5; }
-        else if (st.kind === 'blocks') { g.position.set(home.x - d * 0.5, home.y - d * (home.y - 1.19) * 0.9, home.z); g.rotation.z = d * 1.4; }
-        else { g.scale.setScalar(Math.max(0.01, 1 - d)); g.position.copy(home); g.position.y += Math.sin(t * 1.6 + i) * 0.03; }
+    for (const { stall, items, ball } of stalls) {
+      const round = park.stall?.id === stall.id ? park.stall : null;
+      const time = round?.time ?? t;
+      const shot = round?.flight;
+      ball.visible = !!shot;
+      if (shot) {
+        const f = sat((time - shot.start) / (shot.end - shot.start)), a = shot.from, b = shot.to;
+        ball.position.set(a.x + (b.x - a.x) * f, a.y + (b.y - a.y) * f + Math.sin(f * Math.PI) * .10, a.z + (b.z - a.z) * f);
+      }
+      items.forEach((g, i) => {
+        const hit = round?.hitAt[i];
+        const down = hit == null ? 0 : sat((time - hit) / (stall.id === 'balloons' ? .18 : .56));
+        const at = stallTarget(stall, i, hit ?? time);
+        const base = stall.id === 'blocks' ? .15 : stall.id === 'ducks' ? .23 : 0;
+        const fall = stall.id === 'blocks' ? down * down * .54 : stall.id === 'ducks' ? down * .34 : 0;
+        g.position.set(at.x - down * .22, at.y - base - fall, at.z + (i % 2 ? 1 : -1) * down * .20);
+        g.rotation.set(stall.id === 'ducks' ? -down * 1.6 : 0, 0, stall.id === 'blocks' ? (i % 2 ? 1 : -1) * down * 1.6 : 0);
+        g.scale.setScalar(stall.id === 'balloons' && down ? Math.max(.01, down < .25 ? 1 + down : (1 - down) * 1.7) : 1);
+        g.visible = down < 1;
       });
     }
     // 马戏团：开演的时候灯串亮起来、台上打一束光，三位演员按节目动
@@ -930,13 +952,6 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     // 互动点的星星：慢慢转
     for (const m of markers.values()) { m.mesh.rotation.y = clock * 1.4 + m.phase; m.mesh.position.y = 1.32 + Math.sin(clock * 2 + m.phase) * 0.05; }
   }
-  // 规则层来的事件：摊位扔球
-  function event(e) {
-    if (e.what !== 'throw') return;
-    const st = stalls[e.id]; if (!st) return;
-    const n = st.kind === 'ducks' ? e.n : st.kind === 'blocks' ? [5, 3, 0][e.n] : [1, 3, 4][e.n], target = st.items[n].position;
-    st.flight = { n, t: 0, from: new T.Vector3(st.x + 4.6, 1.25, st.z), to: target.clone() };
-  }
   update({ park: { time: 0, carouselAngle: 0, running: {}, boatU: 0, coasterU: 0, wheelAngle: 0, cars: Array.from({ length: PARK.bumpers.cars }, () => ({ x: RINK.x, z: RINK.z, heading: 0, bump: 0 })), door: 0, act: 0 } });
-  return { update, event };
+  return { update };
 }

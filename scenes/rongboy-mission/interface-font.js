@@ -5,9 +5,9 @@ export function uiCanvasFont(size, weight = 700) {
   return `${weight} ${size}px ${canvasStack}`;
 }
 
-export function loadInterfaceFonts(language) {
+export function loadInterfaceFonts(language, han = '绒仔') {
   if (!document.fonts) return;
   const fonts = [document.fonts.load('600 24px "Rongboy Rounded"','Rongboy')];
-  if (language === 'zh-CN') fonts.push(document.fonts.load('400 24px "Rongboy Han"','绒仔'));
+  if (language === 'zh-CN') fonts.push(document.fonts.load('700 24px "Rongboy Han"',han));
   return Promise.allSettled(fonts);
 }

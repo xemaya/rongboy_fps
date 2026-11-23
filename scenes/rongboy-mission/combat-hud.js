@@ -5,6 +5,7 @@ const WEAPON_ICONS = {
   scatter: 'M9 10 Q9 6 14 6 H36 Q41 6 44 11 H73 Q80 11 80 17 V24 L73 28 H47 L52 41 H42 L33 28 H14 Q9 28 9 24 Z',
   heavy: 'M9 12 L17 5 H28 V9 H39 L44 3 H60 L65 10 H78 Q87 10 87 18 V27 L80 31 H62 L67 43 H56 L47 31 H29 V34 H17 L9 27 Z',
   stun: 'M9 9 Q9 6 14 6 H30 L37 12 H71 Q78 12 78 19 V25 L68 29 H46 L52 42 H41 L34 29 H13 Q9 29 9 25 Z',
+  freeze: 'M8 14 Q8 8 14 8 H26 L29 3 H39 L42 8 H59 L64 12 H77 L80 16 V25 L77 29 H58 L57 42 H44 L38 29 H16 Q8 29 8 23 Z',
   sewing: 'M9 10 Q9 5 15 5 H51 Q61 5 69 10 L76 17 H25 V21 H76 Q81 21 81 26 L73 31 H53 L57 43 H47 L40 31 H12 Q9 31 9 27 Z',
   needle: 'M3 19 L32 16 H42 V11 Q42 8 49 8 H72 Q80 8 80 16 V24 L71 28 H61 L65 43 H53 L47 28 Q42 28 42 24 H32 Z',
 };
@@ -13,6 +14,7 @@ const ICON_SEAMS = {
   scatter: 'M14 11 H29 M14 17 H29 M14 23 H29',
   heavy: 'M19 9 V29 M25 9 V29 M46 10 H61 M54 15 V27',
   stun: 'M15 11 H24 M15 16 H24 M15 21 H24 M33 14 V25',
+  freeze: 'M31 10 H38 L44 16 H56 V24 H22 L15 18 L21 13 Z',
   sewing: 'M34 25 H57 M17 9 H42',
   needle: 'M50 12 V24 M57 12 V24 M64 12 V24',
 };
@@ -22,6 +24,7 @@ const ICON_FABRIC = {
   scatter: ['#b4b97d','#48543c','#c98154'],
   heavy: ['#b5b3a0','#454e4b','#e2ac52'],
   stun: ['#a6bea0','#426357','#83cbbc'],
+  freeze: ['#c9f4ef','#3c7d91','#ffe0aa'],
   sewing: ['#d5a377','#614c3a','#b95d4d'],
   needle: ['#c0bdc4','#555269','#b685a7'],
 };
@@ -31,6 +34,7 @@ const ICON_INLAYS = {
   scatter: 'M10 11 H17 V27 H11 Z',
   heavy: 'M10 16 L17 8 H21 V34 H17 L10 27 Z M43 10 H62 V14 H43 Z',
   stun: 'M11 10 H25 V28 H12 Z',
+  freeze: 'M12 23 H34 M53 12 V25 M69 16 V26',
   sewing: 'M11 7 H51 Q63 7 73 16 H11 Z',
   needle: 'M47 11 H70 Q74 11 76 16 H47 Z',
 };

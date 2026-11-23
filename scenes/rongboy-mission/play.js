@@ -11,7 +11,7 @@ import { createRecoil, kickRecoil, stepRecoil, enemyReaction } from '../rongboy-
 import { createWoolAudio } from '../rongboy-shooter-fps/sound.js';
 import { actionPose } from './actions.js';
 import { compileLevel, segmentBox, roomAt, inBounds, lineOfSight, isOutdoor, storeyAt, floorIndex, prepareNavigation } from './level.js';
-import { createGame, beginCharge, releaseCharge, startReload, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
+import { createGame, beginCharge, releaseCharge, startReload, reloadTime, selectWeapon, step, consumeEvents, missionStatus, aliveCount,
   cameraMove, segmentCylinder, CONFIG, WEAPONS as RAW_WEAPONS, ENEMY_TYPES as RAW_ENEMIES, TANGLE_SPEED,
   PISTOL, GRENADE_TYPES, secondOf, grenades, selectGrenade, offeredWeapon, exchangeWeapon, beginThrow, releaseThrow, beginJump } from './game.js';
 import { buildWorld } from './world.js';
@@ -49,8 +49,11 @@ import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
-import { nearbyTourStop, TOUR_STOPS } from './park-tour-layout.js';
+import { nearbyTourStop, TOUR_STOPS, STALLS } from './park-tour-layout.js';
+import { PARK_ZONES, CLOWN, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, ridePose } from './amusement.js';
+import { createAmusementView } from './amusement-view.js';
 import { parkPrompt, parkInteract, PARK } from './park-rides.js';
+import { fireStall, stallTarget, STALL_SHOTS } from './park-stalls.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
 const ENEMY_TYPES = Object.fromEntries(Object.entries(RAW_ENEMIES).map(([id,enemy])=>[id,localizeFields(enemy,['name'])]));
@@ -82,19 +85,20 @@ const returnLabel = intro ? (source === 'chapters' ? '返回选关' : '返回主
 let awaitingApproach = false, pauseIndex = 0, introStage = 0;
 let hadPointerLock = false, pointerReleasedAt = -Infinity;
 const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? (intro ? gardenIntroDef() : gardenWallDef()) : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : cottageStudy ? cottageStudyDef(study) : LEVELS[levelId]));
-const parkTour = !!level.tour;
-const missionBriefing = (parkTour || level.mission.type === 'fetch') && !challenge;
+const parkTour = !!level.tour, amusement=level.mission.type==='amusement';
+const missionBriefing = (parkTour || amusement || level.mission.type === 'fetch') && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
+const requestedStage = !crazyGames && amusement && q.get('debug') === '1' ? Math.min(3,Math.max(0,Number(q.get('checkpoint'))|0)) : 0;
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
-const RANGE_GUNS = WEAPONS.flatMap((w,index) => w.kind === 'grenade' ? [] : [index]);
+const RANGE_GUNS = WEAPONS.flatMap((w,index) => w.kind === 'grenade' || w.id === 'freeze' ? [] : [index]);
 const HIP_FOV = 65, SCOPE_POWER = WEAPONS.find(w=>w.zoom).zoom;
 // 脚下是露天的花园吗（楼上不算）
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
-let s = createGame({ level });
+let s = createGame({ level,amusementCheckpoint:requestedStage });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
-let actors, bossActors, viewmodel, tourView;
+let actors, bossActors, viewmodel, tourView, amusementView;
 let rideYaw = 0, rideVignette = 0;   // 游乐园：上车那一刻面朝哪、暗角的深浅
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
@@ -112,10 +116,14 @@ let inputMode = 'keyboard', padSoundHint = false;
 
 // The menu is a separate lightweight page; this page loads only the confirmed map.
 function applyTexts() {
- document.title = `${t('绒仔')} · ${level.name}`;
+ document.title = `${t('绒仔')} · ${amusement?copy('布偶游乐场 · 白盒','Plushwood Park · Whitebox'):level.name}`;
  document.body.classList.toggle('reduced-ui',reduced);
  document.body.classList.toggle('challenge-round',!!challenge);
  document.body.classList.toggle('park-tour',parkTour);
+ if (parkTour) $('view').setAttribute('aria-label', copy(
+   '布偶游乐园。WASD 移动，方向键看向四周，F 互动，游戏摊按空格投球。支持手柄。',
+   'Plushwood Park. Move with WASD, look with the arrow keys, interact with F and throw at stalls with Space. Gamepad supported.'
+ ));
  $('result').querySelector('.eyebrow').textContent = level.name;
  document.body.style.setProperty('--heart-full','url('+heartImage(true)+')');
  document.body.style.setProperty('--heart-empty','url('+heartImage(false)+')');
@@ -123,7 +131,7 @@ function applyTexts() {
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
  $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post: ride the coaster and the wheel, drive a bumper car, knock at the haunted house. Strike the gong in the big top and watch the show.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-brief').textContent = t(amusement ? copy(TX.brief,'Freeze and shatter the moving gate latch. Freeze the steam valve to start the carousel. Ride the coaster and light the targets, then bounce from a box to break Giggles’s mask.') : parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post to board rides or play at the stalls. Strike the gong in the big top and watch the show.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -176,7 +184,8 @@ function applyInputHints() {
   else { quick.push([L.exchange,'互动']); detail.push([L.exchange,'互动 / 跳过 / 下车'],[L.jump,'跳跃']); drawPauseBindings($('pauseQuick'),quick); }
   if (!parkTour && !practiceBindingsOnly) {
     detail.push([L.switch,'换枪']);
-    if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
+    if (amusement) detail.push([L.exchange,copy('设施 / 拾取战利品','Use rides / Collect reward')]);
+    else if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
   }
   if (weaponShowcase) {
     if (inputMode === 'gamepad') detail.push(['△','下一把枪']);
@@ -272,6 +281,7 @@ const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStan
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 function initWorld(kit) {
   world = buildWorld(cine, level, WEAPONS, kit?.userData.variants);
+  if (amusement) amusementView=createAmusementView(cine,world);
   if (parkTour) { tourView = createParkTour(cine,world,{reduced}); s.park.watch = reduced; }
   combatFx = createCombatFx(cine.scene);
   effects = createEffects(cine.scene);
@@ -425,6 +435,29 @@ const blobMat = (() => {
 const tellGeo = new T.RingGeometry(0.42, 0.48, 28);
 const tellMat = new T.MeshBasicMaterial({ color: 0xe9bf65, transparent: true, opacity: 0.8, side: T.DoubleSide, depthWrite: false });
 
+let iceGeometry, iceShellMaterial, iceRimMaterial, iceRingGeo, iceRingMat;
+const freezeBeams = [];
+const beamGeo = new T.CylinderGeometry(.032, .052, 1, 8, 1, true);
+function spawnFreezeBeam(x0, y0, z0, x1, y1, z1) {
+  const from = new T.Vector3(x0, y0, z0), to = new T.Vector3(x1, y1, z1);
+  const diff = to.clone().sub(from), len = Math.max(.08, diff.length());
+  const mat = new T.MeshBasicMaterial({ color: 0xb6f4ff, transparent: true, opacity: .92, depthWrite: false, side: T.DoubleSide });
+  const mesh = new T.Mesh(beamGeo, mat);
+  mesh.position.copy(from).addScaledVector(diff, .5);
+  mesh.scale.set(1, len, 1);
+  mesh.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), diff.normalize());
+  cine.scene.add(mesh);
+  freezeBeams.push({ mesh, mat, age: 0, life: .24 });
+}
+function stepFreezeBeams(dt) {
+  for (let i = freezeBeams.length - 1; i >= 0; i--) {
+    const b = freezeBeams[i]; b.age += dt;
+    if (b.age >= b.life) { cine.scene.remove(b.mesh); b.mat.dispose(); freezeBeams.splice(i, 1); continue; }
+    const left = 1 - b.age / b.life;
+    b.mat.opacity = left * .92;
+    b.mesh.scale.x = b.mesh.scale.z = .5 + left * .8;
+  }
+}
 function updateEnemy(e, a, showHealth) {
   a.reset();
   a.world.position.set(e.x, e.y, e.z); a.tilt.position.set(0,0,0); a.tilt.scale.setScalar(1); a.model.rotation.y = e.heading;
@@ -445,8 +478,26 @@ function updateEnemy(e, a, showHealth) {
   if (a.healthBar) a.healthBar.visible = showHealth;
   const asleep = e.awareness === 'asleep', waking = e.awareness === 'waking';
   const searching = e.awareness === 'idle' && e.lure?.kind === 'noise';
-  const cue = attackCue(e);
-  const mood = e.alive && t(cue?.label || (e.guardBroken > 0 ? '破防' : waking ? '!' : searching ? '?' : ''));
+  const frozen = e.alive && e.frozenUntil>s.time;
+  if (frozen && !a.ice) {
+    iceGeometry ??= new T.IcosahedronGeometry(1,0);
+    iceShellMaterial ??= new T.MeshBasicMaterial({color:0x8be4ff,transparent:true,opacity:.38,depthWrite:false,flatShading:true});
+    iceRimMaterial ??= new T.MeshBasicMaterial({color:0xdaf8ff,transparent:true,opacity:.55,wireframe:true,depthWrite:false});
+    iceRingGeo ??= (() => { const g = new T.RingGeometry(.46, .64, 24); g.rotateX(-Math.PI/2); return g; })();
+    iceRingMat ??= new T.MeshBasicMaterial({color:0x9ef0ff,transparent:true,opacity:.8,depthWrite:false,side:T.DoubleSide});
+    a.ice = new T.Group();
+    const shell = new T.Mesh(iceGeometry, iceShellMaterial);
+    shell.position.y = e.height * .54; shell.scale.set(e.radius * 1.24, e.height * .60, e.radius * 1.24);
+    const rim = new T.Mesh(iceGeometry, iceRimMaterial);
+    rim.position.y = e.height * .54; rim.scale.set(e.radius * 1.28, e.height * .62, e.radius * 1.28);
+    const floorRing = new T.Mesh(iceRingGeo, iceRingMat);
+    floorRing.position.y = .04; floorRing.scale.setScalar(e.radius / .34);
+    a.ice.add(shell, rim, floorRing);
+    a.world.add(a.ice);
+  }
+  if (a.ice) a.ice.visible=frozen;
+  const cue = frozen ? null : attackCue(e);
+  const mood = e.alive && (frozen?copy('冻住了','Frozen'):t(cue?.label || (e.guardBroken > 0 ? '破防' : waking ? '!' : searching ? '?' : '')));
   if (mood) {
     const material = moodMaterial(mood);
     if (!a.mood) {
@@ -761,11 +812,58 @@ function clearModels() {
 let reloadReadyUntil = -1;
 const attackNotices = { shielded: '盾冲 · 横移', archer: '红线定住后横移', bomber: '离开炸弹落点',
   crawler: '扑抓 · 拉开距离', 'boss-warden': '远离震地圈', 'boss-leech': '被吸引时侧移' };
+function amusementEvent(e) {
+  const L = inputLabels(), sw = t(L.switch), ex = t(L.exchange);
+  const messages={
+    'lock-frozen':[`门栓冻住 3.5 秒 · 按 ${sw} 切手枪击碎它`,`Latch frozen 3.5s · Press ${sw} for pistol to shatter it`],
+    'lock-thaw':['门栓化冰了 · 再用急冻枪冻住它','Latch thawed · Freeze it again'],
+    'lock-block':['摇摆太快 · 先用急冻枪冻住门栓','Moving too fast · Freeze the latch first'],
+    'lock-open':['门栓碎了 · 急冻僵尸再切手枪碎冰','Latch shattered · Freeze zombies, then shatter with pistol'],
+    'valve-frozen':[`阀门冻住了 · 靠近金色开关按 ${ex}`,`Valve frozen · Press ${ex} by the gold switch`],
+    'valve-block':['用急冻枪堵住蒸汽','Use the freeze ray to plug the steam'],
+    'ice-sweep':['冰雕扫碎！','Ice sweep!'],
+    'ride-start':['坐稳过山车 · 边飞边急冻或击亮轨道靶！','Coaster rolling · Freeze and hit the targets as you ride!'],
+    'ride-end':['安全到站 · 补清余怪和轨道靶打开帐篷','Arrived · Clear remaining foes and targets to open the big top'],
+    'target-frozen':[`轨道靶定住了 · 切手枪或补一发点亮`,`Target frozen · Shoot to lock it lit`],
+    'target-lit':['轨道靶点亮！','Coaster target lit!'],
+    'balloon-pop':['砰！彩球爆开！','Pop! Confetti burst!'],
+    'gate-open':['这一区彩灯点亮了 · 电力汇入帐篷，沿路前进','Area lit · Power flowing to the big top!'],
+    'clown-start':['嬉笑小丑登场！按开火键可跳过过场','Giggles arrives! Press fire to skip'],
+    'clown-intro-end':['踩落稳的惊喜盒腾空打面具，或先用急冻枪定住他','Bounce from a box to break the mask, or freeze him first'],
+    'mask-block':['要踩惊喜盒弹到空中打面具','Bounce from a box to hit the mask'],
+    'mask-hit':['面具裂开一层','One layer of the mask cracked'],
+    'mask-break':['面具碎了 · 现在可以直接打小丑，急冻地砖可保命','Mask broken · Attack Giggles, freeze warning tiles for safety'],
+    'clown-frozen':['小丑冻住了 · 趁现在反击！','Giggles is frozen · Strike now!'],
+    'clown-resist':['小丑暂时抗冻','Giggles is briefly frost-resistant'],
+    'tile-frozen':['地砖冻牢了 4 秒！','Floor tile frozen solid for 4s!'],
+    'clown-down':[`小丑倒下了 · 靠近舞台中央按 ${ex} 拾取高压马达`,`Giggles is down · Press ${ex} to collect the motor`],
+    'motor':['拿到了高压马达 · 全园彩灯亮起！','Motor recovered · The whole park lights up!'],
+  };
+  const message=messages[e.action];
+  if (message) say(copy(...message),e.action==='clown-start'||e.action==='motor'?3.2:1.85,1);
+  if (['lock-frozen','valve-frozen','ice-sweep','tile-frozen','clown-frozen','target-frozen'].includes(e.action)) {
+    effects.spark({x:e.x,y:e.y,z:e.z},0x9be7ff,.95); sfx2('china');
+  } else if (e.action==='balloon-pop') {
+    burst(e.x,e.z,16,.9,0xf4be59,e.y); effects.spark({x:e.x,y:e.y,z:e.z},0xff8272,.9); sfx2('jack-pop');
+  } else if (['spring','lock-open','spin','gate-open','motor','target-lit','ride-start','ride-end'].includes(e.action)) {
+    if (e.action==='gate-open' || e.action==='motor') burst(e.x??0,e.z??0,24,1.6,0xffd67a,(e.y??1.2)+1);
+    sfx2(e.action==='spring'?'jack-pop':e.action==='ride-start'?'chain':'bell');
+  } else if (['mask-break','mask-hit','clown-hit'].includes(e.action)) {
+    hitMarkerTime=.19;hitMarkerKind=e.action==='mask-break'?'heavy':'';
+    sfx2(e.action==='clown-hit'?'thump':'china');
+  } else if (e.action==='clown-start') sfx2('gong');
+  else if (e.action==='boxes' || e.action==='volley') sfx2('throw');
+  else if (e.action==='firework-impact' || e.action==='fall') sfx2('thump');
+}
+
 function processEvents() {
   let strongest = null;
   for (const e of consumeEvents(s)) {
     const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r && Math.abs((e.base ?? s.player.y) - s.player.y) < 2;
     const base = e.base ?? 0;
+    if (e.type==='freeze-beam') { spawnFreezeBeam(e.x0,e.y0,e.z0,e.x1,e.y1,e.z1); continue; }
+    if (e.type==='amusement') { amusementEvent(e); continue; }
+    if (e.type==='enemy-frozen') { effects.spark(e,0x9be7ff,.9);sfx2('china');continue; }
     if (e.type === 'park') { parkEvent(e); continue; }
     const returnHit=receipts?.event(e,gardenShieldId);
     thread?.event(e,s.time);
@@ -987,6 +1085,10 @@ function aim() {
     if (t !== null && t * FAR < distance) { distance = t * FAR; picked = e; }
   }
   for (const c of level.solids) { const h = segmentBox(from, far, c); if (h && h.t * FAR < distance) { distance = h.t * FAR; picked = null; } }
+  if (amusement) for (const part of amusementTargets(s,WEAPONS[s.weapon].id==='freeze')) {
+    const h=segmentBox(from,far,part);
+    if (h && h.t*FAR<distance) { distance=h.t*FAR; picked=null; }
+  }
   ray.set(from, lookDir);
   for (const egg of level.easterEggs) {
     const contact = segmentBox(from, far, egg);
@@ -1021,6 +1123,25 @@ function shotParams(thrown = false) {
 }
 
 function cameraFrame(dt) {
+    const cut = amusement && amusementCutscene(s);
+    if (cut) {
+      const p = cut.progress, smooth = p * p * (3 - 2 * p);
+      camera.fov = HIP_FOV;
+      camera.rotation.order = 'YXZ';
+      if (cut.kind === 'clown-intro') {
+        const cx = Math.sin(smooth * Math.PI) * 1.4, cy = 2.0 + Math.sin(smooth * Math.PI) * .6, cz = -7.6 - smooth * 2.4;
+        camera.position.set(cx, cy, cz);
+        camera.lookAt(CLOWN.x, 2.55, CLOWN.z);
+        yaw = 0; pitch = .08;
+      } else {
+        // Full-park victory light-up crane shot pulling up over Big Top looking south across all lit zones
+        camera.position.set(Math.sin(smooth * Math.PI * .7) * 5.2, 2.6 + smooth * 7.8, -8.5 + smooth * 14.5);
+        camera.lookAt(0, 1.4, 8.0 - smooth * 14.0);
+      }
+      viewmodel?.project(camera.fov, camera.aspect, false);
+      camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
+      return;
+    }
     const motion = reduced ? 0.25 : 1, bob = reduced ? 0 : Math.sin(phase * 2) * 0.006;
     // 毛衣针按住是举枪瞄准：镜头拉近
     const aiming = s.charging && WEAPONS[s.weapon].zoom ? Math.min(1, s.charge / 0.27) : 0;
@@ -1029,10 +1150,13 @@ function cameraFrame(dt) {
     camera.fov=scopeFieldOfView(HIP_FOV,focalScale) + recoil.fov.x * motion / focalScale;
     camera.rotation.order = 'YXZ';
     // 坐在设施上（准则第 3 节）：过山车带着镜头转（转速有上限、不滚转），玩家的转头叠加在上面；不加走路的起伏
-    const seat = s.player.seat, carried = seat && seat.yaw !== null;
-    const viewYaw = carried ? seat.yaw + (yaw - rideYaw) : yaw, viewPitch = Math.max(-0.9, Math.min(0.9, pitch + (seat ? seat.pitch : 0)));
-    camera.rotation.set(viewPitch + recoil.camera.x * motion + hurtPitch, viewYaw, seat ? 0 : Math.sin(s.time * 49) * shake * motion + hurtRoll);
-    camera.position.set(s.player.x + (seat ? 0 : Math.sin(s.time * 67) * shake * motion), s.player.y + s.player.jump + EYE + (seat ? 0 : bob + Math.sin(s.time * 59) * shake * 0.4 * motion), s.player.z);
+    const seat = s.player.seat, ridingAmusement = amusement && s.amusement.ride.started !== null && !s.amusement.ride.finished;
+    const rideHeading = ridingAmusement ? ridePose(s.amusement.ride.progress).yaw : 0;
+    const carried = seat && seat.yaw !== null;
+    const viewYaw = carried ? seat.yaw + (yaw - rideYaw) : ridingAmusement ? rideHeading + yaw : yaw;
+    const viewPitch = Math.max(-0.9, Math.min(0.9, pitch + (seat ? seat.pitch : 0)));
+    camera.rotation.set(viewPitch + recoil.camera.x * motion + hurtPitch, viewYaw, seat || ridingAmusement ? 0 : Math.sin(s.time * 49) * shake * motion + hurtRoll);
+    camera.position.set(s.player.x + (seat || ridingAmusement ? 0 : Math.sin(s.time * 67) * shake * motion), s.player.y + s.player.jump + EYE + (seat || ridingAmusement ? 0 : bob + Math.sin(s.time * 59) * shake * 0.4 * motion), s.player.z);
     if (parkTour) {   // 转得快的时候四周压一圈暗角，直行时没有
       rideVignette += ((seat ? Math.min(1, seat.turn / PARK.coaster.maxTurn) : 0) - rideVignette) * Math.min(1, dt * 4);
       $('rideVignette').style.opacity = (rideVignette * 0.62).toFixed(3);
@@ -1094,7 +1218,7 @@ let shownLoadout;
 function pauseBrief() {
   const status = missionStatus(s);
   textOf('pausePlace', level.texts?.short || level.name);
-  textOf('objective', objectiveText(status));
+  textOf('objective',amusement?amusementObjective():objectiveText(status));
   textOf('pauseProgress', parkTour ? copy('游园用时 ','Walk time ')+clock(s.time) : challenge
     ? challenge.unit + ' ' + s.challenge.progress + '/' + challenge.target + copy(' · 剩余 ',' · Time left ') + Math.max(0, Math.ceil(challenge.seconds - s.time)) + copy(' 秒','s')
     : cottageStudy ? cottageStudyProgress()
@@ -1130,11 +1254,23 @@ function ammoHud(active) {
   if (showReload) {
     textOf('reloadCaption', s.reloading ? copy('换弹中  ','Reloading · ') + (Math.ceil(s.reload * 10) / 10).toFixed(1) + copy(' 秒','s') : '装填完成');
     $('reloadProgress').hidden = !s.reloading;
-    $('reloadProgress').value = s.reloading ? Math.max(0, 1 - s.reload / weapon.reload) : 1;
+    $('reloadProgress').value = s.reloading ? Math.max(0, 1 - s.reload / reloadTime(s,s.weapon)) : 1;
   }
 }
 
 function bossHud(active) {
+  const clown=s.amusement?.clown;
+  $('bossDetail').hidden=!(active && clown?.entered);
+  if (clown) {
+    $('bossHud').hidden=!active || !clown.entered || clown.defeatedAt!==null;
+    if (!active || !clown.entered) return;
+    textOf('bossName',copy('嬉笑小丑','Giggles'));
+    textOf('bossDetail',clown.mask?copy('面具 '+clown.mask+'/2','Mask '+clown.mask+'/2'):copy('面具已碎','Mask broken'));
+    $('bossFill').style.width=(100*clown.hp/CLOWN.hp)+'%';
+    $('bossTrack').setAttribute('aria-valuemax',CLOWN.hp);
+    $('bossTrack').setAttribute('aria-valuenow',clown.hp);
+    return;
+  }
   const boss = active ? s.enemies.find(e => e.alive && e.enabled && e.type.startsWith('boss-') &&
     floorIndex(level, e.base) === floorIndex(level, s.player.y) &&
     Math.hypot(e.x - s.player.x, e.z - s.player.z) < 18 &&
@@ -1154,23 +1290,86 @@ function rideFade() {
   el.style.transition = 'opacity .5s ease'; el.style.opacity = '0';
 }
 function parkEvent(e) {
-  if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
-  else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
-  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
-  else if (e.what === 'throw') { sfx('shot', { weapon: 'single', power: 0 }); tourView?.event(e); }
-  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); tourView?.event(e); }
+  if (e.what === 'board') {
+    clearHeldInput(); rideYaw = yaw; pitch = 0; rideFade();
+    sfx2(e.id === 'coaster' ? 'chain' : e.id === 'rapids' ? 'splash' : 'swap');
+  }
+  else if (e.what === 'alight') { clearHeldInput(); yaw = rideYaw; pitch = 0; rideFade(); }
+  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); }
+  else if (e.what === 'splash') sfx2('splash');
+  else if (e.what === 'stall-start') {
+    const stall = STALLS.find(stall => stall.id === e.id);
+    const target = stallTarget(stall, stall.id === 'balloons' ? 2 : 1, 0);
+    const dx = s.player.x - target.x, dz = s.player.z - stall.z;
+    clearHeldInput(); yaw = Math.atan2(dx, dz);
+    pitch = Math.atan2(target.y - s.player.y - EYE, Math.hypot(dx, dz));
+    sfx2('bell');
+  } else if (e.what === 'stall-leave') clearHeldInput();
+  else if (e.what === 'stall-shot') sfx2('throw');
+  else if (e.what === 'stall-hit') sfx2(e.id === 'ducks' ? 'squeak' : e.id === 'balloons' ? 'jack-pop' : 'thump');
+  else if (e.what === 'stall-miss') sfx2('thump', { strength: .3 });
+  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); }
   else if (e.what === 'complete') say(copy('演出结束，逛完了！','The show is over. That was the park!'), 2.4, 2);
-  else tourView?.event(e);
 }
 
+
+const formatStallCount = (count, total) => count + ' / ' + total;
+function stallHud(round) {
+  $('stallHud').hidden = !round;
+  const recent = round?.last && round.time - round.last.at < .85;
+  $('stallFeedback').hidden = !recent;
+  if (!round) return;
+  const stall = STALLS.find(stall => stall.id === round.id);
+  textOf('stallTitle', copy(stall.zh, stall.en));
+  textOf('stallScore', copy('命中 ', 'Hits ') + formatStallCount(round.score, stall.targets.length));
+  textOf('stallShots', copy('剩余 ', 'Throws ') + formatStallCount(round.left, STALL_SHOTS));
+  textOf('stallHint', round.done ? copy('本局结束', 'Round complete')
+    : inputLabels().fire + ' · ' + copy(stall.hintZh, stall.hintEn));
+  textOf('stallFeedback', recent ? round.last.count ? '+' + round.last.count : copy('擦过了', 'Miss') : '');
+}
+
+function amusementObjective() {
+  const a=s.amusement, c=a.clown, L=inputLabels(), sw=t(L.switch), ex=t(L.exchange);
+  const cut = amusementCutscene(s);
+  if (cut) return cut.kind === 'clown-intro' ? copy('嬉笑小丑登场！','Giggles enters the ring!') : copy('全园彩灯重燃！','The whole park is lit!');
+  if (a.zone===0) {
+    if (a.lock==='closed') return copy('用急冻枪冻住左右摇摆的门栓','Freeze the swinging gate latch');
+    if (a.lock==='frozen') return copy(`按 ${sw} 切手枪，趁化冰前击碎门栓`,`Press ${sw} for pistol and shatter the latch`);
+    return parkRemaining(s) ? copy('急冻僵尸再切手枪碎冰 · 剩余 '+parkRemaining(s),'Freeze zombies, shatter with pistol · '+parkRemaining(s)+' left') : copy('跟着布路进木马广场','Follow the path to the carousel');
+  }
+  if (a.zone===1) {
+    if (!a.valveLatched && a.valveUntil<=s.time) return copy(`切急冻枪（${sw}），冻住喷气阀`,`Switch to freeze ray (${sw}) and plug the steam valve`);
+    if (!a.carousel.used) return copy(`到金色开关旁按 ${ex} 启动木马`,`Press ${ex} by the gold switch to spin the carousel`);
+    if (!parkRemaining(s)) return copy('沿布路前往过山车月台','Follow the path to the coaster station');
+    return a.carousel.until>s.time
+      ? copy('把僵尸冻在木马软臂轨道上扫碎 · 剩余 '+parkRemaining(s),'Freeze zombies in the sweep arms · '+parkRemaining(s)+' left')
+      : copy('可再开木马，或直接击倒余怪 · 剩余 '+parkRemaining(s),'Restart carousel or clear remaining foes · '+parkRemaining(s)+' left');
+  }
+  if (a.zone===2) {
+    const litCount = a.targets.filter(t=>t.lit).length;
+    if (!a.ride.finished && a.ride.started === null) return copy(`走到过山车月台按 ${ex} 上车飞跃河道`,`Press ${ex} at the coaster station to cross the river`);
+    if (!a.ride.finished) return copy(`乘车中 · 击亮轨道靶 (${litCount}/2) 并打击对岸守卫`,`Riding coaster · Light targets (${litCount}/2) & hit guards`);
+    if (litCount < a.targets.length) return copy(`用急冻定住并击亮剩余轨道靶 (${litCount}/2)`,`Freeze and hit remaining coaster targets (${litCount}/2)`);
+    return parkRemaining(s) ? copy('清完对岸守卫，打开马戏帐篷 · 剩余 '+parkRemaining(s),'Clear shore guards to open the big top · '+parkRemaining(s)+' left') : copy('全园电力接通 · 走进马戏帐篷！','Power restored · Enter the big top!');
+  }
+  if (c.defeatedAt!==null) return copy(`靠近舞台中央按 ${ex} 拾取高压马达`,`Press ${ex} by the motor on stage`);
+  if (c.mask) return copy('急冻小丑或直接踩惊喜盒，腾空打碎面具','Freeze Giggles or bounce from a box to break the mask');
+  return copy('急冻红圈预警地砖可保命，击败嬉笑小丑','Freeze warning tiles for cover and defeat Giggles');
+}
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
+  const stall = parkTour && active ? s.park.stall : null;
+  stallHud(stall);
   $('fightHud').hidden = !active;
   $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
   if (parkTour && active) {
     const stop=nearbyTourStop(s.player.x,s.player.z), riding=s.park.riding && TOUR_STOPS.find(q=>q.id===s.park.riding.id);
     const where=riding||stop;
     textOf('missionStep',where?copy(where.name,where.en):copy('缝线小径','Stitched path'));
+  } else if (amusement && active) {
+    const zone=PARK_ZONES[s.amusement.zone];
+    $('missionHud').querySelector('strong').textContent=copy(zone.name,zone.en);
+    textOf('missionStep',amusementObjective());
   } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
@@ -1189,7 +1388,11 @@ function hud() {
     active && s.slowUntil > s.time ? copy('缠线减速 · ','Tangled · ') + (s.slowUntil-s.time).toFixed(1) + copy(' 秒','s') : '');
 
   // 游乐园：走近设施，同一块提示牌上写"按 F 做什么"
-  const ask = parkTour && active ? parkPrompt(s) : null;
+  const action=amusement && active ? amusementPrompt(s) : null;
+  const ask = parkTour && active ? parkPrompt(s) : action==='spin'
+    ? {id:'spin',kind:'amusement',zh:'启动木马',en:'Start carousel'}
+    : action==='board' ? {id:'board',kind:'amusement',zh:'上过山车飞跃河道',en:'Board coaster'}
+    : action==='motor' ? {id:'motor',kind:'amusement',zh:'拾取高压马达',en:'Collect motor'} : null;
   const offer = active && !parkTour ? offeredWeapon(s) : null;
   const offerKey = ask ? 'park:' + ask.id + ':' + ask.kind + ':' + inputMode : offer ? offer.id + ':' + offer.weapon + ':' + inputMode : '';
   if (offerKey !== offerShown) {
@@ -1199,7 +1402,14 @@ function hud() {
     else if (offer) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), copy(' 换成',' Swap to ') + WEAPONS.find(w => w.id === offer.weapon).name);
   }
 
-  $('hearts').hidden=parkTour;
+  $('hearts').hidden=parkTour || amusement;
+  $('playerHealth').hidden=!amusement;
+  if (amusement) {
+    $('playerHealthFill').style.width=s.health+'%';
+    $('playerHealth').setAttribute('aria-valuenow',s.health);
+    textOf('playerHealthValue',s.health+' / 100');
+  }
+  document.body.classList.toggle('park-boxed',amusement && active && !!s.amusement.trap);
   const hearts = Math.max(0, Math.min(CONFIG.maxHealth, s.health));
   if (hearts !== lastHealth) {
     [...$('hearts').children].forEach((el, i) => {
@@ -1209,11 +1419,11 @@ function hud() {
     $('hearts').setAttribute('aria-label', hearts + copy(' 颗心',' hearts'));
     lastHealth = hearts;
   }
-  const danger = active && s.phase === 'playing' && hearts === 1;
+  const danger = active && s.phase === 'playing' && (amusement?s.health<=25:hearts===1);
   document.body.classList.toggle('danger', danger);
   if (danger && performance.now() > nextBeat) { nextBeat = performance.now() + 1100; sfx2('beat', { strength: 0.8 }); }
 
-  const inCharge = active && !s.reloading && (s.lobbing || (s.charging && s.charge > .085));
+  const inCharge = active && WEAPONS[s.weapon].id!=='freeze' && !s.reloading && (s.lobbing || (s.charging && s.charge > .085));
   $('charge').hidden = !inCharge;
   if (inCharge) {
     const progress = (s.lobbing ? s.lob : s.charge) / CONFIG.chargeTime;
@@ -1225,7 +1435,7 @@ function hud() {
       weapon.kind === 'zap' ? '松手发射电网' : progress > .95 ? '蓄满 · 松手发射' : '蓄力中';
     textOf('chargeLabel', label);
   }
-  $('reticle').hidden = !active || parkTour;
+  $('reticle').hidden = !active || (parkTour && (!stall || stall.done)) || (amusement && !!amusementCutscene(s));
   $('reticle').style.scale = 1 + Math.min(.35, recoil.back.x * .65);
   $('hitMarker').hidden = !active || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind;
@@ -1240,7 +1450,9 @@ function snapshot() {
     weapon: WEAPONS[s.weapon].id, second: WEAPONS[secondOf(s)]?.id || null, grenades: grenades(s), offer: offeredWeapon(s)?.weapon || null, owned: WEAPONS.filter((w, i) => s.owned[i]).map(w => w.id), ammo: s.ammo.map(a => ({ mag: a.mag, reserve: a.reserve === Infinity ? 'inf' : a.reserve })), reloading: s.reloading,
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, y: s.player.y, z: s.player.z, jump: s.player.jump }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
-    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    enemies: s.enemies.map(e => ({ id: e.id, type: e.type, frozenUntil: e.frozenUntil, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    amusement: amusement ? {zone:s.amusement.zone,lock:s.amusement.lock,opened:s.amusement.opened,valveLatched:s.amusement.valveLatched,valveUntil:s.amusement.valveUntil,mask:s.amusement.clown.mask,bossHp:s.amusement.clown.hp,maskHits:s.amusement.maskHits,iceHits:s.amusement.carousel.iceHits,pickedUp:s.amusement.pickedUp} : undefined,
+    park: parkTour ? { riding: s.park.riding?.id ?? null, stall: s.park.stall, circus: s.park.running.circus } : undefined,
     level: level.id, enemyBombs: s.enemyBombs.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, landed: b.landed, fuse: b.fuse })), enemyShots: s.enemyShots.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, age: b.age })), slowUntil: s.slowUntil, pulledUntil: s.pulledUntil, neutralized: s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
   };
@@ -1269,10 +1481,12 @@ function start() {
   aimedEnemy = lastWounded = null;
   toastUntil = toastPriority = 0; $('toast').textContent = '';
   for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
-  s = createGame({ level });
+  const checkpoint=amusement && mode==='result' && s.phase==='lost' ? s.amusement.zone : requestedStage;
+  s = createGame({ level,amusementCheckpoint:checkpoint });
+  amusementView?.update(s);
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;
-  awaitingApproach = !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
+  awaitingApproach = !checkpoint && !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
   $('ready-actions').hidden = !awaitingApproach;
   document.body.classList.toggle('practice-ready',awaitingApproach);
   if(finalStudy || menuTrial) for(const e of s.enemies){
@@ -1334,6 +1548,13 @@ function showResult() {
   document.body.classList.add('result');
   const won = s.phase === 'won';
   $('result').hidden = false; $('pausePanel').hidden = true;
+  if (amusement) {
+    $('resultTitle').textContent=won?copy('拿到了高压马达！','Motor recovered!'):copy('再试一次','Try again');
+    $('resultNote').textContent=won?copy('售票口、木马、过山车和马戏团全都亮了！','The gate, carousel, coaster and big top are all lit!'):copy('满血满弹，从当前区域入口重试。','Retry from this area with full health and magazines.');
+    $('resultStars').hidden=true; $('resultStats').hidden=true;
+    $('again').focus({preventScroll:true});
+    return;
+  }
   if (parkTour) {   // 游乐园：看完了马戏团的演出
     $('resultTitle').textContent = copy('逛完了！','That was the park!');
     $('resultStars').hidden = true; $('resultStats').hidden = true;
@@ -1501,11 +1722,19 @@ function throwAction(source) {
 function exchangeAction() {
   unlock();
   if (parkTour) { if (canTakeGameplayInput() && parkInteract(s)) processEvents(); return; }   // 游乐园：同一个键是"互动"
+  if (amusement && canTakeGameplayInput() && useAmusement(s)) { cancelFire(); processEvents(); return; }
   if (exchangeWeapon(s)) cancelFire();
   processEvents();
 }
 function firePress(source) {
-  if (parkTour || fireInput) return;
+  if (amusement && amusementCutscene(s)) { if (skipAmusementCutscene(s)) processEvents(); return; }
+  if (parkTour) {
+    if (!s.park.stall || !canTakeGameplayInput()) return;
+    cameraFrame(0); camera.getWorldDirection(lookDir);
+    if (fireStall(s, { origin: camera.position, direction: lookDir })) processEvents();
+    return;
+  }
+  if (fireInput) return;
   fireInput = source;
   unlock(); beginCharge(s); processEvents();
 }
@@ -1519,7 +1748,7 @@ function throwRelease(source) {
   throwInput = null;
   if (mode === 'playing' && !paused) { releaseThrow(s, shotParams(true)); processEvents(); }
 }
-function jumpAction() { if (!s.park?.riding && beginJump(s)) processEvents(); }
+function jumpAction() { if (!s.park?.riding && !s.park?.stall && beginJump(s)) processEvents(); }
 
 function cancelFire() {
   fireInput = null;
@@ -1749,7 +1978,8 @@ function frame(now) {
   else cameraFrame(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
-  tourView?.update(s, dt);
+  stepFreezeBeams(dt);
+  tourView?.update(s, dt); amusementView?.update(s);
   world.setFloor(floorIndex(level, s.player.y));
   world.occlusion.update(camera.position, now / 1000);
   hud(); cine.frame(dt);
@@ -1828,7 +2058,7 @@ export async function boot(sdkReady) {
     viewmodel.equip(s.weapon);
     if (!q.has('nofront')) drawInFront(viewmodel.root);
   }
-  cameraFrame(0); resize(); updateModels(0);
+  cameraFrame(0); resize(); updateModels(0); amusementView?.update(s);
   loadingProgress(84,'正在准备第一帧…');
   await paint();
   if (!parkTour) warmActors(kinds);
@@ -1877,7 +2107,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { tourView?.update(s, 0); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { tourView?.update(s, 0); amusementView?.update(s); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

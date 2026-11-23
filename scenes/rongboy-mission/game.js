@@ -15,6 +15,8 @@ import { advanceWaves } from './encounter-waves.js';
 import { constrainTourWalk } from './park-tour-layout.js';
 import { createPark, stepPark } from './park-rides.js';
 
+import { makeAmusement, checkpointPosition, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene } from './amusement.js';
+
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
   chargeTime: 0.82, maxBalls: 48, ballLife: 5, repeatHitDelay: 0.18, gravity: 0.9,
@@ -66,6 +68,9 @@ export const WEAPONS = [
     blast: 2.6, tangle: 4, fuse: 1.5, mag: 1, reserve: 1, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.19, noise: 14, push: 3, chargePush: 0, color: 0xb994ce },
   { id: 'jack', short: '小丑盒', name: '弹簧小丑盒', tag: '范围伤害 · 强力击退', kind: 'grenade', feel: 'scatter', count: 1, damage: 5, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
     blast: 2.25, tangle: 0, fuse: 1.1, mag: 1, reserve: 0, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.2, noise: 14, push: 11, chargePush: 0, color: 0xd89968 },
+  { id: 'freeze', short: '急冻枪', name: '急冻射线枪', tag: '冻结敌人和机关', kind: 'ray', feel: 'single', count: 1,
+    damage: 1, minDamage: 1, chargeDamage: 0, range: 16, maxRange: 16, straight: true, speed: 38, radius: .085,
+    mag: 3, reserve: Infinity, reload: 2, cooldown: .45, bounces: 0, noise: 2, push: 0, chargePush: 0, color: 0x95e8fc },
 ];
 export const TANGLE_SPEED = 0.35;   // 被毛线缠住时的移动速度倍率
 const weaponIndex = id => WEAPONS.findIndex(w => w.id === id);
@@ -78,15 +83,18 @@ export const netRadius = distance => 0.24 + Math.min(1, distance / 3.0) * 1.24;
 
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const length = (x, z) => Math.hypot(x, z);
+const enemyMovementScale = (s,e) => e.tangle > 0 ? TANGLE_SPEED : e.frostSlowUntil > s.time ? .7 : 1;
 
-export function createGame({ level } = {}) {
+export function createGame({ level, amusementCheckpoint = 0 } = {}) {
   if (!level) throw new Error('createGame 需要一个编译好的关卡');
+  const amusement = level.mission?.type === 'amusement' ? makeAmusement(amusementCheckpoint) : null;
+  const maxHealth = amusement ? 100 : CONFIG.maxHealth;
   const s = {
-    phase: 'playing', level, time: 0, weapon: 0,
-    ammo: WEAPONS.map(w => ({ mag: w.mag, reserve: w.reserve })), reloading: false, reload: 0, trigger: false,
+    phase: 'playing', level, amusement, maxHealth, time: 0, weapon: 0,
+    ammo: WEAPONS.map(w => ({ mag: w.mag, reserve: w.reserve })), stowedReload: WEAPONS.map(() => 0), reloading: false, reload: 0, trigger: false,
     // 开局带哪些枪：关卡的 arsenal（武器 id 列表），不写就是最早的三把。其余的要捡。
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
-    health: CONFIG.maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
+    health: maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
     charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
@@ -103,19 +111,26 @@ export function createGame({ level } = {}) {
   s.wave = level.waves ? { index:0, nextAt:null } : null;
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
-  if (level.tour) s.park = createPark();   // 游乐园：设施演到哪、盖了几个章（park-rides.js）
-  for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
+  if (level.tour) s.park = createPark();
+  if (amusementCheckpoint && amusement) Object.assign(s.player, checkpointPosition(amusementCheckpoint));
+  for (const e of level.enemies || []) {
+    if (amusement && e.zone < amusementCheckpoint) continue;
+    if (e.dormant) s.dormant.push({ ...e });
+    else spawn(s, amusementCheckpoint && amusement
+      ? { ...e, enabled: e.zone === amusementCheckpoint && !e.parkWave }
+      : e);
+  }
   return s;
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave }) {
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave, zone, parkWave }) {
   type = type === 'runner' || type === 'weaver' ? 'leaper' : type;
   const roster = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
   const attic = type === 'boss-warden' && encounter === 'attic';
   const def = attic ? { ...roster, hp: 44, speed: 1.58, resistance: .12, armor: .55 } : roster;
   const e = {
-    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, zone, parkWave, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0, stun: 0, tangle: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
@@ -135,6 +150,9 @@ export const aliveCount = s => s.enemies.reduce((n, e) => n + (e.alive ? 1 : 0),
 
 export function selectWeapon(s, index) {
   if (s.phase !== 'playing' || !WEAPONS[index] || WEAPONS[index].kind === 'grenade' || !s.owned[index] || s.weapon === index) return false;
+  const previous = s.weapon, magazine = s.ammo[previous];
+  if (s.amusement && magazine.mag === 0 && magazine.reserve > 0)
+    s.stowedReload[previous] = s.reloading ? s.reload : reloadTime(s,previous);
   s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false;
   s.events.push({ type: 'weapon', weapon: index });
   if (s.ammo[index].mag === 0 && s.ammo[index].reserve > 0) startReload(s);
@@ -148,23 +166,30 @@ export function swapWeapon(s) {
   return selectWeapon(s, s.weapon === PISTOL ? second : PISTOL);
 }
 
+export const reloadTime = (s,index) => s.amusement && index===PISTOL ? .8 : WEAPONS[index].reload;
+
 export function startReload(s) {
   const w = WEAPONS[s.weapon], a = s.ammo[s.weapon];
   if (s.phase !== 'playing' || s.reloading || a.mag >= w.mag || a.reserve <= 0) return false;
-  s.reloading = true; s.reload = w.reload; s.charging = false; s.charge = 0;
-  s.events.push({ type: 'reload', weapon: w.id, duration: w.reload });
+  s.reloading = true; s.reload = s.stowedReload[s.weapon] || reloadTime(s,s.weapon); s.charging = false; s.charge = 0;
+  s.stowedReload[s.weapon]=0;
+  s.events.push({ type: 'reload', weapon: w.id, duration: s.reload });
   return true;
 }
 
+function fillMagazine(s,index) {
+  const a=s.ammo[index], take=Math.min(WEAPONS[index].mag-a.mag,a.reserve);
+  a.mag+=take; a.reserve-=take;
+}
 function finishReload(s) {
-  const w = WEAPONS[s.weapon], a = s.ammo[s.weapon], take = Math.min(w.mag - a.mag, a.reserve);
-  a.mag += take; a.reserve -= take;   // Infinity - n 仍是 Infinity
+  fillMagazine(s,s.weapon);
+  const w=WEAPONS[s.weapon];
   s.reloading = false; s.reload = 0;
   s.events.push({ type: 'reloaded', weapon: w.id });
 }
 
 function canShoot(s) {
-  if (s.level.tour || s.phase !== 'playing' || s.reloading) return false;
+  if (s.level.tour || s.phase !== 'playing' || s.reloading || s.amusement?.trap || s.amusement?.fallUntil || amusementCutscene(s)) return false;
   if (s.ammo[s.weapon].mag > 0) return true;
   if (!startReload(s)) { s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id }); backToPistol(s); }
   return false;
@@ -198,7 +223,7 @@ export function releaseCharge(s, shot = null) {
 function muzzle(s, shot) {
   const p = s.player, dir = shot?.direction || { x: p.aimX, y: p.aimY || 0, z: p.aimZ };
   const m = Math.hypot(dir.x, dir.y, dir.z) || 1, dx = dir.x / m, dy = dir.y / m, dz = dir.z / m;
-  return { origin: shot?.origin || { x: p.x + dx * 0.63, y: p.y + 0.76, z: p.z + dz * 0.63 }, dx, dy, dz };
+  return { origin: shot?.origin || { x: p.x + dx * 0.63, y: p.y + (s.amusement ? p.jump : 0) + 0.76, z: p.z + dz * 0.63 }, dx, dy, dz };
 }
 
 // 把 w 这把枪的一次发射变成飞出去的毛球（不管弹药和冷却）
@@ -216,11 +241,12 @@ function launch(s, w, power, origin, dx, dy, dz) {
     const effective = w.id === 'heavy' ? 0.75 + power * 0.25 : power;
     const radius = w.radius ?? (w.id === 'scatter' ? 0.085 + power * 0.035 : w.id === 'heavy' ? 0.22 + power * 0.06 : 0.10 + 0.15 * power);
     s.balls.push({
-      id: s.nextId++, weapon: w.id, x: origin.x, y: origin.y, z: origin.z, r: radius, power: effective,
+      id: s.nextId++, weapon: w.id, x: origin.x, y: origin.y, z: origin.z, originX: origin.x, originY: origin.y, originZ: origin.z, r: radius, power: effective,
       vx: ax / n * speed, vy: ay / n * speed + (w.kind === 'grenade' ? 2.2 : 0), vz: az / n * speed, dx: ax / n, dy: ay / n, dz: az / n, speed,
       damage: w.damage + (power >= 0.6 ? w.chargeDamage : 0), minDamage: w.minDamage, range: w.range, maxRange: w.maxRange,
       impulse: w.push + power * w.chargePush, stun: FEEL[w.feel || w.id].stun + power * 0.035,
       pierce: w.pierce || 0, pierceArmor: !!w.pierceArmor, passed: {}, straight: !!w.straight, fuse: w.fuse || 0,
+      springShot: !!s.amusement && s.time<s.amusement.launchUntil && s.player.jump>.65,
       age: 0, travel: 0, lifetime: CONFIG.ballLife, bounceCount: 0, maxBounces: w.bounces, enemyHits: 0, hitTimes: {}, destroyed: false, quiet,
     });
   }
@@ -430,7 +456,7 @@ function idleMove(s, e, dt) {
   if (d < 0.12) { e.patrolIndex = (e.patrolIndex + 1) % e.patrol.length; e.patrolWait = 1.4; return; }
   const alignment = steerTravel(e, dx, dz, dt, d);
   const pace = travelPace(e, 1.5, .5);
-  const travel = Math.min(d, alignment * e.speed * .42 * pace * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
+  const travel = Math.min(d, alignment * e.speed * .42 * pace * enemyMovementScale(s,e) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
 }
 
@@ -475,7 +501,7 @@ function chase(s, e, dt) {
   if (action) {
     e.hopPhase = 0;
     e.hop = action.y;
-    if (e.hit <= 0) { const slow = e.tangle > 0 ? TANGLE_SPEED : 1; e.x += action.x * slow * dt; e.z += action.z * slow * dt; }
+    if (e.hit <= 0) { const slow = enemyMovementScale(s,e); e.x += action.x * slow * dt; e.z += action.z * slow * dt; }
     return;
   }
   const goal = navGoal(L, e, p);
@@ -493,7 +519,7 @@ function chase(s, e, dt) {
   if (!next || e.hit > 0) { e.hop *= Math.exp(-dt * 14); return; }
   const dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const pace = travelPace(e, 1, 1, e.id * .137);
-  const speed = e.speed * e.moveMultiplier * pace * (e.tangle > 0 ? TANGLE_SPEED : 1);
+  const speed = e.speed * e.moveMultiplier * pace * enemyMovementScale(s,e);
   if (e.type === 'walker' && e.hopPhase < prevPhase) s.events.push({ type: 'land', id: e.id, ...at(e), enemyType: e.type });
   const facesPlayer = e.action === 'sidestep' || (e.type === 'shielded' && level &&
     lineOfSight(S, {x:e.x,y:e.base+.95,z:e.z}, {x:p.x,y:p.y+1,z:p.z}));
@@ -541,15 +567,16 @@ function ballHit(s, b, e, incoming) {
   const n = Math.hypot(incoming.x, incoming.z) || 1, dx = incoming.x / n, dz = incoming.z / n;
   const back = dx * Math.sin(e.heading) + dz * Math.cos(e.heading) > CONFIG.backCos;
   // 偷袭：它没发现你（按开枪那一刻算），或者正被电得动不了
+  const frozen=e.frozenUntil>s.time;
   const sneak = unaware(e) || (e.awareness === 'waking' && b.quiet.includes(e.id)) || e.stun > 0;
   // 持盾者正面挡得住普通毛球：要绕后，或者用棉被炮 / 蓄力球破防
   const frontal = dx * Math.sin(e.heading) + dz * Math.cos(e.heading) < -0.55;
-  if (e.type === 'shielded' && e.guardBroken <= 0 && frontal && !(e.stun > 0)) {
+  if (e.type === 'shielded' && e.guardBroken <= 0 && frontal && !frozen && !(e.stun > 0)) {
     b.hitTimes[e.id] = s.time; b.enemyHits++;
     if (b.weapon !== 'heavy' && b.power < 0.6) { if (unaware(e)) notice(s, e, 0, 'hit'); s.events.push({ type: 'blocked', id: e.id, x: b.x, y: b.y, z: b.z, base: e.base }); return; }
     e.guardBroken = 1.8; interruptSpecial(e, { weapon: 'heavy' }); s.events.push({ type: 'guard-break', id: e.id, ...at(e) });
   }
-  let amount = ballDamage(b);
+  let amount = ballDamage(b) + (frozen && b.weapon==='single'?2:0);
   if (e.armor && !back && !b.pierceArmor) amount = Math.floor(amount * e.armor);   // 正面减半、向下取整：小纽扣和飞远了的手枪球（1 点）打不动；毛衣针扎得穿
   amount *= 1 + (back ? 1 : 0) + (sneak ? 1 : 0);
   b.hitTimes[e.id] = s.time; b.enemyHits++;
@@ -562,6 +589,7 @@ function ballHit(s, b, e, incoming) {
 function expireBall(s, b, reason = 'lifetime') {
   if (b.destroyed) return;
   b.destroyed = true;
+  if (b.weapon === 'freeze') s.events.push({ type: 'freeze-beam', x0: b.originX, y0: b.originY, z0: b.originZ, x1: b.x, y1: b.y, z1: b.z });
   s.events.push({ type: 'ball-expired', id: b.id, x: b.x, y: b.y, z: b.z, reason, bounces: b.bounceCount, weapon: b.weapon, dx: b.dx, dy: b.dy, dz: b.dz, normal: b.lastNormal || null });
 }
 
@@ -590,17 +618,17 @@ export function cameraMove(side, forward, yaw) {
 // p.jump 是离地高度（p.y 仍是脚下的地面）；落地、起跳各发一个事件给表现层。
 export function beginJump(s) {
   const p = s.player;
-  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0) return false;
+  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0 || s.amusement?.trap || s.amusement?.fallUntil || (s.amusement?.ride?.started != null && !s.amusement.ride.finished) || amusementCutscene(s)) return false;
   p.jump = 0.001; p.jumpV = 2.6;
   s.events.push({ type: 'hop' });
   return true;
 }
 
 // All attack sources share the same heart/iframe path.
-export function hurtPlayer(s,enemy,source='contact'){
- if(s.phase!=='playing'||s.invul>0||s.endIn!==null||(s.total>0&&aliveCount(s)===0))return false;
+export function hurtPlayer(s,enemy,source='contact',amount=s.amusement ? (source==='contact'?9:12) : 1){
+ if(s.phase!=='playing'||s.invul>0||s.endIn!==null||amusementCutscene(s)||(!s.amusement&&s.total>0&&aliveCount(s)===0))return false;
  const dx=s.player.x-enemy.x,dz=s.player.z-enemy.z,n=Math.hypot(dx,dz)||1;
- s.health=Math.max(0,s.health-1);s.damageTaken++;s.invul=CONFIG.invulnerable;if(source!=='contact'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
+ s.health=Math.max(0,s.health-amount);s.damageTaken++;s.invul=s.amusement ? .78 : CONFIG.invulnerable;if(source!=='contact'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
  if(source==='contact'&&enemy.type==='crawler')s.slowUntil=Math.max(s.slowUntil,s.time+1.3);
  s.events.push({type:'hurt',x:s.player.x,z:s.player.z,base:s.player.y,by:enemy.id,source,fromX:enemy.x,fromZ:enemy.z,health:s.health});return true;
 }
@@ -617,12 +645,36 @@ function advanceEnemyShot(s,b,dt){
  b.age+=dt;if(b.age>b.life){settleEnemyShot(s,b,'expired');return;}
  const end={x:b.x+b.vx*dt,y:b.y+b.vy*dt,z:b.z+b.vz*dt};let t=1,kind=null,enemy=null;
  for(const solid of s.level.solids){const h=segmentBox(b,end,solid,b.r);if(h&&h.t<=t){t=h.t;kind='wall';}}
- const playerHit=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,s.player.x,s.player.z,CONFIG.playerRadius+b.r,s.player.y+.05,s.player.y+1.7);
+ const feet=s.player.y+(s.amusement?s.player.jump:0);
+ const playerHit=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,s.player.x,s.player.z,CONFIG.playerRadius+b.r,feet+.05,feet+1.7);
  if(playerHit!==null&&playerHit<t){t=playerHit;kind='player';}
  for(const e of s.enemies){if(!e.enabled||!e.alive||e.id===b.owner)continue;const h=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,e.x,e.z,e.radius+b.r,e.y+.04,e.y+e.height);if(h!==null&&h<t){t=h;kind='enemy';enemy=e;}}
  b.x+=(end.x-b.x)*t;b.y+=(end.y-b.y)*t;b.z+=(end.z-b.z)*t;
  if(kind){settleEnemyShot(s,b,kind);if(kind==='player')hurtPlayer(s,s.enemies.find(e=>e.id===b.owner)||{id:b.owner,x:b.x-b.vx,z:b.z-b.vz},'arrow');else if(kind==='enemy'){const n=Math.hypot(b.vx,b.vz)||1;damage(s,enemy,1,b.vx/n,b.vz/n,.7,'enemy-arrow',{weapon:'single'});}s.events.push({type:'enemy-shot-impact',id:b.id,x:b.x,y:b.y,z:b.z});}
  else {const B=s.level.bounds;if(b.x<B.minX||b.x>B.maxX||b.z<B.minZ||b.z>B.maxZ)settleEnemyShot(s,b,'bounds');}
+}
+
+function clownVolley(s,group){
+  const p=s.player,c=s.amusement.clown;
+  const x=c.x+(group-1)*.82, y=1.04+(group%2)*.47, z=c.z+.92;
+  const angle=Math.atan2(p.x-x,p.z-z), speed=7.3;
+  for (const offset of [-.24,-.12,0,.12,.24]) {
+    if (s.enemyShots.length>=32) s.enemyShots.shift();
+    const direction=angle+offset;
+    s.enemyShots.push({id:s.nextId++,owner:-2,style:'juggle',x,y,z,
+      vx:Math.sin(direction)*speed,vy:0,vz:Math.cos(direction)*speed,r:.14,age:0,life:2.1,destroyed:false});
+  }
+  s.events.push({type:'amusement',action:'volley',x,y,z});
+}
+
+function freezeEnemy(s,b,e) {
+  if (!(e.freezeResistUntil>s.time)) {
+    e.frozenUntil=s.time+3; e.freezeResistUntil=e.frozenUntil+1.5;
+    e.vx=e.vz=0;
+    s.events.push({type:'enemy-frozen',id:e.id,x:b.x,y:b.y,z:b.z});
+  } else if (!(e.frozenUntil>s.time)) e.frostSlowUntil=s.time+.65;
+  s.hits++;
+  damage(s,e,1,b.dx,b.dz,0,'ball',{weapon:'freeze',stun:0,contactX:b.x,contactY:b.y,contactZ:b.z});
 }
 
 // 一帧内逐段扫掠：每次推进到最近的接触点，反弹后用剩余时间继续，快球不会穿过薄墙。
@@ -669,6 +721,8 @@ function advanceBall(s, b, dt) {
       // 楼板和踏步的顶面算地面：和落在底层地面上一样弹
       if (h && b.vx * h.nx + b.vy * h.ny + b.vz * h.nz < -1e-6) candidate(h.t, h.nx, h.ny, h.nz, h.ny > 0.5 && (c.kind === 'slab' || c.kind === 'stair') ? 'floor' : 'solid', null, c);
     }
+    const parkHit=s.amusement && amusementContact(s,b,end);
+    if (parkHit) candidate(parkHit.t,parkHit.nx,parkHit.ny,parkHit.nz,'amusement',null,parkHit.box);
     const t = hit ? hit.t : 1;
     // 动态布景只吃到障碍物之前飞过的那一段，快球也不会漏掉薄相框。
     for (const egg of L.easterEggs || []) {
@@ -687,6 +741,8 @@ function advanceBall(s, b, dt) {
     // 户外没有天花板，也没有高过围篱的墙：飞出去的球直接散掉。
     if ((hit.kind === 'ceiling' || (hit.kind === 'edge' && b.y > 2.3)) && isOutdoor(L, b.x, b.z)) { expireBall(s, b, 'sky'); break; }
     const incoming = { x: b.vx, y: b.vy, z: b.vz };
+    if (hit.kind==='amusement') { hitAmusement(s,b,hit.box); expireBall(s,b,'contact'); break; }
+    if (b.weapon==='freeze' && hit.e) { freezeEnemy(s,b,hit.e); expireBall(s,b,'contact'); break; }
     if (hit.box) struck(s, b, hit.box);                // 打中机关、拉链
     else if (hit.kind === 'edge') struck(s, b, { kind: 'edge', floorY: storeyAt(L, b.y - 1).y });   // 房子的外墙就是地图边界
     if (b.fuse && hit.e) { explode(s, b); break; }   // 手雷直接砸中僵尸：当场炸开
@@ -855,7 +911,7 @@ function investigate(s, e, dt) {
   if (!next) return;
   const pace = travelPace(e, 1.2, .7), dx = next.x - e.x, dz = next.z - e.z, d = length(dx, dz) || 1;
   const alignment = d > .03 && e.hit <= 0 ? steerTravel(e,dx,dz,dt,d) : 1;
-  const travel = Math.min(d, (e.hit <= 0 ? alignment * e.speed * (noise ? SEARCH.pace : .75) * pace * (e.tangle > 0 ? TANGLE_SPEED : 1) : 0) * dt);
+  const travel = Math.min(d, (e.hit <= 0 ? alignment * e.speed * (noise ? SEARCH.pace : .75) * pace * enemyMovementScale(s,e) : 0) * dt);
   e.x += dx / d * travel; e.z += dz / d * travel;
 
 }
@@ -880,8 +936,8 @@ function collect(s) {
     if (k.taken || k.hidden || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     let got = null;   // 弹药包：实际补给了哪把枪、多少（界面提示用）
     if (k.kind === 'heart') {
-      if (s.health >= CONFIG.maxHealth) continue;
-      s.health = Math.min(CONFIG.maxHealth, s.health + k.amount);
+      if (s.health >= s.maxHealth) continue;
+      s.health = Math.min(s.maxHealth, s.health + k.amount);
     } else if (k.kind === 'ammo') {
       // 弹药包不记种类：补的是手里那把特殊枪（没带特殊枪就先留在地上）。写了 weapon 的是指定给那把枪的；手雷是加一颗。
       const index = k.weapon ? weaponIndex(k.weapon) : secondOf(s);
@@ -954,6 +1010,7 @@ export function exchangeWeapon(s) {
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
+  if (s.amusement) return { type:'amusement', alive, total:s.total, done:s.amusement.pickedUp && !(s.amusement.victoryCutsceneUntil > s.time) };
   if (s.level.tour) return { type: 'explore', alive, total: s.total, done: s.park.done && !s.park.riding };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
@@ -991,6 +1048,11 @@ export function step(s, dt, input = {}) {
   }
   if (s.charging) s.charge = Math.min(CONFIG.chargeTime, s.charge + dt);
   if (s.lobbing) s.lob = Math.min(CONFIG.chargeTime, s.lob + dt);
+  if (s.amusement) s.stowedReload.forEach((remaining,index)=>{
+    if (remaining<=0) return;
+    s.stowedReload[index]=Math.max(0,remaining-dt);
+    if (!s.stowedReload[index]) fillMagazine(s,index);
+  });
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }
   else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0 && !startReload(s)) backToPistol(s);   // 打空自动换弹；彻底没弹药就换回手枪
 
@@ -1005,10 +1067,21 @@ export function step(s, dt, input = {}) {
   }
   const moveSpeed=CONFIG.playerSpeed*(s.slowUntil>s.time?.62:1);
   const fromX = p.x, fromZ = p.z;
-  p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
-  p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
+  const controlled=s.amusement && moveAmusement(s,hurtPlayer);
+  if (L.tour) {
+    // Test the requested displacement at the path and wall together, so wall correction cannot move an idle player.
+    if (m) {
+      const floor = storeyAt(L, p.y);
+      p.x += mx * moveSpeed * dt; p.z += mz * moveSpeed * dt;
+      constrainTourWalk(p, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor, x, z, CONFIG.playerRadius));
+    }
+  } else if (!controlled) {
+    p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
+    p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
+  if (s.amusement) advanceAmusement(s,dt,{hurt:hurtPlayer,damage,volley:clownVolley});
   // 连发枪：扳机按着、冷却到了就出一发；弹匣空了交给上面的自动换弹，彻底没弹药就松开扳机
   if (s.trigger && WEAPONS[s.weapon].auto && s.cooldown <= 0 && !s.reloading) {
     if (!fire(s, 0, input.shot || null) && s.ammo[s.weapon].mag === 0 && s.ammo[s.weapon].reserve === 0) s.trigger = false;
@@ -1016,6 +1089,7 @@ export function step(s, dt, input = {}) {
 
   for (const e of s.enemies) {
     if(!e.enabled)continue;
+    if (e.alive && e.frozenUntil>s.time) { e.vx=e.vz=0; continue; }
     const startX=e.x, startZ=e.z, startHeading=e.heading;
     e.age += dt; e.reactionAge += dt;
     e.hit = Math.max(0, e.hit - dt); e.chainCooldown = Math.max(0, e.chainCooldown - dt);
@@ -1049,7 +1123,7 @@ export function step(s, dt, input = {}) {
     if (va > 2.0 && b.alive && b.chainCooldown <= 0) { damage(s, b, 1, nx, nz, va * 0.75, 'collision'); a.vx *= 0.55; a.vz *= 0.55; }
     else if (vb > 2.0 && a.alive && a.chainCooldown <= 0) { damage(s, a, 1, -nx, -nz, vb * 0.75, 'collision'); b.vx *= 0.55; b.vz *= 0.55; }
   }
-  for (const e of s.enemies) if (e.enabled) resolveBody(storeyAt(L, e.base), e, e.radius);
+  for (const e of s.enemies) if (e.enabled && !(e.frozenUntil>s.time)) resolveBody(storeyAt(L, e.base), e, e.radius);
 
   if (s.nets.length) {
     for (const net of s.nets) advanceNet(s, net, dt);
@@ -1064,7 +1138,7 @@ export function step(s, dt, input = {}) {
 
   // 只有已经警觉的僵尸碰到你才会扣心。
   if (s.invul <= 0) for (const e of s.enemies) {
-    if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || !contactAttack(e) || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
+    if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || e.frozenUntil>s.time || !contactAttack(e) || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
     const dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     if (d >= CONFIG.playerRadius + e.radius) continue;
     const n = d || 1;
@@ -1080,13 +1154,13 @@ export function step(s, dt, input = {}) {
     if (d >= r) continue;
     if (d < 0.001) { dx = 0.001; dz = 0; d = 0.001; }
     const overlap = r - d, nx = dx / d, nz = dz / d;
-    p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; e.x -= nx * overlap * 0.15; e.z -= nz * overlap * 0.15;
-    resolveBody(storeyAt(L, e.base), e, e.radius);
+    p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; if (!(e.frozenUntil>s.time)) { e.x -= nx * overlap * .15; e.z -= nz * overlap * .15; }
+    if (!(e.frozenUntil>s.time)) resolveBody(storeyAt(L, e.base), e, e.radius);
   }
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
-
-  if (L.tour) constrainTourWalk(p,fromX,fromZ,s.park.door>0.9);
+  if (!L.tour) {
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
 
   // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
   if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }

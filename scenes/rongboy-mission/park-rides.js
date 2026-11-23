@@ -1,8 +1,9 @@
 // 游乐园的规则：走近设施按一个键，设施演一段；走到小径尽头的马戏团、看完一场演出，这一趟就逛完了（docs/park-design.md）。
 // 没有收集、没有进度条。以后往里放战斗时，改成一个设施一个场景：打倒场景里所有敌人、打开开关，才放行去下一个。
 // 确定性、不依赖 DOM。画面（park-tour-view.js）只读这里的状态：木马转到哪、车在轨道的哪一点、门开了多少。
-// 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车：人被带着走）、开（碰碰车：人自己开）。
-import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT } from './park-tour-layout.js';
+// 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车、激流勇进：人被带着走）、开（碰碰车：人自己开）。
+import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT, RAPIDS_DOCK } from './park-tour-layout.js';
+import { startStall, leaveStall, stepStall } from './park-stalls.js';
 
 const TAU = Math.PI * 2, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 // 眼睛离脚底的高度（和 play.js 里的 EYE 是同一个数）：坐着的时候按"眼睛该在哪"反推脚底的高度
@@ -12,11 +13,10 @@ export const PLAYER_EYE = 1.23;
 export const PARK = {
   reach: 2.8, end: 2.2,
   carousel: { time: 18, ramp: 2.5, speed: 0.55 },
-  rapids: { time: 15 },
-  coaster: { time: 22, ramp: 2.2, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.5 },
+  rapids: { track: RAPIDS, time: 23, ramp: 2.4, seat: 1.0, maxTurn: Math.PI / 4, pitch: .34 },
+  coaster: { track: COASTER, time: 22, ramp: 2.2, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.5 },
   haunt: { time: 5, show: 8, keep: 11 },   // time：敲门后窗里的幽灵探头多久；show：摇铃后画像上的幽灵出来多久；keep：人离门这么远以后门才关
   wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
-  stall: { time: 4.4, throws: [0.5, 1.7, 2.9] },
   bumpers: { time: 30, accel: 7, top: 3.4, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4 },
   circus: { time: 18, acts: 3 },   // 一场演出三个节目，挨着演，每个 6 秒
 };
@@ -24,24 +24,25 @@ export const PARK = {
 // 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开。
 export const SPOTS = [
   { id: 'carousel', stop: 'carousel', kind: 'look', x: -26.0, z: 21.0, zh: '摇铃开动木马', en: 'Ring the bell' },
-  { id: 'rapids', stop: 'rapids', kind: 'look', x: -36.4, z: 6.6, zh: '开闸放船', en: 'Open the sluice' },
+  { id: 'rapids', stop: 'rapids', kind: 'ride', x: RAPIDS_DOCK.promptX, z: RAPIDS_DOCK.z, zh: '登船', en: 'Board the raft' },
   { id: 'coaster', stop: 'coaster', kind: 'ride', x: -31.4, z: -13.0, reach: 3.2, zh: '坐过山车', en: 'Ride the coaster' },
   { id: 'haunt', stop: 'haunt', kind: 'look', x: -6.8, z: -21.7, reach: 3.2, zh: '敲门', en: 'Knock' },
   { id: 'portraits', stop: 'haunt', kind: 'look', x: HAUNT.bell.x, z: HAUNT.bell.z, reach: 1.9, zh: '摇桌上的小铃', en: 'Ring the little bell' },   // 在门厅里：敲开门走进去才够得着
   { id: 'wheel', stop: 'wheel', kind: 'ride', x: 18.5, z: -26.0, reach: 3.2, zh: '坐摩天轮', en: 'Ride the wheel' },
-  { id: 'stall-blocks', stop: 'midway', kind: 'look', x: 35.6, z: -12.5, reach: 2.05, zh: '打积木', en: 'Knock the blocks' },
-  { id: 'stall-ducks', stop: 'midway', kind: 'look', x: 35.7, z: -8.38, reach: 2.05, zh: '打绒鸭', en: 'Hit the ducks' },
-  { id: 'stall-balloons', stop: 'midway', kind: 'look', x: 35.8, z: -4.26, reach: 2.05, zh: '打气球', en: 'Pop the balloons' },
+  ...STALLS.map((stall, i) => ({
+    id: 'stall-' + stall.id, stop: 'midway', kind: 'stall', x: 35.6 + i * .1, z: stall.z,
+    reach: 2.05, zh: stall.zh, en: stall.en,
+  })),
   { id: 'bumpers', stop: 'bumpers', kind: 'drive', x: 35.4, z: 10.0, zh: '开碰碰车', en: 'Drive a bumper car' },
   { id: 'circus', stop: 'circus', kind: 'look', x: 0, z: -1.6, zh: '敲锣开演', en: 'Strike the gong' },
 ];
 
 export function createPark() {
   return {
-    time: 0, done: false, riding: null,   // done：看完了马戏团的演出，这一趟结束
+    time: 0, done: false, riding: null, stall: null,   // done：看完了马戏团的演出，这一趟结束
     watch: false,   // true：过山车只看不坐（系统设了"减少动态效果"的人，准则 3.9）
     // 各设施演到哪了：0 是没在演；大于 0 是已经演了多少秒
-    running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, circus: 0, coaster: 0, 'stall-blocks': 0, 'stall-ducks': 0, 'stall-balloons': 0 },
+    running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, circus: 0, coaster: 0 },
     carouselAngle: 0, wheelAngle: 0, coasterU: 0, boatU: 0, act: 0,
     door: 0, knocked: false,   // 鬼屋的门开了多少（0–1）；敲过门、门该开着
     // 碰碰车：四辆，在场里自己转悠；玩家上车就接手第 0 辆
@@ -49,21 +50,27 @@ export function createPark() {
   };
 }
 
-const busy = (park, id) => (id === 'wheel' || id === 'bumpers' ? !!park.riding : id === 'coaster' ? !!park.riding || park.running.coaster > 0
+const busy = (park, id) => (id === 'wheel' || id === 'bumpers' ? !!park.riding : PARK[id]?.track ? !!park.riding || park.running[id] > 0
   : id === 'haunt' ? park.knocked || park.door > 0.02 : park.running[id] > 0);
 
 // 现在按互动键会发生什么：{ id, kind, zh, en }；没有可按的返回 null。坐着的时候是"跳过 / 下车"。
 export function parkPrompt(s) {
   const park = s.park, p = s.player;
   if (!park || s.phase !== 'playing') return null;
-  if (park.riding) return park.riding.id === 'bumpers' ? { id: 'bumpers', kind: 'leave', zh: '下车', en: 'Get out' } : { id: park.riding.id, kind: 'leave', zh: '跳过', en: 'Skip' };
+  if (park.riding) {
+    const id = park.riding.id;
+    if (id === 'bumpers') return { id, kind: 'leave', zh: '下车', en: 'Get out' };
+    if (id === 'rapids') return { id, kind: 'leave', zh: '回码头', en: 'Return to dock' };
+    return { id, kind: 'leave', zh: '跳过', en: 'Skip' };
+  }
+  if (park.stall) return { id: 'stall-' + park.stall.id, kind: 'exit-stall', zh: '离开摊位', en: 'Leave stall' };
   let best = null, near = Infinity;
   for (const q of SPOTS) {
     const d = Math.hypot(q.x - p.x, q.z - p.z);
     if (d > (q.reach ?? PARK.reach) || d >= near || busy(park, q.id)) continue;
     best = q; near = d;
   }
-  if (best?.id === 'coaster' && park.watch) return { id: 'coaster', kind: 'look', zh: '发车', en: 'Send the train' };
+  if (park.watch && PARK[best?.id]?.track) return { id: best.id, kind: 'look', ...(best.id === 'rapids' ? { zh: '放船', en: 'Send the raft' } : { zh: '发车', en: 'Send the train' }) };
   return best && { id: best.id, kind: best.kind, zh: best.zh, en: best.en };
 }
 
@@ -84,8 +91,8 @@ function board(s, id) {
     let best = 0, gap = Infinity;
     for (let i = 0; i < WHEEL.cars; i++) { const a = park.wheelAngle + i * TAU / WHEEL.cars + Math.PI / 2; const g = Math.abs(Math.atan2(Math.sin(a), Math.cos(a))); if (g < gap) { gap = g; best = i; } }
     ride.car = best; ride.turned = 0;
-  } else if (id === 'coaster') {
-    const at = COASTER.at(0); ride.yaw = Math.atan2(-at.tx, -at.tz);
+  } else if (PARK[id]?.track) {
+    const at = PARK[id].track.at(0); ride.yaw = Math.atan2(-at.tx, -at.tz);
   } else if (id === 'bumpers') {
     ride.car = 0; park.cars[0].vx = park.cars[0].vz = 0;
   }
@@ -99,7 +106,9 @@ function alight(s, skipped = false) {
   if (!ride) return;
   park.riding = null;
   p.x = ride.from.x; p.z = ride.from.z; p.y = 0; p.seat = null;
+  p.vx = p.vz = p.jump = p.jumpV = 0;
   if (ride.id === 'coaster') park.coasterU = 0;
+  if (ride.id === 'rapids') park.boatU = 0;
   s.events.push({ type: 'park', what: 'alight', id: ride.id, skipped });
 }
 
@@ -110,10 +119,11 @@ function seat(s) {
     const a = park.wheelAngle + ride.car * TAU / WHEEL.cars;
     p.x = WHEEL.x + Math.cos(a) * WHEEL.r; p.z = WHEEL.z; p.y = WHEEL.y + Math.sin(a) * WHEEL.r + PARK.wheel.seat - PLAYER_EYE;
     p.seat = { id: 'wheel', yaw: null, pitch: 0, turn: 0 };
-  } else if (ride.id === 'coaster') {
-    const at = COASTER.at(park.coasterU);
-    p.x = at.x; p.z = at.z; p.y = at.y + PARK.coaster.seat - PLAYER_EYE;
-    p.seat = { id: 'coaster', yaw: ride.yaw, pitch: ride.pitch, turn: ride.turn };
+  } else if (PARK[ride.id]?.track) {
+    const config = PARK[ride.id], at = config.track.at(ride.id === 'rapids' ? park.boatU : park.coasterU);
+    p.x = at.x; p.z = at.z;
+    p.y = at.y + config.seat - PLAYER_EYE + (ride.id === 'rapids' ? .05 : 0);
+    p.seat = { id: ride.id, yaw: ride.yaw, pitch: ride.pitch, turn: ride.turn };
   } else {
     const car = park.cars[0];
     p.x = car.x; p.z = car.z; p.y = PARK.bumpers.seat - PLAYER_EYE;
@@ -126,7 +136,9 @@ export function parkInteract(s) {
   const prompt = parkPrompt(s), park = s.park;
   if (!prompt) return false;
   if (prompt.kind === 'leave') { alight(s, true); return true; }
+  if (prompt.kind === 'exit-stall') { leaveStall(s); return true; }
   const { id } = prompt;
+  if (prompt.kind === 'stall') { startStall(s, id.slice(6)); return true; }
   if (prompt.kind === 'ride' || prompt.kind === 'drive') { board(s, id); return true; }
   if (id === 'haunt') { park.knocked = true; park.running.haunt = 1e-6; s.events.push({ type: 'park', what: 'start', id }); return true; }   // 敲门：门开，幽灵要进去摇了铃才出来
   park.running[id] = 1e-6;
@@ -185,7 +197,7 @@ export function stepPark(s, dt, input = {}) {
     R.carousel = t + dt >= C.time ? 0 : t + dt;
   }
   if (R.coaster > 0) { R.coaster += dt; park.coasterU = lap(R.coaster, PARK.coaster.time, PARK.coaster.ramp); if (R.coaster >= PARK.coaster.time) { R.coaster = 0; park.coasterU = 0; } }
-  if (R.rapids > 0) { R.rapids += dt; park.boatU = lap(R.rapids, PARK.rapids.time, 2); if (R.rapids >= PARK.rapids.time) { R.rapids = 0; park.boatU = 0; } }
+  if (R.rapids > 0) { R.rapids += dt; park.boatU = lap(R.rapids, PARK.rapids.time, PARK.rapids.ramp); if (R.rapids >= PARK.rapids.time) { R.rapids = 0; park.boatU = 0; } }
   {   // 鬼屋：敲过门，门就开着；人走远了才关上（人在门厅里的时候离门不到 keep，不会被关在里面）
     const H = PARK.haunt, far = Math.hypot(s.player.x - HAUNT.door.x, s.player.z - HAUNT.door.z) > H.keep;
     if (park.knocked && far && !(R.portraits > 0)) park.knocked = false;
@@ -197,12 +209,7 @@ export function stepPark(s, dt, input = {}) {
     R.circus += dt; park.act = Math.min(PARK.circus.acts, 1 + Math.floor(R.circus / (PARK.circus.time / PARK.circus.acts)));
     if (R.circus >= PARK.circus.time) { R.circus = 0; if (!park.done) { park.done = true; s.events.push({ type: 'park', what: 'complete' }); } }
   }
-  for (const stall of STALLS) {
-    const id = 'stall-' + stall.id, t = R[id];
-    if (!(t > 0)) continue;
-    for (const [n, at] of PARK.stall.throws.entries()) if (t < at && t + dt >= at) s.events.push({ type: 'park', what: 'throw', id, n });
-    R[id] = t + dt >= PARK.stall.time ? 0 : t + dt;
-  }
+  if (park.stall) stepStall(s, dt);
   bumperCars(s, dt, input);
 
   const ride = park.riding;
@@ -210,20 +217,23 @@ export function stepPark(s, dt, input = {}) {
     ride.t += dt;
     if (ride.id === 'wheel') {
       ride.turned += PARK.wheel.speed * dt;
-      if (ride.turned >= TAU - 0.02) { alight(s); return false; }
-    } else if (ride.id === 'coaster') {
-      const C = PARK.coaster;
-      park.coasterU = lap(ride.t, C.time, C.ramp);
+      if (ride.turned >= TAU - 0.02) { alight(s); return true; }
+    } else if (PARK[ride.id]?.track) {
+      const C = PARK[ride.id], u = lap(ride.t, C.time, C.ramp);
+      if (ride.id === 'rapids') {
+        if (park.boatU < .6 && u >= .6) s.events.push({ type: 'park', what: 'splash', id: ride.id });
+        park.boatU = u;
+      } else park.coasterU = u;
       // 镜头跟着车头转，但转得不超过 maxTurn（急弯的时候镜头会比车头慢一点）；俯仰只跟一半
-      const at = COASTER.at(park.coasterU), want = Math.atan2(-at.tx, -at.tz);
+      const at = C.track.at(u), want = Math.atan2(-at.tx, -at.tz);
       let turn = Math.atan2(Math.sin(want - ride.yaw), Math.cos(want - ride.yaw));
       const step = clamp(turn, -C.maxTurn * dt, C.maxTurn * dt);
       ride.yaw += step; ride.turn = dt > 0 ? Math.abs(step) / dt : 0;
       ride.pitch += (Math.asin(clamp(at.ty, -1, 1)) * C.pitch - ride.pitch) * Math.min(1, dt * 3);
-      if (ride.t >= C.time) { alight(s); return false; }
-    } else if (ride.id === 'bumpers' && ride.t >= PARK.bumpers.time) { alight(s); return false; }
+      if (ride.t >= C.time) { alight(s); return true; }
+    } else if (ride.id === 'bumpers' && ride.t >= PARK.bumpers.time) { alight(s); return true; }
     seat(s);
     return true;
   }
-  return false;
+  return !!park.stall;
 }
