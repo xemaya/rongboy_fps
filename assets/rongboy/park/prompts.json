@@ -1,0 +1,262 @@
+{
+  "tool": "built-in image_gen",
+  "brief": "docs/park-asset-handoff.md",
+  "assets": {
+    "docs/park-refs/ref-01-entrance.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nTwo little terracotta-red octagonal towers with softly pointed roofs joined by a substantial walk-through fabric arch with one sewn gold star on its crown. Beside the gate is a modest ticket booth with striped canopy. Make the roof layering, arch-to-tower join and the booth's window and projecting counter easy to model.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-02-carousel.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nCarousel with ochre-and-teal alternating wedge panels on its umbrella top and dangling wool tassels around the edge. Show a complete carousel, central column, carved painted wooden horses on poles, how poles meet the canopy and the plinth, broad entrance steps and half-height fence. Use a handful of horses spaced around a practical circular platform.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-03-rapids.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nA compact felt-rock mountain with a blue flume descending from the summit into a low recirculating loop hugging the stone banks. Show the flume-to-rock seam and soft white wool waterfall, two open wooden boats with seating, a simple little wooden footbridge spanning only one section, water and edging. Show the whole loop.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-04-coaster.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nCoral red and golden twin-rail roller coaster with a visible rising curve and descending bank, dark warm wood trestles, entry station with a terracotta roof and steps with rails, one train of two small joined cars. Show cross-ties, timber joinery, seats and padded restraints, structurally clear at modeling scale.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-05-haunt.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nCrooked plum-purple timber haunted cottage, layered steep pointed roofs, softly luminous buttery windows, crooked chimney, deep porch and fabric door, two little felt pumpkins, a leafless tree and low irregular fence close to the footprint. Charming handmade storybook shapes. THIRD VIEW alongside the two exterior views: a smaller separate cutaway vignette seen through its OPEN door, with wood floor, stitched rug, a crooked framed silhouette and a clear navigable entry.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-06-wheel.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nGolden Ferris rim and spokes with one stitched gold central star, muted teal and terracotta alternated gondolas pivoting from the rim, sturdy wooden A-frame, broad boarding platform plus steps. Open gondola fronts must make seats and railings visible and have felt protective roofs. Same spoke count and gondola style in both views.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-07-midway.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nThree adjacent game stalls with coordinated alternating striped cloth awnings. From left to right display stacked painted wood blocks, three yellow felt duck targets, then colorful wool balloon targets. Show the three open counters and backs with hanging plush prizes, cupboard structure and posts with no signage text.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-08-bumpers.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nOval blue padded arena with layered low perimeter guards, red-and-cream arched entrance with stitched stars, three small rideable candy-color bumper cars. Each car has a small steering wheel, open seat and clearly modeled thick rounded safety bumper. The left angle shows how arena edge, entrance and cars relate.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-09-mirrors.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nLow walk-through pastel powder-blue mirror maze of softly reflective panels in stitched fabric frames with wood feet, a stitched-star entry arch, visible street-level alternative exit opening and clear path between staggered panels. Mirror panels have a pale subtle sheen, no people and no hard chrome highlights.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-10-bigtop.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target. Place two clearly separate views of the SAME design on a seamless warm ivory studio background: largest at left, slightly elevated front three-quarter view, and at right, straight-on front elevation facing the entrance. Consistent geometry, colors and parts between the two. Show full silhouette with breathing room around it. Where a third view is explicitly requested, make it a small separated vignette underneath the right elevation. No park map, footpaths, neighboring attractions or people.\nBroad round red-and-warm-cream striped circus tent with soft fabric folds, central flag, small flanking tent wings, visible entrance curtains and festooned triangular bunting. THIRD VIEW as a smaller separate cutaway vignette: interior circular performance stage, surrounding stepped stands, and warm string lights overhead. Keep the ring open and readable as a playable arena.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "docs/park-refs/ref-11-details.png": {
+      "prompt": "Use case: stylized-concept. Modeling reference for a single miniature park facility or prop set. The supplied park map is a design and material reference; extract only this subject. Wide landscape 3:2, 1536 × 1024 visual target.\nA tidy three by three catalog of nine standalone felt-and-painted-wood objects, each fully visible on the same warm ivory background with open gutters and no boxes: rounded lamppost, wooden bench, small stitched rubbish bin, wool balloon cart, blank directional signpost, short miniature fence, needle-felt flower bed, triangular felt bunting on its own length of thread, and tiny cream string lights on a separate length of cord. Straightforward product angles showing fabrication, generous breathing room between every object. No attractions in this sheet.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png"
+      ],
+      "width": 1536,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/poster-circus-1.webp": {
+      "prompt": "Use case: illustration-story. A flat 3:4 portrait circus poster texture in a coordinated vintage felt-appliqué series. Orthographic straight-on view, flat cloth filling the canvas, no wall and no perspective. Warm ochre and brick-red accents, deep green and warm cream, thin running-stitch perimeter enclosing the scene, a small matching cloth margin outside stitches to survive cropping. Dynamic old circus poster composition made entirely of sewn motifs, no type. A spirited needle-felt lion with tiny dark sewn eyes jumps left to right through a loop of golden scalloped wool flames.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 768,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/poster-circus-2.webp": {
+      "prompt": "Use case: illustration-story. A flat 3:4 portrait circus poster texture in a coordinated vintage felt-appliqué series. Orthographic straight-on view, flat cloth filling the canvas, no wall and no perspective. Warm ochre and brick-red accents, deep green and warm cream, thin running-stitch perimeter enclosing the scene, a small matching cloth margin outside stitches to survive cropping. Dynamic old circus poster composition made entirely of sewn motifs, no type. A friendly brown needle-felt bear rides one unicycle beneath exactly three airborne yarn balls in a clear juggling arc.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 768,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/poster-circus-3.webp": {
+      "prompt": "Use case: illustration-story. A flat 3:4 portrait circus poster texture in a coordinated vintage felt-appliqué series. Orthographic straight-on view, flat cloth filling the canvas, no wall and no perspective. Warm ochre and brick-red accents, deep green and warm cream, thin running-stitch perimeter enclosing the scene, a small matching cloth margin outside stitches to survive cropping. Dynamic old circus poster composition made entirely of sewn motifs, no type. Three distinct needle-felt rabbits stacked vertically performing an acrobatic balance, with the top rabbit's ears safely within the border.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 768,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/haunt-portrait-1.webp": {
+      "prompt": "Use case: illustration-story. A single flat, upright 4:5 framed portrait as a haunted cottage wall texture for a cute non-scary game. Straight-on front projection; no rotated edges, no depicted wall. The frame is dark brown painted wood with rounded carved edges, its outer rim close to all four edges and a narrow same-colored bleed. Warm muted plum and sage embroidered cloth backdrop. Centered upper-body portrait, cozy uncanny, as a coordinated set. A charming prim button-eyed felt gentleman with an oversized cloth bow tie, subtly lopsided eyes and a stitched jacket.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 640,
+      "height": 800,
+      "transparent": false
+    },
+    "assets/rongboy/park/haunt-portrait-2.webp": {
+      "prompt": "Use case: illustration-story. A single flat, upright 4:5 framed portrait as a haunted cottage wall texture for a cute non-scary game. Straight-on front projection; no rotated edges, no depicted wall. The frame is dark brown painted wood with rounded carved edges, its outer rim close to all four edges and a narrow same-colored bleed. Warm muted plum and sage embroidered cloth backdrop. Centered upper-body portrait, cozy uncanny, as a coordinated set. A kindly elderly felt lady with a stitched bun and a green shawl holding a tiny black felt cat with warm eyes.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 640,
+      "height": 800,
+      "transparent": false
+    },
+    "assets/rongboy/park/haunt-portrait-3.webp": {
+      "prompt": "Use case: illustration-story. A single flat, upright 4:5 framed portrait as a haunted cottage wall texture for a cute non-scary game. Straight-on front projection; no rotated edges, no depicted wall. The frame is dark brown painted wood with rounded carved edges, its outer rim close to all four edges and a narrow same-colored bleed. Warm muted plum and sage embroidered cloth backdrop. Centered upper-body portrait, cozy uncanny, as a coordinated set. A whimsical little needle-felt bedsheet ghost with two small dark button eyes, a hand-stitched patch and a wavy sheet edge.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 640,
+      "height": 800,
+      "transparent": false
+    },
+    "assets/rongboy/park/mirror-tall.webp": {
+      "prompt": "Use case: identity-preserve. Turn the supplied character model reference into a straight-on full-body 1:2 portrait funhouse mirror texture. One figure facing forward, shoes and hat fully inside a central safe area. Match the reference's distinctive round-brimmed ochre explorer hat with goggles on top, dark brown curls, yellow scarf, green backpack visible at shoulders, small eyes and color blocking. Flat pale powder-blue mirror surface fills all edges with a soft simple fabric-like reflection, with no frame, scenery or duplicated figures. Very thin and abnormally tall, with stretched legs and torso, while retaining facial identity.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "assets/rongboy/scout-v2/review-threequarter.png"
+      ],
+      "width": 512,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/mirror-wide.webp": {
+      "prompt": "Use case: identity-preserve. Turn the supplied character model reference into a straight-on full-body 1:2 portrait funhouse mirror texture. One figure facing forward, shoes and hat fully inside a central safe area. Match the reference's distinctive round-brimmed ochre explorer hat with goggles on top, dark brown curls, yellow scarf, green backpack visible at shoulders, small eyes and color blocking. Flat pale powder-blue mirror surface fills all edges with a soft simple fabric-like reflection, with no frame, scenery or duplicated figures. Comically flattened and broad, with very short legs and strongly widened head and torso, fully inside the narrow canvas.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "assets/rongboy/scout-v2/review-threequarter.png"
+      ],
+      "width": 512,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/mirror-wavy.webp": {
+      "prompt": "Use case: identity-preserve. Turn the supplied character model reference into a straight-on full-body 1:2 portrait funhouse mirror texture. One figure facing forward, shoes and hat fully inside a central safe area. Match the reference's distinctive round-brimmed ochre explorer hat with goggles on top, dark brown curls, yellow scarf, green backpack visible at shoulders, small eyes and color blocking. Flat pale powder-blue mirror surface fills all edges with a soft simple fabric-like reflection, with no frame, scenery or duplicated figures. A clearly warped S curve that moves alternately right and left through the hat, head, torso and boots. Internally distort anatomy through a playful funhouse reflection, keeping the full figure centered.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "assets/rongboy/scout-v2/review-threequarter.png"
+      ],
+      "width": 512,
+      "height": 1024,
+      "transparent": false
+    },
+    "assets/rongboy/park/stall-blocks.webp": {
+      "prompt": "Use case: stylized-concept. One centered isolated game sign icon. A little stack of exactly four chunky toy building blocks. From bottom to top: muted teal wooden arch, sage rectangular block, golden triangular prism roof; a terracotta cube rests next to the arch. Soft matte painted wood, edges lightly rounded and a few visible felt inlay seams in an original handmade toy amusement park. Simple front-facing three-quarter silhouette for reading at 64 pixels. Four pieces only. The objects are floating against real transparent alpha with clean margins and transparency between them. No storage bag, backdrop, landscape, ground, trees, feet, pad, outlines, lettering, digits, logos, or any other object. Square 1:1, all edges visible.",
+      "width": 512,
+      "height": 512,
+      "transparent": true
+    },
+    "assets/rongboy/park/stall-ducks.webp": {
+      "prompt": "Use case: stylized-concept. Square 1:1 standalone sign pictogram, centered felt craft item seen almost straight on. Bold comprehensible silhouette at small game size. Full subject and any string visible with 6% padding. Exactly three yellow needle-felt rubber-duck-shaped ducks in one tight horizontal row with nicely visible separation, each with a tiny orange beak and a sewn dark eye; no water or props. Genuine transparent alpha around the item, no background plane, no border, no filled backdrop.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 512,
+      "height": 512,
+      "transparent": true
+    },
+    "assets/rongboy/park/stall-balloons.webp": {
+      "prompt": "Use case: stylized-concept. Square 1:1 standalone sign pictogram, centered felt craft item seen almost straight on. Bold comprehensible silhouette at small game size. Full subject and any string visible with 6% padding. One tied bunch of plump needle-felt balloons in terracotta, golden yellow, muted teal and warm cream, with slim stitched cords meeting at a simple knot. Genuine transparent alpha around the item, no background plane, no border, no filled backdrop.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 512,
+      "height": 512,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-card.webp": {
+      "prompt": "Use case: product-mock-up. One flat rectangular piece of plain flax-colored woven fabric as a game stamp card texture. 12:7 landscape. Fill the whole image with the same undyed beige fabric, viewed perfectly straight from above, no surroundings, no props. Add one simple line of small brown running stitches near the outside edges. The top quarter is totally empty, plain beige. In the lower three quarters draw only ten matching thin, unfilled dark sage-green circle outlines in a perfectly aligned two-row five-column grid, with adequate margin on all four edges. Exact count FIVE across and TWO down. The fabric inside the circles is the same plain beige as everywhere else. No botanical shapes, no trees, no illustration, no logo, no corners embellished, no scenic background, no labels, no dimension lines, no words, no letters or numbers. Just plain beige weave, simple edge stitching and 10 thin hollow circles. Make the blank area around them generous and consistent. Handmade tactile miniatures, matte and warm.",
+      "width": 1200,
+      "height": 700,
+      "transparent": false
+    },
+    "assets/rongboy/park/stamp-01.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: simple walk-through arch flanked by two squat towers. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-02.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: single carousel horse facing left on a short center pole. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-03.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one little side-view wooden flume boat with a single curved hull. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-04.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one curving pair of coaster rails with three cross-ties. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-05.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one little crooked haunted house with clearly pointed roof. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-06.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one Ferris wheel with spokes on a short A-frame. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-07.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one felt balloon with dangling curved string. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-08.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one small bumper car with steering wheel and thick rounded bumper. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-09.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one upright standing mirror with a small curved reflection stroke. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/park/stamp-10.webp": {
+      "prompt": "Use case: stylized-concept. A square 1:1 transparent game stamp PNG source. One handmade dark forest-green rubber-ink impression, using only flat #274a37 ink with subtle worn speckles, strokes and negative space. A single centered circular outline around this simple bold pictogram: one pitched round circus big-top with small flag and two curtain strokes. The complete ring occupies about 86% of the square, leaving clean margins. Show the ink alone, with alpha (including the open space inside the ring). No cloth paper rectangle, mockup background, drop shadow, highlights, text, digits, or second ink color.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "width": 256,
+      "height": 256,
+      "transparent": true
+    },
+    "assets/rongboy/menu-plates/menu-park.webp": {
+      "prompt": "Use case: stylized-concept. Create a new 16:9 game menu/loading background using first reference for exact park identity and handmade material design, second for the game's existing warm eye-level cinematic menu presentation. Eye-level first person from the amusement-park entrance looking inward, terracotta gate framing the top and right. The deeper park and the red-and-cream big top and golden Ferris wheel are easy to read in the sun on the right. Aim downhill gently into the welcoming miniature. The left third from top to bottom is naturally dark, softly lit deep-sage cloth hedge and dark gate shadow, with very low detail and no foreground subject so actual menu can be placed there later. Bottom right only, a small felt mitten holding the actual Rongboy toy spool pistol: thread-wrapped cylindrical cream spool body, warm brown wooden flanges, compact cozy proportions, barrel aimed toward the park, comfortably low in the composition. Warm late afternoon before sunset. No other visible player body, title, HUD or crosshair.\nOriginal handmade felt adventure game Rongboy. Miniature needle-felt and stitched-fabric craft photography: wool felt, visible running stitches, painted wooden pieces, leaf-cluster trees. Palette: deep sage green and warm cream with terracotta red, teal and golden yellow. Soft daylight, gentle shadows, no plastic, no metal shine, no photoreal humans.\nThe entire image is text-free: no letters, digits, typography, words, logos, watermarks, UI, labels, arrows or dimension lines.",
+      "references": [
+        "docs/amusement-park-spiral.png",
+        "assets/rongboy/menu-plates/menu-cottage.webp"
+      ],
+      "width": 1672,
+      "height": 941,
+      "transparent": false
+    }
+  }
+}
