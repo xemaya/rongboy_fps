@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import def from '../../scenes/rongboy-mission/levels/amusement-whitebox.js';
+import def from '../../scenes/rongboy-mission/levels/amusement.js';
 import { compileLevel } from '../../scenes/rongboy-mission/level.js';
 import { CONFIG, WEAPONS, createGame, fire, hurtPlayer, selectWeapon, step, consumeEvents } from '../../scenes/rongboy-mission/game.js';
 import {
@@ -137,8 +137,16 @@ assert.equal(amusementPrompt(s), 'board');
 assert.ok(useAmusement(s));
 run(s, COASTER_SECONDS * .5);
 assert.ok(s.player.jump > 2.2, 'coaster lifts player high above the park');
+{ // 车在半空的时候，地上的僵尸碰不到人（以前跃行者会在 2.6 米底下"贴身"打到车上的人）
+  const under = s.enemies.find(e => e.zone === 2 && e.type === 'leaper'), before = s.health, home = [under.x, under.z];
+  under.enabled = true; under.awareness = 'alert';
+  for (let i = 0; i < 60; i++) { under.x = s.player.x; under.z = s.player.z; step(s, 1 / 120, {}); }
+  assert.equal(s.health, before, 'a zombie under the track cannot touch the rider');
+  [under.x, under.z] = home;
+}
 run(s, COASTER_SECONDS * .6);
 assert.equal(s.amusement.ride.finished, true, 'coaster completes cleanly on northern landing deck');
+assert.ok(s.invul > 0, 'stepping off the coaster comes with a moment of safety');
 assert.ok(s.player.z < RIVER.minZ, 'player dismounts across the river');
 
 // Clear Zone 2 shore enemies first (closest first), then freeze & light both moving coaster targets
@@ -223,6 +231,7 @@ selectWeapon(empty, pistol); run(empty, 2.1);
 assert.equal(empty.ammo[freeze].mag, 3, 'holstered freeze gun recharges automatically');
 
 const retry = fresh(3); run(retry, .1);
+assert.ok(retry.amusement.clown.entered && amusementCutscene(retry) === null, 'retrying from the tent door does not replay the entrance');
 retry.health = 1;
 skipAmusementCutscene(retry);
 assert.ok(hurtPlayer(retry, CLOWN, 'test', 10));
@@ -233,4 +242,4 @@ assert.equal(restored.health, 100);
 assert.equal(restored.ammo[freeze].mag, 3);
 assert.ok(gatePassable(restored, 0) && gatePassable(restored, 1) && gatePassable(restored, 2));
 assert.deepEqual([restored.player.x, restored.player.z], [SAFE_PAD.x, SAFE_PAD.z]);
-console.log('4-zone whitebox (oscillating latch, carousel graze+freeze, coaster flyover, direct tile freeze, cutscenes & checkpoints) PASS');
+console.log('布偶游乐场：门栓、木马扫冰雕、过山车、地砖急冻、过场和检查点 PASS');

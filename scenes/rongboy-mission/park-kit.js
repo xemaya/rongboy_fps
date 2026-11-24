@@ -76,6 +76,26 @@ export function createParkKit(M) {
     kit.extrude(wool(color), outline, thick, new T.Matrix4().makeRotationY(yaw).setPosition(x, y, z));
   }
 
+  // 伞顶：sectors 片毛毡，每片横着再分 3 格所以伞沿是圆的；每道缝一行针脚、每片中间一行；从底下也看得见。
+  // 造在原点，伞沿高 rim、尖顶高 peak。seam：缝上那行针脚的针长、针距、线粗；mid = false 不要每片中间那一行
+  function canopy(kit, det, r, rim, peak, colors, sectors, { seam = { len: 0.13, gap: 0.1, t: 0.022 }, mid = true } = {}) {
+    const prof = [[1, 0], [0.8, 0.2], [0.55, 0.46], [0.28, 0.76], [0.045, 1]].map(([f, h]) => [r * f, rim + (peak - rim) * h]), sub = 3;
+    const at = (a, [q, y], lift = 0) => [Math.sin(a) * q, y + lift, Math.cos(a) * q], along = prof.map((p, j) => (j ? Math.hypot(p[0] - prof[0][0], p[1] - prof[0][1]) : 0));
+    for (let i = 0; i < sectors; i++) {
+      const m = colors[i % colors.length];
+      for (let q = 0; q < sub; q++) {
+        const a = (i + q / sub) * TAU / sectors, b = (i + (q + 1) / sub) * TAU / sectors;
+        for (let j = 1; j < prof.length; j++) {
+          const uv = [[a * prof[j - 1][0], along[j - 1]], [b * prof[j - 1][0], along[j - 1]], [b * prof[j][0], along[j]], [a * prof[j][0], along[j]]];
+          kit.quad(m, at(a, prof[j - 1]), at(b, prof[j - 1]), at(b, prof[j]), at(a, prof[j]), uv, 1, [0, 1, 0]);
+          kit.quad(m, at(b, prof[j - 1], -0.025), at(a, prof[j - 1], -0.025), at(a, prof[j], -0.025), at(b, prof[j], -0.025), uv, 0.47, [0, -1, 0]);
+        }
+      }
+      stitch(det, prof.slice(0, 4).map(p => at(i * TAU / sectors, p, 0.02)), seam);
+      if (mid) stitch(det, prof.slice(0, 4).map(p => at((i + 0.5) * TAU / sectors, [p[0] * 0.995, p[1]], 0.02)), { color: i % 2 ? 0xf8e7b4 : 0xbfe0dc, len: 0.09, gap: 0.14, t: 0.016 });
+    }
+  }
+
   // ---------------------------------------------------------------- 栏杆
   // 木桩：桩顶一圈布箍、一颗球
   function post(kit, x, z, { h = 0.95, r = 0.085, cap = WOOL_WHITE, y = 0 } = {}) {
@@ -218,5 +238,5 @@ export function createParkKit(M) {
     return { s, d };
   }
 
-  return { felt, wool, leaf, knit, timber, dash, stitch, arc, ring, lobe, valance, valanceLine, tassel, rosette, star, post, rope, fence, leafTree, pine, daisy, flowerPatch, shrub, rock, tuft, lamp, bench, horse };
+  return { felt, wool, leaf, knit, timber, dash, stitch, arc, ring, lobe, valance, valanceLine, tassel, rosette, star, canopy, post, rope, fence, leafTree, pine, daisy, flowerPatch, shrub, rock, tuft, lamp, bench, horse };
 }

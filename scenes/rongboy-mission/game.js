@@ -1139,6 +1139,7 @@ export function step(s, dt, input = {}) {
   // 只有已经警觉的僵尸碰到你才会扣心。
   if (s.invul <= 0) for (const e of s.enemies) {
     if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || e.frozenUntil>s.time || !contactAttack(e) || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
+    if (s.amusement && (p.jump > 0.9 || (s.amusement.ride.started !== null && !s.amusement.ride.finished))) continue;   // 游乐场：人坐在过山车上（躲不了）、或被惊喜盒弹到半空时，地上的僵尸够不着
     const dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     if (d >= CONFIG.playerRadius + e.radius) continue;
     const n = d || 1;

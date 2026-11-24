@@ -45,33 +45,42 @@ test('carousel: one ring and it eases up to speed, turns, eases to a stop', () =
   assert.ok(stopped > Math.PI * 2, 'at least one full turn');
 });
 
-test('roller coaster: you are carried one lap at child-train pace, the view never turns faster than 45 degrees a second, then you are back where you got on', () => {
+test('roller coaster: one long lap, slow up the lift and fast down the drop; the view never turns faster than 45 degrees a second; then you are back where you got on', () => {
   const s = game(), q = at(s, 'coaster');
   assert.equal(parkPrompt(s).kind, 'ride'); parkInteract(s);
   assert.equal(s.park.riding.id, 'coaster'); assert.equal(parks(consumeEvents(s))[0].what, 'board');
   const start = COASTER.at(0);
   assert.ok(Math.hypot(s.player.x - start.x, s.player.z - start.z) < 0.01 && Math.abs(s.player.y + PLAYER_EYE - start.y - PARK.coaster.seat) < 0.01, 'seated on the track at the station');
-  let fastestTurn = 0, fastest = 0, top = 0, steepest = 0, last = { ...s.player };
+  let fastestTurn = 0, fastest = 0, top = 0, steepest = 0, offSeat = 0, last = { ...s.player };
   const log = run(s, PARK.coaster.time - 0.05, { x: 1, z: 1 }, g => {
     const p = g.player; if (!g.park.riding) return;
     fastest = Math.max(fastest, Math.hypot(p.x - last.x, p.y - last.y, p.z - last.z) / DT); top = Math.max(top, p.y + PLAYER_EYE);
     fastestTurn = Math.max(fastestTurn, p.seat.turn); steepest = Math.max(steepest, Math.abs(p.seat.pitch)); last = { ...p };
+    const on = COASTER.at(g.park.coasterU); offSeat = Math.max(offSeat, Math.abs((p.x - on.x) * on.tx + (p.y + PLAYER_EYE - on.y) * on.ty + (p.z - on.z) * on.tz));
   });
+  assert.ok(offSeat < 0.02, 'the seat tilts with the car: on the steep drop the eye stays over the seat, not inside the seat back');
   assert.equal(parks(log).length, 0, 'nothing else happens mid-ride, and walking keys do nothing');
   assert.ok(fastestTurn <= PARK.coaster.maxTurn + 1e-6 && PARK.coaster.maxTurn <= Math.PI / 4, `turned ${(fastestTurn * 180 / Math.PI).toFixed(0)} deg/s`);
-  assert.ok(fastest < 3.2, `top speed ${fastest.toFixed(2)} m/s`); assert.ok(top > 7, 'it does climb'); assert.ok(steepest < 0.5, 'pitch stays gentle');
+  assert.ok(COASTER.length > 90, `the track is ${COASTER.length.toFixed(0)} m long`);
+  assert.ok(fastest > 8.5 && fastest < 10.2, `top speed ${fastest.toFixed(2)} m/s`); assert.ok(top > 10.5, 'it climbs above the big top'); assert.ok(steepest < 0.5, 'pitch stays gentle');
+  assert.ok(PARK.coaster.time > 18 && PARK.coaster.time < 28, `a lap takes ${PARK.coaster.time.toFixed(1)} s`);
   assert.equal(parkPrompt(s).kind, 'leave');
   const end = parks(run(s, 0.2));
   assert.deepEqual(end.map(e => e.what), ['alight']); assert.equal(s.park.riding, null);
   assert.deepEqual([s.player.x, s.player.z, s.player.y], [q.x, q.z, 0]); assert.equal(s.player.seat, null); assert.equal(s.park.coasterU, 0);
 });
 
-test('the coaster starts and stops gently', () => {
+test('the coaster starts and stops gently, crawls up the lift, and is more than twice as fast down the drop', () => {
   const s = game(); at(s, 'coaster'); parkInteract(s);
-  const speed = () => { const a = { ...s.player }; step(s, DT, {}); return Math.hypot(s.player.x - a.x, s.player.y - a.y, s.player.z - a.z) / DT; };
-  const v0 = speed(); run(s, 1); const v1 = speed(); run(s, 3); const cruise = speed();
-  assert.ok(v0 < 0.1 && v1 > v0 && v1 < cruise * 0.6 && cruise > 1.2, [v0, v1, cruise].map(v => v.toFixed(2)).join(' '));
-  run(s, PARK.coaster.time - 5.0); assert.ok(speed() < cruise * 0.5, 'slowing into the station');
+  const speed = () => { const a = s.park.coasterU; step(s, DT, {}); return (s.park.coasterU - a) * COASTER.length / DT; };   // 车在轨道上的速度（眼睛还会随车身俯仰多动一点，这里不算）
+  const v0 = speed(); run(s, 0.25); const v1 = speed();
+  assert.ok(v0 < 0.5 && v1 > v0 && v1 < 2.5, [v0, v1].map(v => v.toFixed(2)).join(' '));
+  // 一路记下速度和高度：坡顶之前是提升坡，之后是俯冲
+  const trace = []; while (s.park.riding && s.park.riding.t < PARK.coaster.time - 0.3) trace.push({ v: speed(), y: COASTER.at(s.park.coasterU).y, t: s.park.riding?.t });
+  const crest = trace.reduce((best, q, i) => q.y > trace[best].y ? i : best, 0), lift = Math.max(...trace.slice(0, crest).map(q => q.v)), drop = Math.max(...trace.slice(crest).map(q => q.v));
+  assert.ok(lift < 4.6 && drop > lift * 2, `lift ${lift.toFixed(1)} m/s, drop ${drop.toFixed(1)} m/s`);
+  for (let i = 1; i < trace.length; i++) assert.ok(Math.abs(trace[i].v - trace[i - 1].v) / DT < 7, `speed jumps at ${trace[i].t?.toFixed(2)} s`);   // 没有一下子的加速或急刹
+  assert.ok(speed() < 2, 'slowing into the station');
 });
 
 test('pressing the key again mid-ride skips it and puts you back where you got on', () => {
@@ -97,7 +106,9 @@ test('bumper cars: you drive, the padded rim and the other cars bounce you, and 
   assert.equal(s.park.riding.id, 'bumpers'); assert.equal(parkPrompt(s).zh, '下车');
   const inside = c => ((c.x - RINK.x) / RINK.rx) ** 2 + ((c.z - RINK.z) / RINK.rz) ** 2 <= 1.0001;
   const x0 = s.player.x;
-  const log = run(s, 6, { x: 1, z: 0 }, g => { for (const c of g.park.cars) assert.ok(inside(c), 'a car left the rink'); });
+  let quickest = 0;
+  const log = run(s, 6, { x: 1, z: 0 }, g => { for (const c of g.park.cars) assert.ok(inside(c), 'a car left the rink'); quickest = Math.max(quickest, Math.hypot(g.park.cars[0].vx, g.park.cars[0].vz)); });
+  assert.ok(quickest > 5, `flat out it does ${quickest.toFixed(1)} m/s`);
   assert.ok(s.player.x > x0 + 1.5, 'the car goes where you push'); assert.ok(bumps(log).some(e => e.car === 0 && e.wall), 'it bounced off the rim');
   assert.ok(Math.abs(s.player.y + PLAYER_EYE - PARK.bumpers.seat) < 1e-9, 'seated low');
   const more = run(s, 10, { x: -1, z: 0.4 }); assert.ok(bumps([...log, ...more]).some(e => e.car === 0 && !e.wall), 'and bumped another car');

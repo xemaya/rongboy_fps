@@ -12,7 +12,7 @@ const query=new URLSearchParams(location.search),id=query.get('level') || (crazy
 const selected=MAP_CARDS.find(card=>card.id===id)||MAP_CARDS[0];
 const opponent=ZOMBIE_ROSTER.find(enemy=>enemy.id===query.get('type'));
 const challenge=readPlayChallenge(query);
-const name=id===firstRound?'花园首战':challenge?.name ?? (id==='amusement-tour'?'布偶游乐园':id==='amusement-whitebox'?'布偶游乐场 · 白盒':id==='weapon-range'?'武器试验场':id==='garden-wall'?'花园练习':id==='training'&&opponent?opponent.name+'试战':selected.name);
+const name=id===firstRound?'花园首战':challenge?.name ?? (id==='amusement-tour'?'布偶游乐园':id==='amusement'||id==='amusement-whitebox'?'布偶游乐场':id==='weapon-range'?'武器试验场':id==='garden-wall'?'花园练习':id==='training'&&opponent?opponent.name+'试战':selected.name);
 const theme=id==='amusement-whitebox'?'park':Object.hasOwn(CHAPTER_ART,id) ? CHAPTER_ART[id] : ['training','garden-wall','challenge','weapon-range'].includes(id)?'practice':'garden';
 const loading=document.getElementById('loading'),status=document.getElementById('loadingStatus'),back=document.getElementById('loadBack');
 loading.style.setProperty('--level-scene','url("menu-'+theme+'.webp")');
@@ -39,7 +39,7 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{
       const { boot } = await import('../rongboy-mission/play.js');
       const signText = id === 'amusement-tour'
         ? name + TOUR_STOPS.map(stop => stop.name).join('') + STALLS.map(stall => stall.zh).join('')
-        : id==='amusement-whitebox' ? name+'木马广场马戏帐篷蒸汽阀旋转木马' : undefined;
+        : id==='amusement'||id==='amusement-whitebox' ? name+'木马广场过山车马戏帐篷蒸汽阀旋转售票处入口' : undefined;
       await loadInterfaceFonts(language, signText);
       await boot(sdkReady);
     } catch (error) { fail({ error }); }

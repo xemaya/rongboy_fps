@@ -7,7 +7,7 @@ import { compileLevel } from '../scenes/rongboy-mission/level.js';
 import { trainingDef } from '../scenes/rongboy-mission/levels/training.js';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const esc=s=>String(s).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('"','&quot;');
-const palettes={house:['#a4ad87','#d1b893'],museum:['#8fabb1','#c6b5b0'],school:['#c9b57c','#b0bd9d'],cottage:['#b4bf8a','#d4b194'],'amusement-tour':['#9fb486','#e2c58f'],training:['#a4b6a1','#c7b99a']};
+const palettes={house:['#a4ad87','#d1b893'],museum:['#8fabb1','#c6b5b0'],school:['#c9b57c','#b0bd9d'],cottage:['#b4bf8a','#d4b194'],amusement:['#9fb486','#e2c58f'],'amusement-tour':['#9fb486','#e2c58f'],training:['#a4b6a1','#c7b99a']};
 function picture(L,id){
  const n=L.storeys.length,W=1100,H=650,pad=36,gap=28,cw=(W-pad*2-gap*(n-1))/n,colors=palettes[id]||palettes.house,parts=[];
  parts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><defs><pattern id="weave" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 1H8M1 0V8" stroke="#827657" stroke-opacity=".045" stroke-width="1"/></pattern></defs><rect width="1100" height="650" fill="#e9e0c9"/><rect width="1100" height="650" fill="url(#weave)"/>`);

@@ -116,7 +116,7 @@ let inputMode = 'keyboard', padSoundHint = false;
 
 // The menu is a separate lightweight page; this page loads only the confirmed map.
 function applyTexts() {
- document.title = `${t('绒仔')} · ${amusement?copy('布偶游乐场 · 白盒','Plushwood Park · Whitebox'):level.name}`;
+ document.title = `${t('绒仔')} · ${level.name}`;
  document.body.classList.toggle('reduced-ui',reduced);
  document.body.classList.toggle('challenge-round',!!challenge);
  document.body.classList.toggle('park-tour',parkTour);
@@ -839,6 +839,7 @@ function amusementEvent(e) {
     'clown-down':[`小丑倒下了 · 靠近舞台中央按 ${ex} 拾取高压马达`,`Giggles is down · Press ${ex} to collect the motor`],
     'motor':['拿到了高压马达 · 全园彩灯亮起！','Motor recovered · The whole park lights up!'],
   };
+  if (e.action==='ride-start') { clearHeldInput(); yaw=0; pitch=0; }   // 上车：视线摆回车头的方向（之后的转头叠加在车头方向上）
   const message=messages[e.action];
   if (message) say(copy(...message),e.action==='clown-start'||e.action==='motor'?3.2:1.85,1);
   if (['lock-frozen','valve-frozen','ice-sweep','tile-frozen','clown-frozen','target-frozen'].includes(e.action)) {
@@ -1125,7 +1126,7 @@ function shotParams(thrown = false) {
 function cameraFrame(dt) {
     const cut = amusement && amusementCutscene(s);
     if (cut) {
-      const p = cut.progress, smooth = p * p * (3 - 2 * p);
+      const p = cut.progress, smooth = reduced ? .6 : p * p * (3 - 2 * p);   // 系统设了减少动态效果：镜头停在一个机位不动
       camera.fov = HIP_FOV;
       camera.rotation.order = 'YXZ';
       if (cut.kind === 'clown-intro') {
@@ -1134,9 +1135,9 @@ function cameraFrame(dt) {
         camera.lookAt(CLOWN.x, 2.55, CLOWN.z);
         yaw = 0; pitch = .08;
       } else {
-        // Full-park victory light-up crane shot pulling up over Big Top looking south across all lit zones
-        camera.position.set(Math.sin(smooth * Math.PI * .7) * 5.2, 2.6 + smooth * 7.8, -8.5 + smooth * 14.5);
-        camera.lookAt(0, 1.4, 8.0 - smooth * 14.0);
+        // 通关：镜头在帐篷门外慢慢升到帐顶上空，朝南看整条大路的彩灯一起亮起来（全程在帐篷外面，不穿帐布；只升不转）
+        camera.position.set(Math.sin(smooth * Math.PI * .5) * 2.4, 4.6 + smooth * 8.4, -3.2 - smooth * 5.0);
+        camera.lookAt(0, 2.2 - smooth * 1.2, 14 + smooth * 8);
       }
       viewmodel?.project(camera.fov, camera.aspect, false);
       camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
@@ -1308,7 +1309,7 @@ function parkEvent(e) {
   else if (e.what === 'stall-shot') sfx2('throw');
   else if (e.what === 'stall-hit') sfx2(e.id === 'ducks' ? 'squeak' : e.id === 'balloons' ? 'jack-pop' : 'thump');
   else if (e.what === 'stall-miss') sfx2('thump', { strength: .3 });
-  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); }
+  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 5) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); }
   else if (e.what === 'complete') say(copy('演出结束，逛完了！','The show is over. That was the park!'), 2.4, 2);
 }
 
@@ -2094,7 +2095,12 @@ window.__rb = {
   get inputMode() { return inputMode; }, get padInput() { return { side: padAxes.x, forward: -padAxes.y }; },
   gamepadFrame,
   hurt(fromX, fromZ) { hurtFeedback({ fromX, fromZ }); },
-  interact() { if (parkTour && parkInteract(s)) processEvents(); return snapshot(); },   // 调试：按一下互动键（不看窗口有没有焦点）
+  interact() { if (parkTour ? parkInteract(s) : amusement && useAmusement(s)) { cancelFire(); processEvents(); } return snapshot(); },   // 调试：按一下互动键（不看窗口有没有焦点）
+  // 调试（自测脚本用）：看向世界里的一点；走真实的开火路径打一发（charge 秒是按住多久）；换到某把枪
+  lookAt(x, y, z) { const p = s.player, ey = p.y + p.jump + EYE, dx = x - p.x, dz = z - p.z, riding = amusement && s.amusement.ride.started !== null && !s.amusement.ride.finished; yaw = Math.atan2(-dx, -dz) - (riding ? ridePose(s.amusement.ride.progress).yaw : 0); pitch = Math.max(-0.78, Math.min(0.72, Math.atan2(y - ey, Math.hypot(dx, dz)))); cameraFrame(0); return { yaw, pitch }; },
+  shoot(charge = 0) { firePress('test'); for (let t = 0; t < charge; t += 1 / 60) advance(1 / 60); fireRelease('test'); processEvents(); return snapshot(); },
+  fireDown() { firePress('test'); }, fireUp() { fireRelease('test'); processEvents(); },
+  weapon(id) { const index = WEAPONS.findIndex(w => w.id === id); if (index >= 0) switchAction(index); return WEAPONS[s.weapon].id; },
   get tourView() { return tourView; },   // 调试：只演一遍受伤的画面，不扣心
   gunInFront: true,   // 调试：false 时手和枪照普通物体画（对比穿模用）
   hold: false,   // true 时不按真实时间推进，只由 advance() 推进，方便定点截图

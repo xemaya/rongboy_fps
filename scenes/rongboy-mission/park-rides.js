@@ -2,22 +2,24 @@
 // 没有收集、没有进度条。以后往里放战斗时，改成一个设施一个场景：打倒场景里所有敌人、打开开关，才放行去下一个。
 // 确定性、不依赖 DOM。画面（park-tour-view.js）只读这里的状态：木马转到哪、车在轨道的哪一点、门开了多少。
 // 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车、激流勇进：人被带着走）、开（碰碰车：人自己开）。
-import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT, RAPIDS_DOCK } from './park-tour-layout.js';
+import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT, RAPIDS_DOCK, trackSchedule } from './park-tour-layout.js';
 import { startStall, leaveStall, stepStall } from './park-stalls.js';
 
 const TAU = Math.PI * 2, clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 // 眼睛离脚底的高度（和 play.js 里的 EYE 是同一个数）：坐着的时候按"眼睛该在哪"反推脚底的高度
 export const PLAYER_EYE = 1.23;
 
+// 过山车一圈怎么跑：提升坡每秒 4 米，俯冲最快每秒 10 米，弯里自己收速（见 trackSchedule）
+const coasterRun = trackSchedule(COASTER);
 // 每一段演多久（秒）、走多近出提示（米）、坐着的时候镜头被带着转得最快多少（弧度/秒）
 export const PARK = {
   reach: 2.8, end: 2.2,
   carousel: { time: 18, ramp: 2.5, speed: 0.55 },
   rapids: { track: RAPIDS, time: 23, ramp: 2.4, seat: 1.0, maxTurn: Math.PI / 4, pitch: .34 },
-  coaster: { track: COASTER, time: 22, ramp: 2.2, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.5 },
+  coaster: { track: COASTER, run: coasterRun, time: coasterRun.time, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.7 },   // time 是按轨道算出来的，约 23 秒。pitch：镜头俯仰跟坡度的七成（只跟一半的话，爬坡时车身会抬到画面中间来）
   haunt: { time: 5, show: 8, keep: 11 },   // time：敲门后窗里的幽灵探头多久；show：摇铃后画像上的幽灵出来多久；keep：人离门这么远以后门才关
   wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
-  bumpers: { time: 30, accel: 7, top: 3.4, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4 },
+  bumpers: { time: 30, accel: 12, top: 6, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4, auto: 0.55, thump: 1.4 },   // top：最快每秒 6 米（场子长 10 米，两秒不到从这头冲到那头）；auto：没人开的车用几成油门；thump：撞得比这快才算一下（出声、抖一抖）
   circus: { time: 18, acts: 3 },   // 一场演出三个节目，挨着演，每个 6 秒
 };
 
@@ -121,8 +123,11 @@ function seat(s) {
     p.seat = { id: 'wheel', yaw: null, pitch: 0, turn: 0 };
   } else if (PARK[ride.id]?.track) {
     const config = PARK[ride.id], at = config.track.at(ride.id === 'rapids' ? park.boatU : park.coasterU);
-    p.x = at.x; p.z = at.z;
-    p.y = at.y + config.seat - PLAYER_EYE + (ride.id === 'rapids' ? .05 : 0);
+    // 过山车：眼睛在车里的座位上，车随坡前倾后仰，座位跟着车身走（沿轨道的法线抬高，不是笔直往上）。
+    // 笔直往上的话，坡一陡车身就转到眼睛的位置上来：俯冲时眼睛会钻进靠背里，整屏发黑。船的坡缓，照旧笔直往上。
+    const tilt = ride.id === 'coaster', flat = tilt ? Math.hypot(at.tx, at.tz) || 1 : 1, lean = tilt ? at.ty / flat * config.seat : 0;
+    p.x = at.x - at.tx * lean; p.z = at.z - at.tz * lean;
+    p.y = at.y + flat * config.seat - PLAYER_EYE + (ride.id === 'rapids' ? .05 : 0);
     p.seat = { id: ride.id, yaw: ride.yaw, pitch: ride.pitch, turn: ride.turn };
   } else {
     const car = park.cars[0];
@@ -153,9 +158,9 @@ function bumperCars(s, dt, input) {
     let ax = 0, az = 0;
     if (i === 0 && driving) { ax = (input.x || 0) * B.accel; az = (input.z || 0) * B.accel; }
     else {   // 没人开的车：各自追一个在场里慢慢画 8 字的点
-      const t = park.time * (0.33 + i * 0.07) + i * 1.9, tx = RINK.x + Math.sin(t) * a * 0.72, tz = RINK.z + Math.sin(t * 2 + i) * b * 0.6;
+      const t = park.time * (0.5 + i * 0.1) + i * 1.9, tx = RINK.x + Math.sin(t) * a * 0.72, tz = RINK.z + Math.sin(t * 2 + i) * b * 0.6;
       const dx = tx - car.x, dz = tz - car.z, d = Math.hypot(dx, dz) || 1;
-      ax = dx / d * B.accel * 0.42; az = dz / d * B.accel * 0.42;
+      ax = dx / d * B.accel * B.auto; az = dz / d * B.accel * B.auto;
     }
     car.vx += (ax - car.vx * B.drag) * dt; car.vz += (az - car.vz * B.drag) * dt;
     const v = Math.hypot(car.vx, car.vz);
@@ -168,7 +173,7 @@ function bumperCars(s, dt, input) {
       car.x = RINK.x + ex / e * a; car.z = RINK.z + ez / e * b;
       let nx = ex / a, nz = ez / b; const n = Math.hypot(nx, nz) || 1; nx /= n; nz /= n;
       const into = car.vx * nx + car.vz * nz;
-      if (into > 0) { car.vx -= 1.7 * into * nx; car.vz -= 1.7 * into * nz; if (into > 0.8 && car.bump <= 0) { car.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, x: car.x, z: car.z, hard: into, wall: true }); } }
+      if (into > 0) { car.vx -= 1.7 * into * nx; car.vz -= 1.7 * into * nz; if (into > B.thump && car.bump <= 0) { car.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, x: car.x, z: car.z, hard: into, wall: true }); } }
     }
   });
   // 车和车：碰上了互相弹开
@@ -179,7 +184,7 @@ function bumperCars(s, dt, input) {
     p.x -= nx * gap / 2; p.z -= nz * gap / 2; q.x += nx * gap / 2; q.z += nz * gap / 2;
     if (closing > 0) {
       p.vx -= closing * nx * 0.9; p.vz -= closing * nz * 0.9; q.vx += closing * nx * 0.9; q.vz += closing * nz * 0.9;
-      if (closing > 0.8 && p.bump <= 0) { p.bump = q.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, other: j, x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, hard: closing }); }
+      if (closing > B.thump && p.bump <= 0) { p.bump = q.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, other: j, x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, hard: closing }); }
     }
   }
 }
@@ -196,7 +201,7 @@ export function stepPark(s, dt, input = {}) {
     park.carouselAngle += C.speed * Math.max(0, k) * dt;
     R.carousel = t + dt >= C.time ? 0 : t + dt;
   }
-  if (R.coaster > 0) { R.coaster += dt; park.coasterU = lap(R.coaster, PARK.coaster.time, PARK.coaster.ramp); if (R.coaster >= PARK.coaster.time) { R.coaster = 0; park.coasterU = 0; } }
+  if (R.coaster > 0) { R.coaster += dt; park.coasterU = PARK.coaster.run.at(R.coaster); if (R.coaster >= PARK.coaster.time) { R.coaster = 0; park.coasterU = 0; } }
   if (R.rapids > 0) { R.rapids += dt; park.boatU = lap(R.rapids, PARK.rapids.time, PARK.rapids.ramp); if (R.rapids >= PARK.rapids.time) { R.rapids = 0; park.boatU = 0; } }
   {   // 鬼屋：敲过门，门就开着；人走远了才关上（人在门厅里的时候离门不到 keep，不会被关在里面）
     const H = PARK.haunt, far = Math.hypot(s.player.x - HAUNT.door.x, s.player.z - HAUNT.door.z) > H.keep;
@@ -219,7 +224,7 @@ export function stepPark(s, dt, input = {}) {
       ride.turned += PARK.wheel.speed * dt;
       if (ride.turned >= TAU - 0.02) { alight(s); return true; }
     } else if (PARK[ride.id]?.track) {
-      const C = PARK[ride.id], u = lap(ride.t, C.time, C.ramp);
+      const C = PARK[ride.id], u = C.run ? C.run.at(ride.t) : lap(ride.t, C.time, C.ramp);
       if (ride.id === 'rapids') {
         if (park.boatU < .6 && u >= .6) s.events.push({ type: 'park', what: 'splash', id: ride.id });
         park.boatU = u;

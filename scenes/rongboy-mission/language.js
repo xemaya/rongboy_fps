@@ -198,7 +198,7 @@ const words = {
   '被绒球箭击中！': 'Hit by a plush arrow!', '震地！退离范围': 'Ground slam! Get clear',
   '线团爆开了！': 'Wool bomb blast!', '被吸取了！': 'Caught in the pull!',
   '被扑到了！拉开距离': 'Hit! Make some room', '捡到棉花包 · ♥ +1': 'Cotton patch · ♥ +1',
-  '布偶游乐场 · 白盒': 'Plushwood Park · Whitebox',
+  '布偶游乐场': 'Plushwood Fair', '点亮游乐场，打败嬉笑小丑': 'Light up the fair and beat Giggles',
   '装填完成': 'Reloaded', '吸引中 · 侧移或找掩体': 'Being pulled · Sidestep or take cover',
   '瞄稳了 · 松手发射': 'Steady · Release to fire', '瞄准中': 'Aiming',
   '松手发射电网': 'Release to fire net', '蓄满 · 松手发射': 'Charged · Release to fire', '蓄力中': 'Charging',

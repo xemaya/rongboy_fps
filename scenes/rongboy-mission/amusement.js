@@ -1,4 +1,5 @@
-// Simulation for the four-stage park whitebox:
+// 布偶游乐场（正式关卡）的规则：四段，一段打完才开下一段的门。画面在 amusement-view.js，这里不依赖 DOM。
+// Simulation for the four-stage park:
 // 0 Ticket Gate (oscillating latch + freeze/shatter intro)
 // 1 Carousel Plaza (steam valve + ice-sweep carousel + drawbridge)
 // 2 Coaster Flyover (elevated track across stitched river + track targets + enemies)
@@ -35,6 +36,8 @@ export const BALLOONS = [
   {x:-5.0, y:2.0, z:-2.4, zone:2},
 ];
 export const TENT_DOOR = GATES[2].z;
+// 大帐篷的外形：一个圆角的长方形（超椭圆 |x/a|^n + |z/b|^n = 1），门开在正南。布景和碰撞盒都照它摆。
+export const TENT = { x:0, z:TENT_DOOR-5.95, a:7.6, b:5.95, n:5, wall:3.85 };
 export const SAFE_PAD = {x:0, z:-6.85};
 export const FIRST_BOX = {x:0, z:-9.35, y:0};
 export const CLOWN = {x:0, z:-14.4, maskY:3.03, hp:46};
@@ -96,6 +99,7 @@ export function makeAmusement(zone = 0) {
     boxes: [], fireworks: [],
     tiles: TILES.map(()=>({warn:0, off:0, until:0, frozenUntil:0})),
     trap: null, fallUntil: 0, launchUntil: 0, volleys: [], maskHits: 0,
+    retry: zone === 3,   // 从帐篷口重来的：登场那段看过了，不再演一遍
   };
 }
 
@@ -263,6 +267,7 @@ export function moveAmusement(s, hurt) {
     if (ride.progress < 1) return true;
     ride.finished = true;
     Object.assign(p,{x:0, z:-3.8, jump:0, vx:0, vz:0});
+    s.invul = Math.max(s.invul, 1.2);   // 下车那一下不挨打：对岸的僵尸可能已经等在车挡旁边
     signal(s,'ride-end',p);
     return true;
   }
@@ -330,7 +335,7 @@ export function advanceAmusement(s, dt, {hurt, damage, volley}) {
     p.x = clamp(p.x,-5.8,5.8);
     a.boxes = [{...FIRST_BOX, land:s.time, thrown:s.time, used:false, settled:true, teaching:true}];
     a.clownIntroStarted = s.time;
-    a.clownIntroUntil = s.time + CLOWN_INTRO_SECONDS;
+    a.clownIntroUntil = s.time + (a.retry ? 0 : CLOWN_INTRO_SECONDS);
     c.next = a.clownIntroUntil + 2.8;
     signal(s,'clown-start',CLOWN);
     return;

@@ -132,3 +132,4 @@
 | 日期 | 变更摘要 |
 |---|---|
 | 2026-11-23 | 初版落盘：合并团队脑暴与现有游戏资产，确立 8 关战役剧情与“复活守卫变复活究极 Boss”反转；确定以布偶游乐场替代冰川作为第 5 关打样关；确立 Astro Bot 式固定双枪 + 无限弹药弹匣冷却规则、新版叙事片头大纲及三形态最终 Boss 设计。 |
+| 2026-11-23 | 第 5 关「布偶游乐场」已从白盒做成正式关卡（四段，小丑是弹簧礼盒里弹出来的），文件是 `scenes/rongboy-mission/levels/amusement.js`、`amusement.js`、`amusement-view.js`、`amusement-clown.js`；落地记录在 `docs/amusement-whitebox-spec.md`。第 8 节里说的"现有 `amusement.js` 六区"和"现有小丑模型"在仓库里没找到，这一关是按白盒的四段做的。 |

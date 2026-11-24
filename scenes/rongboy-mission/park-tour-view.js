@@ -373,6 +373,12 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     horsesB = part(carousel, (kit, det) => { for (let i = 1; i < c.horses; i += 2) mount(kit, det, i); }, 0, 0, 0, true, anchor);
   }
 
+  // 激流勇进石头山的石头：[x, y, z, 半径]。过山车的支架要躲开它们，所以放在两个设施外面
+  const ROCKS = [[-28.6, 1.3, -3.7, 2.4], [-25.6, 1.4, -4.5, 2.6], [-22.6, 1.3, -3.3, 2.4], [-20.5, 1.2, -0.8, 2.0], [-30.0, 1.0, -0.2, 1.7], [-27.4, 3.3, -3.7, 2.0], [-24.6, 3.6, -3.5, 2.2], [-22.2, 3.2, -2.1, 1.9],
+      [-25.7, 5.5, -3.0, 1.7], [-23.5, 5.5, -2.4, 1.5], [-21.0, 3.4, 0.2, 1.3], [-29.6, 1.0, -1.6, 1.6], [-21.4, 0.8, 1.8, 1.2], [-31.3, 0.74, 0.9, 1.3], [-19.8, 0.5, 4.6, 0.92], [-26.6, 0.8, -6.0, 1.3]];
+  const rockScale = i => [1.05 + (i % 3) * 0.1, 0.84 + (i % 2) * 0.18, 0.94];   // 每块石头压扁、拉长的比例
+  const inRock = (x, z, pad = 0.25) => ROCKS.some(([rx, , rz, r], i) => { const [sx, , sz] = rockScale(i); return ((x - rx) / (r * sx + pad)) ** 2 + ((z - rz) / (r * sz + pad)) ** 2 < 1; });
+
   // ====================================================================== 03 激流勇进（docs/park-refs/ref-03-rapids.png）
   use('rapids');
   const boats = [];
@@ -404,14 +410,14 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     // 石头山：一堆大石头垒起来，水槽最高的那一段从山里穿过去，从东边的山口冲下来。每块石头上两道针脚当石缝
     const greys = [0x9a968c, 0x86837b, 0xaaa69a, 0x7d7a73];
     const boulder = (x, y, z, r, i) => {
-      const sx = 1.05 + (i % 3) * 0.1, sy = 0.84 + (i % 2) * 0.18, sz = 0.94, turn = i * 1.7;
+      const [sx, sy, sz] = rockScale(i), turn = i * 1.7;
       k.sphere(wool(greys[i % 4]), r, x, y, z, { seg: 12, rings: 8, sx, sy, sz });
       for (const a of [turn, turn + 2.2]) P.stitch(d, Array.from({ length: 7 }, (_, j) => { const phi = 0.25 + j * 0.2, q = r * 1.006; return [x + q * sx * Math.sin(phi) * Math.cos(a + j * 0.08), y + q * sy * Math.cos(phi), z + q * sz * Math.sin(phi) * Math.sin(a + j * 0.08)]; }), { color: 0xe9e2cf, len: 0.13, gap: 0.11, t: 0.022 });
     };
-    [[-28.6, 1.3, -3.7, 2.4], [-25.6, 1.4, -4.5, 2.6], [-22.6, 1.3, -3.3, 2.4], [-20.5, 1.2, -0.8, 2.0], [-30.0, 1.0, -0.2, 1.7], [-27.4, 3.3, -3.7, 2.0], [-24.6, 3.6, -3.5, 2.2], [-22.2, 3.2, -2.1, 1.9],
-      [-25.7, 5.5, -3.0, 1.7], [-23.5, 5.5, -2.4, 1.5], [-21.0, 3.4, 0.2, 1.3], [-29.6, 1.0, -1.6, 1.6], [-21.4, 0.8, 1.8, 1.2], [-31.3, 0.74, 0.9, 1.3], [-19.8, 0.5, 4.6, 0.92], [-26.6, 0.8, -6.0, 1.3]].forEach(([x, y, z, r], i) => boulder(x, y, z, r, i));
+    ROCKS.forEach(([x, y, z, r], i) => boulder(x, y, z, r, i));
     for (const [x, y, z, r] of [[-25.2, 6.6, -3.4, 0.9], [-27.6, 4.9, -4.2, 0.8], [-22.0, 4.7, -2.4, 0.7]]) k.sphere(leaf(0x7f9b52), r, x, y, z, { seg: 8, rings: 5, sy: 0.4 });   // 山顶的苔
-    P.pine(k, -29.4, -5.4, 1.15, seed++); P.pine(k, -20.6, -4.2, 1.05, seed++); P.leafTree(k, -31.6, -3.6, 1.1, seed++, { tone: 1 });
+    P.pine(k, -29.4, -5.4, 1.15, seed++);   // 石头山东北角原来还有一棵松树：过山车加长以后轨道从那里拐过去，树枝会伸进轨道，拿掉了
+    P.leafTree(k, -31.6, -3.6, 1.1, seed++, { tone: 1 });
     // 瀑布：山口挂下来几条水，底下一堆白绒球是水花
     for (let i = 0; i < 7; i++) { const x = -21.3 + (i - 3) * 0.2; k.tube(wool(i % 2 ? 0xaeefde : 0x71c5c8), [[x, 3.4, 2.2], [x + 0.05, 2.6, 2.9], [x + 0.1, 1.4, 3.9], [x + 0.2, 0.5, 5.0]], 0.11, { straight: true, seg: 5 }); }
     for (let i = 0; i < 14; i++) k.sphere(wool(FOAM), 0.18 + rand() * 0.16, -23.2 + rand() * 3.0, 0.46 + rand() * 0.24, 5.0 + rand() * 1.5, { seg: 8, rings: 5, sy: 0.8 });
@@ -440,15 +446,20 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
   use('coaster');
   const train = group();
   {
-    const pts = COASTER.points, N = pts.length, rails = [[], []], spine = [], beam = P.timber(0xb98a5c), sleeper = felt(0xe6d2a8), RAIL_A = 0xc9584f;
+    // 轨道按弧长取点（每 0.3 米一个），枕木、支架的间距就不跟着控制点的疏密变
+    const N = Math.round(COASTER.length / 0.3), rails = [[], []], spine = [], chain = [], beam = P.timber(0xb98a5c), sleeper = felt(0xe6d2a8), RAIL_A = 0xc9584f;
+    const crest = Array.from({ length: N }, (_, i) => COASTER.at(i / N).y).reduce((best, y, i, all) => y > all[best] ? i : best, 0);
+    // 支架不能立在小径上，也不能立进激流勇进的水道和石头里
+    const clear = (x, z) => !isTourWalkable(x, z, 0.4) && !inRock(x, z) && !RAPIDS.points.some(q => Math.hypot(q[0] - x, q[2] - z) < 1.5);
     for (let i = 0; i <= N; i++) {
-      const p = pts[i % N], q = pts[(i + 1) % N], dx = q[0] - p[0], dz = q[2] - p[2], len = Math.hypot(dx, dz) || 1;
-      rails[0].push([p[0] + dz / len * 0.42, p[1], p[2] - dx / len * 0.42]); rails[1].push([p[0] - dz / len * 0.42, p[1], p[2] + dx / len * 0.42]); spine.push([p[0], p[1] - 0.16, p[2]]);
-      if (i % 2 === 0 && i < N) P.dash(k, sleeper, [p[0] + dz / len * 0.56, p[1] - 0.06, p[2] - dx / len * 0.56], [p[0] - dz / len * 0.56, p[1] - 0.06, p[2] + dx / len * 0.56], 0.085);   // 枕木
-      if (i % 10 === 5 && i < N) {   // 木支架：一对圆木桩加横梁；高的打上交叉的斜撑，接头钉一颗布扣
-        const y = p[1] - 0.2, ox = dz / len * 0.6, oz = -dx / len * 0.6, A = [p[0] + ox, p[2] + oz], B = [p[0] - ox, p[2] - oz];
-        if (!isTourWalkable(A[0], A[1], 0.4) && !isTourWalkable(B[0], B[1], 0.4)) {
-          for (const [x, z] of [A, B]) k.cyl(beam, 0.085, 0.1, y, x, y / 2, z, { seg: 7 });
+      const p = COASTER.at(i / N), len = Math.hypot(p.tx, p.tz) || 1, nx = p.tz / len, nz = -p.tx / len;   // nx, nz：水平的侧向（轨道不侧倾）
+      rails[0].push([p.x + nx * 0.42, p.y, p.z + nz * 0.42]); rails[1].push([p.x - nx * 0.42, p.y, p.z - nz * 0.42]); spine.push([p.x, p.y - 0.16, p.z]);
+      if (i > 8 && i <= crest + 2) chain.push([p.x, p.y - 0.02, p.z]);   // 提升坡中间的一条链子：出站一直到坡顶
+      if (i % 2 === 0 && i < N) P.dash(k, sleeper, [p.x + nx * 0.56, p.y - 0.06, p.z + nz * 0.56], [p.x - nx * 0.56, p.y - 0.06, p.z - nz * 0.56], 0.085);   // 枕木
+      if (i % 8 === 4 && i < N) {   // 木支架：一对圆木桩加横梁；高的桩粗一点、打上交叉的斜撑，接头钉一颗布扣
+        const y = p.y - 0.2, ox = nx * 0.6, oz = nz * 0.6, A = [p.x + ox, p.z + oz], B = [p.x - ox, p.z - oz], thick = 1 + Math.max(0, y - 4) * 0.09;
+        if (clear(A[0], A[1]) && clear(B[0], B[1])) {
+          for (const [x, z] of [A, B]) k.cyl(beam, 0.085 * thick, 0.1 * thick, y, x, y / 2, z, { seg: 7 });
           P.dash(k, beam, [A[0], y - 0.06, A[1]], [B[0], y - 0.06, B[1]], 0.11);
           const tiers = Math.max(0, Math.floor(y / 2.2));
           for (let t = 0; t < tiers; t++) { const y0 = y * t / tiers + 0.12, y1 = y * (t + 1) / tiers - 0.14;
@@ -460,6 +471,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     }
     k.tube(wool(RAIL_A), rails[0], 0.08, { straight: true, seg: 6 }); k.tube(wool(GOLD), rails[1], 0.08, { straight: true, seg: 6 }); k.tube(beam, spine, 0.06, { straight: true, seg: 5 });
     for (const rail of rails) P.stitch(d, rail.map(([x, y, z]) => [x, y + 0.083, z]), { len: 0.13, gap: 0.16, t: 0.018 });
+    P.stitch(d, chain, { color: 0x5b5560, len: 0.11, gap: 0.07, t: 0.04 });
     // 站台（参考图）：木平台、台阶，四根米白的柱子托着红瓦人字顶，山墙是米白的、中间一颗星，檐下一圈红白扇贝边
     const sx = -28.25, sz = -12.4, deck = 1.02, board = P.timber(0xb98a66);
     box(k, board, 2.5, 0.16, 6.4, sx, deck - 0.08, sz, 0.04, { long: 2 });
@@ -484,8 +496,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     for (const y of [0.5, 0.82]) P.rope(k, [sx - 1.15, deck + y, sz + 0.6], [sx - 1.15, deck + y, sz + 3.1], { sag: 0.03, r: 0.03 });
     // 站台脚下和轨道外面：一段栏杆、灌木、花
     { const ring = []; for (let i = 0; i < 7; i++) { const x = sx - 3.0 - (i > 3 ? (i - 3) * 0.1 : 0), z = sz + 1.2 + i * 1.5; if (!isTourWalkable(x, z, 0.4)) ring.push([x, z]); } P.fence(k, ring, { h: 0.85 }); }
-    for (const [x, z, r] of [[sx - 2.3, sz + 1.6, 0.55], [sx - 2.4, sz - 2.6, 0.5], [-18.6, -5.2, 0.6], [-13.2, -9.4, 0.55]]) if (!isTourWalkable(x, z, 0.5)) P.shrub(k, d, x, z, r, seed++);
-    for (const [x, z] of [[sx - 2.5, sz + 2.8], [sx - 2.2, sz - 3.6], [-16.2, -5.4]]) if (!isTourWalkable(x, z, 0.4)) P.flowerPatch(d, x, z, 4, 0.7, seed++);
+    for (const [x, z, r] of [[sx - 2.3, sz + 1.6, 0.55], [sx - 2.4, sz - 2.6, 0.5], [-17.0, -6.2, 0.6], [-15.6, -9.6, 0.55], [-16.4, 3.2, 0.6], [-15.8, 11.4, 0.55]]) if (!isTourWalkable(x, z, 0.5)) P.shrub(k, d, x, z, r, seed++);
+    for (const [x, z] of [[sx - 2.5, sz + 2.8], [sx - 2.2, sz - 3.6], [-16.0, -4.4], [-16.2, 7.4]]) if (!isTourWalkable(x, z, 0.4)) P.flowerPatch(d, x, z, 4, 0.7, seed++);
     // 小火车（参考图）：两节红车厢，车帮包一圈金边，头一节有圆鼻子和一颗星，深褐色的座，轮子带浅色的毂
     part(train, (kit, det) => {
       for (const dz of [0.2, -1.45]) {
