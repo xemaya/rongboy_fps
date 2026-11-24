@@ -286,9 +286,9 @@ const routeLength = (L, a, b, r) => { const pts = routeTo(L, a, b, r); if (!pts.
 function populate(ctx) {
   const { rooms, L, player, def, notes } = ctx, PR = navRadius(CONFIG.playerRadius);
   // 开局时会不会被出生点看见：睡着的要离得够远，醒着的要么看不见出生点、要么在视距之外
-  const seen = p => lineOfSight(L, { x: p.x, y: 0, z: p.z }, { x: player.x, y: 1.2, z: player.z });
+  const seen = (p, height) => lineOfSight(L, { x: p.x, y: height * CONFIG.enemyEyeHeight, z: p.z }, { x: player.x, y: 1.2, z: player.z });
   const far = p => Math.hypot(p.x - player.x, p.z - player.z);
-  const safe = (p, awake) => (awake ? far(p) > CONFIG.sightRange + 0.6 || !seen(p) : far(p) > CONFIG.hearRadius + 1.1 || !seen(p));
+  const safe = (p, awake, height) => far(p) > (awake ? CONFIG.sightRange + 0.6 : CONFIG.closeRange + 1.1) || !seen(p, height);
   const counters = {}, placedAll = [];
   for (const room of rooms) {
     const inner = innerOf(room, ctx), where = `${room.name}（${room.key}）`;
@@ -318,7 +318,7 @@ function populate(ctx) {
       const apart = p => Math.min(6, ...here.map(o => Math.hypot(o.x - p.x, o.z - p.z)));
       const snug = p => !freePoint(L, p.x, p.z, kind.radius + 0.75);   // 贴着墙或家具
       const score = p => (info.ranged ? Math.min(dE(p), 9) + Math.min(apart(p), 3) : 2 * Math.min(apart(p), 3.5) - Math.abs(dE(p) - 5) * 0.6 + (state === 'asleep' && snug(p) ? 0.8 : 0));
-      const pick = awake => all.filter(p => apart(p) >= 1.3 && safe(p, awake)).map(p => ({ ...p, score: score(p) - (dE(p) < 2.2 ? 6 : 0) })).sort((p, q) => q.score - p.score || p.x - q.x || p.z - q.z)
+      const pick = awake => all.filter(p => apart(p) >= 1.3 && safe(p, awake, kind.height)).map(p => ({ ...p, score: score(p) - (dE(p) < 2.2 ? 6 : 0) })).sort((p, q) => q.score - p.score || p.x - q.x || p.z - q.z)
         .find(p => routeTo(L, p, player, navRadius(kind.radius)).length > 0);
       let spot = pick(state !== 'asleep');
       if (!spot && state !== 'asleep') {
@@ -331,7 +331,7 @@ function populate(ctx) {
         heading: r2(spec.heading ?? (spec.type === 'shielded' ? toEntry : state === 'asleep' ? toEntry + (n % 2 ? Math.PI : turn) : toEntry + turn)) };
       if (state === 'patrol') {   // 巡逻：在屋里找一段走得通、全程不会被出生点看见的直线
         const leg = all.map(q => ({ ...q, len: Math.hypot(q.x - spot.x, q.z - spot.z), straight: Math.min(Math.abs(q.x - spot.x), Math.abs(q.z - spot.z)) < 0.3 }))
-          .filter(q => q.len >= 3 && q.len <= 9 && clearPath(L, spot, q, kind.radius + 0.1) && Array.from({ length: Math.ceil(q.len / 0.2) + 1 }, (_, i) => i / Math.ceil(q.len / 0.2)).every(f => safe({ x: spot.x + (q.x - spot.x) * f, z: spot.z + (q.z - spot.z) * f }, true)))
+          .filter(q => q.len >= 3 && q.len <= 9 && clearPath(L, spot, q, kind.radius + 0.1) && Array.from({ length: Math.ceil(q.len / 0.2) + 1 }, (_, i) => i / Math.ceil(q.len / 0.2)).every(f => safe({ x: spot.x + (q.x - spot.x) * f, z: spot.z + (q.z - spot.z) * f }, true, kind.height)))
           .sort((p, q) => (q.len + (q.straight ? 3 : 0)) - (p.len + (p.straight ? 3 : 0)))[0];
         if (leg) { enemy.patrol = [[leg.x, leg.z], [spot.x, spot.z]]; enemy.heading = r2(Math.atan2(leg.x - spot.x, leg.z - spot.z)); }
       }

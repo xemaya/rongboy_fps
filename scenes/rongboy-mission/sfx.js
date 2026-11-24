@@ -80,6 +80,20 @@ export function createArsenalAudio(ctx) {
       tone(0, 620, 600, 0.26, 0.07, 'square'); tone(0, 930, 905, 0.2, 0.04, 'triangle'); hiss(0, 0.03, 0.08, 2600, 'bandpass', 1.5);
     } else if (kind === 'tock') {    // 打在石台上：嗒
       tone(0, 420, 300, 0.035, 0.1, 'triangle'); hiss(0, 0.03, 0.09, 2400, 'bandpass', 1.4);
+    } else if (kind === 'tv-switch') {
+      tone(0,628,233,.057,.072,'triangle'); hiss(.018,.122,.098,1750,'bandpass',1.12);
+    } else if (kind === 'tv-channel') {
+      for (const [offset, hz] of [[0,523], [.071,659], [.153,784]]) tone(offset,hz,hz*.99,.16,.075,'triangle');
+    } else if (kind === 'fridge-latch') {
+      tone(0,238,148,.072,.12,'triangle'); hiss(.025,.085,.06,790,'lowpass');
+    } else if (kind === 'fridge-hum') {
+      tone(0,120,98,.53,.039,'sine'); tone(.016,183,166,.34,.032,'sine');
+      tone(.48,287,109,.12,.064,'triangle');
+    } else if (kind === 'toast-pop') {
+      tone(0,520,157,.114,.10,'triangle'); tone(.105,607,228,.095,.083,'triangle');
+      hiss(.04,.1,.05,4700,'bandpass',.74);
+    } else if (kind === 'prism-chime') {
+      for (const [offset,hz] of [[0,1047],[.10,1319],[.21,1568]]) tone(offset,hz,hz*.993,.32,.064);
     } else if (kind === 'rattle') {  // 骨架模型：一串骨头磕在一起
       for (let i = 0; i < 7; i++) { tone(i * 0.035 + Math.random() * 0.01, 700 + Math.random() * 500, 500, 0.03, 0.06, 'triangle'); hiss(i * 0.035, 0.015, 0.05, 3200, 'bandpass', 2); }
     } else if (kind === 'squeak') {  // 小黄鸭：吱

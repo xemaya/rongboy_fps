@@ -155,7 +155,7 @@ test('picking up an exhibit rouses that room, not the whole museum', () => {
   assert.ok(roused.every(e => Math.hypot(e.x - mask.x, e.z - mask.z) < def.mission.alarm + 0.5));
 });
 
-test('the player can walk both new flights and return to the ground floor', () => {
+test('the player can walk to the museum vault and return to the ground floor', () => {
   const walk = (s, target) => {
     const map = s.level, p = s.player, radius = navRadius(CONFIG.playerRadius);
     for (let frame = 0; frame < 50 * 60; frame++) {
@@ -173,11 +173,6 @@ test('the player can walk both new flights and return to the ground floor', () =
   assert.equal(s.collected, 1);
   walk(s, { x: 0, y: 0, z: 5 });
 
-  const cottage = compileLevel(LEVELS.cottage), garden = createGame({ level: cottage });
-  garden.enemies = [];
-  garden.total = 0; // Suppress the automatic clear when probing routes without enemies.
-  walk(garden, { x: -6.9, z: -1, y: cottage.storeyHeight });
-  walk(garden, { ...cottage.player, y: 0 });
 });
 
 test('once roused, ground-floor enemies find the player in the central hall', () => {

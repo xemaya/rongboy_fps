@@ -125,10 +125,11 @@ if (serve) {
     try {
       const file = path.join(output, path.basename(name));
       const html = await readFile(file);
-      // dist/ also holds the opening film's mp4: answer range requests so the <video> element can seek
-      if (file.endsWith('.mp4')) {
+      // Media elements use range requests to resume playback and seek.
+      const mediaType = { '.mp4': 'video/mp4', '.mp3': 'audio/mpeg' }[path.extname(file)];
+      if (mediaType) {
         const m = /bytes=(\d*)-(\d*)/.exec(req.headers.range || ''), a = m && m[1] ? +m[1] : 0, b = m && m[2] ? Math.min(+m[2], html.length - 1) : html.length - 1;
-        res.writeHead(m ? 206 : 200, { 'content-type': 'video/mp4', 'accept-ranges': 'bytes', 'content-length': b - a + 1, ...(m ? { 'content-range': `bytes ${a}-${b}/${html.length}` } : {}) });
+        res.writeHead(m ? 206 : 200, { 'content-type': mediaType, 'accept-ranges': 'bytes', 'content-length': b - a + 1, ...(m ? { 'content-range': `bytes ${a}-${b}/${html.length}` } : {}) });
         res.end(html.subarray(a, b + 1));
         return;
       }

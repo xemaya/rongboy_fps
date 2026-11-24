@@ -29,6 +29,17 @@ body.park-tour #missionStep { font-weight:650; }
   filter: drop-shadow(0 3px 3px #24190bd4);
 }
 .heart.off { background-image: var(--heart-empty); }
+#playerHealth { position:absolute; left:var(--hud-x); bottom:var(--hud-y); width:clamp(132px,18vw,270px);
+  color:#ffe8b8; font:700 clamp(14px,1.55vw,21px)/1.2 var(--ui-title); text-shadow:0 2px 3px #281f22; }
+.health-caption { display:flex; justify-content:space-between; padding:0 3px 5px; }
+.health-track { height:clamp(10px,1.24vw,16px); background:#30252c; border:1px solid #edbf9c;
+  padding:2px; border-radius:16px; box-shadow:0 2px 5px #261c19af; }
+#healthFill { display:block; height:100%; width:100%; border-radius:12px; background:linear-gradient(#fdb795,#d46768);
+  transition:width 150ms ease-out; }
+#parkTrap { display:none; position:absolute; z-index:2; inset:0; pointer-events:none;
+  box-shadow:inset 0 0 2vw 3vw #743d37, inset 0 0 7vw 8vw #422a33e0; }
+body.park-boxed #parkTrap { display:block; }
+#bossDetail { margin-top:4px; font-size:.76em; color:#ffe5b2; }
 .ammo-readout {
   display: flex; align-items: center; gap: clamp(8px, 1.15vw, 19px);
   position: absolute; right: var(--hud-x); bottom: var(--hud-y); color: #fff0c9;
@@ -294,11 +305,13 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   #pauseDetailsBack { width: min(100%,172px); justify-self: end; }
 }
 </style></head><body class="loading game-interface"><section id="loading" role="status" aria-live="polite"><div><div class="loadingBrand"><strong>绒仔</strong><span>RONGBOY</span></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a class="ui-return" id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 投掷，G 或十字键下切换炸弹，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
+<div id="parkTrap" aria-hidden="true"></div>
 <div id="fightHud" hidden>
   <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span></div>
   <div class="hearts" id="hearts" role="img" aria-label="3 颗心">
     <span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span>
   </div>
+  <div id="playerHealth" hidden><div class="health-caption"><span id="healthLabel"></span><span id="healthValue"></span></div><div class="health-track" id="healthTrack" role="meter" aria-labelledby="healthLabel" aria-valuemin="0"><i id="healthFill"></i></div></div>
   <div class="ammo-readout">
     <div id="reloadStatus" role="status" hidden><span id="reloadCaption"></span><progress id="reloadProgress" max="1" value="0" aria-label="装填进度"></progress></div>
     <img id="weaponIcon" alt="">
@@ -308,7 +321,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   </div>
 </div>
 <div id="challenge-run" hidden><span id="challenge-progress" aria-live="polite"></span><span id="challenge-clock"></span><span id="challenge-window" hidden></span></div>
-<div id="bossHud" hidden><span id="bossName"></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
+<div id="bossHud" hidden><span id="bossName"></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div><div id="bossDetail" hidden></div></div>
 <div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
 <div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
 <div id="swapPrompt" hidden></div><div id="toast" aria-live="polite"></div><div id="reticle" hidden aria-hidden="true"></div><div id="hitMarker" hidden aria-hidden="true">×</div><div id="statusEffect" aria-live="polite"></div>

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/amusement-tour.js';
-import house from '../../scenes/rongboy-mission/levels/house.js';
+import battle from '../../scenes/rongboy-mission/levels/amusement.js';
 import { compileLevel, freePoint } from '../../scenes/rongboy-mission/level.js';
 import { createGame, fire, missionStatus, step } from '../../scenes/rongboy-mission/game.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BRIDGE, TOUR_MAZE, nearbyTourStop } from '../../scenes/rongboy-mission/park-tour-layout.js';
@@ -10,7 +10,7 @@ const p=s.player, distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 assert.equal(s.enemies.length,0);
 assert.equal(s.owned.some(Boolean),false);
 assert.equal(fire(s),false);
-assert.ok(house.enemies.length>0,'the house keeps its combat roster');
+assert.ok(battle.enemies.length>0,'the battle sample stays independently accessible');
 const routeLength=TOUR_PATH.slice(1).reduce((n,q,i)=>n+distance(q,TOUR_PATH[i]),0);
 assert.ok(routeLength>160);
 const visited=new Set();

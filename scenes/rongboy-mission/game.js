@@ -3,7 +3,7 @@
 // 走路、碰撞、寻路按所在那一层的平面做，毛球和视线在三维里算。
 // 与工坊版的区别：僵尸数量固定且默认没发现你；武器有伤害、射程、弹匣和噪音；通关靠完成任务。
 import { FEEL } from '../rongboy-shooter-fps/feedback.js';
-import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, storeyAt, surfaceY, navGoal, inStairs, freePoint } from './level.js';
+import { segmentBox, clearPath, lineOfSight, resolveBody, routeTo, navRadius, isOutdoor, roomAt, storeyAt, surfaceY, navGoal, inStairs, freePoint } from './level.js';
 import { advanceAction, interruptAction } from './actions.js';
 import {SPECIAL_TYPES,ARROW_SPEED} from './attacks.js';
 import {launchBomb,advanceBombs} from './bombs.js';
@@ -13,13 +13,14 @@ import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChall
 import { travelPace, strideTravel } from './locomotion.js';
 import { advanceWaves } from './encounter-waves.js';
 import { constrainTourWalk } from './park-tour-layout.js';
+import { makeAmusement, moveAmusement, advanceAmusement, amusementContact, hitAmusement, parkHoleAt, CLOWN, SAFE_PAD, GATES } from './amusement.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
   chargeTime: 0.82, maxBalls: 48, ballLife: 5, repeatHitDelay: 0.18, gravity: 0.9,
   // 感知
-  hearRadius: 1.5,     // 睡着的僵尸：你走到这么近才会醒
-  closeRange: 1.3,     // 醒着的僵尸：这么近时不看朝向也会发现你
+  enemyEyeHeight: .78,
+  closeRange: 1.85,    // 同层贴近时，不看朝向，睡着的也会惊醒
   sightRange: 8, sightCos: 0.34,   // 醒着的僵尸：视距，以及正前方约 ±70° 的视野
   wakeAsleep: 1.1, wakeIdle: 0.45, wakeHit: 0.35,   // 从察觉到真正扑过来的反应时间
   callRadius: 4.5,     // 一只警觉后会叫醒这么近、且看得见的同伴
@@ -45,21 +46,21 @@ export const ENEMY_TYPES = {
 // noise 是开枪声能惊动僵尸的距离（隔墙减半）。reserve 为 Infinity 表示备弹无限。pack 是捡一个弹药包补多少备弹。
 export const WEAPONS = [
   { id: 'single', short: '手枪', name: '线轴手枪', tag: '兜底 · 备弹无限', count: 1, damage: 2, chargeDamage: 1, range: 6, minDamage: 1, maxRange: 22,
-    mag: 6, reserve: Infinity, reload: 1.15, cooldown: 0.36, speed: 13, bounces: 2, noise: 5.5, push: 1.8, chargePush: 3.6, color: 0xf3dfa5 },
+    mag: 6, reserve: Infinity, reload: 0.8, cooldown: 0.36, speed: 13, bounces: 2, noise: 5.5, push: 1.8, chargePush: 3.6, color: 0xf3dfa5 },
   { id: 'scatter', short: '霰弹', name: '绒球霰弹', tag: '贴脸 · 一枪倒', count: 3, fan: 0.11, damage: 2, chargeDamage: 0, range: 4, minDamage: 1, maxRange: 11,
-    mag: 2, reserve: 6, pack: 4, reload: 1.7, cooldown: 0.55, speed: 12, bounces: 1, noise: 8, push: 0.72, chargePush: 0.55, color: 0xabc8bd },
+    mag: 2, reserve: 6, pack: 4, reload: 1.15, cooldown: 0.55, speed: 12, bounces: 1, noise: 8, push: 0.72, chargePush: 0.55, color: 0xabc8bd },
   { id: 'heavy', short: '探照灯炮', name: '探照灯炮', tag: '发光重弹 · 破盾', count: 1, damage: 7, chargeDamage: 0, range: 12, minDamage: 4, maxRange: 24,
-    mag: 1, reserve: 3, pack: 2, reload: 2.0, cooldown: 0.5, speed: 10, bounces: 3, noise: 12, push: 9.2, chargePush: 3.6, color: 0xd6a789 },
+    mag: 1, reserve: 3, pack: 2, reload: 1.3, cooldown: 0.5, speed: 10, bounces: 3, noise: 12, push: 9.2, chargePush: 3.6, color: 0xd6a789 },
   // 以下四把要在关卡里捡到（或者关卡的 arsenal 里写上）。feel：后坐力和受击手感借用前三把里的哪一把。
   // 静电枪发射会张开的飞网，飞行中扫到的僵尸才会被定住。
   { id: 'stun', short: '静电枪', name: '静电枪', tag: '飞网 · 定住一小群', kind: 'zap', feel: 'single', count: 1, damage: 1, minDamage: 1, range: 7.5, speed: 18, stun: 2.6, targets: 3,
-    mag: 4, reserve: 4, pack: 4, reload: 1.8, cooldown: 0.55, noise: 3.5, color: 0x8fd8f0 },
+    mag: 4, reserve: 4, pack: 4, reload: 1.2, cooldown: 0.55, noise: 3.5, color: 0x8fd8f0 },
   // 缝纫机枪：按住连发的小纽扣，单发伤害低、有散布、不反弹。
   { id: 'sewing', short: '订书机', name: '订书机枪', tag: '纽扣连发 · 清一群', auto: true, feel: 'single', count: 1, damage: 1, chargeDamage: 0, range: 7, minDamage: 1, maxRange: 15,
-    mag: 32, reserve: 64, pack: 32, reload: 1.7, cooldown: 0.085, speed: 19, bounces: 0, spread: 0.05, radius: 0.055, noise: 6, push: 0.45, chargePush: 0, color: 0xe7836f },
+    mag: 32, reserve: 64, pack: 32, reload: 1.15, cooldown: 0.085, speed: 19, bounces: 0, spread: 0.05, radius: 0.055, noise: 6, push: 0.45, chargePush: 0, color: 0xe7836f },
   // 毛衣针：又直又快，一针能穿过 pierce 只僵尸再扎进墙里。按住是举枪瞄准（镜头拉近），蓄满伤害更高。
   { id: 'needle', short: '毛衣针', name: '毛衣针', tag: '4× 瞄准 · 扎穿棉甲', zoom: 4, feel: 'heavy', count: 1, damage: 4, chargeDamage: 4, range: 22, minDamage: 3, maxRange: 40,
-    mag: 3, reserve: 6, pack: 3, reload: 2.1, cooldown: 0.7, speed: 34, bounces: 0, pierce: 2, pierceArmor: true, straight: true, radius: 0.05, noise: 7, push: 2.2, chargePush: 1.4, color: 0xcfd6d8 },
+    mag: 3, reserve: 6, pack: 3, reload: 1.4, cooldown: 0.7, speed: 34, bounces: 0, pierce: 2, pierceArmor: true, straight: true, radius: 0.05, noise: 7, push: 2.2, chargePush: 1.4, color: 0xcfd6d8 },
   // 保留 yarn 的补给标识，旧的地图和暗格仍然补这个投掷物。
   { id: 'yarn', short: '蒸笼', name: '折叠蒸笼', tag: '范围伤害 · 留下绒网', kind: 'grenade', feel: 'scatter', count: 1, damage: 4, chargeDamage: 0, range: 30, minDamage: 2, maxRange: 60,
     blast: 2.6, tangle: 4, fuse: 1.5, mag: 1, reserve: 1, reload: 1.3, cooldown: 0.6, speed: 4.2, bounces: 99, radius: 0.19, noise: 14, push: 3, chargePush: 0, color: 0xb994ce },
@@ -78,14 +79,16 @@ export const netRadius = distance => 0.24 + Math.min(1, distance / 3.0) * 1.24;
 const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const length = (x, z) => Math.hypot(x, z);
 
-export function createGame({ level } = {}) {
+export function createGame({ level, parkCheckpoint = 0 } = {}) {
   if (!level) throw new Error('createGame 需要一个编译好的关卡');
+  const park = level.mission?.type === 'amusement' ? makeAmusement(parkCheckpoint) : null;
+  const maxHealth = park ? 100 : CONFIG.maxHealth;
   const s = {
-    phase: 'playing', level, time: 0, weapon: 0,
-    ammo: WEAPONS.map(w => ({ mag: w.mag, reserve: w.reserve })), reloading: false, reload: 0, trigger: false,
+    phase: 'playing', level, park, maxHealth, time: 0, weapon: 0,
+    ammo: WEAPONS.map(w => ({ mag: w.mag, reserve: w.reserve })), reloading: false, reload: 0, stowedReload: WEAPONS.map(() => 0), trigger: false, burstShots: 0,
     // 开局带哪些枪：关卡的 arsenal（武器 id 列表），不写就是最早的三把。其余的要捡。
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
-    health: CONFIG.maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
+    health: maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
     charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
@@ -103,17 +106,25 @@ export function createGame({ level } = {}) {
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
+  if (park && parkCheckpoint>0) {
+    const entry=GATES[parkCheckpoint-1];
+    Object.assign(s.player,entry ? {x:entry.x,z:entry.z-1.17} : SAFE_PAD);
+    if (parkCheckpoint===GATES.length) Object.assign(s.player,SAFE_PAD);
+    for (const e of s.enemies) e.enabled=e.zone===parkCheckpoint;
+    s.enemies=s.enemies.filter(e=>e.zone>=parkCheckpoint);
+    s.kills=s.total-s.enemies.length;
+  }
   return s;
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave }) {
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave, zone }) {
   type = type === 'runner' || type === 'weaver' ? 'leaper' : type;
   const roster = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
   const attic = type === 'boss-warden' && encounter === 'attic';
   const def = attic ? { ...roster, hp: 44, speed: 1.58, resistance: .12, armor: .55 } : roster;
   const e = {
-    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, speed: def.speed * (s.level.enemyPace ?? 1), type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, zone, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0, stun: 0, tangle: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
@@ -133,7 +144,12 @@ export const aliveCount = s => s.enemies.reduce((n, e) => n + (e.alive ? 1 : 0),
 
 export function selectWeapon(s, index) {
   if (s.phase !== 'playing' || !WEAPONS[index] || WEAPONS[index].kind === 'grenade' || !s.owned[index] || s.weapon === index) return false;
-  s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false;
+  const previous = s.weapon, magazine = s.ammo[previous];
+  // Putting away an empty gun keeps its loading time. A manual top-up with
+  // usable ammo can still be interrupted by switching away.
+  if (s.owned[previous] && magazine.mag === 0 && magazine.reserve > 0)
+    s.stowedReload[previous] = s.reloading ? s.reload : WEAPONS[previous].reload;
+  s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false; s.burstShots = 0;
   s.events.push({ type: 'weapon', weapon: index });
   if (s.ammo[index].mag === 0 && s.ammo[index].reserve > 0) startReload(s);
   return true;
@@ -149,20 +165,25 @@ export function swapWeapon(s) {
 export function startReload(s) {
   const w = WEAPONS[s.weapon], a = s.ammo[s.weapon];
   if (s.phase !== 'playing' || s.reloading || a.mag >= w.mag || a.reserve <= 0) return false;
-  s.reloading = true; s.reload = w.reload; s.charging = false; s.charge = 0;
-  s.events.push({ type: 'reload', weapon: w.id, duration: w.reload });
+  s.reloading = true; s.reload = s.stowedReload[s.weapon] || w.reload; s.charging = false; s.charge = 0;
+  s.stowedReload[s.weapon] = 0;
+  s.events.push({ type: 'reload', weapon: w.id, duration: s.reload });
   return true;
 }
 
-function finishReload(s) {
-  const w = WEAPONS[s.weapon], a = s.ammo[s.weapon], take = Math.min(w.mag - a.mag, a.reserve);
+function fillMagazine(s, index) {
+  const a = s.ammo[index], take = Math.min(WEAPONS[index].mag - a.mag, a.reserve);
   a.mag += take; a.reserve -= take;   // Infinity - n 仍是 Infinity
+}
+
+function finishReload(s) {
+  fillMagazine(s, s.weapon);
   s.reloading = false; s.reload = 0;
-  s.events.push({ type: 'reloaded', weapon: w.id });
+  s.events.push({ type: 'reloaded', weapon: WEAPONS[s.weapon].id });
 }
 
 function canShoot(s) {
-  if (s.level.tour || s.phase !== 'playing' || s.reloading) return false;
+  if (s.level.tour || s.phase !== 'playing' || s.reloading || s.park?.trap || s.park?.fallUntil) return false;
   if (s.ammo[s.weapon].mag > 0) return true;
   if (!startReload(s)) { s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id }); backToPistol(s); }
   return false;
@@ -177,7 +198,11 @@ function backToPistol(s) {
 
 // 按下扳机。连发枪按住就一直打（在 step 里出弹）；其余的是开始蓄力，松开才发射。
 export function beginCharge(s) {
-  if (WEAPONS[s.weapon].auto) { s.trigger = canShoot(s); return s.trigger; }
+  if (WEAPONS[s.weapon].auto) {
+    if (!s.trigger) s.burstShots = 0;
+    s.trigger = canShoot(s);
+    return s.trigger;
+  }
   if (s.charging || !canShoot(s)) return false;
   s.charging = true; s.charge = 0;
   return true;
@@ -206,8 +231,8 @@ function launch(s, w, power, origin, dx, dy, dz) {
   const quiet = s.enemies.filter(e => e.alive && e.enabled && unaware(e)).map(e => e.id);
   for (let i = 0; i < w.count; i++) {
     if (s.balls.length >= CONFIG.maxBalls) expireBall(s, s.balls.shift());
-    // 散布：霰弹是固定的扇形；连发枪每发朝左右、上下各偏一点（由发数决定，不用随机数，结果可重现）
-    const jitter = w.spread ? [Math.sin(s.shots * 12.9898) * 43758.5453, Math.sin(s.shots * 78.233) * 12543.123].map(v => (v - Math.floor(v) - 0.5) * 2 * w.spread) : [0, 0];
+    // 霰弹固定扇形；订书机首发在中心，后续连发按发数加入可重现的散布。
+    const jitter = w.spread && s.burstShots > 0 ? [Math.sin(s.shots * 12.9898) * 43758.5453, Math.sin(s.shots * 78.233) * 12543.123].map(v => (v - Math.floor(v) - 0.5) * 2 * w.spread) : [0, 0];
     const offset = (w.count === 1 ? 0 : (i - (w.count - 1) / 2) * ((w.fan ?? 0.15) - power * 0.07)) + jitter[0];
     const ax = dx + rx * offset, ay = dy + jitter[1], az = dz + rz * offset, n = Math.hypot(ax, ay, az);
     const speed = w.speed - (w.id === 'single' ? power * 2 : 0) + (w.kind === 'grenade' ? power * 4.5 : 0);
@@ -219,6 +244,7 @@ function launch(s, w, power, origin, dx, dy, dz) {
       damage: w.damage + (power >= 0.6 ? w.chargeDamage : 0), minDamage: w.minDamage, range: w.range, maxRange: w.maxRange,
       impulse: w.push + power * w.chargePush, stun: FEEL[w.feel || w.id].stun + power * 0.035,
       pierce: w.pierce || 0, pierceArmor: !!w.pierceArmor, passed: {}, straight: !!w.straight, fuse: w.fuse || 0,
+      springShot: !!s.park && s.time < s.park.launchUntil && s.player.jump > .65,
       age: 0, travel: 0, lifetime: CONFIG.ballLife, bounceCount: 0, maxBounces: w.bounces, enemyHits: 0, hitTimes: {}, destroyed: false, quiet,
     });
   }
@@ -232,6 +258,7 @@ export function fire(s, power = 0, shot = null) {
   else launch(s, w, power, origin, dx, dy, dz);
   s.ammo[s.weapon].mag--;
   s.shots++;
+  if (w.auto) s.burstShots++;
   s.cooldown = w.cooldown + (w.id === 'single' && power >= 0.6 ? 0.16 : 0);
   s.events.push({ type: 'shot', x: origin.x, y: origin.y, z: origin.z, dx, dy, dz, power, weapon: w.id });
   emitNoise(s, origin.x, origin.z, w.noise, origin.y);
@@ -329,18 +356,23 @@ const at = e => ({ x: e.x, z: e.z, base: e.base });
 // 视线两端：僵尸从脚边算起（矮家具会挡住它），玩家按眼睛高度。
 const feet = e => ({ x: e.x, y: e.y, z: e.z });
 const eyes = p => ({ x: p.x, y: p.y + 1.2, z: p.z });
+const enemyEyes = e => ({ x: e.x, y: e.base + e.height * CONFIG.enemyEyeHeight, z: e.z });
 
 // 僵尸察觉到异常，过一小段反应时间后才会警觉。
 function notice(s, e, delay, reason) {
   if (!e.alive || !e.enabled || !unaware(e)) return;
-  const base = reason === 'hit' ? CONFIG.wakeHit : e.awareness === 'asleep' ? CONFIG.wakeAsleep : CONFIG.wakeIdle;
-  e.awareness = 'waking'; e.wake = base + delay; e.patrol = null;
+  const base = reason === 'hit' ? CONFIG.wakeHit : reason === 'near' ? 0.33 : e.awareness === 'asleep' ? CONFIG.wakeAsleep : CONFIG.wakeIdle;
+  const roomPause = s.level.roomAlerts && reason === 'sight' && e.lure?.kind === 'noise' ? .18 + (e.id % 4) * .12 : 0;
+  e.awareness = 'waking'; e.wake = base + delay + roomPause; e.patrol = null;
   s.events.push({ type: 'notice', id: e.id, ...at(e), reason });
 }
 
 function becomeAlert(s, e) {
   e.awareness = 'alert'; e.action = 'chase'; e.actionAge = 0; e.navIn = 0;
   s.events.push({ type: 'alert', id: e.id, ...at(e), enemyType: e.type });
+  // In chapters, each zombie needs its own cue. An alert cannot travel
+  // from body to body and wake every room down the corridor.
+  if (s.level.roomAlerts) return;
   for (const o of s.enemies) {
     if (o === e || !o.alive || !o.enabled || !unaware(o)) continue;
     const d = Math.hypot(o.x - e.x, o.base - e.base, o.z - e.z);
@@ -348,36 +380,64 @@ function becomeAlert(s, e) {
   }
 }
 
-// 声音：看得见声源的在 radius 内都会被惊动，隔着墙或楼板只有一半距离。y 是声源的高度。
-// 再远一圈（到 SEARCH.reach 倍）的、醒着但还没发现你的（站岗、巡逻），不会直接扑过来，而是走到响的地方去看一眼（docs/fun-design.md 2.6）。
-// 睡着的只有离得比较近（SEARCH.stir 倍）才被吵醒过来看。僵尸数不变，变的是它们在哪：开过枪的地方会有人来。
-// reach：站岗、巡逻的听多远（开枪声 noise 的几倍）；stir：睡着的听多远（比 1 大才会被远处的枪声吵醒）
-// alarm：拿到任务物品（还没拿齐）时，警报范围几倍以内的过来看；拿齐了是整层
-// travel：最多走多少秒（走不到就算了）；look：到了以后张望多少秒；pace：走得比追人慢多少；arrive：离那个点多近算到了
-// 取值见 docs/fun-design.md 第 7 节 2026-11-20：reach 2 / 3 和 stir 1.5 / 2 用机器人比过。
-export const SEARCH = { reach: 3, stir: 1.5, alarm: 2, travel: 15, look: 4, pace: 0.9, arrive: 1.0 };
+// 房间制关卡按枪声挑两只前去查看，近处的其他僵尸留在原地转头。
+// 其余小局沿用直接警觉和远处搜索。reach / stir 是站岗与睡着时的听声倍率。
+export const SEARCH = { reach: 3, stir: 1.5, alarm: 2, travel: 15, look: 4, glance: 1.4, pace: 0.9, arrive: 1.0 };
 export function emitNoise(s, x, z, radius, y = 1.2) {
-  const floor = storeyAt(s.level, y - 1).y, S = storeyAt(s.level, floor);
-  let spot = null;
+  const S = storeyAt(s.level, y - 1), floor = S.y, sound = { x, y, z };
+  const candidates = s.level.roomAlerts ? [] : null, sourceRoom = candidates && roomAt(S, x, z);
   for (const e of s.enemies) {
     if (!e.alive || !e.enabled || !unaware(e)) continue;
     const d = Math.hypot(e.x - x, e.base + 1.2 - y, e.z - z);
-    const heard = (r) => d < r && (d < r * 0.5 || lineOfSight(s.level, { x, y, z }, feet(e)));
-    if (heard(radius)) { notice(s, e, d / 14, 'noise'); continue; }
-    // 过来看：只有同一层的、没被闹钟引住的；已经在过来的路上就改去新响的地方
-    if ((e.lure && e.lure.kind !== 'noise') || Math.abs(e.base - floor) > 1 || !heard(radius * (e.awareness === 'asleep' ? SEARCH.stir : SEARCH.reach))) continue;
-    spot ??= freePoint(S, x, z, 0.45) ? { x, z } : false;   // 响在家具里（手雷贴着柜子炸）：没地方站，不过来看，但上面的惊动照常
-    if (spot) search(s, e, spot);
+    const heard = (r) => d < r && (d < r * .5 || lineOfSight(s.level, sound, enemyEyes(e)));
+    if (!candidates && heard(radius)) { notice(s, e, d / 14, 'noise'); continue; }
+    if (Math.abs(e.base - floor) > 1 || e.lure && e.lure.kind !== 'noise') continue;
+    const reach = radius * (e.awareness === 'asleep' ? SEARCH.stir : SEARCH.reach);
+    if (!heard(candidates ? Math.min(reach, radius + 3) : reach)) continue;
+    if (!candidates) {
+      if (freePoint(S, x, z, .45)) search(s, e, sound);
+      continue;
+    }
+    if (e.lure && !e.lure.watch) continue;
+    const glance = d < radius && (roomAt(S, e.x, e.z) === sourceRoom || d < 2.6);
+    candidates.push({ e, d, glance });
+  }
+  if (!candidates?.length) return;
+  // There are two places to go and check a noise. Other nearby listeners
+  // still turn towards it from where they are.
+  const nearby = s.enemies.filter(e => e.alive && e.enabled && Math.abs(e.base - floor) <= 1 && length(e.x-x,e.z-z) < 10);
+  const looking = nearby.filter(e => e.lure?.kind === 'noise' && !e.lure.watch).length;
+  const engaged = nearby.filter(e => !unaware(e)).length;
+  let available = freePoint(S, x, z, .45) ? Math.max(0, Math.min(2 - looking, 4 - looking - engaged)) : 0;
+  for (const { e, glance } of candidates.sort((a,b) => a.d - b.d)) {
+    if (available > 0) { search(s, e, sound); available--; }
+    else if (glance) search(s, e, sound, true);
   }
 }
-// 让一只还没发现你的僵尸到 spot 去看一眼。睡着的先被吵醒（变成站岗的，睁着眼）。
-function search(s, e, spot) {
-  // 已经在往差不多的地方走（缝纫机枪一秒十几声）：路不用重找，到了以后再看一轮
+
+// A ball landing nearby or a neighbor taking a hit gets a local glance.
+function stirImpact(s, sound, floor, ignore) {
+  let reacted = false;
+  for (const e of s.enemies) {
+    if (!e.alive || !e.enabled || e === ignore || !unaware(e) || e.lure || Math.abs(e.base - floor) > 1) continue;
+    if (length(e.x - sound.x, e.z - sound.z) > 3.4 || !lineOfSight(s.level, sound, enemyEyes(e))) continue;
+    search(s, e, sound, true);
+    reacted = true;
+  }
+  return reacted;
+}
+
+function search(s, e, spot, watch = false) {
   const t = e.lure;
-  if (t?.kind === 'noise' && length(t.x - spot.x, t.z - spot.z) < 1.5) { if (t.arrived) t.until = Math.max(t.until, s.time + SEARCH.look); return; }
-  e.awareness = 'idle'; e.patrol = null; e.navIn = 0; e.route = [];
-  e.lure = { kind: 'noise', x: spot.x, z: spot.z, lookX: spot.x, lookZ: spot.z, until: s.time + SEARCH.travel, arrived: false };
-  s.events.push({ type: 'search', id: e.id, ...at(e), toX: spot.x, toZ: spot.z });
+  if (t?.kind === 'noise' && t.watch === watch && length(t.lookX - spot.x, t.lookZ - spot.z) < 1.5) {
+    if (t.arrived && !watch) t.until = Math.max(t.until, s.time + SEARCH.look);
+    return;
+  }
+  e.awareness = 'idle'; e.navIn = 0; e.route = [];
+  if (!watch && !s.level.resumePatrolAfterSearch) e.patrol = null;
+  e.lure = { kind:'noise', x:watch ? e.x : spot.x, z:watch ? e.z : spot.z, lookX:spot.x, lookZ:spot.z,
+    until:s.time + (watch ? SEARCH.glance : SEARCH.travel), arrived:watch, watch };
+  s.events.push({ type:'search', id:e.id, ...at(e), toX:spot.x, toZ:spot.z });
 }
 
 function sense(s, e, dt) {
@@ -394,12 +454,9 @@ function sense(s, e, dt) {
   e.senseIn -= dt;
   if (e.senseIn > 0) return;
   e.senseIn = 0.1;
-  const sees = () => lineOfSight(s.level, feet(e), eyes(p));
-  if (e.awareness === 'asleep') {
-    if (d < CONFIG.hearRadius && sees()) notice(s, e, 0, 'near');
-    return;
-  }
-  if (d < CONFIG.closeRange && sees()) { notice(s, e, 0, 'near'); return; }
+  const sees = () => lineOfSight(s.level, enemyEyes(e), eyes(p));
+  if (d < CONFIG.closeRange && Math.abs(p.y - e.base) < CONFIG.sameLevel && sees()) { notice(s, e, 0, 'near'); return; }
+  if (e.awareness === 'asleep') return;
   if (e.lure && e.lure.kind !== 'noise') return;   // 被闹钟引住的只盯着闹钟：贴到跟前、开枪或者打中它才回过神；听到枪声过来看的照样睁着眼
   if (d < CONFIG.sightRange) {
     const facing = (Math.sin(e.heading) * dx + Math.cos(e.heading) * dz) / flat;
@@ -424,12 +481,29 @@ function idleMove(s, e, dt) {
   e.hop = 0; e.hopPhase = 0;
   if (e.awareness !== 'idle' || !e.patrol || e.hit > 0) return;
   if (e.patrolWait > 0) { e.patrolWait -= dt; return; }
-  const [tx, tz] = e.patrol[e.patrolIndex], dx = tx - e.x, dz = tz - e.z, d = length(dx, dz);
-  if (d < 0.12) { e.patrolIndex = (e.patrolIndex + 1) % e.patrol.length; e.patrolWait = 1.4; return; }
-  const alignment = steerTravel(e, dx, dz, dt, d);
-  const pace = travelPace(e, 1.5, .5);
-  const travel = Math.min(d, alignment * e.speed * .42 * pace * (e.tangle > 0 ? TANGLE_SPEED : 1) * dt);
-  e.x += dx / d * travel; e.z += dz / d * travel;
+  const [x,z] = e.patrol[e.patrolIndex], goal = { x,z };
+  const S = storeyAt(s.level,e.base), r = navRadius(e.radius);
+  const nextLeg = () => {
+    e.patrolIndex = (e.patrolIndex + 1) % e.patrol.length;
+    e.patrolWait = .75; e.navIn = 0; e.route = [];
+  };
+  if (length(x-e.x,z-e.z) < .14 || !freePoint(S,x,z,r)) { nextLeg(); return; }
+  const direct = clearPath(S,e,goal,r,true);
+  if (!direct) {
+    e.navIn -= dt;
+    if (e.navIn <= 0 && routeTurn(s)) {
+      e.route = routeTo(S,e,goal,r); e.navIn = .8;
+      if (!e.route.length) { nextLeg(); return; }
+    }
+    while (e.route.length && length(e.x-e.route[0].x,e.z-e.route[0].z) < .08) e.route.shift();
+  }
+  const next = direct ? goal : e.route[0];
+  if (!next) return;
+  const dx=next.x-e.x, dz=next.z-e.z, d=length(dx,dz) || 1;
+  const alignment = steerTravel(e,dx,dz,dt,d);
+  const pace = travelPace(e,1.5,.5);
+  const travel = Math.min(d,alignment*e.speed*.42*pace*(e.tangle>0?TANGLE_SPEED:1)*dt);
+  e.x += dx/d*travel; e.z += dz/d*travel;
 }
 
 // 包抄（docs/fun-design.md 2.7）：贴身的僵尸好几只从同一边追过来时，后面那只不排队，绕到玩家侧面再扑。
@@ -460,7 +534,8 @@ const routeTurn = (s) => s.routeBudget === undefined || s.routeBudget-- > 0;
 function chase(s, e, dt) {
   const L = s.level, p = s.player, S = storeyAt(L, e.base), prevPhase = e.hopPhase, r = navRadius(e.radius);
   // 扑击、侧跳、盾冲、投弹这些动作只在和玩家站在同一块平地上时才做；在楼梯上或隔着楼层就老实追
-  const level = Math.abs(p.y - e.base) < 0.3 && !inStairs(L, e) && !inStairs(L, p);
+  const goal = navGoal(L,e,p);
+  const level = Math.abs(p.y - e.base) < 0.3 && !goal.direct && !inStairs(L, e) && !inStairs(L, p);
   if (!level) { e.action = 'chase'; e.moveMultiplier = 1; e.sideLean = 0; }
   // 身体比楼梯宽的（首领）下不了楼：玩家不在这一层，它就守在原地，朝楼梯口转过去
   if (L.stairs && navRadius(e.radius) * 2 > L.stairs.lane && (Math.abs(p.y - e.base) >= 0.3 || inStairs(L, p))) {
@@ -476,7 +551,6 @@ function chase(s, e, dt) {
     if (e.hit <= 0) { const slow = e.tangle > 0 ? TANGLE_SPEED : 1; e.x += action.x * slow * dt; e.z += action.z * slow * dt; }
     return;
   }
-  const goal = navGoal(L, e, p);
   if (level) { e.flankIn = (e.flankIn ?? 0) - dt; if (e.flankIn <= 0) { e.flankIn = FLANK.every; e.flank = flankPoint(s, e, S); } }
   else e.flank = null;
   if (e.flank && e.action !== 'sidestep') {
@@ -531,6 +605,7 @@ function damage(s, e, amount, dx, dz, impulse, source = 'ball', meta = {}) {
     impulse: impulse * e.resistance, strength: e.reactionStrength, ...meta, weapon };
   s.events.push(hit);
   if (s.challenge) recordChallengeHit(s.challenge, hit, e, s.time);
+  if (source === 'ball') stirImpact(s, enemyEyes(e), e.base, e);
   if (e.hp <= 0) knockdown(s, e, dx, dz, source);
 }
 
@@ -544,7 +619,12 @@ function ballHit(s, b, e, incoming) {
   const frontal = dx * Math.sin(e.heading) + dz * Math.cos(e.heading) < -0.55;
   if (e.type === 'shielded' && e.guardBroken <= 0 && frontal && !(e.stun > 0)) {
     b.hitTimes[e.id] = s.time; b.enemyHits++;
-    if (b.weapon !== 'heavy' && b.power < 0.6) { if (unaware(e)) notice(s, e, 0, 'hit'); s.events.push({ type: 'blocked', id: e.id, x: b.x, y: b.y, z: b.z, base: e.base }); return; }
+    if (b.weapon !== 'heavy' && b.power < 0.6) {
+      if (unaware(e)) notice(s, e, 0, 'hit');
+      stirImpact(s, enemyEyes(e), e.base, e);
+      s.events.push({ type: 'blocked', id: e.id, x: b.x, y: b.y, z: b.z, base: e.base });
+      return;
+    }
     e.guardBroken = 1.8; interruptSpecial(e, { weapon: 'heavy' }); s.events.push({ type: 'guard-break', id: e.id, ...at(e) });
   }
   let amount = ballDamage(b);
@@ -588,17 +668,18 @@ export function cameraMove(side, forward, yaw) {
 // p.jump 是离地高度（p.y 仍是脚下的地面）；落地、起跳各发一个事件给表现层。
 export function beginJump(s) {
   const p = s.player;
-  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0) return false;
+  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0 || s.park?.trap || s.park?.fallUntil) return false;
   p.jump = 0.001; p.jumpV = 2.6;
   s.events.push({ type: 'hop' });
   return true;
 }
 
 // All attack sources share the same heart/iframe path.
-export function hurtPlayer(s,enemy,source='contact'){
- if(s.phase!=='playing'||s.invul>0||s.endIn!==null||(s.total>0&&aliveCount(s)===0))return false;
+export function hurtPlayer(s,enemy,source='contact',amount=s.park ? (source==='contact'?9:12) : 1){
+ if(s.phase!=='playing'||s.invul>0||s.endIn!==null||(!s.park&&s.total>0&&aliveCount(s)===0))return false;
  const dx=s.player.x-enemy.x,dz=s.player.z-enemy.z,n=Math.hypot(dx,dz)||1;
- s.health=Math.max(0,s.health-1);s.damageTaken++;s.invul=CONFIG.invulnerable;if(source!=='contact'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
+ s.health=Math.max(0,s.health-amount);s.damageTaken++;s.invul=s.park ? .78 : CONFIG.invulnerable;
+ if(source!=='contact' && source!=='park-fall'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
  if(source==='contact'&&enemy.type==='crawler')s.slowUntil=Math.max(s.slowUntil,s.time+1.3);
  s.events.push({type:'hurt',x:s.player.x,z:s.player.z,base:s.player.y,by:enemy.id,source,fromX:enemy.x,fromZ:enemy.z,health:s.health});return true;
 }
@@ -615,12 +696,26 @@ function advanceEnemyShot(s,b,dt){
  b.age+=dt;if(b.age>b.life){settleEnemyShot(s,b,'expired');return;}
  const end={x:b.x+b.vx*dt,y:b.y+b.vy*dt,z:b.z+b.vz*dt};let t=1,kind=null,enemy=null;
  for(const solid of s.level.solids){const h=segmentBox(b,end,solid,b.r);if(h&&h.t<=t){t=h.t;kind='wall';}}
- const playerHit=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,s.player.x,s.player.z,CONFIG.playerRadius+b.r,s.player.y+.05,s.player.y+1.7);
+ const feetY=s.player.y+(s.park?s.player.jump:0);
+ const playerHit=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,s.player.x,s.player.z,CONFIG.playerRadius+b.r,feetY+.05,feetY+1.7);
  if(playerHit!==null&&playerHit<t){t=playerHit;kind='player';}
  for(const e of s.enemies){if(!e.enabled||!e.alive||e.id===b.owner)continue;const h=segmentCylinder(b.x,b.y,b.z,end.x,end.y,end.z,e.x,e.z,e.radius+b.r,e.y+.04,e.y+e.height);if(h!==null&&h<t){t=h;kind='enemy';enemy=e;}}
  b.x+=(end.x-b.x)*t;b.y+=(end.y-b.y)*t;b.z+=(end.z-b.z)*t;
- if(kind){settleEnemyShot(s,b,kind);if(kind==='player')hurtPlayer(s,s.enemies.find(e=>e.id===b.owner)||{id:b.owner,x:b.x-b.vx,z:b.z-b.vz},'arrow');else if(kind==='enemy'){const n=Math.hypot(b.vx,b.vz)||1;damage(s,enemy,1,b.vx/n,b.vz/n,.7,'enemy-arrow',{weapon:'single'});}s.events.push({type:'enemy-shot-impact',id:b.id,x:b.x,y:b.y,z:b.z});}
+ if(kind){settleEnemyShot(s,b,kind);if(kind==='player')hurtPlayer(s,s.enemies.find(e=>e.id===b.owner)||{id:b.owner,x:b.x-b.vx,z:b.z-b.vz},b.style==='juggle'?'park-juggle':'arrow');else if(kind==='enemy'){const n=Math.hypot(b.vx,b.vz)||1;damage(s,enemy,1,b.vx/n,b.vz/n,.7,'enemy-arrow',{weapon:'single'});}s.events.push({type:'enemy-shot-impact',id:b.id,x:b.x,y:b.y,z:b.z});}
  else {const B=s.level.bounds;if(b.x<B.minX||b.x>B.maxX||b.z<B.minZ||b.z>B.maxZ)settleEnemyShot(s,b,'bounds');}
+}
+
+function clownVolley(s,group){
+  const p=s.player,c=s.park.clown;
+  const x=c.x+(group-1)*.82, y=1.04+(group%2)*.47, z=c.z+.92;
+  const angle=Math.atan2(p.x-x,p.z-z), speed=7.3;
+  for (const offset of [-.24,-.12,0,.12,.24]) {
+    if (s.enemyShots.length>=32) s.enemyShots.shift();
+    const direction=angle+offset;
+    s.enemyShots.push({id:s.nextId++,owner:-2,style:'juggle',x,y,z,
+      vx:Math.sin(direction)*speed,vy:0,vz:Math.cos(direction)*speed,r:.14,age:0,life:2.1,destroyed:false});
+  }
+  s.events.push({type:'amusement',action:'volley',x,y,z});
 }
 
 // 一帧内逐段扫掠：每次推进到最近的接触点，反弹后用剩余时间继续，快球不会穿过薄墙。
@@ -661,6 +756,8 @@ function advanceBall(s, b, dt) {
       if (b.vx * nx + b.vy * ny + b.vz * nz >= -1e-6) continue;   // 已经在分离的接触不算
       candidate(t, nx, ny, nz, 'enemy', e);
     }
+    const parkHit=s.park && amusementContact(s,b,end);
+    if (parkHit) candidate(parkHit.t,parkHit.nx,parkHit.ny,parkHit.nz,'amusement',null,parkHit.box);
     for (const c of L.solids) {
       if (c.gadget === 'quilt' && s.gadgets.some(g => g.id === c.id && g.used)) continue;
       const h = segmentBox(b, end, c, b.r);
@@ -682,9 +779,16 @@ function advanceBall(s, b, dt) {
     if (b.travel >= b.maxRange) { expireBall(s, b, 'range'); break; }
     if (!hit) break;
     left *= 1 - hit.t;
+    if (hit.kind==='amusement') { hitAmusement(s,b,hit.box); expireBall(s,b,'contact'); break; }
+    if (hit.kind==='floor' && parkHoleAt(s,b.x,b.z)) { expireBall(s,b,'hole'); break; }
     // 户外没有天花板，也没有高过围篱的墙：飞出去的球直接散掉。
     if ((hit.kind === 'ceiling' || (hit.kind === 'edge' && b.y > 2.3)) && isOutdoor(L, b.x, b.z)) { expireBall(s, b, 'sky'); break; }
     const incoming = { x: b.vx, y: b.vy, z: b.vz };
+    if (!hit.e && !b.fuse && !b.madeImpactNoise && (hit.kind === 'solid' || hit.kind === 'edge' || hit.kind === 'floor')) {
+      const sound = { x:b.x + hit.nx*.06, y:b.y + hit.ny*.06, z:b.z + hit.nz*.06 };
+      const floor = Math.max(0, Math.floor(sound.y / L.storeyHeight) * L.storeyHeight);
+      b.madeImpactNoise = stirImpact(s, sound, floor);
+    }
     if (hit.box) struck(s, b, hit.box);                // 打中机关、拉链
     else if (hit.kind === 'edge') struck(s, b, { kind: 'edge', floorY: storeyAt(L, b.y - 1).y });   // 房子的外墙就是地图边界
     if (b.fuse && hit.e) { explode(s, b); break; }   // 手雷直接砸中僵尸：当场炸开
@@ -830,17 +934,16 @@ function landQuilt(s, g) {
   s.events.push({ type: 'quilt-land', id: g.id, x: g.x, y: g.y, z: g.z, struck: hit });
 }
 
-// 被闹钟引过去的僵尸：走到分给它的空位，面朝闹钟站着，响完为止。路上照样会看见玩家（那就变成追）。
-// 听到枪声过来看的（lure.kind === 'noise'）：走到开枪的地方附近，左右张望，看够了就留在那儿站岗（不回原位）。
+// 闹钟给每只僵尸一个空位。枪声的查看者走过去张望，附近的旁观者只转头。
 function investigate(s, e, dt) {
   const S = storeyAt(s.level, e.base), t = e.lure, r = navRadius(e.radius), noise = t.kind === 'noise';
-  if (s.time > t.until) { e.lure = null; e.hop = 0; return; }
+  if (s.time > t.until) { e.lure = null; e.hop = 0; e.route = []; e.navIn = 0; return; }
   const far = length(t.x - e.x, t.z - e.z);
   if (t.arrived || far < (noise ? SEARCH.arrive : 0.15)) {
     if (!t.arrived && noise) { t.lookAt = s.time; t.until = s.time + SEARCH.look; }
     t.arrived = true; e.hop *= Math.exp(-dt * 12);
     // 张望：以来的方向为中心左右各转约 80°
-    const heading = noise ? (t.face ??= e.heading) + Math.sin((s.time - t.lookAt) * 1.4) * 1.4 : Math.atan2(t.lookX - e.x, t.lookZ - e.z);
+    const heading = noise && !t.watch ? (t.face ??= e.heading) + Math.sin((s.time - t.lookAt) * 1.4) * 1.4 : Math.atan2(t.lookX - e.x, t.lookZ - e.z);
     const turn = Math.atan2(Math.sin(heading - e.heading), Math.cos(heading - e.heading));
     if (e.type === 'shielded') steerTravel(e, Math.sin(heading), Math.cos(heading), dt, far);
     else e.heading += clamp(turn, -dt * 4, dt * 4);
@@ -878,8 +981,10 @@ function collect(s) {
     if (k.taken || k.hidden || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     let got = null;   // 弹药包：实际补给了哪把枪、多少（界面提示用）
     if (k.kind === 'heart') {
-      if (s.health >= CONFIG.maxHealth) continue;
-      s.health = Math.min(CONFIG.maxHealth, s.health + k.amount);
+      if (s.health >= s.maxHealth) continue;
+      const amount = Math.min(k.amount,s.maxHealth-s.health);
+      s.health += amount;
+      got = { amount };
     } else if (k.kind === 'ammo') {
       // 弹药包不记种类：补的是手里那把特殊枪（没带特殊枪就先留在地上）。写了 weapon 的是指定给那把枪的；手雷是加一颗。
       const index = k.weapon ? weaponIndex(k.weapon) : secondOf(s);
@@ -903,14 +1008,18 @@ function collect(s) {
     } else if (k.kind === 'objective') {
       s.collected++; s.carrying = s.collected >= s.objectives;
       // 拿到东西会惊动周围：alarm 是 true 就是全图，是数字就是这么多米以内（按三维距离，隔着楼板减半）
-      const alarm = s.level.mission.alarm;
+      const { alarm, alarmRoom } = s.level.mission;
+      const floor = alarmRoom && storeyAt(s.level,p.y);
+      const room = floor && roomAt(floor,p.x,p.z);
       if (alarm) for (const e of s.enemies) {
+        if ((s.level.roomAlerts || alarmRoom) && Math.abs(e.base-p.y) > 1) continue;
+        if (floor && roomAt(floor,e.x,e.z) !== room) continue;
         const d = Math.hypot(e.x - p.x, e.base - p.y, e.z - p.z);
         if (alarm === true || d < alarm * (Math.abs(e.base - p.y) > 1.5 ? 0.5 : 1)) notice(s, e, d / 14, 'alarm');
         // 更远的、同一层还没发现你的，都朝拿东西的地方找过来：回去的路不会是空的（docs/fun-design.md 2.6）
         // 别的楼层不来：试过让下一层的聚到楼梯口，一层十来只全堵在楼梯里，身后又有首领，休闲玩家下不去（2026-11-20）
         // 还没拿齐的时候只招警报两倍以内的：博物馆三件展品，第一件就把全馆招过来的话，后面就只剩一场大混战了
-        else if (e.alive && e.enabled && unaware(e) && !(e.lure && e.lure.kind !== 'noise') && Math.abs(e.base - p.y) < 1
+        else if (!s.level.roomAlerts && e.alive && e.enabled && unaware(e) && !(e.lure && e.lure.kind !== 'noise') && Math.abs(e.base - p.y) < 1
           && (s.carrying || alarm === true || d < alarm * SEARCH.alarm)) search(s, e, { x: p.x, z: p.z });
       }
     }
@@ -942,7 +1051,7 @@ export function exchangeWeapon(s) {
   s.ammo[index] = { mag: k.mag ?? w.mag, reserve: k.amount ?? w.reserve };
   k.weapon = WEAPONS[old].id; k.mag = left.mag; k.amount = left.reserve;
   s.ammo[old] = { mag: 0, reserve: 0 };
-  if (s.weapon === old) s.weapon = PISTOL;   // 先回到手枪，再换到新枪（selectWeapon 会清掉蓄力和换弹）
+  s.stowedReload[old] = 0;
   selectWeapon(s, index);
   s.events.push({ type: 'exchange', id: k.id, weapon: w.id, dropped: k.weapon, x: k.x, z: k.z, base: k.y ?? 0 });   // 排在"换到手里"之后：界面上留下的是这一条提示
   return true;
@@ -951,7 +1060,8 @@ export function exchangeWeapon(s) {
 // 任务：clear = 清空所有僵尸；fetch = 拿到目标物后回到出口区域。
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
-  if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
+  if (s.challenge) return { type:'challenge', alive, total:s.total, done:s.phase==='won' };
+  if (s.park) return {type:'amusement',alive,total:s.total,done:s.park.clown.defeatedAt!==null};
   if (s.level.tour) return {type:'explore',alive,total:s.total,done:false};
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
@@ -982,13 +1092,19 @@ export function step(s, dt, input = {}) {
   s.invul = Math.max(0, s.invul - dt);
   s.lobCooldown = Math.max(0, s.lobCooldown - dt);
   // 蹦一下：重力把 p.jump 落回 0；最高约 0.4 米、整段约 0.6 秒。
-  if (p.jump > 0 || p.jumpV > 0) {
+  if ((!s.park || s.park.ride.started===null || s.park.ride.finished) && (p.jump > 0 || p.jumpV > 0)) {
     p.jumpV -= 8.5 * dt;
     p.jump += p.jumpV * dt;
     if (p.jump <= 0) { p.jump = 0; p.jumpV = 0; s.events.push({ type: 'hop-land' }); }
   }
   if (s.charging) s.charge = Math.min(CONFIG.chargeTime, s.charge + dt);
   if (s.lobbing) s.lob = Math.min(CONFIG.chargeTime, s.lob + dt);
+  for (let i=0;i<s.stowedReload.length;i++) {
+    const pending = s.stowedReload[i];
+    if (pending <= 0) continue;
+    s.stowedReload[i] = s.owned[i] ? Math.max(0, pending-dt) : 0;
+    if (s.owned[i] && s.stowedReload[i] === 0) fillMagazine(s, i);
+  }
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }
   else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0 && !startReload(s)) backToPistol(s);   // 打空自动换弹；彻底没弹药就换回手枪
 
@@ -1001,10 +1117,14 @@ export function step(s, dt, input = {}) {
   }
   const moveSpeed=CONFIG.playerSpeed*(s.slowUntil>s.time?.62:1);
   const fromX = p.x, fromZ = p.z;
-  p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
-  p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
+  const controlled = s.park && moveAmusement(s,hurtPlayer);
+  if (!controlled) {
+    p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
+    p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
+  if (s.park) advanceAmusement(s,dt,{hurt:hurtPlayer,damage,volley:clownVolley});
   // 连发枪：扳机按着、冷却到了就出一发；弹匣空了交给上面的自动换弹，彻底没弹药就松开扳机
   if (s.trigger && WEAPONS[s.weapon].auto && s.cooldown <= 0 && !s.reloading) {
     if (!fire(s, 0, input.shot || null) && s.ammo[s.weapon].mag === 0 && s.ammo[s.weapon].reserve === 0) s.trigger = false;
@@ -1059,8 +1179,9 @@ export function step(s, dt, input = {}) {
   s.enemies = s.enemies.filter(e => e.alive || e.deathAge < 1.15);
 
   // 只有已经警觉的僵尸碰到你才会扣心。
-  if (s.invul <= 0) for (const e of s.enemies) {
-    if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || !contactAttack(e) || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
+  const playerFeet = p.y + (s.park ? p.jump : 0);
+  if (s.invul <= 0 && !controlled) for (const e of s.enemies) {
+    if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || !contactAttack(e) || Math.abs(e.base - playerFeet) > CONFIG.sameLevel) continue;
     const dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     if (d >= CONFIG.playerRadius + e.radius) continue;
     const n = d || 1;
@@ -1069,8 +1190,8 @@ export function step(s, dt, input = {}) {
     break;
   }
   // 身体是实心的：贴上去会互相顶开，不会穿过。
-  for (const e of s.enemies) {
-    if (!e.alive || !e.enabled || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
+  if (!controlled) for (const e of s.enemies) {
+    if (!e.alive || !e.enabled || Math.abs(e.base - playerFeet) > CONFIG.sameLevel) continue;
     let dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     const r = CONFIG.playerRadius + e.radius;
     if (d >= r) continue;
@@ -1079,15 +1200,17 @@ export function step(s, dt, input = {}) {
     p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; e.x -= nx * overlap * 0.15; e.z -= nz * overlap * 0.15;
     resolveBody(storeyAt(L, e.base), e, e.radius);
   }
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
+  if (!controlled) {
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
 
   if (L.tour) constrainTourWalk(p,fromX,fromZ);
 
   // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
   if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }
 
-  collect(s);
+  if (!controlled) collect(s);
 
   if (s.challenge) {
     const phase = challengeOutcome(s.challenge, s);

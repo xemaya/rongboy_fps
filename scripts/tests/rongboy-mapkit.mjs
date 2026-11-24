@@ -139,8 +139,9 @@ test('all four shipped maps pass the hard checks', () => {
   for (const id of ORDER.filter(id => id !== 'cottage')) assert.deepEqual(checkMap(LEVELS[id], { play: false }).errors.map(e => `${id}: ${e.msg}`), []);
   const cottage = checkMap(LEVELS.cottage);
   assert.deepEqual(cottage.errors, []);
-  assert.equal(cottage.facts.storeys, 2);
-  assert.equal(cottage.facts.zombies, 27);
+  assert.equal(cottage.facts.storeys,1);
+  assert.equal(cottage.facts.zombies,24);
+  assert.deepEqual(LEVELS.cottage.waves.stages,['果树行','晾晒场','果料仓']);
   assert.deepEqual(cottage.warnings.filter(w => w.code !== 'enemy-untested'), []);
 });
 
@@ -165,7 +166,7 @@ test('the review reports the numbers an author tunes, and the two bots tell lazy
   assert.match(formatReview(r, r), /留神的：3 遍里打完/);
   assert.deepEqual(playBot(tiny, { attentive: true }), playBot(tiny, { attentive: true }));   // 同一张图跑两次，结果一样
   assert.equal(reviewMap(LEVELS.house).unsupported.includes('多层'), true);
-  assert.equal(reviewMap(LEVELS.cottage).unsupported.includes('多层'), true);
+  assert.equal(LEVELS.cottage.rooms.filter(room=>room.outdoor).length,6);
 });
 
 test('a map of nothing but walkers in one open room is flagged as playing itself', () => {

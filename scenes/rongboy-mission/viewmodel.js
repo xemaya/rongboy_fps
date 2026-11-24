@@ -42,6 +42,8 @@ export function createViewmodel(kit, ball, bombModels) {
   const rear=mitten(shell,cuff,sleeve,false), support=mitten(shell,cuff,sleeve,true);
   kit.add(rear,support);
   kit.rotation.order='YXZ';
+  const barrel = new T.Vector3(), desiredBarrel = new T.Vector3();
+  const fixedMouth = new T.Vector3(), rotatedMouth = new T.Vector3(), correction = new T.Quaternion();
   ball.position.z=.65;
   kit.add(ball);
   const throwingHand=mitten(shell,cuff,sleeve,true);
@@ -58,6 +60,16 @@ export function createViewmodel(kit, ball, bombModels) {
   return {
     root, kit, ball, held,
     equip(index) { kit.userData.variants.forEach((variant,i)=>{ variant.visible=i===index; }); },
+    aimMouth(mouth, cameraDirection) {
+      fixedMouth.copy(mouth).multiply(kit.scale).applyQuaternion(kit.quaternion);
+      barrel.set(0,0,1).applyQuaternion(kit.quaternion);
+      desiredBarrel.copy(cameraDirection).divide(root.scale).normalize();
+      correction.setFromUnitVectors(barrel,desiredBarrel);
+      kit.quaternion.premultiply(correction);
+      rotatedMouth.copy(mouth).multiply(kit.scale).applyQuaternion(kit.quaternion);
+      // Rotate around the muzzle to preserve its position in the existing first-person framing.
+      kit.position.add(fixedMouth.sub(rotatedMouth));
+    },
     update({ weapon, phase, speed, motion, recoil, reload, charge, lob, grenade, invul, time }) {
       const pose=POSES[weapon];
       const sway=Math.sin(phase)*speed*motion;

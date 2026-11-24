@@ -1,4 +1,4 @@
-import cottage from './cottage.js';
+import cottage from './cottage-study-map.js';
 
 const left = [[-7.02,5.5],[-5.92,5.71],[-4.85,5.13],[-6.5,4.27]];
 const right = [[4.23,4.15],[5.12,5.45],[6.52,5.48],[6.31,3.63]];

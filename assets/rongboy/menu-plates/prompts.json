@@ -18,8 +18,7 @@
       "output": "menu-school.webp"
     },
     "cottage": {
-      "prompt": "Game production background plate for the original Rongboy woolball FPS. One single full-bleed widescreen 16:9 game menu background, richly tactile miniature needle felt photography. No UI, absolutely zero typography, icons, badges, labels, logos, sample marks, device or HUD. Reimagine this game's grandma's cottage thumbnail, one small cozy felt cottage with red patchwork roof and glowing window next to a miniature vegetable patch of cabbage, carrots and pumpkins, low pale wooden felt garden fence, warm afternoon natural light, ground level from path, trees backlit, all real handmade wool needle-felt craft materials. Only the fourth thumbnail is the content reference, frame full width as an immersive film still. No labels, no controls. Darker ground at bottom for chapter carousel.",
-      "reference": "02-chapters.png",
+      "source": "Cine Engine render of the playable orchard",
       "output": "menu-cottage.webp"
     },
     "practice": {

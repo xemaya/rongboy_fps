@@ -26,7 +26,7 @@ test('every spawn, patrol point and pickup is on free floor and can be reached f
     assert.ok(roomAt(L, e.x, e.z), where);
     for (const [x, z] of e.patrol || []) {
       assert.ok(freePoint(L, x, z, r), `${where}: patrol point ${x},${z} blocked`);
-      assert.ok(clearPath(L, e, { x, z }, r) || e.patrol.some(([a, b]) => clearPath(L, { x: a, z: b }, { x, z }, r)), `${where}: patrol leg is not walkable`);
+      assert.ok(routeTo(L,e,{x,z},navRadius(r)).length>0, `${where}: patrol waypoint is unreachable`);
     }
     assert.ok(routeTo(L, e, L.player, navRadius(r)).length > 0, `${where} is cut off`);
   }
@@ -126,6 +126,16 @@ test('once roused, everyone finds the player in the middle of the playground', (
   const lost = s.enemies.filter(e => Math.hypot(e.x - s.player.x, e.z - s.player.z) > near(e));
   assert.deepEqual(lost.map(e => `${e.type}@${e.x.toFixed(1)},${e.z.toFixed(1)}`), []);
   for (const e of s.enemies) assert.ok(freePoint(L, e.x, e.z, e.radius - 0.02) && Number.isFinite(e.x + e.z + e.y), `${e.type} ended inside a solid`);
+});
+
+test('the playground patrol walks around cover instead of freezing at the seesaw', () => {
+  const s=createGame({level:L});
+  const patroller=s.enemies.find(enemy=>enemy.x===-6 && enemy.z===4.2);
+  assert.ok(patroller.patrol);
+  s.enemies=[patroller];s.total=1;
+  let farthest=patroller.x;
+  for(let i=0;i<42;i++) { run(s,1);farthest=Math.max(farthest,patroller.x); }
+  assert.ok(farthest>=5,'the walker makes it around the blocks to the far side, x='+farthest);
 });
 
 test('the block wall hides the gate; desks are low enough to shoot over', () => {

@@ -251,7 +251,7 @@ export function checkMap(def, { play = true } = {}) {
     let s = createGame({ level: L });
     run(s, 60);
     const roused = s.enemies.filter(e => e.awareness !== 'asleep' && e.awareness !== 'idle');
-    if (s.health < CONFIG.maxHealth || roused.length) err('unsafe-start', `开局不安全：在出生点站一分钟，${roused.slice(0, 3).map(e => `${ENEMY_TYPES[e.type].name} ${at(e)}`).join('、')}${roused.length > 3 ? ' 等' : ''}发现了玩家。醒着的僵尸 8 米内、正前方 ±70° 看得见出生点就会发现；把它挪到看不见的地方、改成 asleep，或者在出生点前面放一件 1.3 米以上的东西`);
+    if (s.health < s.maxHealth || roused.length) err('unsafe-start', `开局不安全：在出生点站一分钟，${roused.slice(0, 3).map(e => `${ENEMY_TYPES[e.type].name} ${at(e)}`).join('、')}${roused.length > 3 ? ' 等' : ''}发现了玩家。醒着的僵尸 8 米内、正前方 ±70° 看得见出生点就会发现；把它挪到看不见的地方、改成 asleep，或者在出生点前面放一件 1.3 米以上的东西`);
     if (def.mission.type === 'clear') {
       s = createGame({ level: L }); s.health = 1e9;
       for (const e of s.enemies.slice(1)) e.alive = false;
@@ -262,7 +262,9 @@ export function checkMap(def, { play = true } = {}) {
     } else if (def.mission.type==='fetch' && missionStatus(createGame({ level: L })).needed < 1) err('mission-stuck', '找东西的任务没有可找的东西');
     if (!multi && L.enemies.length) {   // 多层的图（家）在 rongboy-mission.mjs 里有自己的检查
       s = createGame({ level: L }); s.health = 1e9;
-      for (const e of s.enemies) e.awareness = 'alert';
+      // Prove the routes even for actors whose authored wave is still waiting.
+      s.wave = null;
+      for (const e of s.enemies) { e.enabled = true; e.awareness = 'alert'; }
       // This probe tests the route to the entry point. Keep enemy hits from
       // turning the stationary target into a moving destination.
       const spawn = { x:s.player.x, y:s.player.y, z:s.player.z, vx:0, vz:0, mvx:0, mvz:0 };

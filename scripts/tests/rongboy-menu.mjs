@@ -6,7 +6,7 @@ import { compileLevel } from '../../scenes/rongboy-mission/level.js';
 import { createGame } from '../../scenes/rongboy-mission/game.js';
 const cards=await buildMenuCards();
 assert.deepEqual(cards.filter(c=>c.id!=='training').map(c=>c.id),ORDER);
-for(const id of ORDER){const card=cards.find(c=>c.id===id),level=compileLevel(LEVELS[id]);assert.equal(card.enemies,createGame({level}).total,id+' initial enemy count');assert.equal(card.floors,level.storeys.length);assert.ok(card.preview.startsWith('<svg'));assert.ok(card.preview.includes('出发点'));}
+for(const id of ORDER){const card=cards.find(c=>c.id===id),level=compileLevel(LEVELS[id]);assert.equal(card.enemies,createGame({level}).total,id+' mission enemy count');assert.equal(card.floors,level.storeys.length);assert.ok(card.preview.startsWith('<svg'));assert.ok(card.preview.includes('出发点'));}
 assert.equal(new Set(cards.map(c=>c.preview)).size,cards.length,'each map has its own actual layout');
 const result=await build({entryPoints:['scenes/rongboy-mission/main.js'],bundle:true,minify:true,write:false,metafile:true,platform:'browser',format:'iife',target:'es2022'});
 const inputs=Object.keys(result.metafile.inputs);assert.ok(inputs.every(p=>!p.endsWith('.glb')&&!p.includes('node_modules/three/')&&!p.includes('cine-engine/')), 'map selection must not load a renderer or figurine assets');
@@ -31,9 +31,11 @@ assert.equal(exitPlayHref(queryOf(challengePlayHref('static-followup')),'challen
 const { readPreferences, writePreferences } = await import('../../scenes/rongboy-mission/preferences.js');
 const storage = new Map();
 globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
-assert.deepEqual(readPreferences(),{sound:true,quality:'auto',motion:'system',language:'auto'});
+assert.deepEqual(readPreferences(),{sound:true,music:true,quality:'auto',motion:'system',language:'auto'});
 writePreferences({sound:false,quality:'low',motion:'reduced'});
-assert.deepEqual(readPreferences(),{sound:false,quality:'low',motion:'reduced',language:'auto'});
+assert.deepEqual(readPreferences(),{sound:false,music:true,quality:'low',motion:'reduced',language:'auto'});
+writePreferences({ ...readPreferences(), music:false });
+assert.equal(readPreferences().music,false);
 writePreferences({ ...readPreferences(), language:'zh-CN' });
 assert.equal(readPreferences().language,'zh-CN');
 writePreferences({ ...readPreferences(), language:'unsupported' });

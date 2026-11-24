@@ -30,9 +30,9 @@ export default {
   doorHeight: 2.05,
   par: 480,
   player: { x: 0, z: 10, yaw: 0 },
-  // 任务：上到阁楼的藏宝间拿回毛线篮，再带回院门。拿起它会惊动 alarm 米以内的僵尸（隔着楼板减半：差不多是整个三楼，加上正下方的一两只）。
-  // 想改回"清空全部"只要换成 { type: 'clear', title: '清空整栋房子里的僵尸' }。
-  mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 13, exit: garden },
+  // 枪声按房间组织查看。取到篮子时只惊动阁楼近处，巨像仍会现身。
+  roomAlerts: true,
+  mission: { type: 'fetch', title: '上阁楼找回毛线篮，带回院门', alarm: 7, exit: garden },
   // 开局带的：手枪、一把特殊枪（霰弹）、手雷。手里只拿得下两把，其余的特殊枪在屋里（pickups 里 kind: 'weapon'），走到跟前按 F 换。
   arsenal: ['single', 'scatter', 'yarn', 'jack'],
   // 折返楼梯：西边一跑往北上到半层平台，东边一跑往南上到上一层。
@@ -130,6 +130,9 @@ export default {
   easterEggs: [
     { id: 'cushions', onSofa: 'sofa', w: 1.03, d: 0.34, h: 0.50 },
     { id: 'photo', x: -1.368, y: 1.55, z: -7.8, yaw: Math.PI / 2, w: 0.83, d: 0.16, h: 0.65 },
+    { id:'tv', mount:{host:'tv-cabinet', up:.335, forward:.13}, w:1.02, d:.39, h:.57, replaces:'tv-cabinet' },
+    { id:'fridge', mount:{host:'fridge', up:-.94, forward:.40}, w:.79, d:.11, h:1.86, replaces:'fridge' },
+    { id:'toaster', mount:{host:'island', up:.195, forward:.235}, w:.49, d:.37, h:.39 },
   ],
   gadgets: [
     { kind: 'clock', x: -7.25, z: 3.37 },    // 花园：从院门就看得到，旁边睡着两只,

@@ -48,6 +48,8 @@ import { crazyGames, firstRound, nextChapter, platformReady, platformPlaying } f
 import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
+import { amusementPrompt, amusementTargets, useAmusement, parkRemaining, ridePose, CLOWN, GATES, PARK_ZONES } from './amusement.js';
+import { createAmusementView } from './amusement-view.js';
 import { createParkTour } from './park-tour-view.js';
 import { nearbyTourStop } from './park-tour-layout.js';
 
@@ -81,8 +83,9 @@ const returnLabel = intro ? (source === 'chapters' ? '返回选关' : '返回主
 let awaitingApproach = false, pauseIndex = 0, introStage = 0;
 let hadPointerLock = false, pointerReleasedAt = -Infinity;
 const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? (intro ? gardenIntroDef() : gardenWallDef()) : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : cottageStudy ? cottageStudyDef(study) : LEVELS[levelId]));
+const amusement = level.mission.type === 'amusement';
 const parkTour = !!level.tour;
-const missionBriefing = (parkTour || level.mission.type === 'fetch') && !challenge;
+const missionBriefing = (parkTour || amusement || level.mission.type === 'fetch' || level.waves && !cottageStudy) && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
@@ -93,7 +96,7 @@ const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
 let s = createGame({ level });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
-let actors, bossActors, viewmodel, tourView;
+let actors, bossActors, viewmodel, amusementView, tourView;
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
@@ -123,7 +126,7 @@ function applyTexts() {
  $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
  $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Follow the stitched path to the big top.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
- if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
+ if (s.wave || cottageStudy) $('missionHud').querySelector('strong').textContent = t(cottageStudy ? (s.wave ? '院子波次' : '院子对照局') : '果园波次');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
  $('sound').setAttribute('aria-pressed',sound);
  $('expand').hidden = crazyGames;
@@ -173,7 +176,8 @@ function applyInputHints() {
   if(!parkTour) { detail[2] = [L.fire,'开火 / 蓄力']; detail.push([L.jump,'跳跃']); }
   if (!parkTour && !practiceBindingsOnly) {
     detail.push([L.switch,'换枪']);
-    if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
+    if (amusement) detail.push([L.exchange,'操作设施']);
+    else if (!challenge) detail.push([L.exchange,'拾取地上的枪'],[L.throw,'投掷'],[L.grenade,'切换炸弹']);
   }
   if (weaponShowcase) {
     if (inputMode === 'gamepad') detail.push(['△','下一把枪']);
@@ -255,8 +259,9 @@ function governorStart() {
   return /Intel|UHD|Iris|Mali|Adreno|PowerVR|SwiftShader|llvmpipe|Basic Render/i.test(gpuName) ? { startTier: 1, start: 0.6e6 } : { start: 1.6e6 };
 }
 const ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
-const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
-const sightEnd = new T.Vector3(), boundaryHit = new T.Vector3();
+const lookDir = new T.Vector3(), modelMuzzle = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
+const sightEnd = new T.Vector3(), boundaryHit = new T.Vector3(), throwOrigin = new T.Vector3(), throwDirection = new T.Vector3();
+const cameraDirection = new T.Vector3(), cameraInverse = new T.Quaternion();
 const aimBounds = new T.Box3(new T.Vector3(B.minX,0.03,B.minZ),new T.Vector3(B.maxX,level.top,B.maxZ));
 const enemyModels = new Map(), ballModels = new Map();
 const ballTemplate = createWoolBall();
@@ -269,6 +274,7 @@ const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStan
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 function initWorld(kit) {
   world = buildWorld(cine, level, WEAPONS, kit?.userData.variants);
+  if (amusement) amusementView = createAmusementView(cine,world,level);
   if (parkTour) tourView = createParkTour(cine,world,{reduced});
   combatFx = createCombatFx(cine.scene);
   effects = createEffects(cine.scene);
@@ -314,12 +320,25 @@ function updateFx(dt) {
 // ---------- 声音与提示 ----------
 
 let sound = preferences.sound, audio = null, soundBus = null, arsenalBus = null, lastBounceSound = 0, lastKnockSound = 0, lastRing = 0;
+const score = new Audio();
+score.loop = true;
+score.volume = .28;
+score.preload = 'none';
+score.src = 'rongboy-gameplay.mp3';
+function syncScore() {
+  if (!sound || !preferences.music || mode !== 'playing' || paused || awaitingApproach || document.hidden) {
+    if (!score.paused) score.pause();
+  } else if (score.paused) {
+    score.play().catch(() => {});   // The next real key/pointer action retries if autoplay is blocked.
+  }
+}
 // 家具是什么做的：决定被毛球打到时的声音和绒絮多少
 const SOUND_OF = { soft: 'thump', wood: 'knock', glass: 'ting', metal: 'clang', stone: 'tock' };
 const SOFT = new Set(['sofa', 'bed', 'ottoman', 'basket', 'hedge', 'tree', 'planter']), METAL = new Set(['fridge', 'locker', 'tub', 'slide', 'swing', 'mailbox']);
 const stuffOf = c => (c.kind === 'case' ? 'glass' : c.kind === 'plinth' || c.kind === 'sarcophagus' ? 'stone' : c.kind === 'gadget' ? 'metal' : SOFT.has(c.look || c.kind) ? 'soft' : METAL.has(c.look || c.kind) ? 'metal' : 'wood');
 function unlock() {
   if (!sound) return;
+  syncScore();
   audio ??= new AudioContext();
   soundBus ??= createWoolAudio(audio);
   arsenalBus ??= createArsenalAudio(audio);
@@ -388,6 +407,13 @@ function animateViewmodel(dt, moving) {
   if (variant.contacts) variant.contacts.emissiveIntensity=s.charging?1.7:.65;
   if (variant.press) variant.press.rotation.x=Math.max(0,1-(s.time-lastPress)/weapon.cooldown)*.19;
   aim();
+  if (!s.reloading && !s.lobbing && viewmodel.root.visible) {
+    cameraDirection.subVectors(target, visibleMuzzle(s.weapon));
+    // At a very close wall the rendered muzzle can be farther than the probe.
+    if (cameraDirection.dot(lookDir) < .08) cameraDirection.copy(lookDir);
+    cameraDirection.applyQuaternion(cameraInverse.copy(camera.quaternion).invert());
+    viewmodel.aimMouth(localMuzzle,cameraDirection);
+  }
   for (const eraser of fpErasers) eraser.visible=window.__rb.gunInFront;
 }
 
@@ -758,6 +784,39 @@ function clearModels() {
 let reloadReadyUntil = -1;
 const attackNotices = { shielded: '盾冲 · 横移', archer: '红线定住后横移', bomber: '离开炸弹落点',
   crawler: '扑抓 · 拉开距离', 'boss-warden': '远离震地圈', 'boss-leech': '被吸引时侧移' };
+function amusementEvent(e) {
+  const spot = {x:e.x,y:e.y??.25,z:e.z};
+  const accents = {'ride-start':'ting','ride-end':'thump','spin':'rattle',
+    'carousel-hit':'thump','boxes':'throw','box-trap':'knock','box-release':'jack-pop',
+    spring:'jack-pop','volley-warn':'rattle','volley':'throw',fireworks:'thread-tight',
+    'firework-impact':'jack-pop',trapdoors:'rumble',fall:'thump',return:'ting',
+    'gate-open':'ting','booth-target':'ting',lever:'clang','mask-block':'shield-pad','mask-hit':'clang','mask-break':'shield-open','clown-hit':'knock','clown-down':'rumble'};
+  if (accents[e.action]) sfx2(accents[e.action],{strength:.77});
+  if (['spring','firework-impact','mask-break','clown-down'].includes(e.action)) {
+    const gold=e.action==='firework-impact'||e.action==='mask-break';
+    const color=gold?0xffbe72:0x9fe2cd;
+    effects.ring(spot,color,e.action==='spring'?1.45:1.25,.4);
+    burst(spot.x,spot.z,e.action==='mask-break'?34:18,e.action==='spring'?1:1.45,color,spot.y);
+  }
+  if (['mask-hit','mask-break','clown-hit'].includes(e.action)) {
+    hitMarkerTime=.24;
+    hitMarkerKind=e.action==='mask-break'?'strong':'normal';
+  }
+  const calls={
+    'gate-open':copy('清理完毕 · 下一道门开了','Area secured · Gate open'),
+    'booth-target':copy('打中摊位靶了！','Booth target hit!'),
+    lever:copy('帘闸扳杆拉下了','Curtain lever pulled'),
+    'clown-start':copy('等盒子落地，再踩上去','Let a box land, then step onto it'),
+    'box-trap':copy('被关进盒子了！','Trapped in a box!'),
+    spring:copy('瞄准面具！','Aim for the mask!'),
+    'mask-break':copy('面具破了！瞄准小丑','Mask broken! Hit the clown'),
+    fireworks:copy('烟花！躲开地上的光圈','Fireworks! Dodge the marked circles'),
+    trapdoors:copy('离开闪光地板！','Get off the flashing tiles!'),
+    return:copy('回到安全台 · −25 生命','Back on safe ground · −25 HP'),
+  };
+  if (calls[e.action]) say(calls[e.action],1.45,2);
+}
+
 function processEvents() {
   let strongest = null;
   for (const e of consumeEvents(s)) {
@@ -775,9 +834,12 @@ function processEvents() {
       sfx2('return-hit');
     }
     combatFx.event(e);
+    if(e.type==='amusement'){ amusementEvent(e); continue; }
     if(e.type==='wave-start'){
       sfx('switch');
-      say(copy(`第 ${e.index + 1} 波来了`,`Wave ${e.index + 1} incoming`),1.4,1);
+      const stage = level.waves.stages?.[e.index];
+      const where = stage ? ' · '+t(stage) : '';
+      say(copy(`第 ${e.index + 1} 波来了`,`Wave ${e.index + 1} incoming`)+where,1.6,1);
     }
     else if(e.type==='blocked'){if(near(9)){say('盾挡了 · 绕后或蓄力破盾',1.7);if(!polished)sfx('switch');}}
     else if(e.type==='guard-break'){say('盾已破',1);if(!polished)sfx('kill');}
@@ -845,11 +907,16 @@ function processEvents() {
       if (e.thrown) { sfx2('throw'); say(WEAPONS[s.grenade].short + ' ×' + grenades(s), .75); continue; }
       if(e.weapon==='sewing') lastPress=s.time;
       reloadReadyUntil = -1;
-      const w = WEAPONS.find(v => v.id === e.weapon), light = e.weapon === 'sewing';
+      const weaponIndex = WEAPONS.findIndex(w => w.id === e.weapon);
+      const w = WEAPONS[weaponIndex], light = e.weapon === 'sewing';
       kickRecoil(recoil, feelOf(e.weapon), light ? -2.2 : e.weapon === 'stun' ? -1 : e.power);   // 负的力度 = 更轻的一下
-      burst(e.x, e.z, e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : light ? 1 : 4, e.weapon === 'heavy' ? 0.85 : 0.45, w.color, e.y ?? 0.8);
-      // 枪口闪光：一小团光，顺带把周围照亮一下；越重的枪越大
-      effects.muzzle(e, e.weapon === 'stun' ? 0x9fdcff : 0xffe2b0, e.weapon === 'heavy' ? 1.1 : e.weapon === 'scatter' ? 0.8 : light ? 0.32 : 0.5, e.weapon === 'heavy' ? 9 : light ? 2.5 : 5);
+      if (viewmodel.root.visible) {
+        const muzzle = visibleMuzzle(weaponIndex);
+        const size = e.weapon === 'heavy' ? 1.1 : e.weapon === 'scatter' ? .8 : light ? .32 : .5;
+        const count = e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : light ? 1 : 4;
+        burst(muzzle.x, muzzle.z, count, size*VIEWMODEL_SCALE, w.color, muzzle.y);
+        effects.muzzle(muzzle, e.weapon === 'stun' ? 0x9fdcff : 0xffe2b0, size*VIEWMODEL_SCALE, e.weapon === 'heavy' ? 9 : light ? 2.5 : 5);
+      }
       if (e.weapon === 'sewing') sfx2('staple'); else if (e.weapon === 'needle') sfx2('needle'); else if (e.weapon === 'stun') sfx2('zap'); else sfx('shot', { weapon: e.weapon, power: e.power });
     } else if (e.type === 'hit') {
       if (e.amount > 0 && e.source !== 'enemy-arrow') lastWounded = { id: e.id, until: s.time + 1.05 };
@@ -915,7 +982,7 @@ function processEvents() {
       const got = WEAPONS.find(w => w.id === e.weapon);
       if (e.kind === 'objective') say(objectiveText(missionStatus(s)), 2.6, 2);
       else say(got?.kind === 'grenade' ? got.name+' +'+(e.amount??1)+' · '+t(inputLabels().throw)+copy(' 投掷',' throw')
-        : e.kind === 'weapon' ? copy('捡到','Picked up ')+got.name+' · '+t(inputLabels().switch)+copy(' 换枪',' switch') : e.kind === 'heart' ? '捡到棉花包 · ♥ +1'
+        : e.kind === 'weapon' ? copy('捡到','Picked up ')+got.name+' · '+t(inputLabels().switch)+copy(' 换枪',' switch') : e.kind === 'heart' ? (amusement ? copy(`补充生命 +${e.amount}`,`Recovered ${e.amount} HP`) : '捡到棉花包 · ♥ +1')
         : (got?.name ?? '')+copy('弹药 +',' ammo +')+e.amount,1.4);
     } else if (e.type === 'hurt') {
       hurtFeedback(e);
@@ -972,7 +1039,7 @@ function clearHurt() {
 
 // ---------- 瞄准与镜头 ----------
 
-// 沿准星找到最近的东西（僵尸、墙、家具、场地边界），返回距离；枪口朝那一点开火。
+// 沿准星找到第一处可见的物体，供高亮、枪模朝向和投掷使用。
 function aim() {
   camera.updateMatrixWorld(true); camera.getWorldDirection(lookDir);
   const from = camera.position, far = sightEnd.copy(from).addScaledVector(lookDir, FAR);
@@ -983,6 +1050,10 @@ function aim() {
     if (t !== null && t * FAR < distance) { distance = t * FAR; picked = e; }
   }
   for (const c of level.solids) { const h = segmentBox(from, far, c); if (h && h.t * FAR < distance) { distance = h.t * FAR; picked = null; } }
+  if (s.park) for (const part of amusementTargets(s)) {
+    const h=segmentBox(from,far,part);
+    if (h && h.t * FAR < distance) { distance=h.t*FAR; picked=null; }
+  }
   ray.set(from, lookDir);
   for (const egg of level.easterEggs) {
     const contact = segmentBox(from, far, egg);
@@ -996,24 +1067,34 @@ function aim() {
   return distance;
 }
 
-// 实际枪口位置和方向；枪口伸进墙或家具时改从眼前发射，避免球生在实体里。
-function shotParams(thrown = false) {
-  cameraFrame(0);
+function visibleMuzzle(index) {
+  const {kit}=viewmodel, mouth=kit.userData.variants[index].userData;
+  localMuzzle.set(0,mouth.muzzleY ?? 0,mouth.muzzleZ ?? kit.userData.muzzleZ);
+  return kit.localToWorld(modelMuzzle.copy(localMuzzle));
+}
+
+// Gun framing changes with aspect and FOV. Fire along the optical center,
+// starting at the eye so the swept projectile still meets close cover.
+function shotParams() {
+  camera.getWorldDirection(lookDir);
+  const eye = camera.position;
+  return {origin:{x:eye.x,y:eye.y,z:eye.z},direction:{x:lookDir.x,y:lookDir.y,z:lookDir.z}};
+}
+
+function throwParams() {
   aim();
-  const {kit, held}=viewmodel;
-  const muzzle=kit.userData.variants[s.weapon].userData;
-  const anchor=thrown?held:kit;
-  if (thrown) localMuzzle.set(0,0,0);
-  else localMuzzle.set(0,muzzle.muzzleY??0,muzzle.muzzleZ??kit.userData.muzzleZ);
-  muzzleWorld.copy(anchor.localToWorld(localMuzzle)).sub(camera.position)
-    .multiplyScalar(1/VIEWMODEL_SCALE).add(camera.position);
-  const m=muzzleWorld, pad=.29;
-  const blocked=level.solids.some(c=>segmentBox(camera.position,m,c,.035)
+  const from = camera.position;
+  viewmodel.held.localToWorld(throwOrigin.set(0,0,0)).sub(from).multiplyScalar(1/VIEWMODEL_SCALE).add(from);
+  const m = throwOrigin, pad = .21;
+  const blocked = level.solids.some(c => segmentBox(from,m,c,.035)
     || (m.x>c.minX-pad && m.x<c.maxX+pad && m.y>c.minY-pad && m.y<c.maxY+pad && m.z>c.minZ-pad && m.z<c.maxZ+pad));
-  if (blocked || target.clone().sub(m).dot(lookDir)<.08 || !inBounds(level,m.x,m.z,.12))
-    m.copy(camera.position).addScaledVector(lookDir,.02);
-  const direction=target.clone().sub(m).normalize();
-  return {origin:{x:m.x,y:m.y,z:m.z},direction:{x:direction.x,y:direction.y,z:direction.z}};
+  throwDirection.subVectors(target,m);
+  if (blocked || throwDirection.dot(lookDir)<.08 || !inBounds(level,m.x,m.z,.12)) {
+    m.copy(from).addScaledVector(lookDir,.02);
+    throwDirection.subVectors(target,m);
+  }
+  throwDirection.normalize();
+  return {origin:{x:m.x,y:m.y,z:m.z},direction:{x:throwDirection.x,y:throwDirection.y,z:throwDirection.z}};
 }
 
 function cameraFrame(dt) {
@@ -1024,8 +1105,11 @@ function cameraFrame(dt) {
     const focalScale=1+(SCOPE_POWER-1)*zoom;
     camera.fov=scopeFieldOfView(HIP_FOV,focalScale) + recoil.fov.x * motion / focalScale;
     camera.rotation.order = 'YXZ';
-    camera.rotation.set(pitch + recoil.camera.x * motion + hurtPitch, yaw, Math.sin(s.time * 49) * shake * motion + hurtRoll);
-    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + s.player.jump + EYE + bob + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
+    const riding=s.park && s.park.ride.started!==null && !s.park.ride.finished;
+    const railYaw=riding ? ridePose(s.park.ride.progress).yaw * .36 * motion : 0;
+    const dropping=s.park?.fallUntil ? Math.max(0,1-(s.park.fallUntil-s.time)/.52)*1.65 : 0;
+    camera.rotation.set(pitch + recoil.camera.x * motion + hurtPitch, yaw + railYaw, Math.sin(s.time * 49) * shake * motion + hurtRoll);
+    camera.position.set(s.player.x + Math.sin(s.time * 67) * shake * motion, s.player.y + s.player.jump + EYE + (riding?-.16:bob) - dropping + Math.sin(s.time * 59) * shake * 0.4 * motion, s.player.z);
     viewmodel?.project(camera.fov,camera.aspect,zoom<.5);
 
   camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
@@ -1064,7 +1148,7 @@ function describeAmmo(weaponIndex) {
   return WEAPONS[weaponIndex].short + ' ' + mag + '/' + (reserve === Infinity ? '∞' : reserve);
 }
 
-function cottageStudyProgress() {
+function encounterProgress() {
   if (!s.wave) {
     const left = aliveCount(s);
     return copy(`剩 ${left} / ${s.total} 只`,`${left} / ${s.total} left`);
@@ -1076,7 +1160,10 @@ function cottageStudyProgress() {
   }
   const left = s.enemies.filter(enemy => enemy.alive && enemy.enabled).length;
   if (!left && index + 1 === count) return t('三波都打完了！');
-  return copy(`第 ${index + 1} / ${count} 波 · 剩 ${left} 只`, `Wave ${index + 1} / ${count} · ${left} left`);
+  const stage = level.waves.stages?.[index];
+  const where = stage ? ' · '+t(stage) : '';
+  return copy(`第 ${index + 1} / ${count} 波`,`Wave ${index + 1} / ${count}`) + where
+    + copy(` · 剩 ${left} 只`,` · ${left} left`);
 }
 
 let shownLoadout;
@@ -1086,7 +1173,7 @@ function pauseBrief() {
   textOf('objective', objectiveText(status));
   textOf('pauseProgress', parkTour ? copy('游园用时 ','Walk time ')+clock(s.time) : challenge
     ? challenge.unit + ' ' + s.challenge.progress + '/' + challenge.target + copy(' · 剩余 ',' · Time left ') + Math.max(0, Math.ceil(challenge.seconds - s.time)) + copy(' 秒','s')
-    : cottageStudy ? cottageStudyProgress()
+    : s.wave || cottageStudy ? encounterProgress()
     : copy('剩余 ','Remaining ') + status.alive + '/' + status.total + copy(' · 用时 ',' · Time ') + clock(s.time));
   if ($('pauseDetailView').hidden) return;
   const second = secondOf(s), equipment = [describeAmmo(PISTOL)];
@@ -1124,6 +1211,18 @@ function ammoHud(active) {
 }
 
 function bossHud(active) {
+  const clown=s.park?.clown;
+  $('bossDetail').hidden=!(active && clown?.entered);
+  if (clown) {
+    $('bossHud').hidden=!(active && clown.entered);
+    if (!active || !clown.entered) return;
+    textOf('bossName',t('嬉笑小丑'));
+    textOf('bossDetail',clown.mask ? copy(`面具 · ${clown.mask} / 2`,`Mask · ${clown.mask} / 2`) : copy('面具已碎','Mask broken'));
+    $('bossFill').style.width=(100*clown.hp/CLOWN.hp)+'%';
+    $('bossTrack').setAttribute('aria-valuemax',CLOWN.hp);
+    $('bossTrack').setAttribute('aria-valuenow',clown.hp);
+    return;
+  }
   const boss = active ? s.enemies.find(e => e.alive && e.enabled && e.type.startsWith('boss-') &&
     floorIndex(level, e.base) === floorIndex(level, s.player.y) &&
     Math.hypot(e.x - s.player.x, e.z - s.player.z) < 18 &&
@@ -1136,14 +1235,44 @@ function bossHud(active) {
   $('bossTrack').setAttribute('aria-valuenow', boss.hp);
 }
 
+function amusementObjective() {
+  const a=s.park, use=inputLabels().exchange, prompt=amusementPrompt(s), left=parkRemaining(s);
+  const remaining=copy(`剩 ${left} 只守卫`,`${left} guards left`);
+  if (a.opened[a.zone]) {
+    const dx=GATES[a.zone].x-s.player.x;
+    return dx>1.15 ? copy('闸门已开 · 走右边','Gate open · Go right')
+      : dx< -1.15 ? copy('闸门已开 · 走左边','Gate open · Go left') : copy('闸门已开 · 继续向前','Gate open · Go ahead');
+  }
+  switch(a.zone) {
+    case 0: return remaining;
+    case 1: return a.ride.finished ? remaining : a.ride.started!==null ? copy('坐稳 · 方向键瞄准，空格开火','On the rail · Aim and fire')
+      : prompt==='board' ? copy(`${use} 上过山车`,`${use} · Board coaster`) : copy('走到过山车站台','Walk to the coaster station');
+    case 2: return a.carousel.used ? remaining : prompt==='spin' ? copy(`${use} 启动旋转木马`,`${use} · Start carousel`)
+      : copy('靠近木马前的金色开关','Approach the gold carousel switch');
+    case 3: return copy(`摊位靶 ${a.targets.filter(Boolean).length}/2 · `,`Targets ${a.targets.filter(Boolean).length}/2 · `)+remaining;
+    case 4: return a.lever ? remaining : prompt==='lever' ? copy(`${use} 拉帘闸扳杆`,`${use} · Pull curtain lever`)
+      : copy('清掉守卫，找左侧的帘闸扳杆','Clear the guards and find the lever on the left');
+    default:
+      if (!a.clown.entered) return copy('向前进入马戏帐篷','Enter the big top');
+      if (a.clown.defeatedAt!==null) return copy('游乐场重新亮灯了！','The park lights are back!');
+      return a.clown.mask ? copy('踩上落地的盒子，弹起射面具','Step on a landed box and shoot the mask')
+        : copy('打小丑 · 躲光圈和闪光地板','Hit the clown · Dodge marked tiles');
+  }
+}
+
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
   $('fightHud').hidden = !active;
-  $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
+  document.body.classList.toggle('park-boxed',active && !!s.park?.trap);
+  $('missionHud').hidden = !(missionBriefing || s.wave || cottageStudy) || !active;
   if (parkTour && active) {
     const stop=nearbyTourStop(s.player.x,s.player.z);
     textOf('missionStep',stop?copy(stop.name,stop.en):copy('缝线小径','Stitched path'));
-  } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
+  } else if (s.park && active) {
+    $('missionHud').querySelector('strong').textContent=(s.park.zone+1)+' / '+PARK_ZONES.length+'  '+t(PARK_ZONES[s.park.zone].name);
+    textOf('missionStep',amusementObjective());
+  }
+  else if ((s.wave || cottageStudy) && active) textOf('missionStep', encounterProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
     textOf('missionStep', !status.carrying && TX.route ? t(TX.route) : objectiveText(status));
@@ -1168,9 +1297,16 @@ function hud() {
     if (offer) $('swapPrompt').replaceChildren(keyBadge(inputLabels().exchange), copy(' 换成',' Swap to ') + WEAPONS.find(w => w.id === offer.weapon).name);
   }
 
-  $('hearts').hidden=parkTour;
-  const hearts = Math.max(0, Math.min(CONFIG.maxHealth, s.health));
-  if (hearts !== lastHealth) {
+  const hearts = Math.max(0, Math.min(s.maxHealth, s.health));
+  $('hearts').hidden=parkTour||!!s.park;
+  $('playerHealth').hidden=!s.park;
+  if (s.park) {
+    textOf('healthLabel',copy('生命','HP'));
+    textOf('healthValue',hearts+' / '+s.maxHealth);
+    $('healthFill').style.width=(hearts/s.maxHealth*100)+'%';
+    $('healthTrack').setAttribute('aria-valuemax',s.maxHealth);
+    $('healthTrack').setAttribute('aria-valuenow',hearts);
+  } else if (hearts !== lastHealth) {
     [...$('hearts').children].forEach((el, i) => {
       el.className = 'heart ' + (i < hearts ? 'on' : 'off');
       if (i >= hearts && i < lastHealth && !reduced) restart(el, 'pop');
@@ -1178,7 +1314,7 @@ function hud() {
     $('hearts').setAttribute('aria-label', hearts + copy(' 颗心',' hearts'));
     lastHealth = hearts;
   }
-  const danger = active && s.phase === 'playing' && hearts === 1;
+  const danger = active && s.phase === 'playing' && (s.park ? hearts<=25 : hearts===1);
   document.body.classList.toggle('danger', danger);
   if (danger && performance.now() > nextBeat) { nextBeat = performance.now() + 1100; sfx2('beat', { strength: 0.8 }); }
 
@@ -1226,6 +1362,7 @@ function diagnostics() {
 
 function start() {
   if (!ready) return;
+  const parkCheckpoint=mode==='result' && s.phase==='lost' ? (s.park?.zone ?? 0) : 0;
   platformPlaying(false);
   frameIntervals.length = 0;
   if (mode !== 'loading') clearModels();
@@ -1238,10 +1375,11 @@ function start() {
   aimedEnemy = lastWounded = null;
   toastUntil = toastPriority = 0; $('toast').textContent = '';
   for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
-  s = createGame({ level });
+  s = createGame({ level, parkCheckpoint });
+  amusementView?.update(s);
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;
-  awaitingApproach = !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
+  awaitingApproach = !parkCheckpoint && !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
   $('ready-actions').hidden = !awaitingApproach;
   document.body.classList.toggle('practice-ready',awaitingApproach);
   if(finalStudy || menuTrial) for(const e of s.enemies){
@@ -1267,7 +1405,7 @@ function start() {
   if (viewmodel) viewmodel.root.visible = true;
   (awaitingApproach ? $('approach') : $('view')).focus(); unlock(); syncWeapon();
   if (weaponShowcase) say('武器试验场 · 暂停可查看操作', 2.1);
-  else if (!awaitingApproach && !challenge && !intro) say(level.mission.title, 2.8, 1);
+  else if (!awaitingApproach && !challenge && !intro && !parkTour) say(level.mission.title, 2.8, 1);
   updateModels(0);
 }
 function beginApproach() {
@@ -1286,6 +1424,7 @@ function setPause(value, fromFocus = false) {
   if (mode !== 'playing' || value === paused) return;
   paused = value;
   clearHeldInput();
+  syncScore();
   if (!fromFocus) platformPlaying(!paused && !awaitingApproach);
   introPrompt();
   if (viewmodel) viewmodel.ball.visible = false;
@@ -1298,7 +1437,7 @@ function setPause(value, fromFocus = false) {
   else { last = performance.now(); (awaitingApproach ? $('approach') : $('view')).focus(); unlock(); }
 }
 function showResult() {
-  mode = 'result'; platformPlaying(false); clearHeldInput();
+  mode = 'result'; platformPlaying(false); syncScore(); clearHeldInput();
   releasePointer(); introPrompt();
   document.body.classList.add('result');
   const won = s.phase === 'won';
@@ -1316,13 +1455,14 @@ function showResult() {
     $('again').focus({preventScroll:true});
     return;
   }
-  $('resultTitle').textContent = t(won ? (crazyGames || cottageStudy || level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
+  $('resultTitle').textContent = t(won ? (amusement || crazyGames || s.wave || cottageStudy || level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
   $('resultStars').hidden = !won;
+  if (amusement && !won && s.park.zone>0) labelAction($('again'),inputLabels().confirm,s.park.clown.entered?'重打嬉笑小丑':'从当前区域重试');
   $('resultStars').textContent = won ? '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '';
   $('resultNote').textContent = won
     ? copy(`受伤 ${s.damageTaken} 次${s.damageTaken <= 1 ? ' ✓' : '（不超过 1 次得一星）'} · 用时 ${clock(s.time)}${s.time <= level.par ? ' ✓' : `（${clock(level.par)} 内得一星）`}`,
       `Hits taken: ${s.damageTaken}${s.damageTaken <= 1 ? ' ✓' : ' (one or fewer for a star)'} · ${clock(s.time)}${s.time <= level.par ? ' ✓' : ` (beat ${clock(level.par)} for a star)`}`)
-    : s.carrying ? TX.lostCarrying : t('被发现的僵尸越多越危险：先打落单的，从背后下手。');
+    : amusement ? (s.park.clown.entered ? t('可从帐篷入口重试') : (s.park.zone>0?t('已开的闸门会保留。'):t('上车后可以边坐边打。'))) : s.carrying ? TX.lostCarrying : t('被发现的僵尸越多越危险：先打落单的，从背后下手。');
   if(receipts && !intro){
     const {blocks,breaks,returns}=receipts.counts;
     $('gardenReceipt').hidden=false;
@@ -1449,10 +1589,13 @@ function switchRangeGun(index) {
   const previous=secondOf(s);
   s.owned[index]=true;
   switchAction(index);
-  if(previous>=0 && previous!==index) s.owned[previous]=false;
+  if(previous>=0 && previous!==index) {
+    s.owned[previous]=false;
+    s.stowedReload[previous]=0;
+  }
 }
 function switchBomb() {
-  if(selectGrenade(s)) { say(WEAPONS[s.grenade].name,1);sfx2('swap'); }
+  if(selectGrenade(s)) { say(WEAPONS[s.grenade].name + ' ×' + grenades(s),1);sfx2('swap'); }
 }
 function throwAction(source) {
   if (parkTour || throwInput) return;
@@ -1462,7 +1605,8 @@ function throwAction(source) {
 }
 function exchangeAction() {
   unlock();
-  if (exchangeWeapon(s)) cancelFire();
+  if (useAmusement(s)) { cancelFire(); cameraFrame(0); }
+  else if (exchangeWeapon(s)) cancelFire();
   processEvents();
 }
 function firePress(source) {
@@ -1478,7 +1622,7 @@ function fireRelease(source) {
 function throwRelease(source) {
   if (throwInput !== source) return;
   throwInput = null;
-  if (mode === 'playing' && !paused) { releaseThrow(s, shotParams(true)); processEvents(); }
+  if (mode === 'playing' && !paused) { releaseThrow(s, throwParams()); processEvents(); }
 }
 function jumpAction() { if (beginJump(s)) processEvents(); }
 
@@ -1646,6 +1790,7 @@ document.addEventListener('visibilitychange', () => {
     if (q.has('test')) clearHeldInput();
     else losePlayFocus();
   }
+  syncScore();
 });
 if (!crazyGames) $('expand').onclick = () => { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch(() => {}); };
 $('again').onclick = start;
@@ -1659,6 +1804,7 @@ $('pauseMenu').onclick = toMenu; $('readyBack').onclick=toMenu; $('pauseRestart'
 $('sound').onclick = () => {
   sound = !sound; preferences.sound=sound; writePreferences(preferences); $('sound').textContent = t(sound ? '声音 开' : '声音 关'); $('sound').setAttribute('aria-pressed', sound);
   if (sound) unlock();
+  else syncScore();
 };
 
 // ---------- 主循环 ----------
@@ -1710,6 +1856,7 @@ function frame(now) {
   else cameraFrame(dt);
   if (performance.now() > toastUntil) $('toast').textContent = '';
   world.update(cine.uniforms.time.value);
+  amusementView?.update(s);
   tourView?.update(s.time);
   world.setFloor(floorIndex(level, s.player.y));
   world.occlusion.update(camera.position, now / 1000);
@@ -1821,6 +1968,7 @@ requestAnimationFrame(frame);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },
+  score,   // 仅供调试：直接读写战斗状态
   get cine() { return cine; }, get world() { return world; }, get effects() { return effects; }, governor, pad,
   get inputMode() { return inputMode; }, get padInput() { return { side: padAxes.x, forward: -padAxes.y }; },
   gamepadFrame,
@@ -1836,7 +1984,7 @@ window.__rb = {
   },
   press(key) { dispatchEvent(new KeyboardEvent('keydown', { key })); dispatchEvent(new KeyboardEvent('keyup', { key })); hud(); return snapshot(); },
   teleport(x, z, newYaw = yaw, newPitch = 0, floor = 0) { s.player.x = x; s.player.z = z; s.player.y = floor * SH; yaw = newYaw; pitch = newPitch; cameraFrame(0); return snapshot(); },
-  render() { tourView?.update(s.time); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
+  render() { amusementView?.update(s); tourView?.update(s.time); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
   async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },

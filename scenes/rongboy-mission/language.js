@@ -60,8 +60,20 @@ export async function initializeLanguage({platformLocale = true, waitForPlatform
 
 const words = {
   '布偶游乐园':'Plushwood Park',
+  '布偶游乐场':'Plushwood Park','马戏帐篷':'Big Top','嬉笑小丑':'Giggles the Clown',
+  '售票广场':'Ticket Plaza','过山车区':'Coaster','木马广场':'Carousel Plaza','游戏摊街':'Midway','后台仓库':'Backstage',
+  '逐区夺回游乐场，最后挑战嬉笑小丑':'Reclaim the park and face Giggles in the big top',
+  '从售票口开始。清完每区的守卫，完成当地的机关目标，下一道门就会打开。':
+    'Start at the ticket plaza. Clear each area and complete its objective to open the next gate.',
+  '游乐场重新亮灯了！':'The park lights are back!','操作设施':'Use ride',
+  '重打嬉笑小丑':'Retry Giggles','从当前区域重试':'Retry this area','已开的闸门会保留。':'Open gates stay open.','可从帐篷入口重试':'Retry from the big top entrance',
+  '上车后可以边坐边打。':'You can fire while riding.',
   '院子里的三波': 'Three waves in the yard', '院子里的对照局': 'All at once in the yard',
   '院子波次': 'Yard waves', '院子对照局': 'All at once',
+  '果园波次': 'Orchard waves', '果树行': 'Orchard Rows', '晾晒场': 'Drying Yard', '果料仓': 'Fruit Barn',
+  '奶奶家 · 果园保卫战': 'Grandma’s Place · Orchard Defense', '清理果园的三波僵尸': 'Clear three waves in the orchard',
+  '先清果树行，再去晾晒场，最后到果料仓迎战噬连兽。两波之间有时间换弹。': 'Clear the orchard rows, then the drying yard. Face the Chain Eater in the fruit barn. Take time to reload between waves.',
+  '果园守住了！': 'Orchard secured!', '进入果园': 'Enter the orchard',
   '三波僵尸会从树篱两侧出来。打完一波，有三秒换弹或挪位置。': 'Clear three waves in the yard. Take three seconds to reload or move between waves.',
   '这局的九只僵尸开场就会行动。院子、补给和敌人与三波版相同。': 'All nine zombies are active from the start, with the same yard, supplies, and enemy roster as the wave trial.',
   '打完院子里的三波僵尸': 'Clear all three waves in the yard', '打倒院子里的九只僵尸': 'Knock out all nine zombies in the yard',

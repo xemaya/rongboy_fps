@@ -132,6 +132,51 @@ test('a sleeping zombie ignores a distant player and wakes only when approached'
   assert.equal(e.awareness, 'alert');
 });
 
+test('point-blank contact wakes a sleeping zombie even when a low prop hides its feet', () => {
+  const s = game({ furniture:[{id:'low',kind:'crate',x:0,z:0,w:.3,d:1,h:.66}] });
+  Object.assign(s.player,{x:-.82,z:0});
+  const e = spawn(s,{x:.82,z:0,state:'asleep',heading:EAST});
+  assert.equal(lineOfSight(s.level,{x:e.x,y:0,z:e.z},{x:s.player.x,y:1.2,z:0}),false);
+  run(s,.12);
+  assert.equal(e.awareness,'waking');
+  run(s,.36);
+  assert.equal(e.awareness,'alert');
+});
+
+test('a lethal shot and a nearby miss both get a local reaction without a player sighting', () => {
+  const shot = {origin:{x:-2,y:1.05,z:0},direction:{x:1,y:0,z:0}};
+  const hit = game({roomAlerts:true});
+  const victim = spawn(hit,{x:6.7,z:0,state:'asleep'});
+  const witness = spawn(hit,{x:7.3,z:1.35,state:'asleep',heading:EAST});
+  victim.hp = 1;
+  fire(hit,0,shot);
+  assert.equal(witness.awareness,'asleep','the muzzle sound is too far away');
+  run(hit,.81);
+  assert.equal(victim.alive,false);
+  assert.equal(witness.awareness,'idle');
+  assert.equal(witness.lure?.watch,true,'reaction comes from the hit even when the victim cannot call');
+  assert.ok(witness.heading > EAST,'the witness turns toward the hit');
+  const miss = game({roomAlerts:true,walls:[{x:8.5,z:[-10,10]}]});
+  const nearWall = spawn(miss,{x:7.3,z:1.7,state:'asleep'});
+  const otherSide = spawn(miss,{x:9.2,z:1.7,state:'asleep'});
+  fire(miss,0,shot);
+  run(miss,.96);
+  assert.equal(nearWall.lure?.watch,true,'a ball that misses makes a sound at the wall');
+  assert.equal(otherSide.awareness,'asleep','the impact does not pass through the wall');
+});
+
+test('repeated shots draw two investigators while other close zombies look from their posts', () => {
+  const s = game({roomAlerts:true,walls:[{x:-5,z:[-10,10]}]});
+  s.player.x = -8;
+  const pack = Array.from({length:7},(_,i)=>spawn(s,{
+    x:3 + 2*Math.cos(i * 2*Math.PI / 7), z:2*Math.sin(i * 2*Math.PI / 7), state:'asleep',
+  }));
+  for (let i=0;i<4;i++) { emitNoise(s,3,0,5); run(s,.22); }
+  assert.equal(pack.filter(e=>e.lure?.kind==='noise' && !e.lure.watch).length,2);
+  assert.equal(pack.filter(e=>e.lure?.watch).length,5);
+  assert.ok(pack.every(e=>e.awareness==='idle'),'noise does not reveal the player through the wall');
+});
+
 test('an awake zombie sees only what is in front of it, within range, and not through walls', () => {
   const behind = game(); const a = spawn(behind, { x: 3, z: 0, state: 'idle', heading: EAST });   // 背对玩家
   run(behind, 2); assert.equal(a.awareness, 'idle');
@@ -196,30 +241,22 @@ test('two chasers coming from the same side: the one behind swings round to the 
   run(alone, 1.8); assert.ok(Math.abs(solo.z) < 0.4, 'a lone chaser just comes straight on');
 });
 
-test('a museum exhibit draws the nearer part of its floor; the last one draws that whole floor', () => {
+test('museum exhibit alarms stay with the nearby guards, even when the last is collected', () => {
   const L = compileLevel(LEVELS.museum), exhibits = L.pickups.filter(q => q.kind === 'objective');
-  const first = exhibits[0], last = exhibits.at(-1), alarm = L.mission.alarm;
-  const s = createGame({ level: L });
-  const grab = (state, item) => {
-    Object.assign(state.player, { x: item.x, y: item.y, z: item.z });
-    step(state, 1 / 120);
-  };
-  grab(s, first);
-  const ground = s.enemies.filter(e => e.floor === first.floor);
-  const distance = e => Math.hypot(e.x - first.x, e.z - first.z);
-  const ring = ground.filter(e => distance(e) > alarm + 1 && distance(e) < alarm * 2 - 1);
-  const beyond = ground.filter(e => distance(e) > alarm * 2 + 1);
-  assert.ok(s.collected === 1 && !s.carrying);
-  assert.ok(ring.length && ring.every(e => e.lure?.kind === 'noise' && Math.hypot(e.lure.x - first.x, e.lure.z - first.z) < 0.01), 'within twice the alarm, guards come to where the exhibit was');
-  assert.ok(beyond.length > 3 && beyond.every(e => !e.lure), 'the far side of the floor carries on as it was');
-  assert.ok(s.enemies.filter(e => e.floor !== first.floor).every(e => !e.lure), 'the other floor does not investigate');
-
-  const later = createGame({ level: L });
-  later.collected = exhibits.length - 1;
-  grab(later, last);
-  const far = later.enemies.filter(e => e.floor === last.floor && Math.hypot(e.x - last.x, e.z - last.z) > alarm + 1);
-  assert.ok(later.carrying && far.length && far.every(e => e.lure?.kind === 'noise'), 'with all three in hand, even far-away guards on the same floor come looking');
-  assert.ok(later.enemies.filter(e => e.floor !== last.floor).every(e => !e.lure), 'the other floor stays out of the search on the way back');
+  for (const [index,item] of exhibits.entries()) {
+    const s = createGame({ level: L });
+    s.collected = index;
+    Object.assign(s.player,{x:item.x,y:item.y,z:item.z});
+    step(s,1/120);
+    const alarms = consumeEvents(s).filter(e=>e.type==='notice' && e.reason==='alarm');
+    assert.equal(s.collected,index+1);
+    assert.equal(s.carrying,index===exhibits.length-1);
+    const floor = storeyAt(L,item.y), gallery = roomAt(floor,item.x,item.z);
+    assert.ok(alarms.length>0 && alarms.length<=5 && alarms.every(e=>e.base===item.y
+      && roomAt(floor,e.x,e.z)===gallery
+      && Math.hypot(e.x-item.x,e.z-item.z)<L.mission.alarm), 'only the nearby guards in this gallery wake');
+    assert.ok(s.enemies.every(e=>e.lure?.kind!=='noise'), 'an exhibit does not pull its floor into one spot');
+  }
 });
 
 test('upstairs gunfire does not send ground-floor zombies wandering', () => {
@@ -339,7 +376,7 @@ test('magazines empty, reload takes time, reserves run out, and the starter gun 
   s.ammo[1] = { mag: 2, reserve: 4 }; selectWeapon(s, 1); fire(s); run(s, 0.6);
   assert.equal(startReload(s), true); run(s, 0.5); selectWeapon(s, 0);
   assert.equal(s.reloading, false); selectWeapon(s, 1);
-  assert.equal(s.ammo[1].mag, 1, 'switching away cancels a reload');
+  assert.equal(s.ammo[1].mag, 1, 'switching away cancels a manual top-up of a usable magazine');
   assert.equal(startReload(s), true); run(s, WEAPONS[1].reload + 0.05);
   assert.deepEqual(s.ammo[1], { mag: 2, reserve: 3 });
 });
@@ -351,12 +388,49 @@ test('switching to an empty magazine starts a timed reload without granting inst
   assert.deepEqual(s.ammo[1], { mag: 0, reserve: 3 });
   assert.equal(fire(s), false); assert.equal(beginCharge(s), false);
   assert.ok(consumeEvents(s).some(e => e.type === 'reload' && e.weapon === WEAPONS[1].id));
-  run(s, WEAPONS[1].reload - .1); assert.equal(s.ammo[1].mag, 0);
+  run(s, .3); assert.equal(s.ammo[1].mag, 0);
+  const pending = s.reload;
   selectWeapon(s, 0); assert.equal(s.reloading, false);
-  selectWeapon(s, 1); assert.equal(s.reload, WEAPONS[1].reload, 'switching does not skip reload time');
-  run(s, WEAPONS[1].reload + .02); assert.deepEqual(s.ammo[1], { mag: 2, reserve: 1 });
+  assert.equal(s.stowedReload[1], pending);
+  assert.equal(fire(s), true, 'you can fire the pistol while the empty gun loads');
+  run(s, .2);
+  assert.deepEqual(s.ammo[1], { mag: 0, reserve: 3 }, 'it still needs to finish loading');
+  selectWeapon(s, 1);
+  assert.ok(Math.abs(s.reload - (pending - .2)) < 1e-8, 'switching back resumes the remaining reload time');
+  run(s, s.reload + .02); assert.deepEqual(s.ammo[1], { mag: 2, reserve: 1 });
   selectWeapon(s, 0); s.ammo[1].mag = 1; selectWeapon(s, 1);
   assert.equal(s.reloading, false, 'a usable magazine is not forcibly topped up on weapon switch');
+});
+
+test('switching immediately after the last shot loads the empty gun in the background', () => {
+  const s = game({ arsenal: ['single','scatter'] });
+  selectWeapon(s, 1);
+  s.ammo[1] = {mag:1,reserve:3};
+  assert.ok(fire(s));
+  assert.equal(s.ammo[1].mag,0);
+  assert.ok(swapWeapon(s));
+  assert.equal(s.weapon,PISTOL);
+  assert.equal(s.stowedReload[1],WEAPONS[1].reload);
+  run(s,WEAPONS[1].reload+.05);
+  assert.deepEqual(s.ammo[1],{mag:2,reserve:1});
+  assert.ok(swapWeapon(s));
+  assert.equal(s.reloading,false);
+  assert.ok(fire(s), 'the reload has already finished before taking out the gun');
+});
+
+test('putting an empty gun on the ground cancels its background reload', () => {
+  const s = game({ arsenal:['single','scatter'], pickups:[{kind:'weapon',weapon:'heavy',x:-2,z:0}] });
+  s.ammo[1] = {mag:0,reserve:3};
+  selectWeapon(s,1);
+  selectWeapon(s,0);
+  assert.ok(s.stowedReload[1] > 0);
+  assert.ok(exchangeWeapon(s));
+  assert.equal(s.stowedReload[1],0);
+  run(s,2);
+  assert.deepEqual([s.pickups[0].weapon,s.pickups[0].mag,s.pickups[0].amount],['scatter',0,3]);
+  assert.ok(exchangeWeapon(s), 'the same ammo is picked up with the old gun');
+  assert.deepEqual(s.ammo[1],{mag:0,reserve:3});
+  assert.ok(s.reloading);
 });
 
 test('charging still works: one bigger, harder-hitting ball on release', () => {
@@ -413,6 +487,26 @@ test('three hits and the round is lost', () => {
 });
 
 // ---------- 整关 ----------
+
+test('three shots in the house living room do not wake the whole floor by relay', () => {
+  const s = createGame({ level: house });
+  const x = -4.03, z = -2.2;
+  Object.assign(s.player,{x,z});
+  s.invul = 10;
+  let peak = 0;
+  const signals = [];
+  for (let tick=0;tick<600;tick++) {
+    if (tick===0 || tick===55 || tick===111) emitNoise(s,x,z,WEAPONS[PISTOL].noise,1.2);
+    step(s,1/120);
+    const nearby = s.enemies.filter(e => e.alive && e.enabled && e.base < 1
+      && Math.hypot(e.x-x,e.z-z) < 10 && (e.awareness === 'alert' || e.awareness === 'waking'));
+    peak = Math.max(peak,nearby.length);
+    signals.push(...consumeEvents(s));
+  }
+  assert.ok(peak >= 2 && peak <= 6, 'nearby enemies respond without mobbing the player, peak '+peak);
+  assert.ok(signals.some(e=>e.type==='search'), 'a neighbor may still come to investigate');
+  assert.ok(signals.filter(e=>e.type==='notice' && e.reason==='call').length <= 2);
+});
 
 test('standing at the gate is safe: nobody notices, nobody spawns', () => {
   const s = createGame({ level: house });
@@ -549,6 +643,25 @@ test('sewing machine gun: holding the trigger fires a stream until the magazine 
   assert.ok(dirs.size > 1 || s.balls.length < 2, 'the stream has some spread');
 });
 
+test('the stapler starts each burst on the aim ray and spreads while held', () => {
+  const s = armed('sewing'), w=WEAPONS[s.weapon];
+  s.shots = 12;   // Firing earlier weapons must not bias this first shot.
+  assert.ok(beginCharge(s));
+  run(s,1/120,{shot:aimEast});
+  assert.ok(Math.abs(1-s.balls[0].dx) < 1e-6);
+  assert.equal(s.balls[0].dz,0);
+  assert.ok(Math.abs(s.balls[0].dy) < .001);   // One gravity step.
+  run(s,w.cooldown+.025,{shot:aimEast});
+  assert.ok(s.balls.some(b => Math.abs(b.dz) > .001), 'later shots spread around the aim');
+  releaseCharge(s);
+  run(s,w.cooldown+.02,{shot:aimEast});
+  assert.ok(beginCharge(s));
+  run(s,1/120,{shot:aimEast});
+  const firstOfNextBurst = s.balls.at(-1);
+  assert.equal(firstOfNextBurst.dz,0);
+  assert.ok(Math.abs(firstOfNextBurst.dy) < .001);
+});
+
 test('knitting needle: flies straight, goes through three zombies in a row and stops in the wall', () => {
   const s = armed('needle'), w = WEAPONS[s.weapon];
   const row = [2, 3.2, 4.4, 5.6].map(x => spawn(s, { x, z: 0, state: 'idle', heading: EAST }));
@@ -632,6 +745,35 @@ test('the stairs carry the player up floor by floor and back down, height changi
   assert.equal(floorIndex(house, p.y), 2);
 });
 
+test('a chaser finishes the flight when its target is almost level with the exit', () => {
+  const s = createGame({level:house}); s.enemies = []; s.invul=100;
+  const stairs = house.stairs, z = stairs.mouthZ - .43;
+  Object.assign(s.player,{x:0,z:-6,y:SH});
+  const enemy = spawn(s,{type:'archer',x:stairs.xB,z,floor:1,state:'alert'});
+  enemy.base = surfaceY(house,enemy.x,z,SH);
+  const follower = spawn(s,{type:'heavy',x:stairs.xB,z:z-.83,floor:1,state:'alert'});
+  follower.base = surfaceY(house,follower.x,follower.z,SH);
+  step(s,1/120);
+  assert.ok(enemy.z > z && Math.abs(enemy.x - stairs.xB) < .001, 'finish the staircase before turning toward the hall');
+  run(s,5);
+  assert.ok(enemy.z >= stairs.outZ + .54 && enemy.base === SH,'archer clears the mouth before it starts shooting');
+  assert.ok(follower.z > stairs.mouthZ && follower.base === SH,'the wider zombie behind it also gets out');
+});
+
+test('an alerted zombie follows the player up to the attic and back to the ground floor', () => {
+  const s = createGame({level:house}); s.enemies = []; s.invul=100;
+  Object.assign(s.player,{x:0,z:-6,y:0});
+  const enemy = spawn(s,{x:1.2,z:-6,state:'alert'});
+  for (const [floor, seconds] of [[2,20],[1,12],[0,12]]) {
+    climb(s,floor);
+    for (let tick=0;tick<seconds*120;tick++) {
+      Object.assign(s.player,{x:0,z:-6,y:floor*SH});
+      step(s,1/120);
+    }
+    assert.equal(enemy.base,floor*SH, `enemy reaches floor ${floor}: ${enemy.base.toFixed(2)}`);
+  }
+});
+
 test('the ground-floor cupboard and the attic railing close the two dead-end stair mouths', () => {
   const t = house.stairs, s = createGame({ level: house }); s.enemies = [];
   const p = s.player; p.x = t.xB; p.z = t.outZ; p.y = 0;
@@ -667,10 +809,10 @@ test('floors separate what happens on them: no sight, touch, pickup or woolball 
 test('gunfire upstairs is muffled downstairs', () => {
   const s = createGame({ level: house });
   s.player.x = 0; s.player.z = 0; s.player.y = 2 * SH;
-  const calm = () => s.enemies.filter(e => e.base < 0.5 && e.awareness !== 'asleep' && e.awareness !== 'idle').length;
   emitNoise(s, 0, 0, 12, 2 * SH + 1.2);
-  assert.equal(calm(), 0, 'nobody on the ground floor hears a shot fired in the attic');
-  assert.ok(s.enemies.some(e => e.base > 5 && e.awareness === 'waking'), 'the attic does');
+  const reacted = s.enemies.filter(e => e.awareness === 'waking' || e.lure?.kind === 'noise');
+  assert.ok(reacted.length > 0 && reacted.length <= 2 && reacted.every(e => e.floor === 2),
+    'up to two attic neighbors investigate the hallway shot, nobody downstairs does');
 });
 
 test('a roused zombie from the attic walks down two flights to reach the player in the garden', () => {
@@ -689,8 +831,9 @@ test('the house mission: carry the yarn basket from the attic back to the gate',
   p.x = prize.x; p.z = prize.z; p.y = 2 * SH; run(s, 0.2);
   assert.ok(s.carrying);
   const roused = s.enemies.filter(e => e.awareness !== 'asleep' && e.awareness !== 'idle');
-  const attic = roused.filter(e => e.base > SH + 1).length;
-  assert.ok(attic >= 6 && roused.length - attic <= 3 && roused.every(e => e.base > 1), `the alarm rouses the attic and a few right underneath, nobody on the ground floor (${attic} + ${roused.length - attic})`);
+  assert.ok(roused.some(e => e.type === 'boss-warden'), 'the guardian still appears');
+  assert.ok(roused.length >= 2 && roused.length <= 4 && roused.every(e => e.base > SH + 1),
+    'the basket wakes the nearby attic enemies without bringing enemies from downstairs');
   p.x = 0; p.z = 2.5; p.y = 2 * SH; run(s, 0.2);
   assert.ok(p.z < 3 && s.phase === 'playing', 'the attic has no way out over the garden');
   p.x = 0; p.z = 10; p.y = 0; run(s, CONFIG.endDelay + 0.3);

@@ -2,6 +2,7 @@ import * as T from 'three';
 import {attackCue} from './attacks.js';
 import {createWoolBall} from '../../library/games/rongboy-runtime.js';
 const ringGeo=new T.RingGeometry(.96,1,64),coneGeo=new T.RingGeometry(.03,1,48,1,-.535,1.07),orbGeo=new T.SphereGeometry(.085,12,8),orbMat=new T.MeshStandardMaterial({color:0xd48f70,roughness:1});
+const juggleMaterials=[0xe67877,0xecc35e,0x75d6cc].map(color=>new T.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.23,roughness:.9}));
 const coneEdgeGeo=new T.BufferGeometry().setFromPoints([new T.Vector3(),...Array.from({length:49},(_,i)=>{const a=-.535+i*1.07/48;return new T.Vector3(Math.cos(a),Math.sin(a),0);}),new T.Vector3()]);
 const arrowTemplate=new T.Group(),shaftMat=new T.MeshStandardMaterial({color:0x8c7358,roughness:.95}),tailMat=new T.MeshStandardMaterial({color:0xe8d9b7,roughness:1}),tipMat=new T.MeshStandardMaterial({color:0x8ca997,roughness:1});
 const shaft=new T.Mesh(new T.CylinderGeometry(.011,.011,.44,8),shaftMat);shaft.rotation.x=Math.PI/2;arrowTemplate.add(shaft);const tip=new T.Mesh(new T.SphereGeometry(.04,10,8),tipMat);tip.position.z=.25;tip.scale.z=2;arrowTemplate.add(tip);
@@ -23,7 +24,7 @@ export function createCombatFx(scene){
    if(t.beam.visible){a0.fromBufferAttribute(points,0);a1.fromBufferAttribute(points,1);const w=cue.locked?.05:.032,len=Math.max(.2,a0.distanceTo(a1)-.8);a1.sub(a0).setLength(len).add(a0);/* 光束停在目标前 0.8 米：一直伸到眼前会糊住半个画面 */t.beam.position.copy(a0).add(a1).multiplyScalar(.5);t.beam.lookAt(a1);t.beam.scale.set(w,w,len);t.beam.material.color.setHex(cue.color);t.beam.material.opacity=cue.locked?.8:.55;}
   }
   const ids=new Set(s.enemyShots.map(b=>b.id));for(const [id,o]of shots)if(!ids.has(id)){o.removeFromParent();shots.delete(id);}
-  for(const b of s.enemyShots){let o=shots.get(b.id);if(!o){o=arrowTemplate.clone(true);scene.add(o);shots.set(b.id,o);}o.position.set(b.x,b.y,b.z);o.quaternion.setFromUnitVectors(forward,velocity.set(b.vx,b.vy,b.vz).normalize());}
+  for(const b of s.enemyShots){let o=shots.get(b.id);if(!o){o=b.style==='juggle' ? new T.Mesh(orbGeo,juggleMaterials[b.id%3]) : arrowTemplate.clone(true);if(b.style==='juggle')o.scale.setScalar(1.66);scene.add(o);shots.set(b.id,o);}o.position.set(b.x,b.y,b.z);o.quaternion.setFromUnitVectors(forward,velocity.set(b.vx,b.vy,b.vz).normalize());}
   const bombIds=new Set(s.enemyBombs.map(b=>b.id));for(const [id,o]of bombs)if(!bombIds.has(id)){o.mesh.removeFromParent();o.ring.removeFromParent();o.ring.material.dispose();bombs.delete(id);}
   for(const b of s.enemyBombs){let o=bombs.get(b.id);if(!o){const mesh=bombTemplate.clone(true),ring=new T.Mesh(ringGeo,new T.MeshBasicMaterial({color:0xb25e3e,transparent:true,opacity:.7,side:T.DoubleSide,depthWrite:false}));mesh.scale.setScalar(b.r);ring.rotation.x=-Math.PI/2;ring.scale.setScalar(b.radius);scene.add(mesh,ring);o={mesh,ring};bombs.set(b.id,o);}o.mesh.position.set(b.x,b.y,b.z);o.mesh.rotation.x=b.age*4;o.ring.position.set(b.x,b.landed?Math.max(.035,b.y-b.r+.015):.035,b.z);o.ring.material.opacity=b.landed?.5+Math.sin(b.age*18)*.25:.25;}
   for(let i=bursts.length-1;i>=0;i--){const b=bursts[i];b.age+=dt;b.ring.scale.setScalar(b.radius*Math.min(1,b.age/.16));b.ring.material.opacity=Math.max(0,.8*(1-b.age/.45));if(b.age>.45){b.ring.removeFromParent();b.ring.material.dispose();bursts.splice(i,1);}}
