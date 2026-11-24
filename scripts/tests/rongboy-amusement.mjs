@@ -170,6 +170,41 @@ test('3 coaster: two track targets to light, from the car or from the path, and 
   assert.ok(gatePassable(s, 3)); through(s, 3);
 });
 
+test('reduced motion: watching the raft and coaster from the path also unlocks progression', () => {
+  for (const id of ['rapids', 'coaster']) {
+    const zone = zoneOf(id), q = spot(id);
+    const game = createGame({ level, amusementCheckpoint: zone, reducedMotion: true });
+    at(game, q.x, q.z);
+    assert.equal(game.park.watch, true, 'the setting survives initial and checkpoint game creation');
+    assert.equal(amusementPrompt(game)?.kind, 'look');
+    assert.ok(useAmusement(game));
+    run(game, PARK[id].time - .2);
+    assert.equal(game.amusement.done[id], false, 'starting the show alone gives no credit');
+    assert.equal(game.park.riding, null);
+    assert.equal(game.player.jump, 0);
+    assert.deepEqual([game.player.x, game.player.z], [q.x, q.z], 'the player stays on the path');
+    run(game, .25);
+    assert.equal(game.park.running[id], 0);
+    assert.equal(game.amusement.done[id], true);
+    if (id === 'coaster') {
+      assert.ok(game.enemies.filter(e => e.zone === zone).every(e => e.enabled), 'the station guards wake when the empty train returns');
+      assert.equal(zoneReady(game), false, 'the targets and guards still count');
+      at(game, -21.4, -22.8); game.invul = 99;
+      selectWeapon(game, pistol);
+      for (let i = 0; i < game.amusement.targets.length; i++) {
+        for (let tries = 0; !game.amusement.targets[i].lit && tries < 8; tries++) {
+          shot(game, coasterTargetPosition(game.amusement, i), .5); run(game, 1.1);
+        }
+        assert.ok(game.amusement.targets[i].lit, 'the moving target is hittable from the path');
+      }
+      clearZone(game);
+    }
+    run(game, .8);
+    assert.ok(gatePassable(game, zone));
+    through(game, zone);
+  }
+});
+
 test('4 haunted house: knock, go in, ring the bell', () => {
   blocked(s, 4);
   const door = spot('haunt'); at(s, door.x, door.z); assert.ok(useAmusement(s)); run(s, 1.6);
@@ -197,10 +232,12 @@ test('6 midway: one hit at any stall wins; walking up to a stall is not enough',
   const d = { x: t.x - origin.x, y: t.y - origin.y, z: t.z - origin.z }, n = Math.hypot(d.x, d.y, d.z);
   assert.ok(fireStall(s, { origin, direction: { x: d.x / n, y: d.y / n, z: d.z / n } })); run(s, .5);
   assert.ok(s.park.stall.score > 0);
-  for (let i = 0; i < 8 && !s.park.stall.done; i++) { fireStall(s, { origin, direction: { x: -1, y: .9, z: 0 } }); run(s, .5); }   // 把剩下的球扔完
-  assert.ok(s.amusement.done.stall);
+  assert.equal(s.park.stall.done, false, 'the round still has throws left');
+  assert.ok(s.amusement.done.stall, 'one hit immediately earns credit');
   assert.ok(useAmusement(s), 'the same key leaves the stall'); assert.equal(s.park.stall, null);
-  run(s, .8); through(s, 6);
+  run(s, .8);
+  assert.ok(gatePassable(s, 6), 'the earned credit survives leaving before the round ends');
+  through(s, 6);
 });
 
 test('7 bumper cars: a drive opens the last gate before the maze; 8 the maze has nothing to solve', () => {
@@ -275,6 +312,24 @@ test('retry: you start again at the gate of the stop you fell in, earlier stops 
   const tent = fresh(TENT_ZONE); run(tent, .1);
   assert.ok(tent.amusement.clown.entered && amusementCutscene(tent) === null, 'retrying from the tent door does not replay the entrance');
   assert.equal(CLOWN_INTRO_SECONDS > 0, true);
+});
+
+test('the pistol can shatter immediately after a freeze shot, but swapping cannot erase either cooldown', () => {
+  const game = fresh();
+  shot(game, lockPosition(game.amusement));
+  run(game, .14);
+  assert.equal(game.amusement.lock, 'frozen');
+  assert.ok(game.cooldown > 0, 'the freeze ray still has time to cool');
+  assert.ok(selectWeapon(game, pistol));
+  const origin = { x: game.player.x, y: 1.23, z: game.player.z }, latch = lockPosition(game.amusement);
+  const shotAtLatch = { origin, direction: { x: latch.x - origin.x, y: latch.y - origin.y, z: latch.z - origin.z } };
+  assert.ok(fire(game, 0, shotAtLatch), 'the pistol can fire without waiting on the freeze ray');
+  selectWeapon(game, freeze);
+  assert.equal(fire(game), false, 'switching back retains the freeze cooldown');
+  selectWeapon(game, pistol);
+  assert.equal(fire(game), false, 'switching back retains the pistol cooldown');
+  run(game, .5);
+  assert.equal(game.amusement.lock, 'open');
 });
 
 test('freeze gun: a holstered one recharges; the pistol does extra to a frozen zombie', () => {

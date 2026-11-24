@@ -78,9 +78,8 @@ export function makeAmusement(zone = 0) {
     lockPhase: 0, lockFrozenUntil: 0, lockFrozenX: LOCK.x,
     valveUntil: 0, valveLatched: past('carousel'),
     carousel: { until: 0, used: past('carousel'), struck: new Map(), iceHits: 0, ring: 0 },
-    // 坐过、玩过哪些设施（这一站的门认它）；riding：上一步坐在哪个设施上
+    // 坐过、看过、玩过哪些设施（这一站的门认它）
     done: { rapids: past('rapids'), coaster: past('coaster'), portraits: past('haunt'), wheel: past('wheel'), stall: past('midway'), bumpers: past('bumpers') },
-    riding: null,
     targets: COASTER_TARGETS.map((t, i) => ({ lit: past('coaster'), phase: i * 1.7, frozenUntil: 0, frozenX: null })),
     pickedUp: false,
     clownIntroUntil: 0, clownIntroStarted: 0,
@@ -194,22 +193,21 @@ export function zoneReady(s) {
   }
 }
 
-// 坐过、玩过哪些设施：看 park-rides.js 的状态，下车的那一步记一笔
+// 设施把乘坐结束和地面观看结束报给关卡，两条路线共用放行条件。
 function watchRides(s) {
   const a = s.amusement, park = s.park;
   if (!park) return;
-  const riding = park.riding?.id ?? null;
-  if (a.riding && a.riding !== riding && a.riding in a.done) {
-    a.done[a.riding] = true;
-    if (a.riding === 'coaster' && a.zone === COASTER_ZONE) {   // 下了车，守在站台边的僵尸围上来；下车那一下不挨打
+  for (const id of park.completedRides) {
+    a.done[id] = true;
+    if (id === 'coaster' && a.zone === COASTER_ZONE) {
       for (const e of s.enemies) if (e.alive && e.zone === COASTER_ZONE) e.enabled = true;
       s.invul = Math.max(s.invul, 1.2);
     }
-    signal(s, 'ride-done', { id: a.riding });
+    signal(s, 'ride-done', { id });
   }
-  a.riding = riding;
+  park.completedRides.clear();
   if (park.running.portraits > 0 && !a.done.portraits) { a.done.portraits = true; signal(s, 'ride-done', { id: 'portraits' }); }
-  if (park.stall?.done && park.stall.score > 0 && !a.done.stall) { a.done.stall = true; signal(s, 'ride-done', { id: 'stall' }); }
+  if (park.stall?.score > 0 && !a.done.stall) { a.done.stall = true; signal(s, 'ride-done', { id: 'stall' }); }
 }
 
 function advanceGates(s) {

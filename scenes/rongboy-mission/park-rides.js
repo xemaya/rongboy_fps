@@ -37,10 +37,11 @@ export const SPOTS = [
   { id: 'bumpers', stop: 'bumpers', kind: 'drive', x: 35.4, z: 10.0, zh: '开碰碰车', en: 'Drive a bumper car' },
 ];
 
-export function createPark() {
+export function createPark({ watch = false } = {}) {
   return {
     time: 0, riding: null, stall: null,
-    watch: false,   // true：过山车只看不坐（系统设了"减少动态效果"的人，准则 3.9）
+    watch,   // 减少动态效果时从地面看空船、空车（准则 3.9）
+    completedRides: new Set(),
     // 各设施演到哪了：0 是没在演；大于 0 是已经演了多少秒
     running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, coaster: 0 },
     carouselAngle: 0, wheelAngle: 0, coasterU: 0, boatU: 0,
@@ -109,6 +110,7 @@ function alight(s, skipped = false) {
   p.vx = p.vz = p.jump = p.jumpV = 0;
   if (ride.id === 'coaster') park.coasterU = 0;
   if (ride.id === 'rapids') park.boatU = 0;
+  park.completedRides.add(ride.id);
   s.events.push({ type: 'park', what: 'alight', id: ride.id, skipped });
 }
 
@@ -198,8 +200,20 @@ export function stepPark(s, dt, input = {}) {
     park.carouselAngle += C.speed * Math.max(0, k) * dt;
     R.carousel = t + dt >= C.time ? 0 : t + dt;
   }
-  if (R.coaster > 0) { R.coaster += dt; park.coasterU = PARK.coaster.run.at(R.coaster); if (R.coaster >= PARK.coaster.time) { R.coaster = 0; park.coasterU = 0; } }
-  if (R.rapids > 0) { R.rapids += dt; park.boatU = lap(R.rapids, PARK.rapids.time, PARK.rapids.ramp); if (R.rapids >= PARK.rapids.time) { R.rapids = 0; park.boatU = 0; } }
+  if (R.coaster > 0) {
+    R.coaster += dt;
+    if (R.coaster >= PARK.coaster.time) {
+      R.coaster = park.coasterU = 0;
+      park.completedRides.add('coaster');
+    } else park.coasterU = PARK.coaster.run.at(R.coaster);
+  }
+  if (R.rapids > 0) {
+    R.rapids += dt;
+    if (R.rapids >= PARK.rapids.time) {
+      R.rapids = park.boatU = 0;
+      park.completedRides.add('rapids');
+    } else park.boatU = lap(R.rapids, PARK.rapids.time, PARK.rapids.ramp);
+  }
   {   // 鬼屋：敲过门，门就开着；人走远了才关上（人在门厅里的时候离门不到 keep，不会被关在里面）
     const H = PARK.haunt, far = Math.hypot(s.player.x - HAUNT.door.x, s.player.z - HAUNT.door.z) > H.keep;
     if (park.knocked && far && !(R.portraits > 0)) park.knocked = false;

@@ -96,7 +96,7 @@ const HIP_FOV = 65, SCOPE_POWER = WEAPONS.find(w=>w.zoom).zoom;
 // 脚下是露天的花园吗（楼上不算）
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
-let s = createGame({ level,amusementCheckpoint:requestedStage });
+let s = createGame({ level,amusementCheckpoint:requestedStage,reducedMotion:reduced });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
 let actors, bossActors, viewmodel, tourView, amusementView;
 let rideYaw = 0, rideVignette = 0;   // 游乐园：上车那一刻面朝哪、暗角的深浅
@@ -281,7 +281,7 @@ const fxMesh = new T.InstancedMesh(new T.SphereGeometry(1, 7, 5), new T.MeshStan
 fxMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); fxMesh.frustumCulled = false; fxMesh.setColorAt(0, new T.Color(0xffffff)); fxMesh.count = 0;
 function initWorld(kit) {
   world = buildWorld(cine, level, WEAPONS, kit?.userData.variants);
-  if (park) { tourView = createParkTour(cine,world,{reduced}); s.park.watch = reduced; }
+  if (park) tourView = createParkTour(cine,world,{reduced});
   if (amusement) amusementView=createAmusementView(cine,world);
   combatFx = createCombatFx(cine.scene);
   effects = createEffects(cine.scene);
@@ -1344,12 +1344,24 @@ function amusementObjective() {
     if (!a.carousel.used) return copy(`到木马台阶前按 ${ex} 摇铃`,`Press ${ex} at the carousel steps to ring the bell`);
     return a.carousel.until>s.time ? copy('把僵尸引到木马的气浪里 · 剩余 '+left,'Lure zombies into the shockwaves · '+left+' left') : copy('可以再摇一次铃，或直接击倒 · 剩余 '+left,'Ring again or finish them off · '+left+' left');
   }
-  if (id==='rapids') return riding==='rapids' ? copy('坐稳了，漂完这一圈','Hold on for the lap') : copy(`到码头按 ${ex} 登船，漂一圈`,`Press ${ex} at the dock and ride a lap`);
+  if (id==='rapids') {
+    if (s.park.watch) return s.park.running.rapids > 0
+      ? copy('木船正漂向码头 · 回来就开门','The raft is on its lap · The gate opens when it returns')
+      : copy(`到码头按 ${ex} 放船`,`Press ${ex} at the dock to send the raft`);
+    return riding==='rapids' ? copy('坐稳了，漂完这一圈','Hold on for the lap') : copy(`到码头按 ${ex} 登船，漂一圈`,`Press ${ex} at the dock and ride a lap`);
+  }
   if (id==='coaster') {
     const lit=a.targets.filter(t=>t.lit).length, all=a.targets.length;
     if (riding==='coaster') return copy(`车上打亮轨道靶（${lit}/${all}）`,`Light the track targets as you ride (${lit}/${all})`);
-    if (!a.done.coaster) return copy(`到站台按 ${ex} 上车，路上打亮两个轨道靶`,`Press ${ex} at the station; light two targets on the way`);
-    if (lit<all) return copy(`打亮剩下的轨道靶（${lit}/${all}）· 在路上打，或再坐一趟`,`Light the remaining targets (${lit}/${all}) from the path, or ride again`);
+    if (!a.done.coaster) {
+      if (s.park.watch) return s.park.running.coaster > 0
+        ? copy(`空车运行中 · 可从小径打轨道靶（${lit}/${all}）`,`Train in motion · Shoot the targets from the path (${lit}/${all})`)
+        : copy(`到站台按 ${ex} 发车，然后从小径打轨道靶`,`Press ${ex} to send the train, then shoot from the path`);
+      return copy(`到站台按 ${ex} 上车，路上打亮两个轨道靶`,`Press ${ex} at the station; light two targets on the way`);
+    }
+    if (lit<all) return s.park.watch
+      ? copy(`从小径打亮剩下的轨道靶（${lit}/${all}）`,`Light the remaining targets from the path (${lit}/${all})`)
+      : copy(`打亮剩下的轨道靶（${lit}/${all}）· 在路上打，或再坐一趟`,`Light the remaining targets (${lit}/${all}) from the path, or ride again`);
     return copy('击倒站台边的僵尸 · 剩余 '+left,'Clear the zombies by the station · '+left+' left');
   }
   if (id==='haunt') return s.park.door>.9 ? copy(`进门厅，到小桌前按 ${ex} 摇铃`,`Step inside and press ${ex} at the little table`) : copy(`到鬼屋门口按 ${ex} 敲门`,`Press ${ex} at the haunted house door`);
@@ -1494,7 +1506,7 @@ function start() {
   for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
   const checkpoint=amusement && mode==='result' && s.phase==='lost' ? s.amusement.zone : requestedStage;
   if (zoneCarry?.zone !== checkpoint) zoneCarry = null;
-  s = createGame({ level,amusementCheckpoint:checkpoint,carry:zoneCarry });
+  s = createGame({ level,amusementCheckpoint:checkpoint,carry:zoneCarry,reducedMotion:reduced });
   amusementView?.update(s);
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;

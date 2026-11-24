@@ -87,7 +87,7 @@ const length = (x, z) => Math.hypot(x, z);
 const enemyMovementScale = (s,e) => e.tangle > 0 ? TANGLE_SPEED : e.frostSlowUntil > s.time ? .7 : 1;
 
 // carry：从检查点重来时带回来的东西（checkpointCarry 记下的）：身上几瓶血瓶、哪些地上的东西已经捡走了
-export function createGame({ level, amusementCheckpoint = 0, carry = null } = {}) {
+export function createGame({ level, amusementCheckpoint = 0, carry = null, reducedMotion = false } = {}) {
   if (!level) throw new Error('createGame 需要一个编译好的关卡');
   const amusement = level.mission?.type === 'amusement' ? makeAmusement(amusementCheckpoint) : null;
   const maxHealth = amusement ? 100 : CONFIG.maxHealth;
@@ -97,7 +97,7 @@ export function createGame({ level, amusementCheckpoint = 0, carry = null } = {}
     // 开局带哪些枪：关卡的 arsenal（武器 id 列表），不写就是最早的三把。其余的要捡。
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
     health: maxHealth, potions: carry?.potions ?? 0, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
-    charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
+    charge: 0, charging: false, cooldown: 0, stowedCooldownEnds: amusement ? WEAPONS.map(() => 0) : null, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
     enemies: [], balls: [], nets: [], tangleFields: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
@@ -113,7 +113,7 @@ export function createGame({ level, amusementCheckpoint = 0, carry = null } = {}
   s.wave = level.waves ? { index:0, nextAt:null } : null;
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
-  if (level.tour) s.park = createPark();
+  if (level.tour) s.park = createPark({ watch: reducedMotion });
   if (amusementCheckpoint && amusement) Object.assign(s.player, checkpointPosition(amusementCheckpoint));
   for (const e of level.enemies || []) {
     if (amusement && e.zone < amusementCheckpoint) continue;
@@ -153,8 +153,13 @@ export const aliveCount = s => s.enemies.reduce((n, e) => n + (e.alive ? 1 : 0),
 export function selectWeapon(s, index) {
   if (s.phase !== 'playing' || !WEAPONS[index] || WEAPONS[index].kind === 'grenade' || !s.owned[index] || s.weapon === index) return false;
   const previous = s.weapon, magazine = s.ammo[previous];
-  if (s.amusement && magazine.mag === 0 && magazine.reserve > 0)
-    s.stowedReload[previous] = s.reloading ? s.reload : reloadTime(s,previous);
+  if (s.amusement) {
+    if (magazine.mag === 0 && magazine.reserve > 0)
+      s.stowedReload[previous] = s.reloading ? s.reload : reloadTime(s,previous);
+    // 游乐园靠两把枪连用。切枪沿用各自的冷却，切回去也不能跳过剩余时间。
+    s.stowedCooldownEnds[previous] = s.time + s.cooldown;
+    s.cooldown = Math.max(0, s.stowedCooldownEnds[index] - s.time);
+  }
   s.weapon = index; s.charging = false; s.charge = 0; s.reloading = false; s.reload = 0; s.trigger = false;
   s.events.push({ type: 'weapon', weapon: index });
   if (s.ammo[index].mag === 0 && s.ammo[index].reserve > 0) startReload(s);
