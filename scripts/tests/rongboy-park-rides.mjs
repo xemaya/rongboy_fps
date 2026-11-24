@@ -8,7 +8,7 @@ import { createGame, step, consumeEvents, missionStatus } from '../../scenes/ron
 import { PARK_ZONES } from '../../scenes/rongboy-mission/amusement.js';
 import { fireStall, stallTarget, STALL_SHOTS } from '../../scenes/rongboy-mission/park-stalls.js';
 import { PARK, SPOTS, PLAYER_EYE, parkPrompt, parkInteract } from '../../scenes/rongboy-mission/park-rides.js';
-import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, STALLS, RINK, HAUNT, GATE, CAROUSEL, isTourWalkable, isHauntWalkable, constrainTourWalk } from '../../scenes/rongboy-mission/park-tour-layout.js';
+import { TOUR_STOPS, COASTER, RAPIDS, RAPIDS_ROCKS, rockScale, WHEEL, STALLS, RINK, HAUNT, GATE, CAROUSEL, isTourWalkable, isHauntWalkable, constrainTourWalk } from '../../scenes/rongboy-mission/park-tour-layout.js';
 
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -18,6 +18,23 @@ const at = (s, id) => { const q = SPOTS.find(k => k.id === id); s.player.x = q.x
 function run(s, seconds, input = {}, each = null) { const log = []; for (let i = 0; i < Math.round(seconds / DT); i++) { step(s, DT, input); log.push(...consumeEvents(s)); each?.(s); } return log; }
 // 碰碰车场里没人开的车一直在自己转悠、互相碰（bump），和玩家在干什么无关，这里不看它们
 const parks = log => log.filter(e => e.type === 'park' && e.what !== 'bump'), bumps = log => log.filter(e => e.type === 'park' && e.what === 'bump');
+
+test('rock faces stay below the coaster and rapids clearance along both tracks', () => {
+  for (const [track, halfWidth] of [[RAPIDS,.95],[COASTER,.7]]) {
+    for (let i = 0; i < 550; i++) {
+      const u = i / 550, p = track.at(u), prev = track.at(u - .0005), next = track.at(u + .0005);
+      const dx = next.x - prev.x, dz = next.z - prev.z, length = Math.hypot(dx,dz);
+      for (let lane = -4; lane <= 4; lane++) {
+        const offset = lane * halfWidth / 4, x = p.x + offset * dz / length, z = p.z - offset * dx / length;
+        for (const [k,[rx,ry,rz,r]] of RAPIDS_ROCKS.entries()) {
+          const [sx,sy,sz] = rockScale(k);
+          const flat = ((x-rx)/(r*sx))**2 + ((z-rz)/(r*sz))**2;
+          if (flat < 1) assert.ok(ry + r*sy*Math.sqrt(1-flat) <= p.y-.17, `rock ${k} enters the ride envelope at ${u}`);
+        }
+      }
+    }
+  }
+});
 
 test('every place you press the key is on the path, and close to its attraction', () => {
   for (const q of SPOTS) {

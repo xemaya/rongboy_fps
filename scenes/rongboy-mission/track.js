@@ -56,3 +56,39 @@ export function trackSchedule(track, { lift = 4.4, crest = 3.2, gravity = 6.5, m
     },
   };
 }
+
+// 搭一条轨道的控制点：平面走向用直线和圆弧一段段接，高度按弧长另配（docs/park-design.md 3.2a）。
+// 控制点沿线等距（step 米一个）：疏密不匀、或者两个点挨得太近，曲线会打结。要改走向就改这里的段，不要手挪算出来的点。
+//   start：[x, z]；heading：出发的方向角（度；0 朝 +x，90 朝 +z，-90 朝 -z）
+//   moves：['line', 米] | ['arc', 半径, 度]（度是正的往右拐）| ['until', 'x' 或 'z', 值]（照现在的方向一直走到那条线）| ['mark', 名字]
+//   heights(marks, total)：返回 [[弧长, 高度], ...]；marks 是各个 mark 处的弧长，total 是一整圈的弧长。两点之间用单调三次插值，不会冲过头
+// 返回 { points: [[x, y, z], ...], marks, length, end: { x, z, heading } }。最后一段从 end 直着回到 start。
+export function planTrack({ start, heading, step = 1.35, moves, heights }) {
+  let [x, z] = start, h = heading * Math.PI / 180, s = 0;
+  const pts = [], marks = {};
+  const put = () => { const q = pts[pts.length - 1]; if (q && Math.hypot(q[0] - x, q[1] - z) < 0.6) pts.pop(); pts.push([x, z, s]); };
+  const line = len => { if (len < 0.3) return; const n = Math.max(1, Math.round(len / step)); for (let i = 0; i < n; i++) { x += Math.cos(h) * len / n; z += Math.sin(h) * len / n; s += len / n; put(); } };
+  const arc = (R, deg) => {
+    const turn = deg * Math.PI / 180, n = Math.max(1, Math.round(R * Math.abs(turn) / step)), da = turn / n, sign = Math.sign(deg);
+    for (let i = 0; i < n; i++) { const cx = x - Math.sin(h) * R * sign, cz = z + Math.cos(h) * R * sign; h += da; x = cx + Math.sin(h) * R * sign; z = cz - Math.cos(h) * R * sign; s += Math.abs(da) * R; put(); }
+  };
+  put();
+  for (const [kind, a, b] of moves) {
+    if (kind === 'line') line(a);
+    else if (kind === 'arc') arc(a, b);
+    else if (kind === 'until') line(a === 'x' ? (b - x) / Math.cos(h) : (b - z) / Math.sin(h));
+    else if (kind === 'mark') marks[a] = s;
+    else throw new Error('planTrack：不认识的一段 ' + kind);
+  }
+  const total = s + Math.hypot(x - start[0], z - start[1]), keys = heights(marks, total), n = keys.length, d = [], m = new Array(n).fill(0);
+  for (let i = 0; i < n - 1; i++) d.push((keys[i + 1][1] - keys[i][1]) / (keys[i + 1][0] - keys[i][0]));
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : 2 * d[i - 1] * d[i] / (d[i - 1] + d[i]);   // Fritsch–Carlson：过每个关键点，坡度连续
+  const yAt = q => {
+    let i = 0; while (i < n - 2 && q > keys[i + 1][0]) i++;
+    const hh = keys[i + 1][0] - keys[i][0], t = Math.max(0, Math.min(1, (q - keys[i][0]) / hh)), t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * keys[i][1] + (t3 - 2 * t2 + t) * hh * m[i] + (-2 * t3 + 3 * t2) * keys[i + 1][1] + (t3 - t2) * hh * m[i + 1];
+  };
+  const points = pts.filter(p => !(p[2] > 1 && Math.hypot(p[0] - start[0], p[1] - start[1]) < 0.05))   // 绕回来正好落在起点上的那一个不要：闭合的曲线自己会接上
+    .map(p => [+p[0].toFixed(2), +yAt(p[2]).toFixed(2), +p[1].toFixed(2)]);
+  return { points, marks, length: total, end: { x, z, heading: h * 180 / Math.PI } };
+}

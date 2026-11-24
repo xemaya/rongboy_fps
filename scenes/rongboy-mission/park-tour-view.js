@@ -8,8 +8,8 @@ import { mulberry32 } from '../../cine-engine/engine/noise.js';
 import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
-  COASTER, RAPIDS, RAPIDS_DOCK, RAPIDS_ROCKS, rapidsRockScale, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, GATE } from './park-tour-layout.js';
-import { PARK, SPOTS } from './park-rides.js';
+  COASTER, RAPIDS, RAPIDS_DOCK, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, GATE, RAPIDS_ROCKS, rockScale, inRock } from './park-tour-layout.js';
+import { PARK, SPOTS, ghostOut } from './park-rides.js';
 import { stallTarget } from './park-stalls.js';
 import { createParkKit, RED, CREAM, TEAL, GOLD, INK, CORAL, NAVY, FOREST, MOSS, PINE, PLUM, PLUM_DARK, THREAD, WOOL_WHITE, TIMBER } from './park-kit.js';
 
@@ -372,7 +372,6 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     horsesB = part(carousel, (kit, det) => { for (let i = 1; i < c.horses; i += 2) mount(kit, det, i); }, 0, 0, 0, true, anchor);
   }
 
-  const inRock = (x, z, pad = 0.25) => RAPIDS_ROCKS.some(([rx, , rz, r], i) => { const [sx, , sz] = rapidsRockScale(i); return ((x - rx) / (r * sx + pad)) ** 2 + ((z - rz) / (r * sz + pad)) ** 2 < 1; });
 
   // ====================================================================== 03 激流勇进（docs/park-refs/ref-03-rapids.png）
   use('rapids');
@@ -405,7 +404,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     // 石头山：一堆大石头垒起来，水槽最高的那一段从山里穿过去，从东边的山口冲下来。每块石头上两道针脚当石缝
     const greys = [0x9a968c, 0x86837b, 0xaaa69a, 0x7d7a73];
     const boulder = (x, y, z, r, i) => {
-      const [sx, sy, sz] = rapidsRockScale(i), turn = i * 1.7;
+      const [sx, sy, sz] = rockScale(i), turn = i * 1.7;
       k.sphere(wool(greys[i % 4]), r, x, y, z, { seg: 12, rings: 8, sx, sy, sz });
       for (const a of [turn, turn + 2.2]) P.stitch(d, Array.from({ length: 7 }, (_, j) => { const phi = 0.25 + j * 0.2, q = r * 1.006; return [x + q * sx * Math.sin(phi) * Math.cos(a + j * 0.08), y + q * sy * Math.cos(phi), z + q * sz * Math.sin(phi) * Math.sin(a + j * 0.08)]; }), { color: 0xe9e2cf, len: 0.13, gap: 0.11, t: 0.022 });
     };
@@ -592,7 +591,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       for (const e of [-1, 1]) puff(kit, ink, 0.05 * s, e * 0.12 * s, 0.4 * s, -0.29 * s, { sy: 1.4 }); puff(kit, ink, 0.045 * s, 0, 0.22 * s, -0.31 * s, { sy: 1.5 }); box(kit, felt(0xc8b8d6), 0.14 * s, 0.14 * s, 0.03, 0.14 * s, 0.1 * s, -0.31 * s, 0.02);
     }, x, y, z);
     windowGhosts.push([ghost(h.x - 2.2, 2.9, front + 0.45, 0.8), h.x - 2.2, 2.9, front + 0.45], [ghost(tx, 4.0, h.z - 2.6, 0.8), tx, 4.0, h.z - 2.6]);
-    px.forEach(x => portraitGhosts.push([ghost(x, 2.46, z1 + 0.25, 0.8), x, 2.46, z1 + 0.25]));
+    HAUNT.ghosts.forEach(g => portraitGhosts.push([ghost(g.x, g.y, g.z, 0.8), g.x, g.y, g.z]));
     // 南瓜（带脸）、枯树、歪栅栏
     for (const [x, z, r] of [[dx - 1.9, dz - 1.5, 0.42], [dx + 1.8, dz - 1.4, 0.36], [dx + 2.4, dz - 1.9, 0.26], [-11.3, -20.4, 0.44]]) {
       puff(k, wool(0xdf7f3d), r, x, r * 0.72, z, { sx: 1.12, sy: 0.81, seg: 12, rings: 8 }); k.tube(felt(0x5f8a45), [[x, r * 1.4, z], [x + r * 0.05, r * 1.75, z], [x + r * 0.28, r * 1.86, z]], r * 0.1, { seg: 5, detail: 3 });   // 南瓜：一瓣一瓣的缝线，弯弯的绿蒂
@@ -757,8 +756,14 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
       kit.tube(ink, [[0, 0.44, 0.52], [0, 0.6, 0.44]], 0.022, { straight: true }); kit.cyl(ink, 0.11, 0.11, 0.03, 0, 0.61, 0.43, { seg: 12, rx: 1.1 });   // 方向盘：低、靠前，坐着的时候在视线下沿
       for (const s of [-1, 1]) kit.sphere(felt(0xf6efe0), 0.075, s * 0.26, 0.34, 0.56, { seg: 8, rings: 5 });
       P.stitch(det, [[-0.32, 0.5, 0.36], [0, 0.535, 0.5], [0.32, 0.5, 0.36]], { len: 0.05, gap: 0.045, t: 0.012 });
-      kit.tube(felt(0xd9b98c), [[-0.3, 0.5, -0.5], [-0.3, 1.5, -0.5]], 0.015, { straight: true, seg: 4 });
-      kit.extrude(felt(tones[(i + 1) % 4]), [[0, 0.1], [0.3, 0], [0, -0.1]], 0.012, new T.Matrix4().makeTranslation(-0.3, 1.4, -0.5));
+      if (i === PARK.bumpers.flag) {   // 插大旗的那一辆：杆子高出别的车一截，一面金底的方旗，两面各一个红白靶心，隔着半个场子也认得出
+        kit.tube(felt(0xd9b98c), [[-0.3, 0.5, -0.5], [-0.3, 2.3, -0.5]], 0.022, { straight: true, seg: 5 }); kit.sphere(wool(RED), 0.06, -0.3, 2.34, -0.5, { seg: 7, rings: 5 });
+        box(kit, wool(GOLD), 0.62, 0.46, 0.03, 0.02, 2.05, -0.5, 0.012);
+        for (const [r, m, t] of [[0.17, wool(RED), 0.04], [0.115, wool(WOOL_WHITE), 0.05], [0.06, wool(RED), 0.06]]) kit.cyl(m, r, r, t, 0.02, 2.05, -0.5, { seg: 18, rx: Math.PI / 2 });
+      } else {
+        kit.tube(felt(0xd9b98c), [[-0.3, 0.5, -0.5], [-0.3, 1.5, -0.5]], 0.015, { straight: true, seg: 4 });
+        kit.extrude(felt(tones[(i + 1) % 4]), [[0, 0.1], [0.3, 0], [0, -0.1]], 0.012, new T.Matrix4().makeTranslation(-0.3, 1.4, -0.5));
+      }
     }, 0, 0, 0, true, anchor));
   }
 
@@ -843,7 +848,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     windowGhosts.forEach(([g, x, y, z], i) => { const out = sat(peek * 1.4 - i * 0.3); g.position.set(x, y + Math.sin(t * 2.4 + i) * 0.06 * out, z - out * 0.62); g.scale.setScalar(0.4 + out * 0.6); g.visible = out > 0.02; });
     const ring = park.running.portraits > 0 ? park.running.portraits : 0;
     portraitGhosts.forEach(([g, x, y, z], i) => {
-      const out = ring > 0 ? sat(Math.min((ring - i * 0.7) / 0.9, (PARK.haunt.show - ring) / 1.0)) : 0;
+      const out = s.amusement?.ghosts[i] ? 0 : ghostOut(park, i);   // 打中过的那只不再出来
       g.position.set(x + Math.sin(t * 1.7 + i * 2) * 0.1 * out, y + Math.sin(t * 2.4 + i) * 0.06 * out, z - out * 1.02); g.scale.setScalar(0.5 + out * 0.5); g.visible = out > 0.02;
       frames[i].rotation.z = Math.sin(t * 5 + i * 1.3) * 0.045 * out;
     });

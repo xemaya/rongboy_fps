@@ -9,15 +9,17 @@ import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import {
   TENT_DOOR, TENT, TENT_ZONE, CLOWN, TILES, TILE, GATES, GATE_LIFT_SECONDS, PARK_ZONES,
-  LOCK, VALVE, SWEEP, COASTER_TARGETS, MOTOR, CLOWN_ENTRANCE,
-  tileSwitch, lockPosition, coasterTargetPosition, amusementCutscene,
+  LOCK, VALVE, SWEEP, COASTER_TARGETS, BALLOONS, MOTOR, CLOWN_ENTRANCE,
+  tileSwitch, lockPosition, coasterTargetPosition, balloonPosition, amusementCutscene,
 } from './amusement.js';
 import { CAROUSEL, GATE as ARCH } from './park-tour-layout.js';
 import { createParkKit, RED, TEAL, GOLD, INK, CORAL, WOOL_WHITE } from './park-kit.js';
 import { createClown } from './amusement-clown.js';
+import { mechState } from './mech.js';
 
 const TAU = 2 * Math.PI;
 const DETAIL_RANGE = 26;   // 小装饰（针脚、穗子）离人多远就不画了
+const COASTER_ZONE = PARK_ZONES.findIndex(zone => zone.id === 'coaster');
 const GATE_RANGE = 34;     // 路上的门、轨道靶、蒸汽阀冒的汽、帐篷门口的零碎离人多远就不画了
 const sat = v => Math.max(0, Math.min(1, v));
 
@@ -166,6 +168,17 @@ export function createAmusementView(cine, world) {
     }, t.x, t.y, t.z, false);
     return { g, rim, core, frost: frost(g, 0.6) };
   });
+
+  // ====================================================================== 气球：激流勇进水道上方三只，摩天轮最高处前面一只挂着钥匙的
+  const balloons = BALLOONS.map((b, i) => part(root, (kit, det) => {
+    const tone = b.key ? RED : [RED, TEAL, CORAL][i % 3];   // 挂钥匙的那只是红的：吊舱的吊杆、摩天轮的架子都是金色，金气球混在里面认不出
+    kit.sphere(wool(tone), 0.4, 0, 0, 0, { seg: 14, rings: 10, sy: 1.16 }); kit.cyl(wool(tone), 0.03, 0.08, 0.09, 0, -0.5, 0, { seg: 7 });
+    kit.tube(felt(INK), [[0, -0.54, 0], [0.05, -0.9, 0], [0, -1.25, 0]], 0.01, { seg: 4, detail: 3 });
+    if (b.key) {   // 钥匙：一个圆环、一根杆、两个齿
+      kit.tube(wool(GOLD), Array.from({ length: 13 }, (_, j) => { const t = j * TAU / 12; return [Math.sin(t) * 0.11, -1.36 + Math.cos(t) * 0.11, 0]; }), 0.03, { seg: 5, straight: true });
+      box(kit, wool(GOLD), 0.06, 0.34, 0.06, 0, -1.63, 0, 0.02); for (const y of [-1.7, -1.78]) box(kit, wool(GOLD), 0.14, 0.05, 0.06, 0.07, y, 0, 0.015);
+    } else kit.sphere(felt(INK), 0.05, 0, -1.28, 0, { seg: 7, rings: 5 });   // 绳头的小坠子和绳子用同一种料：一只气球两次绘制
+  }, b.x, b.y, b.z, false, [b.x, b.z, 1]));
 
   // ====================================================================== 9 大帐篷：外面、门、里面
   const arena = group(root), porch = group(root);   // porch：门帘、招牌、海报这些零碎的，离帐篷远了不画
@@ -356,13 +369,14 @@ export function createAmusementView(cine, world) {
     { const i = GATES.length - 1, f = a.opened[i] !== null ? sat((time - a.opened[i]) / GATE_LIFT_SECONDS) : 0, open = f * f * (3 - 2 * f) * (1 - fight);
       curtains.forEach(g => { g.scale.x = 1 - open * 0.8; }); }
     // 门栓
-    lock.visible = a.lock !== 'open';
+    const lockNow = mechState(a.lock, time);
+    lock.visible = lockNow !== 'done';
     const lp = lockPosition(a); lock.position.set(lp.x, lp.y, lp.z);
-    light(lockLamp, a.lock === 'frozen' ? 0x9feaff : 0xd9584f, a.lock === 'frozen' ? 2.2 : 1.2);
-    lockFrost.visible = a.lock === 'frozen';
+    light(lockLamp, lockNow === 'frozen' ? 0x9feaff : 0xd9584f, lockNow === 'frozen' ? 2.2 : 1.2);
+    lockFrost.visible = lockNow === 'frozen';
     // 蒸汽阀：没冻住的时候一直冒汽
-    const frozenValve = !a.valveLatched && a.valveUntil > time, venting = !a.valveLatched && !frozenValve && near(VALVE.x, VALVE.z);
-    light(valveLamp, a.valveLatched ? 0xa4f89d : frozenValve ? 0x9feaff : 0xf2a367, 1.8);
+    const valveNow = mechState(a.valve, time), frozenValve = valveNow === 'frozen', venting = valveNow === 'moving' && near(VALVE.x, VALVE.z);
+    light(valveLamp, valveNow === 'done' ? 0xa4f89d : frozenValve ? 0x9feaff : 0xf2a367, 1.8);
     valveIce.visible = frozenValve;
     vapor.forEach((m, i) => {
       const phase = (time * 0.9 + i / vapor.length) % 1;
@@ -375,12 +389,14 @@ export function createAmusementView(cine, world) {
     if (sweepRing.visible) { const f = (a.carousel.ring - SWEEP.from) / (SWEEP.to - SWEEP.from); sweepRing.scale.set(a.carousel.ring, 1, a.carousel.ring); sweepRing.material.opacity = 0.75 * (1 - f * f); }
     // 轨道靶
     coasterTargets.forEach((t, i) => {
-      const st = a.targets[i], pos = coasterTargetPosition(a, i), frozen = st.frozenUntil > time && !st.lit;
-      t.g.visible = near(COASTER_TARGETS[i].x, COASTER_TARGETS[i].z);
+      const now = mechState(a.targets[i], time), pos = coasterTargetPosition(a, i), frozen = now === 'frozen', st = { lit: now === 'done' };
+      t.g.visible = Math.abs(a.zone - COASTER_ZONE) <= 1 && near(COASTER_TARGETS[i].x, COASTER_TARGETS[i].z);   // 过山车这一站和前后各一站才画
       t.g.position.set(pos.x, pos.y, pos.z);
       light(t.rim, st.lit ? 0x8cf4ba : frozen ? 0x96e9ff : 0xffca72, st.lit ? 2.4 : 1.2); light(t.core, st.lit ? 0xffffff : 0xa83c48, st.lit ? 1.6 : 0.2);
       t.frost.visible = frozen;
     });
+    // 气球：还在天上的轻轻飘；只画这一站的
+    balloons.forEach((g, i) => { const b = balloonPosition(s,i); g.visible = a.balloons[i] && b.zone === a.zone && near(b.x, b.z); if (g.visible) { g.position.set(b.x,b.y + Math.sin(time * 1.9 + i * 1.3) * 0.08,b.z); g.rotation.z = Math.sin(time * 1.3 + i) * 0.06; } });
     // 小丑
     const cut = amusementCutscene(s);
     const intro = cut?.kind === 'clown-intro' ? cut.elapsed : null;

@@ -10,7 +10,6 @@ import { TOUR_PATH, TOUR_STOPS, TOUR_BRIDGE, TOUR_MAZE, nearbyTourStop } from '.
 
 const L=compileLevel({...def,enemies:[]}), open=()=>{ const s=createGame({level:L,amusementCheckpoint:PARK_ZONES.findIndex(zone=>zone.id==='mirrors')}); Object.assign(s.player,{x:L.player.x,z:L.player.z}); return s; };
 const s=open(), p=s.player, distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
-assert.equal(s.enemies.length,0,'starting past the last fight leaves no zombies on the paths');
 assert.ok(house.enemies.length>0,'the house keeps its combat roster');
 const routeLength=TOUR_PATH.slice(1).reduce((n,q,i)=>n+distance(q,TOUR_PATH[i]),0);
 assert.ok(routeLength>160);

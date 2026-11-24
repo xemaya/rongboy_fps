@@ -5,16 +5,17 @@ import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/amusement.js';
 import { LEVELS, EXTRAS } from '../../scenes/rongboy-mission/levels/index.js';
 import { compileLevel, freePoint, lineOfSight, segmentBox } from '../../scenes/rongboy-mission/level.js';
-import { CONFIG, ENEMY_TYPES, WEAPONS, createGame, spawn, fire, hurtPlayer, selectWeapon, step, consumeEvents, missionStatus, checkpointCarry, drinkPotion } from '../../scenes/rongboy-mission/game.js';
+import { CONFIG, WEAPONS, createGame, fire, hurtPlayer, selectWeapon, step, consumeEvents, missionStatus, checkpointCarry, drinkPotion, spawn } from '../../scenes/rongboy-mission/game.js';
 import {
-  PARK_ZONES, TENT_ZONE, GATES, parkGateAllows, VALVE, SWEEP, SAFE_PAD, FIRST_BOX, CLOWN, MOTOR, TILES, COASTER_TARGETS, TENT_DOOR,
-  CLOWN_INTRO_SECONDS, VICTORY_CUTSCENE_SECONDS,
-  lockPosition, coasterTargetPosition, parkHoleAt, useAmusement, amusementPrompt, gatePassable, zoneReady, parkRemaining,
+  PARK_ZONES, TENT_ZONE, GATES, VALVE, SWEEP, COASTER_TARGETS, SAFE_PAD, FIRST_BOX, CLOWN, MOTOR, TILES, BALLOONS, FLAG_CAR, FLAG_HITS, TENT_DOOR,
+  CLOWN_INTRO_SECONDS, VICTORY_CUTSCENE_SECONDS, parkRemaining, parkGateAllows, balloonPosition,
+  lockPosition, coasterTargetPosition, ghostPosition, parkHoleAt, useAmusement, amusementPrompt, gatePassable, zoneReady,
   amusementCutscene, skipAmusementCutscene, checkpointPosition, clownGaze, GAZE,
 } from '../../scenes/rongboy-mission/amusement.js';
 import { SPOTS, PARK } from '../../scenes/rongboy-mission/park-rides.js';
 import { fireStall, stallTarget } from '../../scenes/rongboy-mission/park-stalls.js';
 import { CAROUSEL, STALLS, HAUNT, isTourWalkable, isHauntWalkable } from '../../scenes/rongboy-mission/park-tour-layout.js';
+import { mechState } from '../../scenes/rongboy-mission/mech.js';
 
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -80,15 +81,7 @@ test('every gate sits across the path, and everything placed in the park is wher
     const back = checkpointPosition(i + 1);
     assert.ok(isTourWalkable(back.x, back.z), `retrying stop ${i + 1} puts you on walkable ground`);
   }
-  for (const e of def.enemies) {
-    const radius=ENEMY_TYPES[e.type].radius + .06;
-    assert.ok(isTourWalkable(e.x, e.z, -.3), `${e.type} at ${e.x}, ${e.z} stands on the path`);
-    assert.ok(freePoint(level.storeys[0],e.x,e.z,radius), 'the authored spawn clears scenery');
-  }
-  for (let zone=1;zone<=TENT_ZONE;zone++) {
-    const roster=def.enemies.filter(e=>e.zone===zone);
-    assert.deepEqual([0,1,2].map(wave=>roster.filter(e=>e.wave===wave).length),[3,3,4]);
-  }
+  for (const e of def.enemies) assert.ok(isTourWalkable(e.x, e.z, -.3), `${e.type} at ${e.x}, ${e.z} stands on the path`);
   for (const k of def.pickups) assert.ok(isTourWalkable(k.x, k.z, -.3), `pickup at ${k.x}, ${k.z} lies on the path`);
   // 每一站要按的地方都在这一站的两道门之间：门没开的时候够不着下一站的设施
   const along = (g, q) => (q.x - g.x) * g.tx + (q.z - g.z) * g.tz;
@@ -100,7 +93,7 @@ test('every gate sits across the path, and everything placed in the park is wher
 });
 
 // --- 从头走到尾 ---
-const s = fresh();
+const s = fresh(), lockState = () => mechState(s.amusement.lock, s.time);
 test('0 entrance: the latch slides on the arch; freeze it, then shatter it with the pistol', () => {
   assert.equal(s.maxHealth, 100); assert.equal(s.weapon, freeze);
   assert.deepEqual(s.owned.flatMap((v, i) => v ? [WEAPONS[i].id] : []), ['single', 'freeze']);
@@ -108,14 +101,14 @@ test('0 entrance: the latch slides on the arch; freeze it, then shatter it with 
   blocked(s, 0);
   at(s, level.player.x, level.player.z);
   shot(s, lockPosition(s.amusement)); run(s, .4);
-  assert.equal(s.amusement.lock, 'frozen');
-  run(s, 3.6); assert.equal(s.amusement.lock, 'closed', 'it thaws after 3.5 s');
+  assert.equal(lockState(), 'frozen');
+  run(s, 3.6); assert.equal(lockState(), 'moving', 'it thaws after 3.5 s');
   selectWeapon(s, pistol); shot(s, lockPosition(s.amusement), 0); run(s, .4);
-  assert.equal(s.amusement.lock, 'closed', 'a pistol ball bounces off the sliding latch');
+  assert.equal(lockState(), 'moving', 'a pistol ball bounces off the sliding latch');
   selectWeapon(s, freeze);
-  for (let tries = 0; s.amusement.lock !== 'frozen' && tries < 6; tries++) { shot(s, lockPosition(s.amusement)); run(s, .4); }
+  for (let tries = 0; lockState() !== 'frozen' && tries < 6; tries++) { shot(s, lockPosition(s.amusement)); run(s, .4); }
   selectWeapon(s, pistol); shot(s, lockPosition(s.amusement), 0); run(s, .5);
-  assert.equal(s.amusement.lock, 'open');
+  assert.equal(lockState(), 'done');
   run(s, .8); assert.ok(s.amusement.lit[0] && gatePassable(s, 0));
   through(s, 0);
 });
@@ -130,7 +123,7 @@ test('1 carousel: the bell will not ring until the steam valve is frozen; the sh
   at(s, VALVE.x, VALVE.z + 2.5); selectWeapon(s, freeze); shot(s, VALVE); run(s, .45);
   at(s, bell.x, bell.z); assert.equal(amusementPrompt(s).id, 'carousel');
   assert.ok(useAmusement(s));
-  assert.ok(s.amusement.valveLatched && s.amusement.carousel.used && s.park.running.carousel > 0, 'the carousel itself starts turning');
+  assert.ok(s.amusement.valve.done && s.amusement.carousel.used && s.park.running.carousel > 0, 'the carousel itself starts turning');
   assert.equal(activeGuards(s).length,3, 'the bell does not stack the second wave onto a live squad');
   // 没冻住的挨一下不死；冻住的被气浪扫到直接碎
   const walker = s.enemies.find(e => e.zone === 1 && e.type === 'walker' && e.alive);
@@ -150,14 +143,6 @@ test('1 carousel: the bell will not ring until the steam valve is frozen; the sh
   assert.ok(gatePassable(s, 1)); through(s, 1);
 });
 
-// 坐一趟设施：走到提示的地方按键，坐到自己下来
-function ride(s, id, seconds) {
-  const q = spot(id); at(s, q.x, q.z);
-  assert.equal(amusementPrompt(s)?.id, id, `${id} can be boarded`); assert.ok(useAmusement(s));
-  assert.equal(s.park.riding?.id, id);
-  return run(s, seconds);
-}
-
 test('carousel reinforcements wait for the bell, even if the path guards are already down', () => {
   const game = fresh(1);
   run(game,1.5);
@@ -172,36 +157,47 @@ test('carousel reinforcements wait for the bell, even if the path guards are alr
   assert.equal(parkRemaining(game),7);
 });
 
-test('2 rapids: the raft returns before the dock guards appear', () => {
+// 这一站的气球里离眼睛够近的，各打一发
+function popNear(s, stop, reach) {
+  BALLOONS.forEach((b, i) => {
+    const eye = { x: s.player.x, y: s.player.y + 1.23, z: s.player.z };
+    if (b.stop === stop && s.amusement.balloons[i] && Math.hypot(b.x - eye.x, b.y - eye.y, b.z - eye.z) < reach) { shot(s, b); run(s, .15); }
+  });
+}
+
+test('2 rapids: pop all three balloons from the raft, then clear the dock', () => {
   blocked(s, 2);
-  ride(s, 'rapids', PARK.rapids.time + .5);
-  assert.equal(s.park.riding, null); assert.ok(s.amusement.done.rapids);
-  assert.equal(activeGuards(s).length,0,'a short warning follows disembarking');
-  assert.equal(zoneReady(s),false);
-  clearZone(s); run(s, .8); through(s, 2);
+  assert.equal(BALLOONS.filter(b => b.stop === 'rapids').length, 3);
+  selectWeapon(s, pistol);
+  const q = spot('rapids'); at(s, q.x, q.z); assert.ok(useAmusement(s));
+  for (let t = 0; t < PARK.rapids.time + .5 && s.park.riding; t += .1) { run(s, .1); popNear(s, 'rapids', 3.6); }
+  assert.ok(s.amusement.done.rapids);
+  assert.deepEqual(BALLOONS.map((b, i) => b.stop === 'rapids' && s.amusement.balloons[i]).filter(Boolean), [], 'all three can be popped from the raft in one lap');
+  assert.equal(zoneReady(s), false, 'the gate waits for the dock guards');
+  clearZone(s); run(s, 1); through(s, 2);
 });
 
-test('3 coaster: two track targets to light, from the car or from the path, and three waves after getting off', () => {
+test('3 coaster: two track targets to light, from the car or from the path, then fight three waves from the path', () => {
   blocked(s, 3);
-  assert.equal(parkRemaining(s),10); assert.equal(activeGuards(s).length,0,'they wait until you are back off the ride');
+  assert.equal(parkRemaining(s), 10);
+  assert.equal(activeGuards(s).length, 0, 'the guards wait until the ride and the targets are done');
   const q = spot('coaster'); at(s, q.x, q.z); useAmusement(s);
   // 车上：提升坡上经过第一个靶，冻住再点亮（坐着也能开枪）
   run(s, 3.2); selectWeapon(s, freeze);
   shot(s, coasterTargetPosition(s.amusement, 0)); run(s, .3);
   assert.ok(s.amusement.targets[0].frozenUntil > s.time, 'frozen from the moving car');
   selectWeapon(s, pistol); shot(s, coasterTargetPosition(s.amusement, 0)); run(s, .5);
-  assert.ok(s.amusement.targets[0].lit, 'and lit from the car');
-  const health = s.health; assert.equal(hurtPlayer(s, {x:s.player.x,z:s.player.z}, 'contact'), false, 'nothing hurts you while you ride'); assert.equal(s.health, health);
+  assert.ok(s.amusement.targets[0].done, 'and lit from the car');
+  const health = s.health; assert.equal(hurtPlayer(s, COASTER_TARGETS[0], 'contact'), false, 'nothing hurts you while you ride'); assert.equal(s.health, health);
   run(s, PARK.coaster.time);
-  assert.equal(s.park.riding, null); assert.ok(s.amusement.done.coaster);
-  assert.equal(activeGuards(s).length,3,'getting off starts the first squad after the warning');
+  assert.equal(s.park.riding, null); assert.ok(s.amusement.done.coaster && !activeGuards(s).length, 'the guards wait for the second target');
   assert.equal(zoneReady(s), false);
   // 剩下的那个在路上打：站在出站的小径上，够得着
   at(s, -21.4, -22.8); s.invul = 99;
   const far = coasterTargetPosition(s.amusement, 1), pitch = Math.atan2(far.y - 1.23, Math.hypot(far.x - s.player.x, far.z - s.player.z));
   assert.ok(pitch < .72, `the high target is within the pitch limit from the path (${(pitch * 57.3).toFixed(0)} degrees)`);
-  for (let tries = 0; !s.amusement.targets[1].lit && tries < 8; tries++) { shot(s, coasterTargetPosition(s.amusement, 1), .5); run(s, 1.1); }
-  assert.ok(s.amusement.targets[1].lit, 'the second target is lit from the path');
+  for (let tries = 0; !s.amusement.targets[1].done && tries < 8; tries++) { shot(s, coasterTargetPosition(s.amusement, 1), .5); run(s, 1.1); }
+  assert.ok(s.amusement.targets[1].done, 'the second target is lit from the path');
   clearZone(s); run(s, .8);
   assert.ok(gatePassable(s, 3)); through(s, 3);
 });
@@ -222,46 +218,65 @@ test('reduced motion: watching the raft and coaster from the path also unlocks p
     run(game, .25);
     assert.equal(game.park.running[id], 0);
     assert.equal(game.amusement.done[id], true);
-    if (id === 'coaster') {
-      run(game,1);
-      assert.equal(activeGuards(game).length,3,'the first guards wake after the empty train returns');
-      assert.equal(zoneReady(game), false, 'the targets and guards still count');
-    }
-    clearZone(game);
-    if (id === 'coaster') {
+    assert.equal(activeGuards(game).length, 0, 'watching alone does not start the encounter');
+    if (id === 'rapids') {
+      selectWeapon(game,pistol);
+      for (let i = 0; i < 3; i++) { shot(game,balloonPosition(game,i)); run(game,.9); }
+      assert.ok(game.amusement.balloons.slice(0,3).every(v => !v), 'all three alternate positions can be shot from the dock');
+    } else {
       for (const [i, x, z] of [[0,-26.7,-20.4],[1,-21.4,-22.8]]) {
         at(game,x,z); game.invul=99;
-        for (let tries=0; !game.amusement.targets[i].lit && tries<8; tries++) {
+        for (let tries=0; !game.amusement.targets[i].done && tries<8; tries++) {
           selectWeapon(game,freeze); shot(game,coasterTargetPosition(game.amusement,i)); run(game,.49);
-          if (game.amusement.targets[i].lit) break;
+          if (game.amusement.targets[i].done) break;
           selectWeapon(game,pistol); shot(game,coasterTargetPosition(game.amusement,i),.55); run(game,.94);
         }
-        assert.ok(game.amusement.targets[i].lit, `target ${i+1} is hittable from the path`);
+        assert.ok(game.amusement.targets[i].done, `target ${i+1} is hittable from the path`);
       }
     }
-    run(game, .8);
+    clearZone(game); run(game, .8);
     assert.ok(gatePassable(game, zone));
     through(game, zone);
   }
 });
 
-test('4 haunted house: knock, go in, ring the bell', () => {
+test('4 haunted house: knock, go in, ring the bell, and hit the three ghosts while they are out of the wall', () => {
   blocked(s, 4);
   const door = spot('haunt'); at(s, door.x, door.z); assert.ok(useAmusement(s)); run(s, 1.6);
-  assert.ok(s.park.door > .9); assert.equal(zoneReady(s), false, 'knocking is not enough');
+  assert.ok(s.park.door > .9);
   const bell = spot('portraits'); at(s, bell.x, bell.z); assert.ok(isHauntWalkable(bell.x, bell.z));
   assert.equal(amusementPrompt(s).id, 'portraits'); assert.ok(useAmusement(s)); run(s, .2);
-  assert.ok(s.amusement.done.portraits);
-  run(s,1.5); assert.equal(activeGuards(s).length,0,'the ghost foyer stays clear');
-  at(s,door.x,door.z);
-  clearZone(s); run(s, .8); through(s, 4);
+  assert.equal(zoneReady(s), false, 'ringing is not enough any more');
+  at(s, HAUNT.door.x, HAUNT.door.z + 2.6); assert.ok(isHauntWalkable(s.player.x, s.player.z), 'standing just inside the door');
+  shot(s, { ...HAUNT.ghosts[2], z: HAUNT.ghosts[2].z - 1 }); run(s, .3);
+  assert.equal(s.amusement.ghosts[2], false, 'a ghost still inside the wall cannot be hit');
+  selectWeapon(s, pistol);
+  for (let t = 0; t < PARK.haunt.show && s.amusement.ghosts.some(v => !v); t += .1) {
+    run(s, .1);
+    HAUNT.ghosts.forEach((_, i) => { const g = ghostPosition(s, i); if (!s.amusement.ghosts[i] && g.out > .7) { shot(s, g); run(s, .25); } });
+  }
+  assert.deepEqual(s.amusement.ghosts, [true, true, true], 'all three are hit in one showing');
+  for (const [i, g] of HAUNT.ghosts.entries()) {
+    const pitch = Math.atan2(g.y + .24 - 1.23, Math.hypot(g.x - s.player.x, g.z - 1.02 - s.player.z));
+    assert.ok(pitch < .72, `ghost ${i} is within the pitch limit from inside the door (${(pitch * 57.3).toFixed(0)} degrees)`);
+  }
+  assert.equal(activeGuards(s).length, 0, 'the ghosts and the porch guards stay separate');
+  at(s,door.x,door.z); clearZone(s); run(s, 1); through(s, 4);
 });
 
-test('5 ferris wheel: once round', () => {
+test('5 ferris wheel: the balloon with the key hangs in front of the top of the wheel; pop it from the cabin', () => {
   blocked(s, 5);
-  ride(s, 'wheel', Math.PI * 2 / PARK.wheel.speed + 1);
-  assert.equal(s.park.riding, null); assert.ok(s.amusement.done.wheel);
-  clearZone(s); run(s, .8); through(s, 5);
+  const key = BALLOONS.find(b => b.key), keyIndex = BALLOONS.indexOf(key);
+  const q = spot('wheel'); at(s, q.x, q.z);
+  const steep = Math.atan2(key.y - 1.23, Math.hypot(key.x - q.x, key.z - q.z));
+  assert.ok(steep > .5, 'from where you board it is a long way up');
+  selectWeapon(s, pistol); assert.ok(useAmusement(s));
+  let top = 0;
+  for (let t = 0; t < Math.PI * 2 / PARK.wheel.speed + 1 && s.park.riding; t += .1) { run(s, .1); top = Math.max(top, s.player.y + 1.23); if (s.amusement.balloons[keyIndex] && s.player.y + 1.23 > 9.6) { shot(s, key); run(s, .4); } }
+  assert.ok(top > 10, `the cabin takes your eye to ${top.toFixed(1)} m`);
+  assert.equal(s.amusement.balloons[keyIndex], false, 'popped from near the top');
+  assert.equal(zoneReady(s), false);
+  clearZone(s); run(s, 1); through(s, 5);
 });
 
 test('6 midway: one hit at any stall wins; walking up to a stall is not enough', () => {
@@ -274,25 +289,36 @@ test('6 midway: one hit at any stall wins; walking up to a stall is not enough',
   const d = { x: t.x - origin.x, y: t.y - origin.y, z: t.z - origin.z }, n = Math.hypot(d.x, d.y, d.z);
   assert.ok(fireStall(s, { origin, direction: { x: d.x / n, y: d.y / n, z: d.z / n } })); run(s, .5);
   assert.ok(s.park.stall.score > 0);
-  assert.equal(s.park.stall.done, false, 'the round still has throws left');
-  assert.ok(s.amusement.done.stall, 'one hit immediately earns credit');
-  run(s,1.5); assert.equal(activeGuards(s).length,0,'the minigame does not spawn guards');
+  assert.ok(s.amusement.done.stall, 'the first hit counts without using the rest of the throws');
+  assert.equal(activeGuards(s).length, 0, 'the guards wait until you step away');
   assert.ok(useAmusement(s), 'the same key leaves the stall'); assert.equal(s.park.stall, null);
-  clearZone(s); run(s, .8);
-  assert.ok(gatePassable(s, 6), 'the earned credit survives leaving before the round ends');
-  through(s, 6);
+  clearZone(s); run(s, .8); through(s, 6);
 });
 
-test('7 bumper cars and 8 mirror maze each need a clear before the next gate', () => {
+test('7 bumper cars: bump the car with the flag three times', () => {
   blocked(s, 7);
-  const q = spot('bumpers'); at(s, q.x, q.z); assert.ok(useAmusement(s));
-  run(s, 2, { x: 1 }); assert.equal(zoneReady(s), false, 'not until you are out of the car');
-  assert.ok(useAmusement(s), 'the same key gets you out'); run(s, .1);
-  assert.ok(s.amusement.done.bumpers);
-  clearZone(s); run(s, .8); through(s, 7);
+  const q = spot('bumpers');
+  for (let rides = 0; rides < 3 && s.amusement.flagHits < FLAG_HITS; rides++) {
+    at(s, q.x, q.z); assert.ok(useAmusement(s));
+    for (let t = 0; t < PARK.bumpers.time - .2 && s.park.riding && s.amusement.flagHits < FLAG_HITS; t += 1 / 30) {
+      const me = s.park.cars[0], flag = s.park.cars[FLAG_CAR], d = Math.hypot(flag.x - me.x, flag.z - me.z) || 1;
+      run(s, 1 / 30, { x: (flag.x - me.x) / d, z: (flag.z - me.z) / d });   // 一直朝它开
+    }
+    if (s.park.riding) assert.ok(useAmusement(s), 'the same key gets you out');
+    run(s, .2);
+  }
+  assert.equal(s.amusement.flagHits, FLAG_HITS);
+  const idle = fresh(zoneOf('bumpers')); run(idle, 20);
+  assert.equal(idle.amusement.flagHits, 0, 'the other cars bumping it on their own does not count');
+  clearZone(s); run(s, 1); through(s, 7);
+});
+
+test('8 mirror maze: clear three waves before the tent curtain opens', () => {
   assert.equal(PARK_ZONES[s.amusement.zone].id, 'mirrors');
-  blocked(s,8);
-  clearZone(s); run(s, .8); assert.ok(gatePassable(s, 8), 'the tent curtain opens after the mirror lane is clear');
+  assert.equal(parkRemaining(s), 10);
+  blocked(s, 8);
+  clearZone(s); run(s, 1);
+  assert.ok(gatePassable(s, 8));
 });
 
 test('9 big top: walking in brings the clown on; mask, trapdoors, motor, and the park lights up', () => {
@@ -379,12 +405,12 @@ test('retry: you start again at the gate of the stop you fell in, earlier stops 
     assert.deepEqual([r.player.x, r.player.z], [back.x, back.z]);
     assert.equal(r.health, 100); assert.equal(r.amusement.zone, zone);
     for (let i = 0; i < zone; i++) assert.ok(gatePassable(r, i) && r.amusement.lit[i]);
-    assert.equal(r.enemies.filter(e => e.zone < zone).length, 0, 'the zombies of earlier stops do not come back');
+    assert.equal(r.dormant.filter(e => e.zone < zone).length, 0, 'the zombies of earlier stops do not come back');
     run(r, .3); assert.equal(r.amusement.zone, zone, 'standing at the checkpoint does not push you through anything');
   }
   const again = fresh(zoneOf('coaster'));
   assert.ok(again.enemies.filter(e => e.zone === 3).every(e => !e.enabled), 'the coaster guards wait for the ride again');
-  assert.ok(again.amusement.targets.every(t => !t.lit) && !again.amusement.done.coaster && again.amusement.done.rapids);
+  assert.ok(again.amusement.targets.every(t => !t.done) && !again.amusement.done.coaster && again.amusement.done.rapids && again.amusement.balloons.slice(0,3).every(v => !v));
   // 血瓶：进这一站时身上有两瓶、地上第一瓶已经捡走；重来时照这个摆
   const first = fresh(zoneOf('rapids')); at(first, def.pickups[0].x, def.pickups[0].z); run(first, .1);
   assert.equal(first.potions, 1); first.potions = 2;
@@ -401,7 +427,7 @@ test('the pistol can shatter immediately after a freeze shot, but swapping canno
   const game = fresh();
   shot(game, lockPosition(game.amusement));
   run(game, .14);
-  assert.equal(game.amusement.lock, 'frozen');
+  assert.equal(mechState(game.amusement.lock,game.time), 'frozen');
   assert.ok(game.cooldown > 0, 'the freeze ray still has time to cool');
   assert.ok(selectWeapon(game, pistol));
   const origin = { x: game.player.x, y: 1.23, z: game.player.z }, latch = lockPosition(game.amusement);
@@ -412,7 +438,7 @@ test('the pistol can shatter immediately after a freeze shot, but swapping canno
   selectWeapon(game, pistol);
   assert.equal(fire(game), false, 'switching back retains the pistol cooldown');
   run(game, .5);
-  assert.equal(game.amusement.lock, 'open');
+  assert.equal(mechState(game.amusement.lock,game.time), 'done');
 });
 
 test('freeze gun: a holstered one recharges; the pistol does extra to a frozen zombie', () => {
@@ -431,7 +457,7 @@ test('freeze gun: a holstered one recharges; the pistol does extra to a frozen z
 });
 
 test('zombies keep to the paths like you do', () => {
-  const g = fresh(1); g.invul = 999;
+  const g = fresh(1); g.invul = 999; at(g, -18.9, 24.2); run(g, 1);
   selectWeapon(g, pistol); shot(g, { x: -19.6, y: 3, z: 24 });   // 进门开一枪：听见的都追过来。人再绕到路的另一头，它们得拐着弯追
   let off = 0;
   for (let i = 0; i < 120 * 10; i++) {

@@ -1,8 +1,11 @@
 // 布偶游乐园：世界观里的第 5 关（docs/worldview.md）。十站连成一关：每站一道门，这一站的事办完门才开，最后在马戏帐篷里打嬉笑小丑。
 // 规则在 ../amusement.js（门、机关、小丑）和 ../park-rides.js（设施）；样子在 ../park-tour-view.js（布景）和 ../amusement-view.js（门、机关、帐篷里面）。
 // 这里的 furniture 只是碰撞盒（parkStyle：通用布景不画它，由游乐园自己画）。人和僵尸能走的地方是小径（park-tour-layout.js）。
-import { TOUR_BOUNDS, TOUR_PATH, TOUR_STOPS, TOUR_MAZE, CAROUSEL, GATE, HAUNT, TENT, TENT_DOOR } from '../park-tour-layout.js';
-import { VALVE } from '../amusement.js';
+import { TOUR_BOUNDS, TOUR_PATH, TOUR_STOPS, TOUR_MAZE, CAROUSEL, GATE, HAUNT, TENT, TENT_DOOR, isTourWalkable, isHauntWalkable } from '../park-tour-layout.js';
+import { PARK_ZONES, GATES, LOCK, VALVE, COASTER_TARGETS, BALLOONS, checkpointPosition } from '../amusement.js';
+import { SPOTS } from '../park-rides.js';
+
+const stage = id => PARK_ZONES.findIndex(zone => zone.id === id);
 
 const solid = (id, x, z, w, d, h) => ({ id, x, z, w, d, h, kind: 'crate', parkStyle: 'scenery' });
 // 帐篷：四面帐布（挡人也挡毛球），正面留出门洞，门廊两根柱子
@@ -88,6 +91,18 @@ export default {
   rooms: [{ id: 'park', name: '布偶游乐园', ...TOUR_BOUNDS, outdoor: true }],
   theme: { yard: 'park-tour', lawn: 0x8ba05f, lightCell: 2, lightRays: 18 },
   mission: { type: 'amusement', title: '点亮游乐园，打败嬉笑小丑' },
+  // 给 node scripts/map.mjs check 用（小径地图的检查，见 mapkit/check.js 的 checkPath）：路、门、要按的地方、要打的东西
+  path: {
+    line: TOUR_PATH, walkable: isTourWalkable, indoor: isHauntWalkable,
+    stages: PARK_ZONES.map(zone => zone.name), gates: GATES, start: checkpointPosition,
+    spots: SPOTS.map(q => ({ id: q.id, x: q.x, z: q.z, stage: stage(q.stop) })),
+    targets: [
+      { id: '门栓', ...LOCK, stage: stage('entrance') }, { id: '蒸汽阀', ...VALVE, stage: stage('carousel') },
+      ...COASTER_TARGETS.map((t, i) => ({ id: '轨道靶 ' + i, ...t, stage: stage('coaster') })),
+      ...BALLOONS.map(b => ({ id: b.key ? '钥匙气球' : '水道上的气球', x: b.x, y: b.y, z: b.z, stage: b.zone, ride: true })),
+      ...HAUNT.ghosts.map((g, i) => ({ id: '幽灵 ' + i, x: g.x, y: g.y + .24, z: g.z - 1.02, stage: stage('haunt') })),
+    ],
+  },
   arsenal: ['single', 'freeze'], startWeapon: 'freeze',
   furniture: [
     ...tent,
@@ -121,6 +136,7 @@ export default {
     short: '布偶游乐园', title: '布偶游乐园',
     intro: '游乐园的灯全灭了。带着急冻射线枪从入口进去，一站一站把设施玩过去：每站完成设施任务并清场，下一站的门才开。最后进马戏帐篷，会一会嬉笑小丑。',
     brief: 'WASD 移动，方向键转动视角，空格开火，Q 换枪，H 喝血瓶。走近设施按 F 互动。入口：急冻枪冻住摇摆的门栓，换手枪击碎。',
+    how: ['WASD 移动 · 方向键转动视角 · 空格开火', 'Q 换枪 · R 换弹 · H 喝血瓶 · F 玩设施（坐着的时候再按一次是下车）', '急冻枪定住会动的机关和僵尸，再换手枪打', '每站办完一件事门才开 · 倒下了从这一站的门口重来'],
     start: '入园', won: '拿到了高压马达！',
   },
   par: 1500,
