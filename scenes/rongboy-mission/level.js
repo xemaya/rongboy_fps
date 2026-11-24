@@ -5,6 +5,7 @@ import { GADGETS } from './gadgets.js';
 
 // 身体（玩家、僵尸）只被离地不高的盒子挡住；门楣之类悬空的盒子只挡毛球。
 const BODY_HEIGHT = 1.1;
+const FACE_YAW = { s:0, e:Math.PI / 2, n:Math.PI, w:-Math.PI / 2 };
 
 // y0 是这一层的地面高度；盒子里的 minY / maxY 都是绝对高度，floorY 记下它属于哪一层。
 function box(o, y0 = 0) {
@@ -91,10 +92,20 @@ export function compileLevel(def) {
         const sofa = furniture.find(prop => prop.id === spec.onSofa);
         if (!sofa) throw new Error(`Cushions need a sofa named "${spec.onSofa}" on floor ${i + 1}`);
         const face = sofa.face ?? (sofa.w >= sofa.d ? 's' : 'e');
-        const yaw = { s:0, e:Math.PI / 2, n:Math.PI, w:-Math.PI / 2 }[face];
+        const yaw = FACE_YAW[face];
         const depth = face === 'n' || face === 's' ? sofa.d : sofa.w;
         const fromCenter = .535 - depth / 2, seatY = Math.min(.4, sofa.h * .5) + .11;
         egg = { ...spec, x:sofa.x + Math.sin(yaw) * fromCenter, y:seatY + .21, z:sofa.z + Math.cos(yaw) * fromCenter, yaw };
+      }
+      // Anchor reactions to the existing furniture. The target follows it if the map moves,
+      // while the original solid remains responsible for movement and projectile bounces.
+      if (spec.mount) {
+        const { host, up, forward = 0 } = spec.mount;
+        const fixture = furniture.find(prop => prop.id === host);
+        if (!fixture) throw new Error(`Easter egg "${spec.id}" needs furniture "${host}" on floor ${i + 1}`);
+        const face = fixture.face ?? (fixture.w >= fixture.d ? 's' : 'e');
+        const yaw = FACE_YAW[face];
+        egg = { ...spec, x:fixture.x + Math.sin(yaw)*forward, z:fixture.z + Math.cos(yaw)*forward, y:fixture.h + up, yaw };
       }
       const { yaw = 0, w, d } = egg, xAxis = Math.abs(Math.cos(yaw)), zAxis = Math.abs(Math.sin(yaw));
       return box({ ...egg, w: w * xAxis + d * zAxis, d: w * zAxis + d * xAxis, minY: egg.y - egg.h / 2, floor: i }, y);
@@ -167,9 +178,20 @@ export function surfaceY(level, x, z, y = 0) {
 // 不同高度：楼梯间外先走到楼梯口（上楼走西边 A，下楼走东边 B），楼梯间里沿着折返的路线走；这些点都是直走可达的。
 export function navGoal(level, body, target) {
   const t = level.stairs, by = body.base ?? body.y ?? 0, dy = (target.y ?? 0) - by;
-  const inside = inStairs(level, body);
-  if (!t || Math.abs(dy) < 0.3) return { x: target.x, z: target.z, direct: !!t && inside && inStairs(level, target) };
-  const up = dy > 0, point = (x, z) => ({ x, z, direct: true });
+  if (!t) return { x: target.x, z: target.z, direct: false };
+  const inside = inStairs(level, body), targetInside = inStairs(level, target);
+  const point = (x, z) => ({ x, z, direct: true });
+  // Keep moving along the exit lane until clear of the opening. Ranged
+  // enemies otherwise plant their feet right at the lip and block the lane.
+  const exitZ = t.outZ + .55;
+  const atExit = body.z >= t.mouthZ && body.z < exitZ && body.x > t.minX && body.x < t.maxX;
+  if (!targetInside && Math.abs(dy) < 0.015 && (inside || atExit)) return point(body.x < 0 ? t.xA : t.xB, exitZ);
+  if (!inside && !targetInside && Math.abs(dy) < 0.3) return { x: target.x, z: target.z, direct: false };
+  if (inside && targetInside && (body.x * target.x >= 0 || Math.max(body.z, target.z) <= t.landingZ)) {
+    const connectedY = surfaceY(level, target.x, target.z, by);
+    if (Math.abs(connectedY - target.y) < 0.015) return point(target.x, target.z);
+  }
+  const up = dy === 0 ? target.x < 0 : dy > 0;
   if (inside) {
     const onLanding = body.z < t.landZ + 0.15;
     if (up) return onLanding ? (body.x < t.xB - 0.2 ? point(t.xB, t.landZ) : point(t.xB, t.outZ)) : body.x < 0 ? point(t.xA, t.landZ) : point(t.xB, t.outZ);

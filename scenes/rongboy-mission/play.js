@@ -89,7 +89,7 @@ let awaitingApproach = false, pauseIndex = 0, introStage = 0;
 let hadPointerLock = false, pointerReleasedAt = -Infinity;
 const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challenge ? challengeArena(challenge) : garden ? (intro ? gardenIntroDef() : gardenWallDef()) : trio ? trioStudy(LEVELS.school, specialists) : training ? trainingDef(practiceType) : cottageStudy ? cottageStudyDef(study) : LEVELS[levelId]));
 const park = !!level.tour, amusement=level.mission.type==='amusement';   // park：游乐园的大地图（有设施能坐）；amusement：有门、机关和小丑的那套规则。布偶游乐园两样都是
-const missionBriefing = (amusement || level.mission.type === 'fetch') && !challenge;
+const missionBriefing = (amusement || level.mission.type === 'fetch' || level.waves && !cottageStudy) && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
 const previewClownIntro = !crazyGames && amusement && q.get('debug') === '1' && q.get('preview') === 'clown-intro';
 const requestedStage = previewClownIntro ? TENT_ZONE : !crazyGames && amusement && q.get('debug') === '1' ? Math.min(TENT_ZONE,Math.max(0,Number(q.get('checkpoint'))|0)) : 0;
@@ -138,7 +138,7 @@ function applyTexts() {
  $('ready-title').textContent = t(previewClownIntro ? copy('嬉笑小丑','Giggles') : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
  $('ready-brief').textContent = t(previewClownIntro ? copy('登场约五秒，按开火键可跳过。','About five seconds. Press fire to skip.') : amusement ? copy(TX.brief,'WASD to move, arrows to look, Space to fire, Q to switch guns, H to drink a potion. Press F by a ride to use it. At the entrance: freeze the sliding latch, then shatter it with the pistol.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
- if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
+ if (s.wave || cottageStudy) $('missionHud').querySelector('strong').textContent = t(cottageStudy ? (s.wave ? '院子波次' : '院子对照局') : '果园波次');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
  $('sound').setAttribute('aria-pressed',sound);
  $('expand').hidden = crazyGames;
@@ -272,8 +272,9 @@ function governorStart() {
   return /Intel|UHD|Iris|Mali|Adreno|PowerVR|SwiftShader|llvmpipe|Basic Render/i.test(gpuName) ? { startTier: 1, start: 0.6e6 } : { start: 1.6e6 };
 }
 const ray = new T.Raycaster(), up = new T.Vector3(0, 1, 0);
-const lookDir = new T.Vector3(), muzzleWorld = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
-const sightEnd = new T.Vector3(), boundaryHit = new T.Vector3();
+const lookDir = new T.Vector3(), modelMuzzle = new T.Vector3(), localMuzzle = new T.Vector3(), target = new T.Vector3();
+const sightEnd = new T.Vector3(), boundaryHit = new T.Vector3(), throwOrigin = new T.Vector3(), throwDirection = new T.Vector3();
+const cameraDirection = new T.Vector3(), cameraInverse = new T.Quaternion();
 const aimBounds = new T.Box3(new T.Vector3(B.minX,0.03,B.minZ),new T.Vector3(B.maxX,level.top,B.maxZ));
 const enemyModels = new Map(), ballModels = new Map();
 const ballTemplate = createWoolBall();
@@ -332,12 +333,25 @@ function updateFx(dt) {
 // ---------- 声音与提示 ----------
 
 let sound = preferences.sound, audio = null, soundBus = null, arsenalBus = null, lastBounceSound = 0, lastKnockSound = 0, lastRing = 0;
+const score = new Audio();
+score.loop = true;
+score.volume = .28;
+score.preload = 'none';
+score.src = 'rongboy-gameplay.mp3';
+function syncScore() {
+  if (!sound || !preferences.music || mode !== 'playing' || paused || awaitingApproach || document.hidden) {
+    if (!score.paused) score.pause();
+  } else if (score.paused) {
+    score.play().catch(() => {});   // The next real key/pointer action retries if autoplay is blocked.
+  }
+}
 // 家具是什么做的：决定被毛球打到时的声音和绒絮多少
 const SOUND_OF = { soft: 'thump', wood: 'knock', glass: 'ting', metal: 'clang', stone: 'tock' };
 const SOFT = new Set(['sofa', 'bed', 'ottoman', 'basket', 'hedge', 'tree', 'planter']), METAL = new Set(['fridge', 'locker', 'tub', 'slide', 'swing', 'mailbox']);
 const stuffOf = c => (c.kind === 'case' ? 'glass' : c.kind === 'plinth' || c.kind === 'sarcophagus' ? 'stone' : c.kind === 'gadget' ? 'metal' : SOFT.has(c.look || c.kind) ? 'soft' : METAL.has(c.look || c.kind) ? 'metal' : 'wood');
 function unlock() {
   if (!sound) return;
+  syncScore();
   audio ??= new AudioContext();
   soundBus ??= createWoolAudio(audio);
   arsenalBus ??= createArsenalAudio(audio);
@@ -406,6 +420,13 @@ function animateViewmodel(dt, moving) {
   if (variant.contacts) variant.contacts.emissiveIntensity=s.charging?1.7:.65;
   if (variant.press) variant.press.rotation.x=Math.max(0,1-(s.time-lastPress)/weapon.cooldown)*.19;
   aim();
+  if (!s.reloading && !s.lobbing && viewmodel.root.visible) {
+    cameraDirection.subVectors(target, visibleMuzzle(s.weapon));
+    // At a very close wall the rendered muzzle can be farther than the probe.
+    if (cameraDirection.dot(lookDir) < .08) cameraDirection.copy(lookDir);
+    cameraDirection.applyQuaternion(cameraInverse.copy(camera.quaternion).invert());
+    viewmodel.aimMouth(localMuzzle,cameraDirection);
+  }
   for (const eraser of fpErasers) eraser.visible=window.__rb.gunInFront;
 }
 
@@ -914,9 +935,12 @@ function processEvents() {
       sfx2('return-hit');
     }
     combatFx.event(e);
+    if(e.type==='amusement'){ amusementEvent(e); continue; }
     if(e.type==='wave-start'){
       sfx('switch');
-      say(copy(`第 ${e.index + 1} 波来了`,`Wave ${e.index + 1} incoming`),1.4,1);
+      const stage = level.waves.stages?.[e.index];
+      const where = stage ? ' · '+t(stage) : '';
+      say(copy(`第 ${e.index + 1} 波来了`,`Wave ${e.index + 1} incoming`)+where,1.6,1);
     }
     else if(e.type==='blocked'){if(near(9)){say('盾挡了 · 绕后或蓄力破盾',1.7);if(!polished)sfx('switch');}}
     else if(e.type==='guard-break'){say('盾已破',1);if(!polished)sfx('kill');}
@@ -984,11 +1008,16 @@ function processEvents() {
       if (e.thrown) { sfx2('throw'); say(WEAPONS[s.grenade].short + ' ×' + grenades(s), .75); continue; }
       if(e.weapon==='sewing') lastPress=s.time;
       reloadReadyUntil = -1;
-      const w = WEAPONS.find(v => v.id === e.weapon), light = e.weapon === 'sewing';
+      const weaponIndex = WEAPONS.findIndex(w => w.id === e.weapon);
+      const w = WEAPONS[weaponIndex], light = e.weapon === 'sewing';
       kickRecoil(recoil, feelOf(e.weapon), light ? -2.2 : e.weapon === 'stun' ? -1 : e.power);   // 负的力度 = 更轻的一下
-      burst(e.x, e.z, e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : light ? 1 : 4, e.weapon === 'heavy' ? 0.85 : 0.45, w.color, e.y ?? 0.8);
-      // 枪口闪光：一小团光，顺带把周围照亮一下；越重的枪越大
-      effects.muzzle(e, e.weapon === 'stun' ? 0x9fdcff : 0xffe2b0, e.weapon === 'heavy' ? 1.1 : e.weapon === 'scatter' ? 0.8 : light ? 0.32 : 0.5, e.weapon === 'heavy' ? 9 : light ? 2.5 : 5);
+      if (viewmodel.root.visible) {
+        const muzzle = visibleMuzzle(weaponIndex);
+        const size = e.weapon === 'heavy' ? 1.1 : e.weapon === 'scatter' ? .8 : light ? .32 : .5;
+        const count = e.weapon === 'scatter' ? 12 : e.weapon === 'heavy' ? 10 : light ? 1 : 4;
+        burst(muzzle.x, muzzle.z, count, size*VIEWMODEL_SCALE, w.color, muzzle.y);
+        effects.muzzle(muzzle, e.weapon === 'stun' ? 0x9fdcff : 0xffe2b0, size*VIEWMODEL_SCALE, e.weapon === 'heavy' ? 9 : light ? 2.5 : 5);
+      }
       if (e.weapon === 'sewing') sfx2('staple'); else if (e.weapon === 'needle') sfx2('needle'); else if (e.weapon === 'stun') sfx2('zap'); else sfx('shot', { weapon: e.weapon, power: e.power });
     } else if (e.type === 'hit') {
       if (e.amount > 0 && e.source !== 'enemy-arrow') lastWounded = { id: e.id, until: s.time + 1.05 };
@@ -1115,7 +1144,7 @@ function clearHurt() {
 
 // ---------- 瞄准与镜头 ----------
 
-// 沿准星找到最近的东西（僵尸、墙、家具、场地边界），返回距离；枪口朝那一点开火。
+// 沿准星找到第一处可见的物体，供高亮、枪模朝向和投掷使用。
 function aim() {
   camera.updateMatrixWorld(true); camera.getWorldDirection(lookDir);
   const from = camera.position, far = sightEnd.copy(from).addScaledVector(lookDir, FAR);
@@ -1143,24 +1172,34 @@ function aim() {
   return distance;
 }
 
-// 实际枪口位置和方向；枪口伸进墙或家具时改从眼前发射，避免球生在实体里。
-function shotParams(thrown = false) {
-  cameraFrame(0);
+function visibleMuzzle(index) {
+  const {kit}=viewmodel, mouth=kit.userData.variants[index].userData;
+  localMuzzle.set(0,mouth.muzzleY ?? 0,mouth.muzzleZ ?? kit.userData.muzzleZ);
+  return kit.localToWorld(modelMuzzle.copy(localMuzzle));
+}
+
+// Gun framing changes with aspect and FOV. Fire along the optical center,
+// starting at the eye so the swept projectile still meets close cover.
+function shotParams() {
+  camera.getWorldDirection(lookDir);
+  const eye = camera.position;
+  return {origin:{x:eye.x,y:eye.y,z:eye.z},direction:{x:lookDir.x,y:lookDir.y,z:lookDir.z}};
+}
+
+function throwParams() {
   aim();
-  const {kit, held}=viewmodel;
-  const muzzle=kit.userData.variants[s.weapon].userData;
-  const anchor=thrown?held:kit;
-  if (thrown) localMuzzle.set(0,0,0);
-  else localMuzzle.set(0,muzzle.muzzleY??0,muzzle.muzzleZ??kit.userData.muzzleZ);
-  muzzleWorld.copy(anchor.localToWorld(localMuzzle)).sub(camera.position)
-    .multiplyScalar(1/VIEWMODEL_SCALE).add(camera.position);
-  const m=muzzleWorld, pad=.29;
-  const blocked=level.solids.some(c=>segmentBox(camera.position,m,c,.035)
+  const from = camera.position;
+  viewmodel.held.localToWorld(throwOrigin.set(0,0,0)).sub(from).multiplyScalar(1/VIEWMODEL_SCALE).add(from);
+  const m = throwOrigin, pad = .21;
+  const blocked = level.solids.some(c => segmentBox(from,m,c,.035)
     || (m.x>c.minX-pad && m.x<c.maxX+pad && m.y>c.minY-pad && m.y<c.maxY+pad && m.z>c.minZ-pad && m.z<c.maxZ+pad));
-  if (blocked || target.clone().sub(m).dot(lookDir)<.08 || !inBounds(level,m.x,m.z,.12))
-    m.copy(camera.position).addScaledVector(lookDir,.02);
-  const direction=target.clone().sub(m).normalize();
-  return {origin:{x:m.x,y:m.y,z:m.z},direction:{x:direction.x,y:direction.y,z:direction.z}};
+  throwDirection.subVectors(target,m);
+  if (blocked || throwDirection.dot(lookDir)<.08 || !inBounds(level,m.x,m.z,.12)) {
+    m.copy(from).addScaledVector(lookDir,.02);
+    throwDirection.subVectors(target,m);
+  }
+  throwDirection.normalize();
+  return {origin:{x:m.x,y:m.y,z:m.z},direction:{x:throwDirection.x,y:throwDirection.y,z:throwDirection.z}};
 }
 
 const CLOWN_READY_PITCH = -.045;
@@ -1260,7 +1299,7 @@ function describeAmmo(weaponIndex) {
   return WEAPONS[weaponIndex].short + ' ' + mag + '/' + (reserve === Infinity ? '∞' : reserve);
 }
 
-function cottageStudyProgress() {
+function encounterProgress() {
   if (!s.wave) {
     const left = aliveCount(s);
     return copy(`剩 ${left} / ${s.total} 只`,`${left} / ${s.total} left`);
@@ -1272,7 +1311,10 @@ function cottageStudyProgress() {
   }
   const left = s.enemies.filter(enemy => enemy.alive && enemy.enabled).length;
   if (!left && index + 1 === count) return t('三波都打完了！');
-  return copy(`第 ${index + 1} / ${count} 波 · 剩 ${left} 只`, `Wave ${index + 1} / ${count} · ${left} left`);
+  const stage = level.waves.stages?.[index];
+  const where = stage ? ' · '+t(stage) : '';
+  return copy(`第 ${index + 1} / ${count} 波`,`Wave ${index + 1} / ${count}`) + where
+    + copy(` · 剩 ${left} 只`,` · ${left} left`);
 }
 
 let shownLoadout;
@@ -1282,7 +1324,7 @@ function pauseBrief() {
   textOf('objective',amusement?amusementObjective():objectiveText(status));
   textOf('pauseProgress', challenge
     ? challenge.unit + ' ' + s.challenge.progress + '/' + challenge.target + copy(' · 剩余 ',' · Time left ') + Math.max(0, Math.ceil(challenge.seconds - s.time)) + copy(' 秒','s')
-    : cottageStudy ? cottageStudyProgress()
+    : s.wave || cottageStudy ? encounterProgress()
     : copy('剩余 ','Remaining ') + status.alive + '/' + status.total + copy(' · 用时 ',' · Time ') + clock(s.time));
   if ($('pauseDetailView').hidden) return;
   const second = secondOf(s), equipment = [describeAmmo(PISTOL)];
@@ -1471,7 +1513,7 @@ function hud() {
   const stall = park && active ? s.park.stall : null;
   stallHud(stall);
   $('fightHud').hidden = !active;
-  $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
+  $('missionHud').hidden = !(missionBriefing || s.wave || cottageStudy) || !active;
   if (amusement && active) {
     const zone=PARK_ZONES[s.amusement.zone];
     $('missionHud').querySelector('strong').textContent=copy(zone.name,zone.en);
@@ -1482,7 +1524,7 @@ function hud() {
     if (showWave) textOf('parkWaveStep', wave.nextAt !== null
       ? copy(`第 ${wave.index+2}/${PARK_WAVE_COUNT} 波即将出现`,`Wave ${wave.index+2}/${PARK_WAVE_COUNT} incoming`)
       : copy(`第 ${wave.index+1}/${PARK_WAVE_COUNT} 波`,`Wave ${wave.index+1}/${PARK_WAVE_COUNT}`));
-  } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
+  } else if ((s.wave || cottageStudy) && active) textOf('missionStep', encounterProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
     textOf('missionStep', !status.carrying && TX.route ? t(TX.route) : objectiveText(status));
@@ -1639,7 +1681,7 @@ function start() {
   if (viewmodel) viewmodel.root.visible = true;
   (awaitingApproach ? $('approach') : $('view')).focus(); unlock(); syncWeapon();
   if (weaponShowcase) say('武器试验场 · 暂停可查看操作', 2.1);
-  else if (!awaitingApproach && !challenge && !intro) say(level.mission.title, 2.8, 1);
+  else if (!awaitingApproach && !challenge && !intro && !park) say(level.mission.title, 2.8, 1);
   updateModels(0);
 }
 function beginApproach() {
@@ -1658,6 +1700,7 @@ function setPause(value, fromFocus = false) {
   if (mode !== 'playing' || value === paused) return;
   paused = value;
   clearHeldInput();
+  syncScore();
   if (!fromFocus) platformPlaying(!paused && !awaitingApproach);
   introPrompt();
   if (viewmodel) viewmodel.ball.visible = false;
@@ -1670,7 +1713,7 @@ function setPause(value, fromFocus = false) {
   else { last = performance.now(); (awaitingApproach ? $('approach') : $('view')).focus(); unlock(); }
 }
 function showResult() {
-  mode = 'result'; platformPlaying(false); clearHeldInput();
+  mode = 'result'; platformPlaying(false); syncScore(); clearHeldInput();
   releasePointer(); introPrompt();
   document.body.classList.add('result');
   const won = s.phase === 'won';
@@ -1695,13 +1738,14 @@ function showResult() {
     $('again').focus({preventScroll:true});
     return;
   }
-  $('resultTitle').textContent = t(won ? (crazyGames || cottageStudy || level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
+  $('resultTitle').textContent = t(won ? (amusement || crazyGames || s.wave || cottageStudy || level.mission.type === 'fetch' ? TX.won : null) || '清空了！' : '被扑倒了');
   $('resultStars').hidden = !won;
+  if (amusement && !won && s.amusement.zone>0) labelAction($('again'),inputLabels().confirm,s.amusement.clown.entered?'重打嬉笑小丑':'从当前区域重试');
   $('resultStars').textContent = won ? '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '';
   $('resultNote').textContent = won
     ? copy(`受伤 ${s.damageTaken} 次${s.damageTaken <= 1 ? ' ✓' : '（不超过 1 次得一星）'} · 用时 ${clock(s.time)}${s.time <= level.par ? ' ✓' : `（${clock(level.par)} 内得一星）`}`,
       `Hits taken: ${s.damageTaken}${s.damageTaken <= 1 ? ' ✓' : ' (one or fewer for a star)'} · ${clock(s.time)}${s.time <= level.par ? ' ✓' : ` (beat ${clock(level.par)} for a star)`}`)
-    : s.carrying ? TX.lostCarrying : t('被发现的僵尸越多越危险：先打落单的，从背后下手。');
+    : amusement ? (s.amusement.clown.entered ? t('可从帐篷入口重试') : (s.amusement.zone>0?t('已开的闸门会保留。'):t('上车后可以边坐边打。'))) : s.carrying ? TX.lostCarrying : t('被发现的僵尸越多越危险：先打落单的，从背后下手。');
   if(receipts && !intro){
     const {blocks,breaks,returns}=receipts.counts;
     $('gardenReceipt').hidden=false;
@@ -1835,10 +1879,13 @@ function switchRangeGun(index) {
   const previous=secondOf(s);
   s.owned[index]=true;
   switchAction(index);
-  if(previous>=0 && previous!==index) s.owned[previous]=false;
+  if(previous>=0 && previous!==index) {
+    s.owned[previous]=false;
+    s.stowedReload[previous]=0;
+  }
 }
 function switchBomb() {
-  if(selectGrenade(s)) { say(WEAPONS[s.grenade].name,1);sfx2('swap'); }
+  if(selectGrenade(s)) { say(WEAPONS[s.grenade].name + ' ×' + grenades(s),1);sfx2('swap'); }
 }
 function throwAction(source) {
   if (throwInput || s.park?.stall) return;
@@ -1872,7 +1919,7 @@ function fireRelease(source) {
 function throwRelease(source) {
   if (throwInput !== source) return;
   throwInput = null;
-  if (mode === 'playing' && !paused) { releaseThrow(s, shotParams(true)); processEvents(); }
+  if (mode === 'playing' && !paused) { releaseThrow(s, throwParams()); processEvents(); }
 }
 function jumpAction() { if (!s.park?.riding && !s.park?.stall && beginJump(s)) processEvents(); }
 
@@ -2042,6 +2089,7 @@ document.addEventListener('visibilitychange', () => {
     if (q.has('test')) clearHeldInput();
     else losePlayFocus();
   }
+  syncScore();
 });
 if (!crazyGames) $('expand').onclick = () => { if (document.fullscreenElement) document.exitFullscreen?.(); else document.documentElement.requestFullscreen?.().catch(() => {}); };
 $('again').onclick = start;
@@ -2055,6 +2103,7 @@ $('pauseMenu').onclick = toMenu; $('readyBack').onclick=toMenu; $('pauseRestart'
 $('sound').onclick = () => {
   sound = !sound; preferences.sound=sound; writePreferences(preferences); $('sound').textContent = t(sound ? '声音 开' : '声音 关'); $('sound').setAttribute('aria-pressed', sound);
   if (sound) unlock();
+  else syncScore();
 };
 
 // ---------- 主循环 ----------
@@ -2235,6 +2284,7 @@ requestAnimationFrame(frame);
 // 所以提供同步推进和单帧渲染，按键也可以直接指定。
 window.__rb = {
   get state() { return s; },
+  score,   // 仅供调试：直接读写战斗状态
   get cine() { return cine; }, get world() { return world; }, get effects() { return effects; }, governor, pad,
   get inputMode() { return inputMode; }, get padInput() { return { side: padAxes.x, forward: -padAxes.y }; },
   gamepadFrame,

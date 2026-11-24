@@ -1,22 +1,10 @@
 import { lineOfSight } from './level.js';
 
-export function advanceWaves(s) {
-  const { waves } = s.level, wave = s.wave;
-  const next = wave.index + 1;
-  if (next >= waves.count || s.enemies.some(enemy => enemy.enabled && enemy.alive)) return;
-  // Let any attack already in flight finish before starting the reload window.
-  if (s.enemyShots.length || s.enemyBombs.length) return;
-  if (wave.nextAt === null) {
-    wave.nextAt = s.time + waves.breakSeconds;
-    return;
-  }
-  if (s.time < wave.nextAt) return;
-
-  const squad = s.enemies.filter(enemy => enemy.wave === next && enemy.alive);
+function alternateEntry(s, squad, entries, next) {
   const p = s.player, eye = { x:p.x, y:p.y + 1.2, z:p.z };
-  const preferred = waves.entries[(next - 1) % waves.entries.length];
+  const preferred = entries[(next - 1) % entries.length];
   let entry = preferred, bestCost = Infinity, bestDistance = -Infinity;
-  for (const points of [preferred, ...waves.entries.filter(points => points !== preferred)]) {
+  for (const points of [preferred, ...entries.filter(points => points !== preferred)]) {
     let exposed = 0, nearest = Infinity;
     for (let i = 0; i < squad.length; i++) {
       const [x,z] = points[i];
@@ -31,10 +19,27 @@ export function advanceWaves(s) {
       bestDistance = nearest;
     }
   }
+  return entry;
+}
+
+export function advanceWaves(s) {
+  const { waves } = s.level, wave = s.wave;
+  const next = wave.index + 1;
+  if (next >= waves.count || s.enemies.some(enemy => enemy.enabled && enemy.alive)) return;
+  // Let any attack already in flight finish before starting the reload window.
+  if (s.enemyShots.length || s.enemyBombs.length) return;
+  if (wave.nextAt === null) {
+    wave.nextAt = s.time + waves.breakSeconds;
+    return;
+  }
+  if (s.time < wave.nextAt) return;
+
+  const squad = s.enemies.filter(enemy => enemy.wave === next && enemy.alive);
+  const p = s.player;
+  const entry = waves.entries?.length ? alternateEntry(s, squad, waves.entries, next) : null;
   squad.forEach((enemy,i) => {
-    const [x,z] = entry[i];
-    enemy.x = x; enemy.z = z;
-    enemy.heading = Math.atan2(p.x - x, p.z - z);
+    if (entry) [enemy.x,enemy.z]=entry[i];
+    enemy.heading = Math.atan2(p.x-enemy.x,p.z-enemy.z);
     enemy.enabled = true;
   });
   wave.index = next;

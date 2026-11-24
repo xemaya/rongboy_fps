@@ -1,0 +1,69 @@
+{
+  "generatedWith": "built-in ImageGen",
+  "date": "2026-11-23",
+  "purpose": "补齐 docs/worldview.md 全 8 把战役武器定妆图及统一的第一人称开火效果设定图（手部与袖口全部修正为游戏真实绒仔造型：暖米肤色圆润布偶手 + 浅沙色卷袖口 + 卡其棕探险外套袖）。",
+  "handReference": [
+    "scenes/rongboy-mission/viewmodel.js",
+    "scenes/rongboy-mission/review/figures-v2/studio-scout.png",
+    "scenes/rongboy-mission/review/crazygames-store-20261119/submission/cover-landscape.png"
+  ],
+  "jobs": [
+    {
+      "key": "a-freeze-and-flame-workshop",
+      "image": "a-freeze-and-flame-workshop.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261119/a-workshop.png"
+      ],
+      "notes": "两把新武器近景工坊定妆图：左=急冻射线枪（3颗雪花绒晶核透明穹顶+冷铜散热环+霜绒喇叭口），右=火焰爆炸枪（赤陶与暗灰绗缝炉身+顶部黄铜掀盖烟囱+炽焰毛线球装膛）。"
+    },
+    {
+      "key": "c-campaign-8-weapons-roster",
+      "image": "c-campaign-8-weapons-roster.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261119/a-workshop.png",
+        "scenes/rongboy-mission/review/weapon-concepts-20261123/a-freeze-and-flame-workshop.png"
+      ],
+      "notes": "按 docs/worldview.md 第 1–8 关顺序拼合的全 8 把武器总览表。"
+    },
+    {
+      "key": "fp-01-pistol-and-scatter",
+      "image": "fp-01-pistol-and-scatter.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261123/c-campaign-8-weapons-roster.png",
+        "scenes/rongboy-mission/review/figures-v2/studio-scout.png",
+        "scenes/rongboy-mission/review/crazygames-store-20261119/submission/cover-landscape.png"
+      ],
+      "notes": "第 1–2 关第一人称开火图：左=线轴手枪（绒仔家花园借墙反弹），右=绒球霰弹枪（奶奶家果园三球贴脸击退）。注：左图二轮精修因生图额度耗尽未执行，线轴枪身保留了缠线造型、反弹光弧终点偏盾牌上方，右图与双手袖口完整达标。"
+    },
+    {
+      "key": "fp-02-needle-and-stapler",
+      "image": "fp-02-needle-and-stapler.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261123/c-campaign-8-weapons-roster.png",
+        "scenes/rongboy-mission/review/figures-v2/studio-scout.png",
+        "scenes/rongboy-mission/review/crazygames-store-20261119/submission/cover-landscape.png"
+      ],
+      "notes": "第 3–4 关第一人称开火图：左=毛衣针狙击枪（学校走廊 4× 紫色针毡瞄具扎穿棉甲），右=订书针机枪（暗冰洞穴连发纽扣弹压制爬行者与跳跳）。注：左图底部多出一个绿色托座细节，待生图额度恢复后可做单轮微调。"
+    },
+    {
+      "key": "fp-03-freeze-and-net",
+      "image": "fp-03-freeze-and-net.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261123/c-campaign-8-weapons-roster.png",
+        "scenes/rongboy-mission/review/figures-v2/studio-scout.png",
+        "scenes/rongboy-mission/review/crazygames-store-20261119/submission/cover-landscape.png"
+      ],
+      "notes": "第 5–6 关第一人称开火图：左=急冻射线枪（布偶游乐场黄昏广场冻结僵尸 3 秒），右=静电飞网枪（博物馆奇妙夜离膛青色飞网罩住两只僵尸）。注：右图静电枪四孔发光面朝后方，模型制作时以定妆图朝前发射为准。"
+    },
+    {
+      "key": "fp-04-flame-and-cannon",
+      "image": "fp-04-flame-and-cannon.png",
+      "references": [
+        "scenes/rongboy-mission/review/weapon-concepts-20261123/c-campaign-8-weapons-roster.png",
+        "scenes/rongboy-mission/review/figures-v2/studio-scout.png",
+        "scenes/rongboy-mission/review/crazygames-store-20261119/submission/cover-landscape.png"
+      ],
+      "notes": "第 7–8 关第一人称开火图：左=火焰爆炸枪（秘密实验室走廊橘金绒毛爆破冲击环震飞双僵），右=探照灯炮（暗夜终局场地巨型暖光毛球炮弹破防照明）。"
+    }
+  ]
+}

@@ -215,6 +215,7 @@ export function buildWorld(cine, level, weapons, variants) {
   // 每个材质都过一遍 vol.light，于是墙、家具、线头都按位置查同一份烘焙光照
   const lib = createMaterialLibrary(cine.renderer, { resolution: 1024 });
   const M = plushMaterials(lib, { lit, sheer: TH.sheer });
+  const barnSiding = TH.yard === 'orchard' ? M('boards',0xb56e4e) : null;
   const wall = M('felt', TH.wall), wood = M('toy_wood'), trim = TH.trim ? M('felt', TH.trim) : wood, sun = cine.sunDir;
   // 从一组矩形里挖掉一个洞（天窗）：每块被洞压到的矩形换成洞四周的四条
   const minus = (rects, h) => rects.flatMap(r => {
@@ -284,7 +285,7 @@ export function buildWorld(cine, level, weapons, variants) {
     const facade = s => s.outside || (!s.alongZ && s.line === house.maxZ);   // 朝外的墙归 shell
     const along = (kit, s, mat, len, h, thick, a, y, across, o) => kit.soft(mat, s.alongZ ? thick : len, h, s.alongZ ? len : thick, s.alongZ ? s.line + across : a, y, s.alongZ ? a : s.line + across, o);
     // 朝外的墙是一段段拼起来的（窗洞上下、门楣各是一块）：不倒圆角，拼缝才看不出来；内墙保留一点圆角
-    for (const s of pieces) along(facade(s) ? shell : k, s, wall, s.a1 - s.a0, s.y1 - s.y0, s.t, (s.a0 + s.a1) / 2, (s.y0 + s.y1) / 2, 0, { r: facade(s) ? 0 : 0.012 });
+    for (const s of pieces) along(facade(s) ? shell : k, s, facade(s) && barnSiding ? barnSiding : wall, s.a1 - s.a0, s.y1 - s.y0, s.t, (s.a0 + s.a1) / 2, (s.y0 + s.y1) / 2, 0, { r: facade(s) ? 0 : 0.012 });
     for (const s of pieces) {
       const span = s.a1 - s.a0, midpoint = (s.a0 + s.a1) / 2;
       solid(s.alongZ ? s.t : span, s.y1 - s.y0, s.alongZ ? span : s.t,
@@ -374,7 +375,7 @@ export function buildWorld(cine, level, weapons, variants) {
       shell.quad(M.glass, [q.minX, y + 0.11, q.minZ], [q.maxX, y + 0.11, q.minZ], [q.maxX, y + 0.11, q.maxZ], [q.minX, y + 0.11, q.maxZ]);
     }
     // 外立面：一层的墙基，层与层之间的腰线，顶层的屋檐（伸出去一截，负责挡住太阳）
-    if (ground) for (const s of pieces) if (!s.alongZ && s.line === house.maxZ && s.y0 === 0) along(shell, s, M('boards', 0x9db3a0), s.a1 - s.a0, 0.42, 0.04, (s.a0 + s.a1) / 2, 0.21, s.t / 2 + 0.014, { r: 0.015, long: 0 });
+    if (ground) for (const s of pieces) if (!s.alongZ && s.line === house.maxZ && s.y0 === 0) along(shell, s, M('boards', barnSiding ? 0x88654f : 0x9db3a0), s.a1 - s.a0, 0.42, 0.04, (s.a0 + s.a1) / 2, 0.21, s.t / 2 + 0.014, { r: 0.015, long: 0 });
     if (!built) { /* 露天：没有屋檐也没有腰线 */ }
     else if (top) for (const q of holes(S).reduce(minus, [{ minX: hx - hw / 2 - 0.65, maxX: hx + hw / 2 + 0.65, minZ: hz - hd / 2 - 0.65, maxZ: hz + hd / 2 + 0.65 }])) shell.soft(M('felt', TH.ceiling), q.maxX - q.minX, 0.1, q.maxZ - q.minZ, (q.minX + q.maxX) / 2, H + 0.11, (q.minZ + q.maxZ) / 2, { r: 0 });
     else {
@@ -398,7 +399,7 @@ export function buildWorld(cine, level, weapons, variants) {
       }
     }
     // 两处入口上方的雨棚和壁灯
-    if (ground) for (const s of doors) {
+    if (ground && !barnSiding) for (const s of doors) {
       const x = (s.a0 + s.a1) / 2, w = s.a1 - s.a0 + 0.7, z = house.maxZ + WT / 2;
       // 有装饰的版本：雨棚抬高、放平一点，前沿挂一条波浪花边（花边最低处离地 2.23 米，人和僵尸都从底下过）
       const ay = trimOn ? 2.5 : 2.42, tilt = trimOn ? 0.26 : 0.32, armY = trimOn ? 2.44 : 2.26;
@@ -488,6 +489,30 @@ export function buildWorld(cine, level, weapons, variants) {
   const G = level.outdoor.length ? { minX: house.minX, maxX: house.maxX, minZ: house.maxZ, maxZ: B.maxZ } : null;
   if (G && TH.yard === 'playground') playground(k, M, { G, gateX: level.player.x, yard: level.yard || [] });   // 学校：铅笔围栏、蜡笔校门、地上的画线
   else if (G && TH.yard !== 'park-tour') {
+    if (TH.yard === 'orchard') {
+      for (const plot of level.outdoor) {
+        const x=(plot.minX+plot.maxX)/2, z=(plot.minZ+plot.maxZ)/2;
+        k.soft(M('terry',plot.floor),plot.maxX-plot.minX-.05,.024,plot.maxZ-plot.minZ-.05,x,-.006,z,{r:.009});
+      }
+      // Two sewn soil strips make the orchard readable as rows, with cross lanes between trees.
+      const rows = new Map();
+      for (const prop of level.furnitureBoxes.filter(c=>c.id.startsWith('orchard-tree'))) {
+        const line = rows.get(prop.x) ?? [];
+        line.push(prop.z);
+        rows.set(prop.x,line);
+        for (let i=0;i<6;i++) {
+          const a=i*Math.PI/3+prop.z, x=prop.x+Math.cos(a)*1.1, z=prop.z+Math.sin(a)*1.1, y=prop.h-.08+(i%2)*.26;
+          k.sphere(M('felt',i%3===0?0xe2a64f:0xb7543e),.16,x,y,z,{seg:10,rings:8});
+          k.soft(wood,.035,.10,.035,x,y+.15,z,{r:.011});
+        }
+      }
+      for (const [x, points] of rows) {
+        const near=Math.min(...points), far=Math.max(...points), z=(near+far)/2;
+        k.soft(M('quilt',0x9f835c),1.64,.019,far-near+1.6,x,.006,z,{r:.008});
+        for (const side of [-1,1])
+          k.dashes(M.thread,[x+side*.69,.026,near-.65],[x+side*.69,.026,far+.65],{ stitch:.13, gap:.082,r:.011 });
+      }
+    }
     // 围篱：东、南、西三面，朝外的一面没人看得到
     hedge(k, M, { id: 'edge-s', x: hx, z: G.maxZ + 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 's' });
     if (!built) hedge(k, M, { id: 'edge-n', x: hx, z: G.minZ - 0.3, w: hw + 1.2, d: 0.6, h: 2.2, color: HEDGE, hidden: 'n' });
@@ -511,7 +536,7 @@ export function buildWorld(cine, level, weapons, variants) {
         }
       }
     }
-    if (built) for (const [x, z] of path) k.cyl(M('felt', stone[Math.floor(rnd() * 3)]), 0.3 + rnd() * 0.06, 0.33 + rnd() * 0.06, 0.035, x + (rnd() - 0.5) * 0.08, 0.004, z, { seg: 12 });
+    if (built && TH.yard !== 'orchard') for (const [x, z] of path) k.cyl(M('felt', stone[Math.floor(rnd() * 3)]), 0.3 + rnd() * 0.06, 0.33 + rnd() * 0.06, 0.035, x + (rnd() - 0.5) * 0.08, 0.004, z, { seg: 12 });
     // 沿围篱脚下的野花和蘑菇（都很矮，不挡路）
     for (let i = 0; i < 46; i++) {
       const side = Math.floor(rnd() * 3), u = rnd();
@@ -532,7 +557,7 @@ export function buildWorld(cine, level, weapons, variants) {
     for (const x of [house.minX - 0.5, house.maxX + 0.5]) far.quad(M('felt', WALL), [x, eave - 0.05, hz], [x, eave - 0.05, hz + sign * run], [x, eave + rise, hz], [x, eave + rise, hz], [[0, 0], [run, 0], [0, rise], [0, rise]], 1, [Math.sign(x - hx), 0, 0]);
   }
   far.cyl(M('felt', tone(TH.roofColor ?? ROOF, -0.2)), 0.13, 0.13, hw + 1.7, hx, eave + rise + 0.05, hz, { seg: 10, rz: Math.PI / 2 });
-  if (TH.yard !== 'playground') {
+  if (TH.yard !== 'playground' && !barnSiding) {
     chimney = { x: hx + 4.6, z: hz + 2.6, top: eave + rise - 2.6 * Math.tan(pitch) + 1.5 };
     const { x, z, top } = chimney, cap = M('felt', 0xe4d2ad);
     far.soft(M('quilt', 0xb86a55), .9, 2.12, .9, x, top - 1.14, z, { r:.050 });

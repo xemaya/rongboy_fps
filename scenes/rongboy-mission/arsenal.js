@@ -35,7 +35,10 @@ export function extendWeaponKit(kit, weapons) {
 
   kit.userData.variants = weapons.map((w, index) => {
     const id = w.id;
-    if (id === 'single') return original[index];
+    if (id === 'single') {
+      original[index].userData.muzzleZ = .431;
+      return original[index];
+    }
     original[index]?.removeFromParent();
     const g = new T.Group();
     if (id === 'scatter') {
@@ -52,7 +55,7 @@ export function extendWeaponKit(kit, weapons) {
       soft(g,.34,.12,.08,.04,cream,0,.102,.16);
       part(g,new T.CylinderGeometry(.067,.067,.032,8),brass,0,.177,.07);
       grip(g);
-      g.userData.muzzleZ=.67;
+      g.userData.muzzleZ=.66;g.userData.muzzleY=.005;
     } else if (id === 'heavy') {
       // 皮布提梁、B 版的厚灯圈、凹入的独立出膛口。
       tube(g,.218,.55,slate,0,.015,.147);
@@ -74,7 +77,7 @@ export function extendWeaponKit(kit, weapons) {
       for (const z of [-.04,.02,.08,.14,.2]) ring(g,.231,.009,cream,0,.015,z).scale.y=.99;
       soft(g,.29,.091,.26,.033,cream,0,-.205,.29);
       grip(g);
-      g.userData.lamp = lamp;
+      g.userData.lamp=lamp;g.userData.muzzleZ=.602;g.userData.muzzleY=.015;
     } else if (id === 'stun') {
       // 四个凹入的陶瓷网发射点，枪口和飞网完全分开。
       soft(g,.32,.29,.56,.085,olive,0,0,.09);
@@ -90,7 +93,7 @@ export function extendWeaponKit(kit, weapons) {
       soft(g,.37,.055,.06,.025,rust,0,.158,.216);
       grip(g);
       g.userData.contacts=contacts;
-      g.userData.muzzleZ=.67;
+      g.userData.muzzleZ=.66;g.userData.muzzleY=.018;
     } else if (id === 'freeze') {
       const ice = glowing(0x7bdded, .8), sleeve = woolMaterial(0x689fb0);
       tube(g,.18,.48,sleeve,0,0,.105);
@@ -119,7 +122,7 @@ export function extendWeaponKit(kit, weapons) {
         const hinge=part(g,new T.CylinderGeometry(.053,.053,.025,16),brass,x,.043,-.221);
         hinge.rotation.z=Math.PI/2;
       }
-      grip(g);g.userData.press=press;g.userData.muzzleZ=.43;g.userData.muzzleY=-.025;
+      grip(g);g.userData.press=press;g.userData.muzzleZ=.425;g.userData.muzzleY=-.059;
     } else if (id === 'needle') {
       // 毛衣针：一根长长的银针架在毛线团上，针尾一个圆头
       alongZ(part(g, new T.CylinderGeometry(0.02, 0.024, 1.0, 10), metal, 0, 0.04, 0.2));
@@ -128,6 +131,7 @@ export function extendWeaponKit(kit, weapons) {
       const ball = createWoolBall(); ball.scale.setScalar(0.17); ball.position.set(0, -0.08, 0.02); g.add(ball);
       ball.traverse(m => { if (m.isMesh) { m.material = m.material.clone(); m.material.color.setHex(0xb7a0d8); } });
       part(g, new RoundedBoxGeometry(0.12, 0.2, 0.14, 2, 0.04), wood, 0, -0.26, -0.06);
+      g.userData.muzzleZ=.82;g.userData.muzzleY=.04;
       for (const z of [-0.06, 0.3]) part(g, new T.TorusGeometry(0.035, 0.012, 6, 14), hard(0xe9c46a, 0.3), 0, 0.04, z);
     } else if (w.kind === 'grenade') {
       const bomb=bombProp(id);

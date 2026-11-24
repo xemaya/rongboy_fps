@@ -154,17 +154,17 @@ test('no zombie type is left out of the lure and the freeze', () => {
   }
 });
 
-test('each campaign map has five unique Easter eggs, one with a combat effect', () => {
+test('each campaign map has distinct Easter eggs and just one combat gadget', () => {
   const kinds = [];
   for (const id of ORDER) {
     const level = compileLevel(LEVELS[id]);
     assert.equal(level.gadgets.length, 1, id);
-    assert.equal(level.easterEggs.length, 4, id);
+    assert.equal(level.easterEggs.length, id === 'house' || id === 'museum' ? 7 : 4, id);
     assert.ok(!JSON.stringify(level.texts).includes('打一下'), id);
     kinds.push(level.gadgets[0].kind, ...level.easterEggs.map(e => e.id));
   }
-  assert.equal(kinds.length, 20);
-  assert.equal(new Set(kinds).size, 20);
+  assert.equal(kinds.length, 26);
+  assert.equal(new Set(kinds).size, kinds.length);
 });
 
 test('the falling quilt catches only enemies directly below it at the time of landing', () => {
@@ -230,6 +230,32 @@ test('the house cushions sit on the sofa and can still be hit from in front of t
   Object.assign(s.player, { x:sofa.maxX + 1.5, z:cushions.z });
   shootAt(s, cushions.x, cushions.z, .91);
   assert.ok(run(s, .6).some(event => event.type === 'easter-egg' && event.id === 'cushions'));
+});
+
+test('a woolball can trigger each new appliance and exhibit from a reachable stance', () => {
+  const stands = [
+    ['house','tv',-4.03,-2.2], ['house','fridge',-6.3,-7.3], ['house','toaster',-5.4,-4.05],
+    ['museum','armor',3.8,3.5], ['museum','mummy',-11.3,-.1], ['museum','prism',9.3,4.2],
+  ];
+  for (const [map,id,x,z] of stands) {
+    const level = compileLevel(LEVELS[map]);
+    const egg = level.easterEggs.find(prop => prop.id === id);
+    const storey = level.storeys[egg.floor];
+    assert.ok(freePoint(storey,x,z,CONFIG.playerRadius), id+' can be reached without entering the furniture');
+    assert.equal(storey.furnitureBoxes.filter(box => box.id === egg.mount.host).length,1, id+' keeps the existing host solid');
+    const state = createGame({level});
+    state.enemies = [];
+    state.total = 0;
+    Object.assign(state.player,{x,y:storey.y,z});
+    for (let shot = 0; shot < 2; shot++) {
+      shootAt(state,egg.x,egg.z,(egg.minY+egg.maxY)/2);
+      const events = run(state,.5);
+      const hits = events.filter(event => event.type === 'easter-egg' && event.id === id);
+      assert.equal(hits.length,1,id+' one reaction per ball');
+      assert.equal(hits[0].base,storey.y);
+      assert.ok(!events.some(event => event.type === 'gadget' || event.type === 'pickup'), id+' has no combat or objective effect');
+    }
+  }
 });
 
 console.log(`${checks} gadget checks passed`);

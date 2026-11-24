@@ -15,6 +15,9 @@ export default {
   wallThickness: 0.2,
   doorHeight: 2.05,
   par: 480,
+  enemyPace: 1.16,
+  roomAlerts: true,
+  resumePatrolAfterSearch: true,
   player: { x: 0, z: 16.55, yaw: 0 },
   menu: { x: 0, z: 15.85 },
   arsenal: ['single', 'scatter', 'yarn', 'jack'],
@@ -126,33 +129,33 @@ export default {
 
   enemies: [
     { type:'walker', x:-6.2, z:15.65, state:'asleep', heading:Math.PI/2 },
-    { type:'walker', x:7.7, z:13.8, state:'asleep', heading:-Math.PI/2 },
-    { type:'leaper', x:-8.2, z:13.1, state:'asleep', heading:0 },
+    { type:'walker', x:7.7, z:13.8, state:'idle', heading:Math.PI/2, patrol:[[10,13.8],[9.5,15.6],[7.7,13.8]] },
+    { type:'leaper', x:-8.2, z:13.1, state:'idle', heading:-Math.PI/2, patrol:[[-10.4,13.25],[-9.7,15.7],[-8.2,13.1]] },
     { type:'crawler', x:6.8, z:16.25, state:'asleep', heading:-Math.PI/2 },
     // 操场
     { type: 'walker', x: -6.0, z: 4.2, state: 'idle', heading: Math.PI / 2, patrol: [[6.0, 4.2], [-6.0, 4.2]] },
     { type: 'leaper', x: -10.6, z: 4.6, state: 'asleep', heading: Math.PI / 2 },
     { type: 'walker', x: 10.6, z: 10.8, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'archer', x: 10.6, z: 6.4, state: 'idle', heading: -Math.PI / 2 },   // 操场东头：滑梯和积木墙能挡箭
-    { type: 'bomber', x: -6.4, z: 9.8, state: 'asleep', heading: Math.PI / 2 },
+    { type:'archer', x:10.6, z:6.4, state:'idle', heading:-Math.PI/2, patrol:[[10.6,3.1],[10.6,6.4],[10.2,8.3]] },   // 操场东头：滑梯和积木墙能挡箭
+    { type:'bomber', x:-6.4, z:9.8, state:'idle', heading:-Math.PI/2, patrol:[[-9.8,9.8],[-9.8,7.8],[-6.4,9.8]] },
     // 走廊
     { type: 'walker', x: -10.0, z: -1.0, state: 'idle', heading: Math.PI / 2, patrol: [[10.0, -1.0], [-10.0, -1.0]] },
-    { type: 'archer', x: 11.2, z: -1.4, state: 'idle', heading: -Math.PI / 2 },   // 走廊东头：一条直廊，教室门是掩体
+    { type:'archer', x:11.2, z:-1.4, state:'idle', heading:-Math.PI/2, patrol:[[7.4,-1.4],[11.2,-1.4]] },   // 走廊东头：一条直廊，教室门是掩体
     { type: 'heavy', x: -11.3, z: -1.3, state: 'asleep', heading: Math.PI / 2 },
     // 一班教室
     { type: 'walker', x: -7.5, z: -6.68, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'heavy', x: -10.2, z: -3.8, state: 'idle', heading: Math.PI / 2 },
+    { type:'heavy', x:-10.2, z:-3.8, state:'idle', heading:Math.PI/2, patrol:[[-7.7,-4.8],[-10.2,-3.8]] },
     { type: 'leaper', x: -5.0, z: -4.9, state: 'asleep', heading: -Math.PI / 2 },
-    { type: 'shielded', x: -10.2, z: -8.2, state: 'idle', heading: 0 },
+    { type:'shielded', x:-10.2, z:-8.2, state:'idle', heading:0, patrol:[[-10.2,-6.35],[-10.2,-8.2]] },
     // 美术教室
     { type: 'leaper', x: -2.4, z: -3.6, state: 'idle', heading: Math.PI / 2, patrol: [[2.4, -3.6], [-2.4, -3.6]] },
     { type: 'walker', x: 2.0, z: -7.3, state: 'asleep', heading: Math.PI },
     { type: 'walker', x: -1.8, z: -7.6, state: 'asleep', heading: 0 },
-    { type: 'bomber', x: 0, z: -7.6, state: 'idle', heading: 0 },
+    { type:'bomber', x:0, z:-7.6, state:'idle', heading:0, patrol:[[1.9,-7.52],[0,-7.6]] },
     // 科学教室
-    { type: 'heavy', x: 10.7, z: -6.6, state: 'idle', heading: -Math.PI / 2 },
+    { type:'heavy', x:10.7, z:-6.6, state:'idle', heading:-Math.PI/2, patrol:[[10.7,-7.52],[10.7,-6.6]] },
     { type: 'walker', x: 5.6, z: -4.0, state: 'asleep', heading: Math.PI / 2 },
-    { type: 'shielded', x: 10.6, z: -3.2, state: 'idle', heading: -Math.PI / 2 },
+    { type:'shielded', x:10.6, z:-3.2, state:'idle', heading:-Math.PI/2, patrol:[[7.7,-3.3],[10.6,-3.2]] },
     { type: 'leaper', x: 5.6, z: -8.4, state: 'idle', heading: Math.PI / 2, patrol: [[10.2, -8.4], [5.6, -8.4]] },
   ],
 

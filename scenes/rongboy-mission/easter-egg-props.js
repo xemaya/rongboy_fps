@@ -1,6 +1,7 @@
 // 每件彩蛋各自的毛毡模型与动作。坐标以关卡里标的道具中心为原点，正面朝 +z。
 import * as T from 'three';
-import { dinosaur, plinth } from '../../cine-engine/library/structures/museum.js';
+import { cabinet } from '../../cine-engine/library/structures/plush.js';
+import { dinosaur, displayCase, plinth } from '../../cine-engine/library/structures/museum.js';
 import { createVapor } from './vapor.js';
 
 const clamp = x => Math.min(1, Math.max(0, x));
@@ -43,11 +44,207 @@ export function createEasterEggProps({ Kit, M, floors, level }) {
       for (const sx of [-1, 1]) felt(k, ink, r * .12, x + sx * r * .37, y + r * .14, z + r * .16, 0.85, 1.1, .6);
       tube(k, ink, [[x-r*.25,y-r*.23,z+r*.16],[x,y-r*.34,z+r*.18],[x+r*.25,y-r*.23,z+r*.16]], r * .04);
     };
+    let fixture;
+    if (spec.mount && spec.replaces) {
+      const host = level.storeys[spec.floor].furnitureBoxes.find(box => box.id === spec.mount.host);
+      const sideways = Math.abs(Math.sin(spec.yaw)) > .5;
+      fixture = { ...host, x:0, z:-(spec.mount.forward ?? 0), w:sideways ? host.d : host.w, d:sideways ? host.w : host.d, face:'s' };
+    }
     let animate;
     const duration = 1.5;
     let sounds;
 
     switch (spec.id) {
+      case 'tv': {
+        part(k => cabinet(k, M, fixture),0,-spec.y);
+        const set = part(k => {
+          box(k,wood,.56,.062,.31,0,-.30,0,'toy_wood');
+          box(k,0xb58a58,1.0,.53,.34,0,-.014,0,'boards');
+          box(k,ink,.72,.435,.036,-.107,-.008,.171);
+          box(k,0x355151,.647,.371,.023,-.107,-.004,.192);
+          for (const y of [-.035,.119]) button(k,y>0 ? ivory : coral,.055,.046,.375,y,.186,{rx:Math.PI/2});
+          for (const x of [.301,.344,.387,.43]) box(k,ink,.014,.080,.015,x,-.153,.178);
+        });
+        const aerial = part(k => {
+          for (const direction of [-1,1]) {
+            tube(k,ink,[[0,0,0],[.13*direction,.10,-.012],[.20*direction,.21,-.04]],.014);
+            felt(k,gold,.024,.20*direction,.21,-.04);
+          }
+        },.01,.238,-.04,set);
+        const channel = part(k => {
+          k.soft(M.glow(0x83b4b2,.64),.642,.36,.019,0,0,0,{r:.043});
+          felt(k,gold,.074,.118,.079,.018,1,1,.12);
+          felt(k,0x698b69,.19,-.128,-.094,.019,1,.39,.12);
+          felt(k,0x91ad73,.17,.106,-.114,.027,1,.34,.10);
+          tube(k,ivory,[[-.275,-.115,.035],[-.168,-.105,.035],[-.069,-.113,.035]],.01);
+        },-.107,-.004,.205,set);
+        const cloud = part(k => {
+          for (const [x,y,scale] of [[-.044,0,.70],[0,.014,1],[.044,0,.62]]) felt(k,ivory,.043,x,y,0,scale,.45,.14);
+        },-.153,.098,.038,channel);
+        animate = t => {
+          set.rotation.z = .071*swing(t,23,4.6);
+          aerial.rotation.x = .48*swing(t,25,3.6);
+          const screen = ease(.05,.21,t)*(1-ease(1.25,1.5,t));
+          channel.visible = screen > .001;
+          channel.scale.y = Math.max(.02,screen);
+          cloud.position.x = -.153 + .276*ease(.12,1.32,t);
+        };
+        sounds = ['tv-switch','tv-channel'];
+        break;
+      }
+      case 'fridge': {
+        const { w, d, h:height, color } = fixture;
+        const bottom = -spec.y, top = bottom+height, split = bottom+.62*height;
+        const front = fixture.z+d/2;
+        part(k => {
+          box(k,color,w,height,.11,0,bottom+height/2,front-d+.055);
+          for (const side of [-1,1]) box(k,color,.078,height,d,side*(w-.078)/2,bottom+height/2,fixture.z);
+          for (const y of [top-.042,split,bottom+.05]) box(k,ivory,w-.12,.075,d-.10,0,y,fixture.z);
+          box(k,color,w-.058,split-bottom-.07,.09,0,(split+bottom)/2,front);
+          box(k,ink,.043,.238,.045,-w/2+.133,split-.251,front+.052,'toy_wood');
+          const shelf = split+.057;
+          box(k,0xb7e0d2,w-.21,.04,d-.15,0,shelf,fixture.z);
+          box(k,ivory,.16,.205,.14,-.124,shelf+.121,front-.24);
+          box(k,teal,.16,.071,.144,-.124,shelf+.117,front-.24);
+          button(k,blue,.06,.031,-.124,shelf+.24,front-.24);
+          k.cyl(M('felt',coral),.077,.068,.138,.135,shelf+.087,front-.34,{seg:12});
+          button(k,gold,.082,.041,.135,shelf+.162,front-.34);
+        });
+        const fridgeLight = part(k => k.soft(M.glow(0xb6dccc,.95),w-.22,.044,.096,0,top-.11,front-.24,{r:.017}));
+        const doorWidth = w-.063, doorHeight = top-split-.07;
+        const door = part(k => {
+          box(k,color,doorWidth,doorHeight,.089,doorWidth/2,split+.028+doorHeight/2,0);
+          box(k,ink,.044,.235,.045,doorWidth-.114,split+.176,.06,'toy_wood');
+          for(const [x,y,paint] of [[.21,.38,gold],[.34,.50,coral],[.39,.33,teal]]) {
+            felt(k,paint,.040,x,split+y,.050,1,1,.42);
+          }
+        },-doorWidth/2,0,front+.014);
+        animate = t => {
+          const open = ease(.02,.32,t)*(1-ease(.87,1.39,t));
+          door.rotation.y = -1.20*open + .047*swing(Math.max(0,t-1.37),36,15)*(1-ease(1.43,1.5,t));
+          fridgeLight.visible = open > .13;
+        };
+        sounds = ['fridge-latch','fridge-hum'];
+        break;
+      }
+      case 'toaster': {
+        part(k => {
+          box(k,wood,.44,.047,.31,0,-.169,0,'toy_wood');
+          box(k,coral,.47,.297,.34,0,-.022,0);
+          box(k,ivory,.443,.036,.306,0,.126,0);
+          for (const z of [-.067,.066]) box(k,ink,.321,.014,.052,0,.146,z);
+          button(k,ivory,.043,.032,.116,-.058,.179,{rx:Math.PI/2});
+        });
+        const lever = part(k => box(k,ink,.17,.036,.102,0,0,0,'toy_wood'),.246,.045,.017);
+        const slices = [-.068,.067].map(z => part(k => {
+          box(k,0x965531,.289,.229,.057,0,0,0);
+          for (const side of [-1,1]) box(k,0xf1cb88,.245,.179,.022,0,.006,side*.034);
+          for(const x of [-.038,.038]) felt(k,ink,.009,x,.023,.053);
+          tube(k,wood,[[-.027,-.031,.055],[0,-.048,.055],[.027,-.031,.055]],.006);
+        },0,.046,z));
+        animate = t => {
+          lever.position.y = .045 - .105*bump(0,.33,t);
+          slices.forEach((slice,index) => {
+            const start = .155 + index*.11;
+            const pop = bump(start,start+.69,t);
+            slice.visible = pop > .01;
+            slice.position.y = .048 + (index ? .51 : .64)*pop;
+            slice.rotation.x = (index ? -.58 : .72)*pop;
+            slice.rotation.z = (index ? -.31 : .34)*pop;
+          });
+        };
+        sounds = ['knock','toast-pop'];
+        break;
+      }
+      case 'armor': {
+        part(k => plinth(k,M,{...fixture,item:null}),0,-spec.y);
+        const gray = 0x97a5a6, dark = 0x52656a;
+        part(k => {
+          for (const x of [-.125,.125]) {
+            box(k,gray,.158,.485,.174,x,-.464,0);
+            box(k,dark,.179,.112,.263,x,-.667,.041);
+            felt(k,gray,.123,x<0 ? -.31 : .31,.236,0,1,.92,1.19);
+          }
+          box(k,gray,.464,.508,.33,0,-.010,0);
+          box(k,dark,.447,.071,.345,0,-.237,0);
+          felt(k,coral,.205,-.318,-.116,.192,1,1.19,.20);
+          button(k,gold,.066,.039,-.318,-.113,.237,{rx:Math.PI/2});
+          tube(k,ivory,[[-.159,.132,.165],[0,.092,.19],[.159,.132,.165]],.012);
+        });
+        const glove = part(k => {
+          box(k,gray,.132,.32,.148,0,-.149,0);
+          felt(k,dark,.077,0,-.317,.032,1,1.15,1.01);
+          button(k,gold,.023,.029,.05,-.205,.065,{rx:Math.PI/2});
+        },.302,.229,.025);
+        const head = part(k => {
+          felt(k,gray,.193,0,0,0,1,1.06,1);
+          felt(k,ivory,.128,0,-.011,.069,1,.90,.85);
+          for (const x of [-.05,.05]) felt(k,ink,.019,x,.024,.170);
+          felt(k,coral,.077,.01,.185,-.086,.65,1.1,1.32);
+        },0,.466,0);
+        const visor = part(k => {
+          box(k,dark,.322,.139,.083,0,-.048,.133);
+          for (const x of [-.091,0,.091]) box(k,0x333e43,.027,.034,.017,x,-.052,.176);
+          for (const x of [-.151,.151]) felt(k,gold,.027,x,-.012,.128);
+        },0,.058,.025,head);
+        animate = t => {
+          const salute = ease(.18,.47,t)*(1-ease(.88,1.36,t));
+          glove.rotation.z = -2.37*salute;
+          glove.rotation.x = -.32*salute;
+          head.rotation.z = .103*swing(t,23,3.9);
+          visor.rotation.x = -1.36*salute;
+        };
+        sounds = ['clang','rattle'];
+        break;
+      }
+      case 'mummy': {
+        const hand = part(k => {
+          tube(k,ivory,[[0,0,0],[0,.11,.01],[.018,.21,.07],[.04,.32,.10]],.066);
+          felt(k,0xe5d7bb,.083,.041,.326,.106,1,1.06,.75);
+          felt(k,ivory,.048,.091,.308,.109,.61,1.05,.67);
+          for (let i=0;i<3;i++) {
+            tube(k,i%2 ? 0xbfb195 : gold,[[-.076+i*.008,.054+i*.071,.034],[.007,.023+i*.071,.072],[.07+i*.003,.044+i*.071,.041]],.013);
+          }
+          tube(k,ivory,[[-.055,.059,.046],[-.128,.02,.142],[-.202,-.099,.224],[-.186,-.194,.269]],.019);
+        },-.18,0,-.1);
+        animate = t => {
+          const reach = ease(.08,.32,t)*(1-ease(.96,1.44,t));
+          hand.visible = reach > .001;
+          // The wrist sits against the mummy's shoulder inside the coffin.
+          hand.position.set(-.176,.055,-.275);
+          hand.rotation.z = .23+.52*reach + .36*swing(Math.max(0,t-.30),19,1.8)*reach;
+          hand.rotation.x = -.31 + 1.10*reach;
+        };
+        sounds = ['flop','whip'];
+        break;
+      }
+      case 'prism': {
+        const display = Object.assign((name, color) => M(name, color), M, {
+          glow: (color, strength) => M.glow(color, strength * .43),
+        });
+        part(k => displayCase(k,display,{...fixture,item:'gem-empty'}),0,-spec.y);
+        const gem = part(k => {
+          k.sphere(M.glow(0x78cfb3,.92),.244,0,0,0,{seg:5,rings:2,sy:1.18});
+          for (const side of [-1,1]) tube(k,ivory,[[0,.239,0],[side*.17,0,.15],[0,-.237,0]],.012);
+        },0,-.115,fixture.z);
+        const glints = [0xf6cd7b,0xb2e8db,0xe6a0aa].map(color => part(k => {
+          k.extrude(M.glow(color,.92),[[0,-.128],[.097,0],[0,.128],[-.097,0]],.018,new T.Matrix4());
+        }));
+        animate = t => {
+          gem.rotation.y = .34 + Math.PI*2*ease(.03,1.47,t);
+          gem.position.y = -.115 + .19*bump(0,1.5,t);
+          glints.forEach((glint,index) => {
+            const start = .16 + index*.15, flash = bump(start,start+.80,t);
+            glint.visible = flash > .001;
+            glint.scale.setScalar(Math.max(.01,flash));
+            const angle = (index-1)*1.0 + .24*ease(start,start+.8,t);
+            glint.position.set(Math.sin(angle)*(.59+flash*.25),.32-index*.077+flash*.092,fixture.z+.26);
+            glint.rotation.z = .64*ease(start,start+.8,t);
+          });
+        };
+        sounds = ['ting','prism-chime'];
+        break;
+      }
       case 'cushions': {
         const pad = (x, y, width, height, depth, color) => part(k => {
           k.soft(M('quilt', color), width, height, depth, 0, 0, 0, { r: .084, seg: 4 });

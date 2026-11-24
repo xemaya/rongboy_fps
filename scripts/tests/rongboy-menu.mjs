@@ -32,9 +32,11 @@ assert.equal(exitPlayHref(queryOf(challengePlayHref('static-followup')),'challen
 const { readPreferences, writePreferences } = await import('../../scenes/rongboy-mission/preferences.js');
 const storage = new Map();
 globalThis.localStorage={getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value)};
-assert.deepEqual(readPreferences(),{sound:true,quality:'auto',motion:'system',language:'auto'});
+assert.deepEqual(readPreferences(),{sound:true,music:true,quality:'auto',motion:'system',language:'auto'});
 writePreferences({sound:false,quality:'low',motion:'reduced'});
-assert.deepEqual(readPreferences(),{sound:false,quality:'low',motion:'reduced',language:'auto'});
+assert.deepEqual(readPreferences(),{sound:false,music:true,quality:'low',motion:'reduced',language:'auto'});
+writePreferences({ ...readPreferences(), music:false });
+assert.equal(readPreferences().music,false);
 writePreferences({ ...readPreferences(), language:'zh-CN' });
 assert.equal(readPreferences().language,'zh-CN');
 writePreferences({ ...readPreferences(), language:'unsupported' });

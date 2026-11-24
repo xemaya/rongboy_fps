@@ -1,7 +1,7 @@
 // 地图的体检报告：检查（check.js）只回答"能不能合入"，这里回答"哪里还能改得更好"。
 // 给出一组数（环路、掩体、远程僵尸看得到多大一片、补给、两个机器人的战绩）和一串带坐标的建议，
 // 改一版、再跑一次、看数怎么变。每个数对应 docs/map-guide.md 第 1 节的一条准则。只支持单层的图。不依赖 DOM。
-import { compileLevel, freePoint, lineOfSight, roomAt } from '../level.js';
+import { compileLevel, freePoint, clearPath, lineOfSight, roomAt } from '../level.js';
 import { CONFIG, ENEMY_TYPES, WEAPONS } from '../game.js';
 import { ATTACKS } from '../attacks.js';
 import { ZOMBIES, coverOf } from './catalog.js';
@@ -42,10 +42,28 @@ export function reviewMap(def, { bots = true } = {}) {
     const p = roomAt(L, alongZ ? line - 0.6 : mid, alongZ ? mid : line - 0.6), q = roomAt(L, alongZ ? line + 0.6 : mid, alongZ ? mid : line + 0.6);
     if (p && q && p !== q) links.push([p, q]);
   }
+  const doors = links.length;
+  // Open outdoor plots share traversable boundaries without authored doorways.
+  for (const [i, a] of rooms.entries()) for (const b of rooms.slice(i + 1)) {
+    if (!a.outdoor || !b.outdoor) continue;
+    const x = a.maxX === b.minX ? a.maxX : b.maxX === a.minX ? a.minX : null;
+    const z = a.maxZ === b.minZ ? a.maxZ : b.maxZ === a.minZ ? a.minZ : null;
+    const alongZ = x !== null;
+    if (!alongZ && z === null) continue;
+    const lo = alongZ ? Math.max(a.minZ,b.minZ) : Math.max(a.minX,b.minX);
+    const hi = alongZ ? Math.min(a.maxZ,b.maxZ) : Math.min(a.maxX,b.maxX);
+    for (let v=lo+.25;v<hi;v+=.5) {
+      const from = alongZ ? {x:x-.5,z:v} : {x:v,z:z-.5};
+      const to = alongZ ? {x:x+.5,z:v} : {x:v,z:z+.5};
+      if (!clearPath(S,from,to,CONFIG.playerRadius,true)) continue;
+      links.push([a,b]);
+      break;
+    }
+  }
   const neighbours = r => new Set(links.filter(l => l.includes(r)).map(l => (l[0] === r ? l[1] : l[0])));
   const pairs = new Set(links.map(l => l.map(r => r.id).sort().join('|')));
   // 环：一个房间的两扇门（哪怕通向同一间）也算一个环，能从一扇出去、另一扇绕回来
-  const flow = { doors: links.length, loops: Math.max(0, links.length - rooms.length + 1), pairs: pairs.size, spurs: rooms.filter(r => neighbours(r).size === 1).map(r => r.name) };
+  const flow = { doors, loops: Math.max(0, links.length - rooms.length + 1), pairs: pairs.size, spurs: rooms.filter(r => neighbours(r).size === 1).map(r => r.name) };
 
   // ---- 远程僵尸：射程里它看得到多大一片；那一片里离"它看不到的地方"最远的一点有多远
   const ranged = L.enemies.filter(e => ZOMBIES[e.type]?.ranged).map(e => {

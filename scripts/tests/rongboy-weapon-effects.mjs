@@ -57,6 +57,24 @@ for(const weapon of WEAPONS.filter(w=>w.kind!=='grenade')) {
   assert.ok(Math.hypot(idle.x-zooming.x,idle.y-zooming.y)<1e-10,`${weapon.id} holds framing while the scene zooms`);
 }
 
+// The rendered gun rotates about its visible mouth toward a point on the sightline,
+// including portrait framing where the weapon projection scales x and y differently.
+for (const aspect of [16/9, 1]) {
+  displayCamera.aspect = aspect;
+  for (const weapon of WEAPONS.filter(w=>w.kind!=='grenade')) {
+    const mouth = new Vector3(0, .02, .63);
+    viewmodel.update({weapon:weapon.id,phase:1,speed:.7,motion:1,recoil:createRecoil(),reload:0,charge:0,lob:null,invul:0,time:0});
+    viewmodel.project(65,aspect,true);
+    const before = viewmodel.kit.localToWorld(mouth.clone());
+    const direction = new Vector3(0,0,-3).sub(before).normalize();
+    viewmodel.aimMouth(mouth,direction);
+    const after = viewmodel.kit.localToWorld(mouth.clone());
+    const barrel = viewmodel.kit.localToWorld(mouth.clone().add(new Vector3(0,0,1))).sub(after).normalize();
+    assert.ok(before.distanceTo(after)<1e-10,weapon.id+' rotates around its muzzle');
+    assert.ok(barrel.dot(direction)>1-1e-10,weapon.id+' points where its shot is aimed');
+  }
+}
+
 function blast(selected) {
   const state=fresh();
   if(selected==='jack') assert.ok(selectGrenade(state));

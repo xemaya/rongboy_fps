@@ -6,7 +6,7 @@
 //   ─────────────┼────────┼──────────────
 //   纪念品店     │ 门厅   │ 咖啡厅
 //
-// 夜里闭馆：月光从天窗和高窗照进来，展品上各有一盏射灯。木乃伊、头骨、恐龙骨架都只是展品，不会动。
+// 夜里闭馆：月光从天窗和高窗照进来，展品上各有一盏射灯。部分展品会对毛球命中作出短暂回应。
 // 任务：三件展品被僵尸拿走了（埃及厅的黄金面具、自然厅的恐龙蛋、珍宝馆的蓝宝石），找回来送到恐龙面前。
 const front = { minX: -2, maxX: 2, minZ: 4.3, maxZ: 5.8 };
 export default {
@@ -22,7 +22,10 @@ export default {
   player: { x: 0, z: 11.2, yaw: 0 },
   menu: { x: 0, z: 9.4 },   // 开始画面里两个角色站在门厅中间，背后是大厅里的恐龙
   arsenal: ['single', 'scatter', 'yarn', 'jack'],
-  mission: { type: 'fetch', title: '找回三件被拿走的展品，送回恐龙面前', alarm: 8, exit: front },
+  // Each gallery responds on its own. Exhibits rouse the nearby guards on the same floor.
+  roomAlerts: true,
+  resumePatrolAfterSearch: true,
+  mission: { type: 'fetch', title: '找回三件被拿走的展品，送回恐龙面前', alarm: 6.5, alarmRoom:true, exit: front },
   // 外观：浅色石墙，没有木梁和坡屋顶，灯是贴着天花板的射灯；屋里的环境光是偏蓝的月色。
   theme: {
     wall: 0xe6dfd0, ceiling: 0xd8d4c8, trim: 0xcbbf9f, beams: false, roof: false, lamp: 'spot', night: true,
@@ -165,6 +168,8 @@ export default {
     { id: 'cat', x: -12.0, y: 1.06, z: -3.4, w: 0.64, d: 0.54, h: 0.91, replaces: 'anubis-w' },
     { id: 'sailboat', x: -13.958, y: 1.85, z: -5.6, yaw: Math.PI / 2, w: 1.66, d: 0.16, h: 1.21 },
     { id: 'cup', x: 7.03, y: 0.99, z: 8.4, yaw: Math.PI / 2, w: 0.7, d: 0.54, h: 0.46 },
+    { id:'armor', mount:{host:'hall-se', up:.72}, w:.8, d:.65, h:1.44, replaces:'hall-se' },
+    { id:'mummy', mount:{host:'coffin-b', up:-.93, forward:.40}, w:.94, d:.14, h:1.58 },
   ],
   gadgets: [
     { kind: 'spot', x: -3.3, z: 2.7 },      // 中央大厅,
@@ -260,6 +265,9 @@ export default {
       { x:-14, z:1.5, y:2.1, normal:[1,0], w:2.3, h:1.35, color:0xc09098 },
       { x:-14, z:6.0, y:2.1, normal:[1,0], w:1.95, h:1.2, color:0xbe9f7e },
       { x:14, z:8.4, y:2.1, normal:[-1,0], w:2.1, h:1.2, color:0x8293b6 },
+    ],
+    easterEggs: [
+      { id:'prism', mount:{host:'vault-case-upper', up:-.53, forward:.70}, w:2.32, d:.13, h:.89, replaces:'vault-case-upper' },
     ],
     furniture: [
       { id:'rolls', kind:'cabinet', look:'bookshelf', x:-12.7, z:-8.1, w: .8, d: 4, h:2, color:0x9a7458 },

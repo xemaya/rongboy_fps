@@ -29,6 +29,7 @@ const views = [['front','正面'],['side','侧面'],['back','背面']];
 const settings = [
   { key:'language', label:'语言', choices:[['auto','自动'],['zh-CN','简体中文'],['en','English']] },
   { key:'sound', label:'声音', choices:[[true,'开'],[false,'关']] },
+  { key:'music', label:'背景音乐', choices:[[true,'开'],[false,'关']] },
   { key:'quality', label:'画质', choices:[['auto','自动'],['high','清晰'],['low','流畅']] },
   { key:'motion', label:'镜头晃动', choices:[['system','标准'],['reduced','减弱']] },
 ];
