@@ -55,6 +55,7 @@ export const TOUR_MAZE = [
 ];
 export const TOUR_BRIDGE = {x:-36.48,z:6.05,w:3.9,d:5.44};
 export const TOUR_CHANNEL = {x:-31.7,z:5.9,w:17.3,d:3.18};
+export const RAPIDS_DOCK = { x: -32.65, z: 6.9, w: 4.5, d: 1.5, promptX: -33.3 };
 
 const segments = TOUR_PATH.slice(1).map((p,i)=>{
   const q=TOUR_PATH[i],dx=p.x-q.x,dz=p.z-q.z;
@@ -70,6 +71,8 @@ function testSegment({p,q,dx,dz,len,reach},x,z,tolerance) {
 
 export function isTourWalkable(x,z,tolerance=0) {
   const r=TOUR_TENT.radius-.78;
+  const dock = RAPIDS_DOCK;
+  if (Math.abs(x - dock.x) <= dock.w / 2 + tolerance && Math.abs(z - dock.z) <= dock.d / 2 + tolerance) return true;
   return x*x+z*z<(r+tolerance)**2 || segments.some(segment=>testSegment(segment,x,z,tolerance));
 }
 
@@ -89,8 +92,8 @@ const inRect=(r,x,z)=>x>=r.minX&&x<=r.maxX&&z>=r.minZ&&z<=r.maxZ;
 export const isHauntWalkable=(x,z)=>HAUNT.walk.some(r=>inRect(r,x,z));
 
 // hauntOpen：鬼屋的门是不是开着。屋子占的那块地只有门开着才进得去，而且只能走门洞和门厅。
-export function constrainTourWalk(p,oldX,oldZ,hauntOpen=false) {
-  const ok=(x,z)=>inRect(HAUNT.block,x,z) ? hauntOpen&&isHauntWalkable(x,z) : isTourWalkable(x,z,.2);
+export function constrainTourWalk(p,oldX,oldZ,hauntOpen=false,canOccupy=()=>true) {
+  const ok=(x,z)=>canOccupy(x,z) && (inRect(HAUNT.block,x,z) ? hauntOpen&&isHauntWalkable(x,z) : isTourWalkable(x,z,.2));
   if (ok(p.x,p.z)) return;
   if (ok(p.x,oldZ)) p.z=oldZ;
   else if (ok(oldX,p.z)) p.x=oldX;
@@ -164,5 +167,15 @@ export const GATE = { x: -16.2, z: 26.68, half: 2.1, booth: { x: -12.25, z: 26.7
 // 碰碰车场：椭圆，rx / rz 是围挡内沿的两个半轴
 export const RINK = { x: 27.9, z: 8.2, rx: 5.0, rz: 3.38 };
 export const HAUNT_DOOR = { x: -6.5, z: -19.28 };
-export const STALLS = [{ id: 'blocks', x: 30.2, z: -12.5 }, { id: 'ducks', x: 30.2, z: -8.38 }, { id: 'balloons', x: 30.2, z: -4.26 }];
+export const STALLS = [
+  { id: 'blocks', x: 30.2, z: -12.5, zh: '打积木', en: 'Knock the blocks',
+    hintZh: '打底层，带倒上面几块', hintEn: 'Hit low to topple the stack',
+    targets: [[.15,-.36],[.15,0],[.15,.36],[.46,-.18],[.46,.18],[.77,0]] },
+  { id: 'ducks', x: 30.2, z: -8.38, zh: '打绒鸭', en: 'Hit the ducks',
+    hintZh: '瞄着移动的绒鸭，提前一点出手', hintEn: 'Lead the moving ducks a little',
+    targets: [[.23,-.83],[.23,0],[.23,.83]] },
+  { id: 'balloons', x: 30.2, z: -4.26, zh: '打气球', en: 'Pop the balloons',
+    hintZh: '每个气球只算一次，五球能打中几个？', hintEn: 'Each balloon counts once. How many can you pop in five throws?',
+    targets: [[.56,-1.0],[1.05,-.55],[.56,0],[1.05,.55],[.56,1.0]] },
+];
 export const STAGE = { x: 0, z: -4.8 };

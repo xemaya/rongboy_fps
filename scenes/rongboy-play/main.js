@@ -4,6 +4,7 @@ import { ZOMBIE_ROSTER } from '../../library/games/rongboy-roster.js';
 import { connectCrazyGames, crazyGames, firstRound } from '../rongboy-mission/platform.js';
 import { loadInterfaceFonts } from '../rongboy-mission/interface-font.js';
 import { initializeLanguage, language, t } from '../rongboy-mission/language.js';
+import { STALLS, TOUR_STOPS } from '../rongboy-mission/park-tour-layout.js';
 import { readPlayChallenge } from '../rongboy-mission/challenges.js';
 
 // Paint the selected scene before initializing WebGL, map geometry and models.
@@ -36,7 +37,10 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{
       await localeReady;
       showLoading();
       const { boot } = await import('../rongboy-mission/play.js');
-      await loadInterfaceFonts(language);
+      const signText = id === 'amusement-tour'
+        ? name + TOUR_STOPS.map(stop => stop.name).join('') + STALLS.map(stall => stall.zh).join('')
+        : undefined;
+      await loadInterfaceFonts(language, signText);
       await boot(sdkReady);
     } catch (error) { fail({ error }); }
   },0);

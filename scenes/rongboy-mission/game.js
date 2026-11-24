@@ -103,7 +103,7 @@ export function createGame({ level } = {}) {
   s.wave = level.waves ? { index:0, nextAt:null } : null;
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
-  if (level.tour) s.park = createPark();   // 游乐园：设施演到哪、盖了几个章（park-rides.js）
+  if (level.tour) s.park = createPark();
   for (const e of level.enemies || []) { if (e.dormant) s.dormant.push({ ...e }); else spawn(s, e); }
   return s;
 }
@@ -1005,10 +1005,19 @@ export function step(s, dt, input = {}) {
   }
   const moveSpeed=CONFIG.playerSpeed*(s.slowUntil>s.time?.62:1);
   const fromX = p.x, fromZ = p.z;
-  p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
-  p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
+  if (L.tour) {
+    // Test the requested displacement at the path and wall together, so wall correction cannot move an idle player.
+    if (m) {
+      const floor = storeyAt(L, p.y);
+      p.x += mx * moveSpeed * dt; p.z += mz * moveSpeed * dt;
+      constrainTourWalk(p, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor, x, z, CONFIG.playerRadius));
+    }
+  } else {
+    p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
+    p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
   // 连发枪：扳机按着、冷却到了就出一发；弹匣空了交给上面的自动换弹，彻底没弹药就松开扳机
   if (s.trigger && WEAPONS[s.weapon].auto && s.cooldown <= 0 && !s.reloading) {
     if (!fire(s, 0, input.shot || null) && s.ammo[s.weapon].mag === 0 && s.ammo[s.weapon].reserve === 0) s.trigger = false;
@@ -1083,10 +1092,10 @@ export function step(s, dt, input = {}) {
     p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; e.x -= nx * overlap * 0.15; e.z -= nz * overlap * 0.15;
     resolveBody(storeyAt(L, e.base), e, e.radius);
   }
-  resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
-  p.y = surfaceY(L, p.x, p.z, p.y);
-
-  if (L.tour) constrainTourWalk(p,fromX,fromZ,s.park.door>0.9);
+  if (!L.tour) {
+    resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
+    p.y = surfaceY(L, p.x, p.z, p.y);
+  }
 
   // 这一步实际挪了多少（撞墙、被顶开都算在内）：弓手按它算提前量
   if (dt > 0) { const k = Math.min(1, dt * 12); p.mvx += ((p.x - fromX) / dt - p.mvx) * k; p.mvz += ((p.z - fromZ) / dt - p.mvz) * k; }

@@ -49,8 +49,9 @@ import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
-import { nearbyTourStop, TOUR_STOPS } from './park-tour-layout.js';
+import { nearbyTourStop, TOUR_STOPS, STALLS } from './park-tour-layout.js';
 import { parkPrompt, parkInteract, PARK } from './park-rides.js';
+import { fireStall, stallTarget, STALL_SHOTS } from './park-stalls.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
 const ENEMY_TYPES = Object.fromEntries(Object.entries(RAW_ENEMIES).map(([id,enemy])=>[id,localizeFields(enemy,['name'])]));
@@ -116,6 +117,10 @@ function applyTexts() {
  document.body.classList.toggle('reduced-ui',reduced);
  document.body.classList.toggle('challenge-round',!!challenge);
  document.body.classList.toggle('park-tour',parkTour);
+ if (parkTour) $('view').setAttribute('aria-label', copy(
+   '布偶游乐园。WASD 移动，方向键看向四周，F 互动，游戏摊按空格投球。支持手柄。',
+   'Plushwood Park. Move with WASD, look with the arrow keys, interact with F and throw at stalls with Space. Gamepad supported.'
+ ));
  $('result').querySelector('.eyebrow').textContent = level.name;
  document.body.style.setProperty('--heart-full','url('+heartImage(true)+')');
  document.body.style.setProperty('--heart-empty','url('+heartImage(false)+')');
@@ -123,7 +128,7 @@ function applyTexts() {
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
  $('ready-title').textContent = t(parkTour ? TX.short : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post: ride the coaster and the wheel, drive a bumper car, knock at the haunted house. Strike the gong in the big top and watch the show.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-brief').textContent = t(parkTour ? copy(TX.brief,'Use WASD to walk and the arrows to look. Press F by a star post to board rides or play at the stalls. Strike the gong in the big top and watch the show.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -1154,17 +1159,48 @@ function rideFade() {
   el.style.transition = 'opacity .5s ease'; el.style.opacity = '0';
 }
 function parkEvent(e) {
-  if (e.what === 'board') { rideYaw = yaw; pitch = 0; rideFade(); sfx2(e.id === 'coaster' ? 'chain' : 'swap'); tourView?.event(e); }
-  else if (e.what === 'alight') { yaw = rideYaw; pitch = 0; rideFade(); tourView?.event(e); }
-  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); tourView?.event(e); }
-  else if (e.what === 'throw') { sfx('shot', { weapon: 'single', power: 0 }); tourView?.event(e); }
-  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); tourView?.event(e); }
+  if (e.what === 'board') {
+    clearHeldInput(); rideYaw = yaw; pitch = 0; rideFade();
+    sfx2(e.id === 'coaster' ? 'chain' : e.id === 'rapids' ? 'splash' : 'swap');
+  }
+  else if (e.what === 'alight') { clearHeldInput(); yaw = rideYaw; pitch = 0; rideFade(); }
+  else if (e.what === 'start') { sfx2({ carousel: 'bell', rapids: 'splash', haunt: 'knock', portraits: 'bell', circus: 'gong', coaster: 'chain' }[e.id] || 'swap'); }
+  else if (e.what === 'splash') sfx2('splash');
+  else if (e.what === 'stall-start') {
+    const stall = STALLS.find(stall => stall.id === e.id);
+    const target = stallTarget(stall, stall.id === 'balloons' ? 2 : 1, 0);
+    const dx = s.player.x - target.x, dz = s.player.z - stall.z;
+    clearHeldInput(); yaw = Math.atan2(dx, dz);
+    pitch = Math.atan2(target.y - s.player.y - EYE, Math.hypot(dx, dz));
+    sfx2('bell');
+  } else if (e.what === 'stall-leave') clearHeldInput();
+  else if (e.what === 'stall-shot') sfx2('throw');
+  else if (e.what === 'stall-hit') sfx2(e.id === 'ducks' ? 'squeak' : e.id === 'balloons' ? 'jack-pop' : 'thump');
+  else if (e.what === 'stall-miss') sfx2('thump', { strength: .3 });
+  else if (e.what === 'bump') { if (s.park.riding?.id === 'bumpers' || Math.hypot(e.x - s.player.x, e.z - s.player.z) < 9) sfx2('thump', { strength: Math.min(1, e.hard / 3) * (e.car === 0 && s.park.riding ? 1 : 0.45) }); }
   else if (e.what === 'complete') say(copy('演出结束，逛完了！','The show is over. That was the park!'), 2.4, 2);
-  else tourView?.event(e);
+}
+
+
+const formatStallCount = (count, total) => count + ' / ' + total;
+function stallHud(round) {
+  $('stallHud').hidden = !round;
+  const recent = round?.last && round.time - round.last.at < .85;
+  $('stallFeedback').hidden = !recent;
+  if (!round) return;
+  const stall = STALLS.find(stall => stall.id === round.id);
+  textOf('stallTitle', copy(stall.zh, stall.en));
+  textOf('stallScore', copy('命中 ', 'Hits ') + formatStallCount(round.score, stall.targets.length));
+  textOf('stallShots', copy('剩余 ', 'Throws ') + formatStallCount(round.left, STALL_SHOTS));
+  textOf('stallHint', round.done ? copy('本局结束', 'Round complete')
+    : inputLabels().fire + ' · ' + copy(stall.hintZh, stall.hintEn));
+  textOf('stallFeedback', recent ? round.last.count ? '+' + round.last.count : copy('擦过了', 'Miss') : '');
 }
 
 function hud() {
   const active = mode === 'playing' && !paused && !awaitingApproach;
+  const stall = parkTour && active ? s.park.stall : null;
+  stallHud(stall);
   $('fightHud').hidden = !active;
   $('missionHud').hidden = !(missionBriefing || cottageStudy) || !active;
   if (parkTour && active) {
@@ -1225,7 +1261,7 @@ function hud() {
       weapon.kind === 'zap' ? '松手发射电网' : progress > .95 ? '蓄满 · 松手发射' : '蓄力中';
     textOf('chargeLabel', label);
   }
-  $('reticle').hidden = !active || parkTour;
+  $('reticle').hidden = !active || (parkTour && (!stall || stall.done));
   $('reticle').style.scale = 1 + Math.min(.35, recoil.back.x * .65);
   $('hitMarker').hidden = !active || hitMarkerTime <= 0;
   $('hitMarker').dataset.kind = hitMarkerKind;
@@ -1241,6 +1277,7 @@ function snapshot() {
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, y: s.player.y, z: s.player.z, jump: s.player.jump }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
     enemies: s.enemies.map(e => ({ id: e.id, type: e.type, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
+    park: parkTour ? { riding: s.park.riding?.id ?? null, stall: s.park.stall, circus: s.park.running.circus } : undefined,
     level: level.id, enemyBombs: s.enemyBombs.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, landed: b.landed, fuse: b.fuse })), enemyShots: s.enemyShots.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, age: b.age })), slowUntil: s.slowUntil, pulledUntil: s.pulledUntil, neutralized: s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
   };
@@ -1505,7 +1542,13 @@ function exchangeAction() {
   processEvents();
 }
 function firePress(source) {
-  if (parkTour || fireInput) return;
+  if (parkTour) {
+    if (!s.park.stall || !canTakeGameplayInput()) return;
+    cameraFrame(0); camera.getWorldDirection(lookDir);
+    if (fireStall(s, { origin: camera.position, direction: lookDir })) processEvents();
+    return;
+  }
+  if (fireInput) return;
   fireInput = source;
   unlock(); beginCharge(s); processEvents();
 }
@@ -1519,7 +1562,7 @@ function throwRelease(source) {
   throwInput = null;
   if (mode === 'playing' && !paused) { releaseThrow(s, shotParams(true)); processEvents(); }
 }
-function jumpAction() { if (!s.park?.riding && beginJump(s)) processEvents(); }
+function jumpAction() { if (!s.park?.riding && !s.park?.stall && beginJump(s)) processEvents(); }
 
 function cancelFire() {
   fireInput = null;
