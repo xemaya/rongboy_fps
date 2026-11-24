@@ -1,5 +1,5 @@
 // 游乐园设施的检查（docs/park-design.md）：走近才有提示、按一下演一段、坐着不晕的那几条数。
-// 门、机关和小丑在 rongboy-amusement.mjs；这里从镜子迷宫那一站开局（前面的门都开着、没有僵尸），只看设施自己。
+// 门、机关和小丑在 rongboy-amusement.mjs；这里从镜子迷宫那一站开局（前面的门都开着），把迷宫里埋伏的僵尸拿掉，只看设施自己。
 //   node scripts/tests/rongboy-park-rides.mjs
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/amusement.js';
@@ -13,7 +13,7 @@ import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, STALLS, RINK, HAUNT, GATE, CAROUSEL
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 const DT = 1 / 60, L = compileLevel(def);
-const game = () => { const s = createGame({ level: L, amusementCheckpoint: PARK_ZONES.findIndex(zone => zone.id === 'mirrors') }); Object.assign(s.player, { x: L.player.x, z: L.player.z }); return s; };
+const game = () => { const s = createGame({ level: L, amusementCheckpoint: PARK_ZONES.findIndex(zone => zone.id === 'mirrors') }); s.enemies = []; Object.assign(s.player, { x: L.player.x, z: L.player.z }); return s; };
 const at = (s, id) => { const q = SPOTS.find(k => k.id === id); s.player.x = q.x; s.player.z = q.z; s.player.y = 0; return q; };
 function run(s, seconds, input = {}, each = null) { const log = []; for (let i = 0; i < Math.round(seconds / DT); i++) { step(s, DT, input); log.push(...consumeEvents(s)); each?.(s); } return log; }
 // 碰碰车场里没人开的车一直在自己转悠、互相碰（bump），和玩家在干什么无关，这里不看它们

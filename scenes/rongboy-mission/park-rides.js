@@ -17,9 +17,9 @@ export const PARK = {
   carousel: { time: 18, ramp: 2.5, speed: 0.55 },
   rapids: { track: RAPIDS, time: 23, ramp: 2.4, seat: 1.0, maxTurn: Math.PI / 4, pitch: .34 },
   coaster: { track: COASTER, run: coasterRun, time: coasterRun.time, seat: 0.95, maxTurn: Math.PI / 4, pitch: 0.7 },   // time 是按轨道算出来的，约 23 秒。pitch：镜头俯仰跟坡度的七成（只跟一半的话，爬坡时车身会抬到画面中间来）
-  haunt: { time: 5, show: 8, keep: 11 },   // time：敲门后窗里的幽灵探头多久；show：摇铃后画像上的幽灵出来多久；keep：人离门这么远以后门才关
+  haunt: { time: 5, show: 10, keep: 11 },   // time：敲门后窗里的幽灵探头多久；show：摇铃后画像上的幽灵出来多久；keep：人离门这么远以后门才关
   wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
-  bumpers: { time: 30, accel: 12, top: 6, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4, auto: 0.55, thump: 1.4 },   // top：最快每秒 6 米（场子长 10 米，两秒不到从这头冲到那头）；auto：没人开的车用几成油门；thump：撞得比这快才算一下（出声、抖一抖）
+  bumpers: { time: 30, accel: 12, top: 6, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4, auto: 0.55, thump: 1.4, flag: 1 },   // top：最快每秒 6 米（场子长 10 米，两秒不到从这头冲到那头）；auto：没人开的车用几成油门；thump：撞得比这快才算一下（出声、抖一抖）；flag：第几辆车插着大旗（那一站要撞的就是它）
 };
 
 // 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开。
@@ -52,6 +52,12 @@ export function createPark() {
 
 const busy = (park, id) => (id === 'wheel' || id === 'bumpers' ? !!park.riding : PARK[id]?.track ? !!park.riding || park.running[id] > 0
   : id === 'haunt' ? park.knocked || park.door > 0.02 : park.running[id] > 0);
+
+// 鬼屋门厅里第 i 只幽灵飘出来了多少（0–1）：摇铃后挨个出来，演完前一秒缩回去
+export function ghostOut(park, i) {
+  const ring = park.running.portraits;
+  return ring > 0 ? clamp(Math.min((ring - i * 0.7) / 0.9, (PARK.haunt.show - ring) / 1.0), 0, 1) : 0;
+}
 
 // 现在按互动键会发生什么：{ id, kind, zh, en }；没有可按的返回 null。坐着的时候是"跳过 / 下车"。
 export function parkPrompt(s) {
@@ -181,7 +187,10 @@ function bumperCars(s, dt, input) {
     p.x -= nx * gap / 2; p.z -= nz * gap / 2; q.x += nx * gap / 2; q.z += nz * gap / 2;
     if (closing > 0) {
       p.vx -= closing * nx * 0.9; p.vz -= closing * nz * 0.9; q.vx += closing * nx * 0.9; q.vz += closing * nz * 0.9;
-      if (closing > B.thump && p.bump <= 0) { p.bump = q.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, other: j, x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, hard: closing }); }
+      if (closing > B.thump && p.bump <= 0) {
+        p.bump = q.bump = 0.3; s.events.push({ type: 'park', what: 'bump', car: i, other: j, x: (p.x + q.x) / 2, z: (p.z + q.z) / 2, hard: closing });
+        if (i === 0 && driving) q.struck = (q.struck || 0) + 1;   // 被玩家开的车撞了几次（碰碰车那一站要数）
+      }
     }
   }
 }

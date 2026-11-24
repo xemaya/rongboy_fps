@@ -49,10 +49,12 @@ import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
-import { STALLS } from './park-tour-layout.js';
-import { PARK_ZONES, TENT_ZONE, CLOWN, TENT_DOOR, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
+import { STALLS, TOUR_PATH } from './park-tour-layout.js';
+import { costPoints, createCostSweep, costParts } from './debug-cost.js';
+import { PARK_ZONES, TENT_ZONE, CLOWN, TENT_DOOR, BALLOONS, FLAG_HITS, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
 import { createAmusementView } from './amusement-view.js';
 import { PARK } from './park-rides.js';
+import { mechState } from './mech.js';
 import { fireStall, stallTarget, STALL_SHOTS } from './park-stalls.js';
 
 const WEAPONS = RAW_WEAPONS.map(weapon => localizeFields(weapon,['name','short']));
@@ -107,7 +109,7 @@ let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last 
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, toastPriority = 0, zoom = 0;
 let aimedEnemy = null, lastWounded = null;
 const hasPotions = (level.pickups || []).some(k => k.kind === 'potion');   // 这张图里有血瓶才显示瓶数和按键
-let potionShown = '', zoneCarry = null;
+let potionShown = '', zoneCarry = null, costSweep = null;
 let hurtRoll = 0, hurtPitch = 0, lastHealth = CONFIG.maxHealth, nextBeat = 0, offerShown = '';   // 挨打时镜头偏的那一下；心跳声；换枪提示
 let lastPress = -Infinity;
 const keys = createKeyboardInput(), errors = [], frameIntervals = [];
@@ -733,6 +735,7 @@ function updateModels(dt) {
     actorEnvelope.center.set(e.x,e.y+e.height*.5,e.z);
     actorEnvelope.radius=e.height+e.radius+.5; // includes outstretched arms, shield and raised fists
     a.world.visible = Math.abs(floorIndex(level,e.base)-floorIndex(level,s.player.y)) <= 1
+      && !(park && distance > 38)   // 游乐园：别的站里等着的僵尸隔着大半个园子也在视野里，一只三万多个三角形，离得远就不画
       && actorFrustum.intersectsSphere(actorEnvelope);
     if (!a.world.visible) continue;
     // 脚下垫一块软影，没有太阳的地方也站得住。
@@ -825,7 +828,10 @@ function amusementEvent(e) {
     'spin':['木马转起来了 · 把僵尸引到气浪里','The carousel is turning · Lure zombies into the shockwaves'],
     'target-frozen':[`轨道靶定住了 · 切手枪或补一发点亮`,`Target frozen · Shoot to lock it lit`],
     'target-lit':['轨道靶点亮！','Coaster target lit!'],
-    'balloon-pop':['砰！彩球爆开！','Pop! Confetti burst!'],
+    'balloon-pop':[e.left?`砰！还剩 ${e.left} 只气球`:'砰！三只气球都打爆了',e.left?`Pop! ${e.left} to go`:'Pop! All three balloons down'],
+    'key-pop':['钥匙掉下来了 · 下一站的门开了','The key drops · The next gate is open'],
+    'ghost-hit':[e.left?`打中了！还剩 ${e.left} 只幽灵`:'三只幽灵都打中了',e.left?`Got one! ${e.left} to go`:'All three ghosts hit'],
+    'flag-hit':[`撞到了（${e.hits}/${FLAG_HITS}）`,`Bumped (${e.hits}/${FLAG_HITS})`],
     'gate-open':['这一站的灯亮了 · 门开了，沿小径去下一站','This stop is lit · The gate is open'],
     'clown-start':['嬉笑小丑登场！按开火键可跳过过场','Giggles arrives! Press fire to skip'],
     'clown-intro-end':['踩落稳的惊喜盒腾空打面具，或先用急冻枪定住他','Bounce from a box to break the mask, or freeze him first'],
@@ -843,7 +849,7 @@ function amusementEvent(e) {
   if (message) say(copy(...message),e.action==='clown-start'||e.action==='motor'?3.2:1.85,1);
   if (['lock-frozen','valve-frozen','ice-sweep','tile-frozen','clown-frozen','target-frozen'].includes(e.action)) {
     effects.spark({x:e.x,y:e.y,z:e.z},0x9be7ff,.95); sfx2('china');
-  } else if (e.action==='balloon-pop') {
+  } else if (e.action==='balloon-pop' || e.action==='key-pop' || e.action==='ghost-hit') {
     burst(e.x,e.z,16,.9,0xf4be59,e.y); effects.spark({x:e.x,y:e.y,z:e.z},0xff8272,.9); sfx2('jack-pop');
   } else if (['spring','lock-open','spin','gate-open','motor','target-lit'].includes(e.action)) {
     if (e.action==='gate-open' || e.action==='motor') burst(e.x??0,e.z??0,24,1.6,0xffd67a,(e.y??1.2)+1);
@@ -1338,25 +1344,31 @@ function amusementObjective() {
   const id=PARK_ZONES[a.zone].id, open=a.opened[a.zone]!==null, next=PARK_ZONES[a.zone+1];
   if (open && next) return copy('门开了 · 沿小径去'+next.name,'The gate is open · On to the '+next.en.toLowerCase());
   const riding=s.park.riding?.id;
-  if (id==='entrance') return a.lock==='frozen' ? copy(`按 ${sw} 切手枪，趁化冰前击碎门栓`,`Press ${sw} for pistol and shatter the latch`) : copy('用急冻枪冻住拱门上左右滑的门栓','Freeze the latch sliding across the arch');
+  if (id==='entrance') return mechState(a.lock,s.time)==='frozen' ? copy(`按 ${sw} 切手枪，趁化冰前击碎门栓`,`Press ${sw} for pistol and shatter the latch`) : copy('用急冻枪冻住拱门上左右滑的门栓','Freeze the latch sliding across the arch');
   if (id==='carousel') {
-    if (!a.valveLatched && a.valveUntil<=s.time) return copy(`切急冻枪（${sw}），冻住木马旁漏气的蒸汽阀`,`Switch to the freeze ray (${sw}) and plug the leaking steam valve`);
+    if (mechState(a.valve,s.time)==='moving') return copy(`切急冻枪（${sw}），冻住木马旁漏气的蒸汽阀`,`Switch to the freeze ray (${sw}) and plug the leaking steam valve`);
     if (!a.carousel.used) return copy(`到木马台阶前按 ${ex} 摇铃`,`Press ${ex} at the carousel steps to ring the bell`);
     return a.carousel.until>s.time ? copy('把僵尸引到木马的气浪里 · 剩余 '+left,'Lure zombies into the shockwaves · '+left+' left') : copy('可以再摇一次铃，或直接击倒 · 剩余 '+left,'Ring again or finish them off · '+left+' left');
   }
-  if (id==='rapids') return riding==='rapids' ? copy('坐稳了，漂完这一圈','Hold on for the lap') : copy(`到码头按 ${ex} 登船，漂一圈`,`Press ${ex} at the dock and ride a lap`);
+  const up=stop=>BALLOONS.filter((b,i)=>b.stop===stop&&a.balloons[i]).length;
+  if (id==='rapids') return riding==='rapids' ? copy(`打爆船头前面的气球 · 还剩 ${up('rapids')} 只`,`Pop the balloons ahead of the raft · ${up('rapids')} left`) : copy(`到码头按 ${ex} 登船，沿途打爆 3 只气球 · 还剩 ${up('rapids')} 只`,`Press ${ex} at the dock and pop 3 balloons on the way · ${up('rapids')} left`);
   if (id==='coaster') {
-    const lit=a.targets.filter(t=>t.lit).length, all=a.targets.length;
+    const lit=a.targets.filter(t=>t.done).length, all=a.targets.length;
     if (riding==='coaster') return copy(`车上打亮轨道靶（${lit}/${all}）`,`Light the track targets as you ride (${lit}/${all})`);
     if (!a.done.coaster) return copy(`到站台按 ${ex} 上车，路上打亮两个轨道靶`,`Press ${ex} at the station; light two targets on the way`);
     if (lit<all) return copy(`打亮剩下的轨道靶（${lit}/${all}）· 在路上打，或再坐一趟`,`Light the remaining targets (${lit}/${all}) from the path, or ride again`);
     return copy('击倒站台边的僵尸 · 剩余 '+left,'Clear the zombies by the station · '+left+' left');
   }
-  if (id==='haunt') return s.park.door>.9 ? copy(`进门厅，到小桌前按 ${ex} 摇铃`,`Step inside and press ${ex} at the little table`) : copy(`到鬼屋门口按 ${ex} 敲门`,`Press ${ex} at the haunted house door`);
-  if (id==='wheel') return riding==='wheel' ? copy('坐稳了，转完这一圈','Hold on for the turn') : copy(`到摩天轮底下按 ${ex} 上吊舱，转一圈`,`Press ${ex} under the wheel and ride a turn`);
+  if (id==='haunt') {
+    const ghosts=a.ghosts.filter(v=>!v).length;
+    if (s.park.running.portraits>0) return copy(`幽灵飘出来了，打中它们 · 还剩 ${ghosts} 只`,`The ghosts are out · Hit them · ${ghosts} left`);
+    if (s.park.door>.9) return copy(`进门厅，到小桌前按 ${ex} 摇铃，把幽灵引出来 · 还剩 ${ghosts} 只`,`Step inside and press ${ex} at the little table to bring the ghosts out · ${ghosts} left`);
+    return copy(`到鬼屋门口按 ${ex} 敲门`,`Press ${ex} at the haunted house door`);
+  }
+  if (id==='wheel') return riding==='wheel' ? copy('转到最高处，打爆左前方挂着钥匙的红气球','At the top, pop the red balloon with the key, ahead on the left') : copy(`到摩天轮底下按 ${ex} 上吊舱 · 钥匙挂在最高处前面的气球上`,`Press ${ex} under the wheel · The key hangs from a balloon in front of the top`);
   if (id==='midway') return s.park.stall ? copy('打中一个就算赢','One hit wins') : copy(`挑一个游戏摊按 ${ex}，打中一个就算赢`,`Press ${ex} at any stall; one hit wins`);
-  if (id==='bumpers') return riding==='bumpers' ? copy('开一会儿，想下车就按 '+ex,'Drive a while; press '+ex+' to get out') : copy(`到碰碰车场按 ${ex} 上车`,`Press ${ex} at the bumper cars`);
-  if (id==='mirrors') return copy('穿过镜子迷宫，去马戏帐篷','Through the mirror maze to the big top');
+  if (id==='bumpers') return riding==='bumpers' ? copy(`撞插大旗的那辆车（${a.flagHits}/${FLAG_HITS}）`,`Bump the car with the big flag (${a.flagHits}/${FLAG_HITS})`) : copy(`到碰碰车场按 ${ex} 上车，撞插大旗的那辆（${a.flagHits}/${FLAG_HITS}）`,`Press ${ex} at the bumper cars and bump the one with the big flag (${a.flagHits}/${FLAG_HITS})`);
+  if (id==='mirrors') return copy('镜子迷宫里有埋伏 · 剩余 '+left,'An ambush in the mirror maze · '+left+' left');
   if (c.defeatedAt!==null) return copy(`靠近舞台中央按 ${ex} 拾取高压马达`,`Press ${ex} by the motor on stage`);
   if (!c.entered) return copy('走进马戏帐篷','Enter the big top');
   if (c.mask) return copy('急冻小丑或直接踩惊喜盒，腾空打碎面具','Freeze Giggles or bounce from a box to break the mask');
@@ -1462,7 +1474,7 @@ function snapshot() {
     shots: s.shots, hits: s.hits, backHits: s.backHits, sneakHits: s.sneakHits, bounces: s.bounces,
     player: { x: s.player.x, y: s.player.y, z: s.player.z, jump: s.player.jump }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
     enemies: s.enemies.map(e => ({ id: e.id, type: e.type, frozenUntil: e.frozenUntil, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
-    amusement: amusement ? {zone:s.amusement.zone,lock:s.amusement.lock,opened:s.amusement.opened,valveLatched:s.amusement.valveLatched,valveUntil:s.amusement.valveUntil,mask:s.amusement.clown.mask,bossHp:s.amusement.clown.hp,maskHits:s.amusement.maskHits,iceHits:s.amusement.carousel.iceHits,pickedUp:s.amusement.pickedUp,done:s.amusement.done,lit:s.amusement.lit,targets:s.amusement.targets.map(t=>t.lit),entered:s.amusement.clown.entered} : undefined,
+    amusement: amusement ? {zone:s.amusement.zone,lock:mechState(s.amusement.lock,s.time),opened:s.amusement.opened,valve:mechState(s.amusement.valve,s.time),balloons:s.amusement.balloons,ghosts:s.amusement.ghosts,flagHits:s.amusement.flagHits,mask:s.amusement.clown.mask,bossHp:s.amusement.clown.hp,maskHits:s.amusement.maskHits,iceHits:s.amusement.carousel.iceHits,pickedUp:s.amusement.pickedUp,done:s.amusement.done,lit:s.amusement.lit,targets:s.amusement.targets.map(t=>t.done),entered:s.amusement.clown.entered} : undefined,
     park: park ? { riding: s.park.riding?.id ?? null, stall: s.park.stall, door: s.park.door } : undefined,
     level: level.id, enemyBombs: s.enemyBombs.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, landed: b.landed, fuse: b.fuse })), enemyShots: s.enemyShots.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, age: b.age })), slowUntil: s.slowUntil, pulledUntil: s.pulledUntil, neutralized: s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
@@ -2145,5 +2157,20 @@ window.__rb = {
   render() { tourView?.update(s, 0); amusementView?.update(s); cameraFrame(0); if (mode !== 'playing') { animateViewmodel(0, false);  } else updateModels(0); world.setFloor(floorIndex(level, s.player.y)); world.occlusion.update(camera.position, performance.now() / 1000, true); hud(); cine.frame(1 / 60); return cine.stats(); },
   capture(quality = 0.8) { this.render(); return $('view').toDataURL('image/jpeg', quality); },
   // 渲染一帧并交给开发服务器存成 shots/<name>.jpg（面板隐藏时截图是旧帧，用这个看画面）。
-  async shot(name, quality = 0.9) { cine.still = true; this.render(); const body = this.capture(quality); cine.still = false; await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats(); },
+  // 给了 pos 和 look（[x, y, z]）就是自由机位：从 pos 看向 look，不用人的眼睛（看全景、看人走不到的角度）。
+  async shot(name, { quality = 0.9, pos = null, look = null } = {}) {
+    cine.still = true; this.render();
+    if (pos) { camera.position.set(...pos); camera.lookAt(...look); camera.updateMatrixWorld(true); cine.frame(1 / 60); }
+    const body = $('view').toDataURL('image/jpeg', quality); cine.still = false;
+    await fetch('/__shot?name=' + encodeURIComponent(name), { method: 'POST', body }); return cine.stats();
+  },
+  // 量开销：沿路（房间地图是每间屋）站一遍、朝八个方向各看一眼，报最重的视角。一次最多算 budget 毫秒，
+  // 没算完返回 { at, of }，再调一次接着算（有的脚本工具一次调用不能超过十几秒）。要门都开着、没有僵尸挡路，就加 ?debug=1&checkpoint=N 开局。
+  cost({ step = 4.5, turns = 8, budget = 8000, restart = false } = {}) {
+    if (restart || !costSweep) costSweep = createCostSweep({ points: costPoints(level, park ? TOUR_PATH : null, step), turns,
+      look: (x, z, turn, floor) => { this.teleport(x, z, turn, 0, floor); const q = this.render(); return { calls: q.calls, tris: q.tris }; } });
+    const result = costSweep.step(budget); if (result.views) costSweep = null;
+    return result;
+  },
+  costParts() { this.render(); return { ...cine.stats(), parts: costParts(world.root) }; },   // 眼前这一帧是谁占的
 };

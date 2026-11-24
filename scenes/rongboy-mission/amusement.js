@@ -1,43 +1,52 @@
 // 布偶游乐园的规则：十站连成一关。每站路上横一道门，这一站的事办完门才开；最后在马戏帐篷里打嬉笑小丑。
+// 门和"第几站"用的是 stages.js，会被急冻枪定住的机关（门栓、蒸汽阀、轨道靶）用的是 mech.js：这两样不认识游乐园，别的关也能用。
 // 设施怎么演、怎么坐，在 park-rides.js；地图的尺寸在 park-tour-layout.js；
 // 画面在 park-tour-view.js（布景和设施）和 amusement-view.js（门、机关、帐篷里面、小丑）。这里不依赖 DOM。
 // 十站（顺着小径）：0 入口 · 1 旋转木马 · 2 激流勇进 · 3 过山车 · 4 鬼屋 · 5 摩天轮 · 6 游戏摊街 · 7 碰碰车 · 8 镜子迷宫 · 9 马戏帐篷
 import { segmentBox } from './level.js';
-import { TOUR_PATH, TOUR_STOPS, TENT, TENT_DOOR, GATE as ARCH, CAROUSEL as HORSES } from './park-tour-layout.js';
-import { parkPrompt, parkInteract } from './park-rides.js';
+import { TOUR_PATH, TOUR_STOPS, TENT, TENT_DOOR, GATE as ARCH, CAROUSEL as HORSES, RAPIDS, WHEEL, HAUNT } from './park-tour-layout.js';
+import { PARK, parkPrompt, parkInteract, ghostOut } from './park-rides.js';
+import { makeMech, mechState, stepMech, mechSlide, hitMech } from './mech.js';
+import { GATE_LIFT_SECONDS, gateOnPath, makeStages, gatePassable as stagePassable, stageStart, advanceStages } from './stages.js';
 
-export { TENT, TENT_DOOR };
+export { TENT, TENT_DOOR, GATE_LIFT_SECONDS };
 export const PARK_ZONES = TOUR_STOPS.map(({ id, name, en }) => ({ id, name, en }));
 export const TENT_ZONE = PARK_ZONES.length - 1;
 const zoneOf = id => PARK_ZONES.findIndex(zone => zone.id === id);
 const CAROUSEL_ZONE = zoneOf('carousel'), COASTER_ZONE = zoneOf('coaster');
 
-// 门横在小径上：位置、小径在那里的走向（tx, tz 指向下一站）、门洞多宽。第 i 道门隔开第 i 站和第 i+1 站。
-function onPath(x, z) {
-  let best = 0, near = Infinity;
-  TOUR_PATH.forEach((p, i) => { const d = (p.x - x) ** 2 + (p.z - z) ** 2; if (d < near) { near = d; best = i; } });
-  const p = TOUR_PATH[best], a = TOUR_PATH[Math.max(0, best - 3)], b = TOUR_PATH[Math.min(TOUR_PATH.length - 1, best + 3)], len = Math.hypot(b.x - a.x, b.z - a.z);
-  return { x: p.x, z: p.z, tx: (b.x - a.x) / len, tz: (b.z - a.z) / len, width: p.width * 2 };
-}
+// 九道门：第 0 道是入口的拱门（门栓就夹在拱门上），最后一道是帐篷的门帘，中间七道横在小径上
 export const GATES = [
-  { x: ARCH.x, z: ARCH.z, tx: 0, tz: -1, width: 2 * (ARCH.half - .78) },   // 入口的拱门：门栓就夹在拱门上
-  onPath(-33.3, 16.0), onPath(-34.8, -4.8), onPath(-20.3, -22.8), onPath(5.3, -24.3), onPath(30.7, -21.6), onPath(36.15, 1.3), onPath(29.6, 15.9),
-  { x: 0, z: TENT_DOOR, tx: 0, tz: -1, width: 3.6 },   // 帐篷的门帘
+  { x: ARCH.x, z: ARCH.z, tx: 0, tz: -1, width: 2 * (ARCH.half - .78) },
+  ...[[-33.3, 16.0], [-34.8, -4.8], [-20.3, -22.8], [5.3, -24.3], [30.7, -21.6], [36.15, 1.3], [29.6, 15.9]].map(([x, z]) => gateOnPath(TOUR_PATH, x, z)),
+  { x: 0, z: TENT_DOOR, tx: 0, tz: -1, width: 3.6 },
 ];
-export const GATE_LIFT_SECONDS = .62;
-const GATE_STOP = .3;   // 门关着的时候人被挡在门前这么远
 
-// 入口的门栓：夹在拱门的两道金杆上来回滑，比栅门高一点（毛球从栅门上面飞过去打得到）
+// ---------- 每站的东西放在哪 ----------
+// 入口的门栓：夹在拱门的两道金杆上来回滑，比栅门高一点（毛球从栅门上面飞过去打得到）。先冻住，再换手枪打碎
 export const LOCK = { x: ARCH.x, y: 1.78, z: ARCH.z, amp: .85, speed: 2.7 };
-// 木马：蒸汽阀在台阶东边、贴着底座；摇了铃，木马转起来，一圈圈气浪从底座往外扫
+const LOCK_HIT = { amp: LOCK.amp, other: 'frozen' };
+// 木马：蒸汽阀在台阶东边、贴着底座。冻住它（5 秒）铃才摇得动；摇了铃，木马转起来，一圈圈气浪从底座往外扫
 export const VALVE = { x: -23.9, y: 1.35, z: 19.1 };
+const VALVE_HIT = { hold: 5, other: 'never' };
 export const SWEEP = { from: HORSES.platform, to: 7.4, rate: 1.1, seconds: 8 };
 // 过山车的两个轨道靶：都在提升坡的右手边（南边），一前一后、一低一高，靶面朝着北边的小径。
-// 坐在车上打得到；下了车站在出站的小径上也打得到（离路 8 米左右，抬头不到 36°）。
+// 坐在车上打得到；下了车站在出站的小径上也打得到（离路 8 米左右，抬头不到 36°）。打中就亮；车上来不及换枪，急冻枪连打两发也算
 export const COASTER_TARGETS = [
   { x: -21.6, y: 5.0, z: -15.2, amp: .9, speed: 2.1 },
   { x: -17.6, y: 7.0, z: -15.0, amp: .6, speed: 2.4 },
 ];
+const targetHit = i => ({ amp: COASTER_TARGETS[i].amp, other: 'always', iceTwice: true });
+// 气球：打中就爆（哪把枪都行）。激流勇进沿途三只，拴在水道上方、船头正前面；摩天轮那只挂着下一道门的钥匙，
+// 飘在转到最高处时的左前方（上车时面朝的那一边），在地上够不着。
+export const BALLOONS = [
+  ...[.30, .52, .80].map((u, i) => { const p = RAPIDS.at(u); return { id: 'raft-' + i, stop: 'rapids', x: +p.x.toFixed(2), y: +(p.y + 2.3).toFixed(2), z: +p.z.toFixed(2) }; }),
+  { id: 'key', stop: 'wheel', key: true, x: WHEEL.x + 2.4, y: WHEEL.y + WHEEL.r - .2, z: WHEEL.z + 6.5 },   // 往东偏 2.4 米（坐着面朝南，它在左前方）：正前方是吊舱中间那根吊杆，会把它挡住
+].map(b => ({ ...b, zone: zoneOf(b.stop) }));
+const balloonsOf = (a, stop) => BALLOONS.map((b, i) => b.stop === stop && a.balloons[i]).filter(Boolean).length;   // 这一站还剩几只没打
+// 碰碰车：撞插旗子的那辆（没人开的第 1 辆）这么多次
+export const FLAG_CAR = PARK.bumpers.flag, FLAG_HITS = 3;
+// 帐篷里
 export const SAFE_PAD = { x: 0, z: TENT_DOOR - 1.4 };
 export const FIRST_BOX = { x: 0, z: TENT_DOOR - 3.9, y: 0 };
 export const CLOWN = { x: 0, z: TENT_DOOR - 8.95, maskY: 3.03, hp: 46 };
@@ -56,32 +65,32 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const dist = (x, z, p) => Math.hypot(x - p.x, z - p.z);
 const signal = (s, action, extra = {}) => s.events.push({ type: 'amusement', action, ...extra });
 
-export function lockPosition(a) {
-  const x = a.lock === 'frozen' ? a.lockFrozenX : LOCK.x + Math.sin(a.lockPhase) * LOCK.amp;
-  return { x, y: LOCK.y, z: LOCK.z };
-}
-
+export const lockPosition = a => ({ x: LOCK.x + mechSlide(a.lock, LOCK.amp), y: LOCK.y, z: LOCK.z });
 export function coasterTargetPosition(a, i) {
-  const base = COASTER_TARGETS[i], st = a.targets[i];
-  const x = st.lit || st.frozenUntil > 0 && st.frozenX !== null ? (st.frozenX ?? base.x) : base.x + Math.sin(st.phase) * base.amp;
-  return { x, y: base.y, z: base.z };
+  const base = COASTER_TARGETS[i];
+  return { x: base.x + mechSlide(a.targets[i], base.amp), y: base.y, z: base.z };
+}
+// 鬼屋门厅里从肖像上面飘出来的幽灵现在在哪（out：飘出来了多少，0–1）
+export function ghostPosition(s, i) {
+  const g = HAUNT.ghosts[i], out = ghostOut(s.park, i);
+  return { x: g.x, y: g.y + .24, z: g.z - out * 1.02, out };
 }
 
 // zone：从第几站开始（重来的时候是倒下的那一站）。前面几站算办完了：门开着、灯亮着、机关不用再碰。
 export function makeAmusement(zone = 0) {
   const past = id => zone > zoneOf(id);
   return {
-    zone,
-    opened: GATES.map((_, i) => i < zone ? -GATE_LIFT_SECONDS : null),
-    lit: PARK_ZONES.map((_, i) => i < zone),
-    lock: past('entrance') ? 'open' : 'closed',
-    lockPhase: 0, lockFrozenUntil: 0, lockFrozenX: LOCK.x,
-    valveUntil: 0, valveLatched: past('carousel'),
+    ...makeStages(GATES, zone),
+    lock: makeMech(past('entrance')),
+    valve: makeMech(past('carousel')),
     carousel: { until: 0, used: past('carousel'), struck: new Map(), iceHits: 0, ring: 0 },
-    // 坐过、玩过哪些设施（这一站的门认它）；riding：上一步坐在哪个设施上
+    targets: COASTER_TARGETS.map((t, i) => makeMech(past('coaster'), i * 1.7)),
+    balloons: BALLOONS.map(b => !past(b.stop)),       // true：还在天上
+    ghosts: HAUNT.ghosts.map(() => past('haunt')),    // true：打中过了
+    flagHits: past('bumpers') ? FLAG_HITS : 0, flagSeen: 0,
+    // 坐过、玩过哪些设施；riding：上一步坐在哪个设施上
     done: { rapids: past('rapids'), coaster: past('coaster'), portraits: past('haunt'), wheel: past('wheel'), stall: past('midway'), bumpers: past('bumpers') },
     riding: null,
-    targets: COASTER_TARGETS.map((t, i) => ({ lit: past('coaster'), phase: i * 1.7, frozenUntil: 0, frozenX: null })),
     pickedUp: false,
     clownIntroUntil: 0, clownIntroStarted: 0,
     victoryCutsceneUntil: 0, victoryCutsceneStarted: 0,
@@ -133,11 +142,7 @@ export function skipAmusementCutscene(s) {
 }
 
 // 从第 zone 站重来时人站在哪：上一道门里面一步；帐篷是门里的安全垫
-export function checkpointPosition(zone) {
-  if (zone === TENT_ZONE) return SAFE_PAD;
-  const gate = GATES[zone - 1];
-  return gate ? { x: gate.x + gate.tx * 1.3, z: gate.z + gate.tz * 1.3 } : null;
-}
+export const checkpointPosition = zone => zone === TENT_ZONE ? SAFE_PAD : stageStart(GATES, zone);
 
 // 现在按互动键会发生什么：{ id, kind, zh, en }，没有可按的返回 null。设施的提示来自 park-rides.js，这里只多管两件事：
 // 小丑倒下后的马达；木马那一站，蒸汽阀没冻住之前铃摇不动。
@@ -146,7 +151,7 @@ export function amusementPrompt(s) {
   if (!a || s.phase !== 'playing' || amusementCutscene(s)) return null;
   if (a.clown.defeatedAt !== null && !a.pickedUp && dist(MOTOR.x, MOTOR.z, p) < 1.8) return { id: 'motor', kind: 'amusement', zh: '拾取高压马达', en: 'Collect motor' };
   const ask = parkPrompt(s);
-  if (ask?.id === 'carousel' && a.zone === CAROUSEL_ZONE && !(a.valveLatched || a.valveUntil > s.time)) return null;
+  if (ask?.id === 'carousel' && a.zone === CAROUSEL_ZONE && mechState(a.valve, s.time) === 'moving') return null;
   return ask;
 }
 
@@ -161,8 +166,8 @@ export function useAmusement(s) {
     signal(s, 'motor', MOTOR);
     return true;
   }
-  if (ask.id === 'carousel' && a.zone === CAROUSEL_ZONE) {   // 摇铃：木马转起来，气浪扫 8 秒；躲在后面的两只也出来
-    a.carousel.until = s.time + SWEEP.seconds; a.carousel.used = true; a.carousel.struck.clear(); a.valveLatched = true;
+  if (ask.id === 'carousel' && a.zone === CAROUSEL_ZONE) {   // 摇铃：木马转起来，气浪扫 8 秒；躲在后面的两只也出来。阀门从此不漏气了
+    a.carousel.until = s.time + SWEEP.seconds; a.carousel.used = true; a.carousel.struck.clear(); a.valve.done = true;
     for (const e of s.enemies) if (e.zone === CAROUSEL_ZONE && e.alive) e.enabled = true;
     signal(s, 'spin', HORSES);
   }
@@ -173,24 +178,22 @@ export function parkRemaining(s) {
   return s.enemies.filter(e => e.alive && e.zone === s.amusement.zone).length;
 }
 
-export function gatePassable(s, i) {
-  const opened = s.amusement.opened[i];
-  return opened !== null && s.time >= opened + GATE_LIFT_SECONDS;
-}
+export const gatePassable = (s, i) => stagePassable(s.amusement, i, s.time);
 
 // 这一站的事办完了没有（办完了门才开）
 export function zoneReady(s) {
   const a = s.amusement, clear = parkRemaining(s) === 0;
   switch (PARK_ZONES[a.zone].id) {
-    case 'entrance': return a.lock === 'open';
+    case 'entrance': return a.lock.done;
     case 'carousel': return a.carousel.used && clear;
-    case 'rapids': return a.done.rapids;
-    case 'coaster': return a.done.coaster && a.targets.every(t => t.lit) && clear;
-    case 'haunt': return a.done.portraits;
-    case 'wheel': return a.done.wheel;
+    case 'rapids': return balloonsOf(a, 'rapids') === 0;
+    case 'coaster': return a.done.coaster && a.targets.every(t => t.done) && clear;
+    case 'haunt': return a.ghosts.every(Boolean);
+    case 'wheel': return balloonsOf(a, 'wheel') === 0;
     case 'midway': return a.done.stall;
-    case 'bumpers': return a.done.bumpers;
-    default: return true;   // 镜子迷宫：走出来就是帐篷门口
+    case 'bumpers': return a.flagHits >= FLAG_HITS;
+    case 'mirrors': return clear;
+    default: return true;
   }
 }
 
@@ -208,29 +211,24 @@ function watchRides(s) {
     signal(s, 'ride-done', { id: a.riding });
   }
   a.riding = riding;
-  if (park.running.portraits > 0 && !a.done.portraits) { a.done.portraits = true; signal(s, 'ride-done', { id: 'portraits' }); }
+  if (park.running.portraits > 0) a.done.portraits = true;
   if (park.stall?.done && park.stall.score > 0 && !a.done.stall) { a.done.stall = true; signal(s, 'ride-done', { id: 'stall' }); }
+  // 碰碰车：自己开的车撞上插旗子的那辆，记一下（park-rides.js 只管数撞了几次）
+  const struck = park.cars[FLAG_CAR].struck || 0;
+  if (struck > a.flagSeen) {
+    if (PARK_ZONES[a.zone].id === 'bumpers' && a.flagHits < FLAG_HITS) { a.flagHits++; signal(s, 'flag-hit', { x: park.cars[FLAG_CAR].x, y: 1, z: park.cars[FLAG_CAR].z, hits: a.flagHits }); }
+    a.flagSeen = struck;
+  }
 }
 
 function advanceGates(s) {
-  const a = s.amusement, p = s.player, gate = GATES[a.zone];
-  if (!gate) return;
-  if (a.opened[a.zone] === null && zoneReady(s)) {
-    a.opened[a.zone] = s.time;
-    a.lit[a.zone] = true;
-    signal(s, 'gate-open', { ...gate, zone: a.zone });
+  const a = s.amusement, gate = GATES[a.zone];
+  const what = advanceStages(a, GATES, s.player, s.time, { ready: a.opened[a.zone] === null && zoneReady(s), carried: !!s.park?.riding });
+  if (what === 'open') signal(s, 'gate-open', { ...gate, zone: a.zone });
+  if (what === 'enter') {
+    for (const e of s.enemies) if (e.alive && e.zone === a.zone && !e.parkWave) e.enabled = true;
+    signal(s, 'zone-enter', { zone: a.zone, x: s.player.x, z: s.player.z });
   }
-  if (s.park?.riding) return;   // 坐在设施上：过山车会从门的上空飞过去，那不算过门
-  const dx = p.x - gate.x, dz = p.z - gate.z, along = dx * gate.tx + dz * gate.tz, side = Math.abs(dz * gate.tx - dx * gate.tz);
-  if (along < -GATE_STOP || along > 2.5 || side > gate.width / 2 + 1.5) return;
-  if (!gatePassable(s, a.zone)) {
-    p.x -= gate.tx * (along + GATE_STOP); p.z -= gate.tz * (along + GATE_STOP);
-    return;
-  }
-  if (along < .25) return;
-  a.zone++;
-  for (const e of s.enemies) if (e.alive && e.zone === a.zone && !e.parkWave) e.enabled = true;
-  signal(s, 'zone-enter', { zone: a.zone, x: p.x, z: p.z });
 }
 
 export function parkHoleAt(s, x, z) {
@@ -311,19 +309,10 @@ export function moveAmusement(s, hurt) {
 
 export function advanceAmusement(s, dt, {hurt, damage, volley}) {
   const a = s.amusement, p = s.player, c = a.clown;
-  // 入口的门栓来回滑；冻住 3.5 秒以后化开
-  if (a.lock === 'closed') a.lockPhase += dt * LOCK.speed;
-  else if (a.lock === 'frozen' && s.time >= a.lockFrozenUntil) {
-    a.lock = 'closed';
-    signal(s,'lock-thaw',lockPosition(a));
-  }
-  // 过山车的轨道靶来回滑；冻住 3.5 秒没人补一发就化开
-  for (const [i,t] of a.targets.entries()) {
-    if (t.lit) continue;
-    if (t.frozenUntil > s.time) continue;
-    if (t.frozenUntil > 0 && s.time >= t.frozenUntil) { t.frozenUntil = 0; t.frozenX = null; }
-    t.phase += dt * COASTER_TARGETS[i].speed;
-  }
+  // 入口的门栓、过山车的轨道靶来回滑；蒸汽阀冻住 5 秒以后接着漏气。化开的那一步说一声
+  if (stepMech(a.lock, dt, s.time, LOCK.speed)) signal(s,'lock-thaw',lockPosition(a));
+  stepMech(a.valve, dt, s.time);
+  a.targets.forEach((t,i)=>stepMech(t, dt, s.time, COASTER_TARGETS[i].speed));
   if (amusementCutscene(s)) return;
   watchRides(s);
   advanceGates(s);
@@ -428,19 +417,26 @@ export function amusementTargets(s, freeze = false) {
     return targets;
   }
   for (const { gate, box } of portalBoxes) if (gate === a.zone && !gatePassable(s,gate)) targets.push(box);
-  if (a.zone === 0 && a.lock !== 'open') {
+  if (!a.lock.done) {
     const pos = lockPosition(a);
     targets.push(hitBounds('lock',pos.x,pos.y,pos.z,1.18,.95,.4));
   }
-  if (a.zone === CAROUSEL_ZONE && !a.valveLatched) targets.push(valveBox);
+  if (a.zone === CAROUSEL_ZONE && !a.valve.done) targets.push(valveBox);
   if (a.zone === COASTER_ZONE) {
     COASTER_TARGETS.forEach((_,i)=>{
-      if (!a.targets[i].lit) {
+      if (!a.targets[i].done) {
         const pos = coasterTargetPosition(a,i);
         targets.push(hitBounds('coaster-target-'+i,pos.x,pos.y,pos.z,1.18,1.18,.5));
       }
     });
   }
+  // 气球：这一站的、还在天上的
+  BALLOONS.forEach((b,i)=>{ if (a.balloons[i] && b.zone === a.zone) targets.push(hitBounds('balloon-'+i,b.x,b.y,b.z,.9,1.0,.9)); });
+  // 鬼屋的幽灵：飘出来一大半了才打得着
+  if (PARK_ZONES[a.zone].id === 'haunt') HAUNT.ghosts.forEach((_,i)=>{
+    const g = ghostPosition(s,i);
+    if (!a.ghosts[i] && g.out > .6) targets.push(hitBounds('ghost-'+i,g.x,g.y,g.z,.72,.9,.6));
+  });
   return targets;
 }
 
@@ -456,36 +452,28 @@ export function amusementContact(s, b, end) {
 export function hitAmusement(s, b, target) {
   const a = s.amusement, c = a.clown, ice = b.weapon === 'freeze';
   if (target.id === 'lock') {
-    const pos = lockPosition(a);
-    if (ice && a.lock !== 'open') {
-      a.lock = 'frozen';
-      a.lockFrozenX = pos.x;
-      a.lockFrozenUntil = s.time + 3.5;
-      signal(s,'lock-frozen',pos);
-    } else if (!ice && a.lock === 'frozen') {
-      a.lock = 'open';
-      signal(s,'lock-open',pos);
-    } else if (!ice) signal(s,'lock-block',pos);
+    const what = hitMech(a.lock, s.time, ice, LOCK_HIT), pos = lockPosition(a);
+    if (what) signal(s, { frozen:'lock-frozen', done:'lock-open', block:'lock-block' }[what], pos);
     return;
   }
   if (target.id === 'valve') {
-    if (ice) { a.valveUntil = s.time + 5; signal(s,'valve-frozen',VALVE); }
-    else signal(s,'valve-block',VALVE);
+    const what = hitMech(a.valve, s.time, ice, VALVE_HIT);
+    if (what) signal(s, what === 'frozen' ? 'valve-frozen' : 'valve-block', VALVE);
     return;
   }
   if (target.id.startsWith('coaster-target-')) {
-    const i = Number(target.id.slice(15)), st = a.targets[i];
-    const pos = coasterTargetPosition(a,i);
-    if (st.lit) return;
-    if (ice && !(st.frozenUntil > s.time)) {
-      st.frozenX = pos.x;
-      st.frozenUntil = s.time + 3.5;
-      signal(s,'target-frozen',pos);
-    } else {
-      st.lit = true;
-      st.frozenX = pos.x;
-      signal(s,'target-lit',pos);
-    }
+    const i = Number(target.id.slice(15)), what = hitMech(a.targets[i], s.time, ice, targetHit(i));
+    if (what) signal(s, what === 'frozen' ? 'target-frozen' : 'target-lit', coasterTargetPosition(a,i));
+    return;
+  }
+  if (target.id.startsWith('balloon-')) {
+    const i = Number(target.id.slice(8));
+    if (a.balloons[i]) { a.balloons[i] = false; signal(s, BALLOONS[i].key ? 'key-pop' : 'balloon-pop', { ...BALLOONS[i], left: balloonsOf(a, BALLOONS[i].stop) }); }
+    return;
+  }
+  if (target.id.startsWith('ghost-')) {
+    const i = Number(target.id.slice(6));
+    if (!a.ghosts[i]) { a.ghosts[i] = true; signal(s, 'ghost-hit', { ...ghostPosition(s,i), left: a.ghosts.filter(v=>!v).length }); }
     return;
   }
   if (target.id.startsWith('tile-')) {

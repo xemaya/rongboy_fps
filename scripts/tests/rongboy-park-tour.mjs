@@ -1,5 +1,5 @@
 // 游乐园的小径：从入口绕外圈一圈、穿过镜子迷宫到帐篷门口，十站都路过；草地抄不了近路。
-// 从镜子迷宫那一站开局（前面的门都开着、没有僵尸）再站回入口，只看路本身；门和机关在 rongboy-amusement.mjs。
+// 从镜子迷宫那一站开局（前面的门都开着）、拿掉迷宫里埋伏的僵尸，再站回入口，只看路本身；门和机关在 rongboy-amusement.mjs。
 import assert from 'node:assert/strict';
 import def from '../../scenes/rongboy-mission/levels/amusement.js';
 import house from '../../scenes/rongboy-mission/levels/house.js';
@@ -8,9 +8,8 @@ import { createGame, step } from '../../scenes/rongboy-mission/game.js';
 import { PARK_ZONES, TENT_ZONE, TENT_DOOR, amusementCutscene } from '../../scenes/rongboy-mission/amusement.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BRIDGE, TOUR_MAZE, nearbyTourStop } from '../../scenes/rongboy-mission/park-tour-layout.js';
 
-const L=compileLevel(def), open=()=>{ const s=createGame({level:L,amusementCheckpoint:PARK_ZONES.findIndex(zone=>zone.id==='mirrors')}); Object.assign(s.player,{x:L.player.x,z:L.player.z}); return s; };
+const L=compileLevel(def), open=()=>{ const s=createGame({level:L,amusementCheckpoint:PARK_ZONES.findIndex(zone=>zone.id==='mirrors')}); s.enemies=[]; Object.assign(s.player,{x:L.player.x,z:L.player.z}); return s; };
 const s=open(), p=s.player, distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
-assert.equal(s.enemies.length,0,'starting past the last fight leaves no zombies on the paths');
 assert.ok(house.enemies.length>0,'the house keeps its combat roster');
 const routeLength=TOUR_PATH.slice(1).reduce((n,q,i)=>n+distance(q,TOUR_PATH[i]),0);
 assert.ok(routeLength>160);

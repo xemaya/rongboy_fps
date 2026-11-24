@@ -28,6 +28,45 @@ export function roomOrder(L) {   // 从出生点走进去，先到哪个房间�
   }).sort((a, b) => a.far - b.far);
 }
 
+// 小径地图的检查。关卡的 path：
+//   line      小径的中线，一串 { x, z }           walkable(x, z, 余量)  这一点能不能站人
+//   indoor(x, z)  不在小径上、但走得进去的屋子（可以不写）
+//   gates     门 [{ x, z, tx, tz, width }]，第 i 道隔开第 i 段和第 i+1 段     stages  每段的名字     start(段)  从这一段重来时站在哪
+//   spots     要走过去按键的地方 [{ id, x, z, stage }]
+//   targets   要开枪打的东西 [{ id, x, y, z, stage, ride }]；ride: true 是坐在设施上打的（不查"站在路上够不够得着"）
+const REACH = { far: 12, pitch: 0.63 };   // 站在路上打高处的东西：水平离得不超过 12 米、抬头不超过 36°（镜头最多抬 41°，远了毛球会往下掉）
+function checkPath(def, L, err, warn) {
+  const P = def.path, eye = 1.23, line = P.line;
+  const nearest = (x, z) => { let best = 0, d = Infinity; line.forEach((q, i) => { const n = (q.x - x) ** 2 + (q.z - z) ** 2; if (n < d) { d = n; best = i; } }); return best; };
+  const gateAt = P.gates.map(g => nearest(g.x, g.z)), stageOf = (x, z) => { const i = nearest(x, z); return gateAt.filter(g => g < i).length; };
+  const name = i => P.stages?.[i] ?? `第 ${i} 段`, stand = (x, z, r) => (P.walkable(x, z, -r / 2) || !!P.indoor?.(x, z)) && freePoint(L, x, z, r);
+  for (let i = 1; i < gateAt.length; i++) if (gateAt[i] <= gateAt[i - 1]) err('path-gate-order', `第 ${i} 道门 ${at(P.gates[i])} 不在第 ${i - 1} 道门的后面：门要顺着小径排`);
+  if (!stand(L.player.x, L.player.z, CONFIG.playerRadius)) err('path-spawn', `出生点 ${at(L.player)} 不在小径上，或者压在东西上`);
+  else if (stageOf(L.player.x, L.player.z) !== 0) err('path-spawn', `出生点 ${at(L.player)} 不在第一段里`);
+  P.gates.forEach((g, i) => {
+    if (Math.abs(Math.hypot(g.tx, g.tz) - 1) > 1e-6) err('path-gate', `第 ${i} 道门 ${at(g)} 的朝向 (tx, tz) 不是单位向量`);
+    for (const side of [-1, 1]) if (!P.walkable(g.x + g.tx * side, g.z + g.tz * side, .3)) err('path-gate', `第 ${i} 道门 ${at(g)} ${side < 0 ? '前' : '后'}一米不是路：门要横在小径上`);
+    const back = P.start(i + 1);
+    if (!back || !stand(back.x, back.z, CONFIG.playerRadius)) err('path-start', `从"${name(i + 1)}"重来的落点 ${back ? at(back) : '（没有）'} 站不了人`);
+  });
+  for (const e of L.enemies) {
+    const where = `${ENEMY_TYPES[e.type]?.name ?? e.type} ${at(e)}`;
+    if (!stand(e.x, e.z, ENEMY_TYPES[e.type]?.radius ?? 0.4)) err('path-enemy', `${where} 不在小径上，或者压在东西上：僵尸只走小径`);
+    else if (e.zone == null) err('path-enemy-stage', `${where} 没写 zone：不知道它算哪一段的（这一段的门要等它倒下才开）`);
+    else if (stageOf(e.x, e.z) !== e.zone) err('path-enemy-stage', `${where} 写的是"${name(e.zone)}"，站的地方却在"${name(stageOf(e.x, e.z))}"：门没开的时候够不着它，这一段就过不去`);
+  }
+  for (const k of L.pickups) if (!stand(k.x, k.z, CONFIG.playerRadius)) err('path-pickup', `拾取物 ${at(k)} 不在小径上，或者压在东西上：走不到`);
+  for (const q of P.spots || []) if (stageOf(q.x, q.z) !== q.stage) err('path-spot', `"${q.id}" 要按键的地方 ${at(q)} 在"${name(stageOf(q.x, q.z))}"，不在它自己的"${name(q.stage)}"：门没开的时候按不到`);
+  for (const t of P.targets || []) {
+    if (t.ride) continue;
+    const ok = line.some(q => stageOf(q.x, q.z) === t.stage && Math.hypot(q.x - t.x, q.z - t.z) <= REACH.far && Math.atan2(t.y - eye, Math.hypot(q.x - t.x, q.z - t.z)) <= REACH.pitch)
+      || !!P.indoor && [...Array(81)].some((_, n) => { const x = t.x + (n % 9 - 4) * .8, z = t.z + (Math.floor(n / 9) - 4) * .8; return P.indoor(x, z) && Math.atan2(t.y - eye, Math.hypot(x - t.x, z - t.z)) <= REACH.pitch; });
+    if (!ok) err('path-target', `"${t.id}" ${at(t)}（高 ${f1(t.y)} 米）站在"${name(t.stage)}"的路上打不着：要离路 ${REACH.far} 米以内、抬头不超过 ${Math.round(REACH.pitch * 57.3)}°。挪低、挪近，或者标 ride: true（坐在设施上打）`);
+  }
+  const busy = new Set([...L.enemies.map(e => e.zone), ...(P.spots || []).map(q => q.stage), ...(P.targets || []).map(t => t.stage)]);
+  for (let i = 0; i < P.gates.length; i++) if (!busy.has(i)) warn('path-idle', `"${name(i)}"里没有僵尸、没有要按的、没有要打的：这一段的门靠什么开？`);
+}
+
 export function checkMap(def, { play = true } = {}) {
   const errors = [], warnings = [];
   const err = (code, msg) => errors.push({ code, msg }), warn = (code, msg) => warnings.push({ code, msg });
@@ -83,6 +122,9 @@ export function checkMap(def, { play = true } = {}) {
   if (errors.length) return { errors, warnings, facts: {} };   // 词都没写对，后面的检查没有意义
   const gadgetKinds = [...new Set(parts.flatMap(part => (part.gadgets || []).map(g => g.kind)))];
   if (gadgetKinds.length > 1) warn('gadget-mix', `这张图用了 ${gadgetKinds.length} 种机关（${gadgetKinds.map(k => GADGETS[k].name).join('、')}）：一张图只用一种，玩家学一样就够用整张图（fun-design 9.4）`);
+
+  // ---- 小径地图（关卡写了 path）：人和僵尸只走小径，路上横着门把它分成几段。下面按房间查的那几节对它不适用，换成这一节
+  if (def.path) { checkPath(def, L, err, warn); return { errors, warnings, facts: { stages: def.path.gates.length + 1, enemies: L.enemies.length } }; }
 
   // ---- 2. 房间拼得对不对：室内的房间要正好铺满房子的矩形，院子在南面
   parts.forEach((part, floor) => {
