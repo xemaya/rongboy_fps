@@ -75,6 +75,29 @@ export function heartImage(filled) {
   }).toDataURL();
 }
 
+// 血瓶的小图标：带着的是实心的，空位只有一圈轮廓
+export function potionImage(filled) {
+  return canvas(80, 116, ctx => {
+    ctx.scale(2, 2);
+    const bottle = new Path2D('M16 9 L24 9 L24 18 C24 24 36 26 36 38 C36 50 30 55 20 55 C10 55 4 50 4 38 C4 26 16 24 16 18 Z');
+    ctx.lineJoin = 'round';
+    if (filled) {
+      const coral = ctx.createLinearGradient(0, 8, 0, 56);
+      coral.addColorStop(0, '#ee8b66'); coral.addColorStop(.54, '#d66548'); coral.addColorStop(1, '#a53f31');
+      ctx.fillStyle = coral; ctx.fill(bottle);
+      ctx.save(); ctx.clip(bottle);
+      ctx.fillStyle = '#f0dab6'; ctx.fillRect(0, 32, 40, 13);   // 肚子上的布贴
+      ctx.fillStyle = '#d66548'; ctx.fill(new Path2D('M20 43 C18 41.6 14.6 39.4 14.6 36.8 C14.6 34.6 17.6 34 20 36.4 C22.4 34 25.4 34.6 25.4 36.8 C25.4 39.4 22 41.6 20 43 Z'));
+      ctx.restore();
+      ctx.fillStyle = '#c9955c'; ctx.strokeStyle = '#71352b'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.roundRect(15, 2.5, 10, 7, 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.strokeStyle = filled ? '#71352b' : '#fff0c2';
+    ctx.lineWidth = filled ? 1.4 : 2.0;
+    ctx.stroke(bottle);
+  }).toDataURL();
+}
+
 export function weaponImage(id) {
   return canvas(288, 144, ctx => {
     ctx.scale(3,3);

@@ -23,8 +23,8 @@ const PLAN = () => ({
   rooms: {
     Y: { id: 'yard', name: '操场', outdoor: true, props: ['blocks@start', 'slide'], zombies: ['walker:asleep'], pickups: ['stun'] },
     C: { id: 'corridor', name: '走廊', props: ['locker@n'], zombies: ['walker:patrol'], pickups: ['heavy'] },
-    A: { id: 'class', name: '教室', props: ['podium@w', 'bookshelf@n', { look: 'desk-kid', rows: 2, cols: 2 }], zombies: ['archer', 'walker'], pickups: ['heart', 'ammo'] },
-    B: { id: 'art', name: '美术教室', props: ['easel@n', 'palette'], zombies: ['shielded', 'leaper:asleep'], pickups: ['heart'] },
+    A: { id: 'class', name: '教室', props: ['podium@w', 'bookshelf@n', { look: 'desk-kid', rows: 2, cols: 2 }], zombies: ['archer', 'walker'], pickups: ['potion', 'ammo'] },
+    B: { id: 'art', name: '美术教室', props: ['easel@n', 'palette'], zombies: ['shielded', 'leaper:asleep'], pickups: ['potion'] },
   },
 });
 const tiny = buildMap(PLAN());
@@ -96,10 +96,10 @@ test('fetch mission: the plan names the thing to find, the map gets an exit at t
 });
 
 test('gadgets and zipper stashes: the plan says which rooms, the theme says which gadget, the kit finds the spots', () => {
-  const plan = PLAN(); plan.rooms.B.gadget = true; plan.rooms.Y.gadget = true; plan.rooms.C.stash = ['heart']; plan.rooms.B.stash = ['ammo'];
+  const plan = PLAN(); plan.rooms.B.gadget = true; plan.rooms.Y.gadget = true; plan.rooms.C.stash = ['potion']; plan.rooms.B.stash = ['ammo'];
   const def = buildMap(plan), stashed = def.pickups.filter(k => k.stash);
   assert.deepEqual(def.gadgets.map(g => g.kind), ['bucket', 'bucket']);   // 学校主题用颜料桶
-  assert.deepEqual(stashed.map(k => k.kind), ['heart', 'ammo']);
+  assert.deepEqual(stashed.map(k => k.kind), ['potion', 'ammo']);
   for (const k of stashed) { const d = Math.hypot(k.x - k.stash.x, k.z - k.stash.z); assert.ok(d > 0.4 && d < 0.8 && (k.x - k.stash.x) * k.stash.normal[0] + (k.z - k.stash.z) * k.stash.normal[1] > 0.4, 'what is inside drops at the foot of the wall, on the room side'); }
   const r = checkMap(def); assert.deepEqual(r.errors, []); assert.deepEqual(r.warnings, []);
   const text = asciiMap(def); assert.ok(text.includes('Pb') && text.includes('zz') && text.includes('??'));
@@ -127,7 +127,7 @@ test('the checker catches planted faults', () => {
   faulty(d => { d.pictures[0].normal = d.pictures[0].normal.map(n => -n); }, 'picture-facing', 'warnings');
   faulty(d => { d.furniture.push({ id: 'sliver', kind: 'cabinet', x: -7.5 + 0.66 + 0.3, z: 0, w: 0.6, d: 1.4, h: 1.0 }); }, 'pocket');
   faulty(d => { d.rooms[2].maxX = 1; }, 'rooms-overlap');
-  faulty(d => { d.pickups.push({ kind: 'heart', amount: 1, x: 50, z: 0 }); }, 'pickup-blocked');
+  faulty(d => { d.pickups.push({ kind: 'potion', x: 50, z: 0 }); }, 'pickup-blocked');
   // 一只醒着的僵尸站在出生点正前方、挡的东西拿掉：开局不安全
   faulty(d => { d.furniture = d.furniture.filter(f => f.id !== 'yard-blocks'); d.enemies.push({ type: 'walker', x: d.player.x, z: d.player.z - 3.5, state: 'idle', heading: 0 }); }, 'unsafe-start');
 });
@@ -148,7 +148,7 @@ test('random drafts pass the hard checks for every theme, and a seed always give
   for (const theme of Object.keys(THEMES)) for (const seed of [1]) {
     const made = draftPlan({ id: 'draft', theme, seed, rooms: 4 + seed });
     assert.deepEqual(made.result.errors, [], `${theme} seed ${seed}`);
-    assert.ok(made.def.enemies.length >= 6 && made.def.pickups.some(k => k.kind === 'heart'));
+    assert.ok(made.def.enemies.length >= 6 && made.def.pickups.some(k => k.kind === 'potion'));
     assert.ok(made.def.gadgets.length >= 1 && made.def.gadgets.every(g => g.kind === THEMES[theme].gadget), `${theme}: a draft comes with its theme's gadget`);
     if (seed === 1 && theme === 'home') assert.equal(planSource(draftPlan({ id: 'draft', theme, seed, rooms: 5 }).plan), planSource(draftPlan({ id: 'draft', theme, seed, rooms: 5 }).plan));
   }
@@ -170,7 +170,7 @@ test('the review reports the numbers an author tunes, and the two bots tell lazy
 
 test('a map of nothing but walkers in one open room is flagged as playing itself', () => {
   const def = buildMap({ id: 'dull', name: '空地', theme: 'school', layout: ['YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY', 'YYYYYYYYYYYY'],
-    rooms: { Y: { id: 'yard', name: '空地', outdoor: true, props: ['blocks@start'], zombies: ['walker', 'walker', 'walker', 'walker', 'walker', 'walker'], pickups: ['heart'] } } });
+    rooms: { Y: { id: 'yard', name: '空地', outdoor: true, props: ['blocks@start'], zombies: ['walker', 'walker', 'walker', 'walker', 'walker', 'walker'], pickups: ['potion'] } } });
   const r = reviewMap(def);
   assert.ok(r.bots.runs.lazy.filter(b => b.won && b.hurt <= 1).length >= 2, JSON.stringify(r.bots.runs.lazy.map(b => [b.won, b.hurt])));
   assert.ok(r.tips.some(t => t.level === 'problem' && /无脑打/.test(t.text)));

@@ -26,7 +26,7 @@ const trail = [
   [27.3,17.0,2.65],[23.0,19.4,2.2],[20.1,20.18,1.55],[17.8,20.05,1.35],
   [16.35,18.45,1.43],[14.8,15.58,1.3],[11.9,15.53,1.4],[10.23,17.45,1.3],
   [9.65,20.20,1.3],[7.6,20.35,1.45],[5.6,20.2,1.7],[3.0,17.45,2.25],
-  [2.15,13.6,2.3],[1.45,10.3,2.45],[.15,7.35,2.15],[0,4.0,2.5],[0,.2,3.4],[0,-2.75,3.1],
+  [2.15,13.6,2.3],[1.45,10.3,2.45],[.15,7.35,2.15],[0,4.0,2.5],   // 小径到帐篷门里为止：帐篷里面是打小丑的场地（TENT_FLOOR）
 ];
 
 const mix = (a,b,t)=>a+(b-a)*t;
@@ -46,7 +46,11 @@ export const TOUR_PATH = trail.flatMap((b,i)=>{
   });
 });
 
-export const TOUR_TENT = {x:0,z:0,radius:7.8};
+// 大帐篷：一个圆角的长方形（超椭圆 |x/a|^n + |z/b|^n = 1），门开在正南。布景、碰撞盒和打小丑的场地都照它摆。
+export const TENT = { x:0, z:0, a:7.6, b:5.95, n:5, wall:3.85 };
+export const TENT_DOOR = TENT.z + TENT.b;
+// 帐篷里能走的那块地（打小丑的时候再收一点，见 amusement.js 的 ARENA）
+export const TENT_FLOOR = { minX:-5.85, maxX:5.85, minZ:TENT_DOOR-7.8, maxZ:TENT_DOOR-.35 };
 export const TOUR_MAZE = [
   {x:13,z:13,w:14,d:.18}, {x:13,z:22,w:14,d:.18},
   {x:20,z:16.045,w:.18,d:5.91}, {x:20,z:21.805,w:.18,d:.21},
@@ -72,10 +76,10 @@ function testSegment({p,q,dx,dz,len,reach},x,z,tolerance) {
 }
 
 export function isTourWalkable(x,z,tolerance=0) {
-  const r=TOUR_TENT.radius-.78;
-  const dock = RAPIDS_DOCK;
+  const dock = RAPIDS_DOCK, tent = TENT_FLOOR;
+  if (x >= tent.minX - tolerance && x <= tent.maxX + tolerance && z >= tent.minZ - tolerance && z <= tent.maxZ + tolerance) return true;
   if (Math.abs(x - dock.x) <= dock.w / 2 + tolerance && Math.abs(z - dock.z) <= dock.d / 2 + tolerance) return true;
-  return x*x+z*z<(r+tolerance)**2 || segments.some(segment=>testSegment(segment,x,z,tolerance));
+  return segments.some(segment=>testSegment(segment,x,z,tolerance));
 }
 
 // 鬼屋：门、屋子占的那块地（门关着的时候整块都进不去），门开了以后能走的地方（门洞和门厅），和门厅尽头的小铃。
@@ -166,4 +170,3 @@ export const STALLS = [
     hintZh: '每个气球只算一次，五球能打中几个？', hintEn: 'Each balloon counts once. How many can you pop in five throws?',
     targets: [[.56,-1.0],[1.05,-.55],[.56,0],[1.05,.55],[.56,1.0]] },
 ];
-export const STAGE = { x: 0, z: -4.8 };

@@ -70,12 +70,12 @@ if (command === 'vocab') {
   }
   console.log('\n僵尸（zombies）。写法：\'种类\' 或 \'种类:状态\'，状态是 asleep（睡着）/ idle（醒着站着）/ patrol（巡逻），不写就由工具搭配。');
   for (const [name, z] of Object.entries(ZOMBIES)) console.log(`    ${name.padEnd(12)} ${z.name}：${z.role}${z.answer ? `；图里要备着 ${WEAPONS.find(w => w.id === z.answer).name}（'${z.answer}'）` : ''}${z.ranged ? '；远程，它看得到的地方 3.5 米内要有掩体' : ''}`);
-  console.log('\n拾取物（pickups）。写法：\'heart\' 心；\'ammo\' 弹药包（补手里那把特殊枪）；\'yarn\' 毛线团手雷；枪的名字；{ objective: \'名字\', item: \'…\' } 任务物品');
+  console.log('\n拾取物（pickups）。写法：\'potion\' 血瓶；\'ammo\' 弹药包（补手里那把特殊枪）；\'yarn\' 毛线团手雷；枪的名字；{ objective: \'名字\', item: \'…\' } 任务物品');
   console.log('    枪：' + Object.entries(GUNS).map(([g, n]) => `${g}（${WEAPONS.find(w => w.id === g).name}，带 ${n} 发）`).join('，'));
   console.log('    任务物品的模型（item）：' + OBJECTIVE_ITEMS.join('、') + '。任务物品要配 mission: \'fetch\'');
   console.log('\n机关（一张图只用一种，打一下触发，只能用一次）。写法：草图顶层 gadget: \'clock\'（不写就按主题），哪个房间要放就在那个房间写 gadget: true');
   for (const [k, G] of Object.entries(GADGETS)) console.log(`    ${k.padEnd(8)} ${G.name}：${G.verb}，范围 ${G.radius} 米${Object.entries(THEMES).filter(([, t]) => t.gadget === k).map(([, t]) => `（${t.name}主题默认用它）`).join('')}`);
-  console.log('拉链暗格。写法：房间里 stash: [\'heart\']（只能放 heart / ammo / yarn），工具在这间屋找一段空墙开拉链');
+  console.log('拉链暗格。写法：房间里 stash: [\'potion\']（只能放 potion / ammo / yarn），工具在这间屋找一段空墙开拉链');
   console.log('\n开局玩家手里有：线轴手枪（备弹无限）、绒球霰弹、1 个毛线团。');
 } else if (command === 'list') {
   const { ids, order } = await readIndex();

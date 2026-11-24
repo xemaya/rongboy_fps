@@ -5,7 +5,7 @@ import houseDef from '../../scenes/rongboy-mission/levels/house.js';
 import { compileLevel, clearPath, freePoint, lineOfSight, routeTo, navRadius, roomAt, resolveBody, surfaceY, storeyAt, floorIndex, navGoal } from '../../scenes/rongboy-mission/level.js';
 import { createGame, spawn, fire, beginCharge, releaseCharge, step, consumeEvents, selectWeapon, startReload, emitNoise, ballDamage,
   missionStatus, aliveCount, cameraMove, CONFIG, WEAPONS, ENEMY_TYPES, PISTOL, GRENADE, secondOf, grenades, swapWeapon, offeredWeapon, exchangeWeapon,
-  beginThrow, releaseThrow, throwGrenade, beginJump } from '../../scenes/rongboy-mission/game.js';
+  beginThrow, releaseThrow, throwGrenade, beginJump, drinkPotion } from '../../scenes/rongboy-mission/game.js';
 import { LEVELS, ORDER } from '../../scenes/rongboy-mission/levels/index.js';
 import { ATTACKS } from '../../scenes/rongboy-mission/attacks.js';
 
@@ -370,12 +370,23 @@ test('charging still works: one bigger, harder-hitting ball on release', () => {
 
 // ---------- 拾取与任务 ----------
 
-test('pickups: ammo goes to the right reserve, a heart is left alone at full health', () => {
-  const s = game({ pickups: [{ kind: 'ammo', weapon: 'heavy', amount: 2, x: -2, z: 0 }, { kind: 'heart', amount: 1, x: -2, z: 0.2 }] });
-  step(s, 1 / 120);
-  assert.equal(s.ammo[2].reserve, WEAPONS[2].reserve + 2); assert.equal(s.pickups[0].taken, true); assert.equal(s.pickups[1].taken, false);
+test('pickups: ammo goes to the right reserve; a potion is carried, not drunk on the spot', () => {
+  const s = game({ pickups: [{ kind: 'ammo', weapon: 'heavy', amount: 2, x: -2, z: 0 }, { kind: 'potion', x: -2, z: 0.2 }] });
   s.health = 1; step(s, 1 / 120);
-  assert.equal(s.health, 2); assert.equal(s.pickups[1].taken, true);
+  assert.equal(s.ammo[2].reserve, WEAPONS[2].reserve + 2); assert.equal(s.pickups[0].taken, true);
+  assert.equal(s.pickups[1].taken, true); assert.equal(s.potions, 1); assert.equal(s.health, 1, 'picking it up heals nothing');
+});
+
+test('potions: carry three at most, a drink restores 75% (two of three hearts), and none is wasted at full health', () => {
+  const spots = [0, 1, 2, 3].map(i => ({ kind: 'potion', x: -2 + i * 2.5, z: 3 }));
+  const s = game({ pickups: spots });
+  for (const k of spots) { Object.assign(s.player, { x: k.x, z: k.z }); step(s, 1 / 120); }
+  assert.equal(s.potions, CONFIG.maxPotions); assert.equal(s.pickups[3].taken, false, 'the fourth stays on the floor');
+  assert.equal(drinkPotion(s), false, 'full health: nothing is drunk'); assert.equal(s.potions, 3);
+  s.health = 1; assert.equal(drinkPotion(s), true); assert.equal(s.health, 3); assert.equal(s.potions, 2);
+  s.health = 2; drinkPotion(s); assert.equal(s.health, 3, 'never above the maximum');
+  step(s, 1 / 120); assert.equal(s.potions, 2, 'the one left on the floor is picked up once there is room');
+  assert.equal(s.pickups[3].taken, true);
 });
 
 test('clear mission: ends only when every zombie is down, and nothing ever respawns', () => {

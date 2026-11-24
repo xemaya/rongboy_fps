@@ -45,80 +45,29 @@ function stitchedPaths(group, material, paths, radius = .005) {
   for (const stitch of geometry) stitch.dispose();
 }
 
-const HEART_DEPTH = .118;
-
-function stuffedHeart(outline) {
-  const rows = 22, columns = outline.length;
-  const vertices = [0, 0, HEART_DEPTH], indices = [];
-  for (let row = 1; row < rows; row++) {
-    const angle = row * Math.PI / rows, span = Math.sin(angle), z = Math.cos(angle) * HEART_DEPTH;
-    for (const p of outline) vertices.push(p.x * span, p.y * span, z);
-  }
-  const back = vertices.length / 3;
-  vertices.push(0, 0, -HEART_DEPTH);
-  for (let column = 0; column < columns; column++) {
-    const next = (column + 1) % columns;
-    indices.push(0, 1 + next, 1 + column);
-    for (let row = 0; row < rows - 2; row++) {
-      const a = 1 + row * columns + column, b = 1 + row * columns + next;
-      indices.push(a, b, a + columns, b, b + columns, a + columns);
-    }
-    indices.push(back, back - columns + column, back - columns + next);
-  }
-  const geometry = new T.BufferGeometry();
-  geometry.setIndex(indices);
-  geometry.setAttribute('position', new T.Float32BufferAttribute(vertices, 3));
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-function bandageStrip(outline, width, height, lift) {
-  const geometry = new T.PlaneGeometry(width, height, 14, 14), vertices = geometry.getAttribute('position');
-  const point = new T.Vector2(), edge = new T.Vector2();
-  for (let i = 0; i < vertices.count; i++) {
-    let x = vertices.getX(i), y = vertices.getY(i);
-    const radius = .011, cx = Math.max(0, Math.abs(x) - width / 2 + radius);
-    const cy = Math.max(0, Math.abs(y) - height / 2 + radius), corner = Math.hypot(cx, cy);
-    if (corner > radius) {
-      x -= Math.sign(x) * cx * (1 - radius / corner);
-      y -= Math.sign(y) * cy * (1 - radius / corner);
-    }
-    point.set(x, y);
-    let reach = Infinity;
-    for (let side = 0; side < outline.length; side++) {
-      const a = outline[side], b = outline[(side + 1) % outline.length];
-      edge.subVectors(b, a);
-      const determinant = point.cross(edge);
-      if (Math.abs(determinant) < 1e-8) continue;
-      const scale = a.cross(edge) / determinant, fraction = a.cross(point) / determinant;
-      if (scale > 0 && fraction >= 0 && fraction <= 1) reach = Math.min(reach, scale);
-    }
-    const z = HEART_DEPTH * Math.sqrt(Math.max(0, 1 - 1 / reach ** 2));
-    vertices.setXYZ(i, x, y, z + lift);
-  }
-  geometry.computeVertexNormals();
-  return geometry;
-}
-
-export function cottonHeart(group, fabric) {
-  const red = fabric(0xda5946), thread = fabric(0xeab380), bandage = fabric(0xf0dab6);
+// 血瓶：毛毡缝的圆肚小瓶。沿用原来补血道具的定妆（珊瑚红的身子、米色布贴、米色缝线），布贴上缝一颗小红心，一眼还认得出是补血的。
+export function feltPotion(group, fabric) {
+  const red = fabric(0xda5946), thread = fabric(0xeab380), patch = fabric(0xf0dab6), cork = fabric(0xbf8a54, 'toy_wood');
+  // 瓶身的剖面（半径、高）：圆肚、收肩、短颈、翻边的瓶口
+  const side = [[0, -.225], [.095, -.225], [.142, -.196], [.166, -.12], [.160, -.03], [.124, .045], [.070, .092], [.056, .135], [.074, .150], [.074, .172], [0, .172]];
+  mesh(group, new T.LatheGeometry(side.map(([r, y]) => new T.Vector2(r, y)), 22), red);
+  mesh(group, new T.CylinderGeometry(.050, .042, .075, 14), cork, 0, .205);
+  // 肚子上一圈布贴，上下各一道缝线
+  const band = [[.150, -.168], [.170, -.12], [.166, -.045], [.150, -.012]];
+  mesh(group, new T.LatheGeometry(band.map(([r, y]) => new T.Vector2(r, y)), 22), patch);
+  const ring = (r, y) => Array.from({ length: 23 }, (_, i) => new T.Vector3(Math.sin(i / 22 * Math.PI * 2) * r, y, Math.cos(i / 22 * Math.PI * 2) * r));
+  stitchedPaths(group, thread, [ring(.158, -.158), ring(.163, -.026), ring(.079, .161)], .0055);
+  // 前后各一颗小红心
   const heart = new T.Shape();
   heart.moveTo(0, -.22);
   heart.bezierCurveTo(-.11, -.14, -.28, -.035, -.25, .105);
   heart.bezierCurveTo(-.234, .225, -.08, .248, 0, .122);
   heart.bezierCurveTo(.08, .248, .234, .225, .25, .105);
   heart.bezierCurveTo(.28, -.035, .11, -.14, 0, -.22);
-  const outline = heart.getSpacedPoints(52).slice(0, -1);
-  mesh(group, stuffedHeart(outline), red);
-  const seam = heart.getSpacedPoints(25), edge = .925;
-  const depth = HEART_DEPTH * Math.sqrt(1 - edge ** 2) + .0015;
-  stitchedPaths(group, thread, [-1, 1].map(side => seam.map(p => new T.Vector3(p.x * edge, p.y * edge, side * depth))), .0055);
-  const vertical = bandageStrip(outline, .083, .207, .004);
-  const horizontal = bandageStrip(outline, .224, .073, .008);
-  mesh(group, vertical, bandage);
-  mesh(group, horizontal, bandage);
-  mesh(group, vertical.clone().rotateY(Math.PI), bandage);
-  mesh(group, horizontal.clone().rotateY(Math.PI), bandage);
+  const badge = () => new T.ExtrudeGeometry(heart, { depth: .05, bevelEnabled: true, bevelThickness: .03, bevelSize: .02, bevelSegments: 2, curveSegments: 8 }).scale(.24, .24, .24).translate(0, -.092, .163);
+  const front = badge(), back = badge().rotateY(Math.PI), both = mergeGeometries([front, back]);
+  mesh(group, both, red);
+  front.dispose(); back.dispose();
 }
 
 export function ammoPouch(group, fabric) {

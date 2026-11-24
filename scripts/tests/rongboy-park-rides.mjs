@@ -1,9 +1,11 @@
-// 游乐园互动的检查（docs/park-design.md）：走近才有提示、按一下演一段、坐着不晕的那几条数、看完马戏团的演出就结束。
+// 游乐园设施的检查（docs/park-design.md）：走近才有提示、按一下演一段、坐着不晕的那几条数。
+// 门、机关和小丑在 rongboy-amusement.mjs；这里从镜子迷宫那一站开局（前面的门都开着、没有僵尸），只看设施自己。
 //   node scripts/tests/rongboy-park-rides.mjs
 import assert from 'node:assert/strict';
-import def from '../../scenes/rongboy-mission/levels/amusement-tour.js';
+import def from '../../scenes/rongboy-mission/levels/amusement.js';
 import { compileLevel } from '../../scenes/rongboy-mission/level.js';
-import { createGame, step, consumeEvents, missionStatus, CONFIG } from '../../scenes/rongboy-mission/game.js';
+import { createGame, step, consumeEvents, missionStatus } from '../../scenes/rongboy-mission/game.js';
+import { PARK_ZONES } from '../../scenes/rongboy-mission/amusement.js';
 import { fireStall, stallTarget, STALL_SHOTS } from '../../scenes/rongboy-mission/park-stalls.js';
 import { PARK, SPOTS, PLAYER_EYE, parkPrompt, parkInteract } from '../../scenes/rongboy-mission/park-rides.js';
 import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, STALLS, RINK, HAUNT, GATE, CAROUSEL, isTourWalkable, isHauntWalkable, constrainTourWalk } from '../../scenes/rongboy-mission/park-tour-layout.js';
@@ -11,7 +13,7 @@ import { TOUR_STOPS, COASTER, RAPIDS, WHEEL, STALLS, RINK, HAUNT, GATE, CAROUSEL
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
 const DT = 1 / 60, L = compileLevel(def);
-const game = () => createGame({ level: L });
+const game = () => { const s = createGame({ level: L, amusementCheckpoint: PARK_ZONES.findIndex(zone => zone.id === 'mirrors') }); Object.assign(s.player, { x: L.player.x, z: L.player.z }); return s; };
 const at = (s, id) => { const q = SPOTS.find(k => k.id === id); s.player.x = q.x; s.player.z = q.z; s.player.y = 0; return q; };
 function run(s, seconds, input = {}, each = null) { const log = []; for (let i = 0; i < Math.round(seconds / DT); i++) { step(s, DT, input); log.push(...consumeEvents(s)); each?.(s); } return log; }
 // 碰碰车场里没人开的车一直在自己转悠、互相碰（bump），和玩家在干什么无关，这里不看它们
@@ -22,7 +24,7 @@ test('every place you press the key is on the path, and close to its attraction'
     assert.ok(isTourWalkable(q.x, q.z, 0.2) || isHauntWalkable(q.x, q.z), `${q.id} at ${q.x}, ${q.z} is off the path`);   // 鬼屋的小铃在门厅里
     assert.ok(TOUR_STOPS.some(stop => stop.id === q.stop), q.id);
   }
-  assert.deepEqual([...new Set(SPOTS.map(q => q.stop)), 'entrance', 'mirrors'].sort(), TOUR_STOPS.map(stop => stop.id).sort(), 'every attraction but the gate and the mirror maze (which you just walk through) has something to press');
+  assert.deepEqual([...new Set(SPOTS.map(q => q.stop)), 'entrance', 'mirrors', 'circus'].sort(), TOUR_STOPS.map(stop => stop.id).sort(), 'every attraction has something to press, except the gate, the mirror maze (you just walk through) and the big top (the clown is waiting)');
 });
 
 test('the prompt shows only when you are near, says what will happen, and goes away while the thing is running', () => {
@@ -185,10 +187,6 @@ test('the big top has no movement without input and keeps normal controls while 
   run(s, 2, {z:-1}); assert.ok(s.player.z < 5, 'the entrance is walkable');
   const stop = [s.player.x,s.player.z];
   run(s, 1); assert.deepEqual([s.player.x,s.player.z],stop);
-  at(s, 'circus'); assert.ok(parkInteract(s)); assert.equal(s.park.riding,null);
-  run(s, .5, {x:1}); assert.ok(s.player.x > 1);
-  const during = [s.player.x,s.player.z];
-  run(s, 1); assert.deepEqual([s.player.x,s.player.z],during);
 });
 
 test('the haunted house: shut until you knock, then you can walk in, ring the bell to bring the ghosts out, and the door never shuts on you', () => {
@@ -216,9 +214,6 @@ test('the haunted house: shut until you knock, then you can walk in, ring the be
   run(s, PARK.haunt.show + 20); assert.equal(s.park.door, 1, 'still open half a minute later, while you are inside'); assert.equal(parkPrompt(s).id, 'portraits', 'and the bell can be rung again');
   at(s, 'carousel'); run(s, 2); assert.equal(s.park.door, 0, 'it shuts once you have walked away');
   at(s, 'haunt'); assert.equal(parkPrompt(s).zh, '敲门', 'and can be knocked on again');
-  const acts = []; at(s, 'circus'); parkInteract(s);   // 马戏团：一场演出三个节目挨着演
-  for (let i = 0; i < 3; i++) { run(s, i ? PARK.circus.time / 3 : 1); acts.push(s.park.act); }
-  assert.deepEqual(acts, [1, 2, 3]);
 });
 
 test('the gate and the carousel are solid: you go in under the arch, not through a tower, and you stop at the carousel steps', () => {
@@ -233,20 +228,13 @@ test('the gate and the carousel are solid: you go in under the arch, not through
     assert.ok(L.furnitureBoxes.some(c => x > c.minX && x < c.maxX && z > c.minZ && z < c.maxZ), 'the round platform is covered all the way round'); }
 });
 
-test('the visit ends when the circus show is over: not before, and nothing else ends it', () => {
+test('playing the rides never ends the level: that takes the clown', () => {
   const s = game();
   for (const id of ['carousel', 'haunt', 'portraits']) { at(s, id); assert.ok(parkInteract(s), id); }
   at(s, 'stall-balloons'); parkInteract(s); parkInteract(s);
   for (const id of ['coaster', 'rapids', 'wheel', 'bumpers']) { at(s, id); parkInteract(s); parkInteract(s); }
-  const before = run(s, PARK.carousel.time + 1);
-  assert.equal(missionStatus(s).done, false, 'playing everything else does not end the visit'); assert.equal(parks(before).filter(e => e.what === 'complete').length, 0);
-  at(s, 'circus'); assert.equal(parkPrompt(s).zh, '敲锣开演'); assert.ok(parkInteract(s));
-  const during = run(s, PARK.circus.time - 1);
-  assert.equal(missionStatus(s).done, false, 'not while the show is still on'); assert.equal(parks(during).filter(e => e.what === 'complete').length, 0);
-  const rest = run(s, 1 + CONFIG.endDelay + 0.5);
-  assert.equal(parks(rest).filter(e => e.what === 'complete').length, 1); assert.equal(s.phase, 'won');
-  const straight = game(); at(straight, 'circus'); parkInteract(straight); run(straight, PARK.circus.time + CONFIG.endDelay + 0.5);
-  assert.equal(straight.phase, 'won', 'nothing gates the big top yet: you may walk straight to it');
+  run(s, PARK.carousel.time + 1);
+  assert.equal(missionStatus(s).done, false); assert.equal(s.phase, 'playing');
 });
 
 console.log(`${checks} park ride checks passed`);

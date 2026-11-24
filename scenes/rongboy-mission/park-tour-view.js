@@ -7,8 +7,8 @@ import { plush, plushMaterials } from '../../cine-engine/library/surfaces/plush.
 import { mulberry32 } from '../../cine-engine/engine/noise.js';
 import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
-import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_TENT, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
-  COASTER, RAPIDS, RAPIDS_DOCK, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, STAGE, GATE } from './park-tour-layout.js';
+import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
+  COASTER, RAPIDS, RAPIDS_DOCK, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, GATE } from './park-tour-layout.js';
 import { PARK, SPOTS } from './park-rides.js';
 import { stallTarget } from './park-stalls.js';
 import { createParkKit, RED, CREAM, TEAL, GOLD, INK, CORAL, NAVY, FOREST, MOSS, PINE, PLUM, PLUM_DARK, THREAD, WOOL_WHITE, TIMBER } from './park-kit.js';
@@ -224,7 +224,6 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     let x = q.x, z = q.z; for (let n = 0; n < 40 && isTourWalkable(x, z, 0.3); n++) { x += dx * 0.15; z += dz * 0.15; }
     if (q.id === 'carousel') { x = CAROUSEL.x + Math.sin(CAROUSEL.steps) * 5.45 - Math.cos(CAROUSEL.steps) * 1.5; z = CAROUSEL.z + Math.cos(CAROUSEL.steps) * 5.45 + Math.sin(CAROUSEL.steps) * 1.5; }   // 台阶旁边
     if (q.id === 'coaster') { x = -31.0; z = -14.3; }   // 站台台阶的旁边，不挡台阶
-    if (q.id === 'circus') { x = 1.9; z = -1.9; }
     if (q.kind === 'stall') { x = q.x - 1.4; z = q.z + 1.28; }
     if (q.id === 'haunt') { x = HAUNT.door.x + 1.4; z = HAUNT.door.z - 0.45; }   // 门廊柱子旁边，不挡门
     if (q.id === 'portraits') { x = HAUNT.bell.x + 0.78; z = -13.08; }   // 门厅里：立在小桌旁边、靠着后墙
@@ -798,84 +797,8 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     for (const [x, z, r] of [[21.4, 17.6, 0.5], [21.3, 22.4, 0.5], [4.9, 13.4, 0.55], [13.0, 23.2, 0.5]]) if (!isTourWalkable(x, z, 0.5)) P.shrub(k, d, x, z, r, seed++);
   }
 
-  // ====================================================================== 10 马戏团（docs/park-refs/ref-10-bigtop.png）
-  use('bigtop');
-  const tentLights = [], performers = [], hoop = group(root, STAGE.x - 2.0, 0.5, STAGE.z + 1.4); let gong, spot;
-  {
-    const tnt = TOUR_TENT, N = 28, at = (theta, y, r = tnt.radius) => [Math.sin(theta) * r, y, Math.cos(theta) * r];
-    k.cyl(wool(0xc9a877), tnt.radius - 0.16, tnt.radius - 0.16, 0.09, 0, 0.04, 0, { seg: 48 });
-    const stripe = [wool(0xf1e3c0), wool(RED)], inner = [wool(0xc9aa82), wool(0xa05151)];   // 帐布：米白和红相间；里面那一面暗一点
-    for (let i = 0; i < N; i++) {
-      if (i === 0 || i === 1 || i === N - 1) continue;
-      const a = (i - 0.5) * TAU / N, b = (i + 0.5) * TAU / N, aa = (a + b) / 2;
-      k.quad(stripe[i % 2], at(b, 0.017), at(a, 0.017), at(a, 3.85), at(b, 3.85), [[b * tnt.radius, 0], [a * tnt.radius, 0], [a * tnt.radius, 3.85], [b * tnt.radius, 3.85]], 1, [Math.sin(aa), 0, Math.cos(aa)]);
-      P.stitch(d, [at(a, 0.2, tnt.radius + 0.012), at(a, 3.7, tnt.radius + 0.012)], { len: 0.2, gap: 0.2, t: 0.03 });   // 每道缝一行大针脚
-      k.quad(inner[i % 2], at(b, 0.017, tnt.radius - 0.045), at(a, 0.017, tnt.radius - 0.045), at(a, 3.85, tnt.radius - 0.045), at(b, 3.85, tnt.radius - 0.045), [[0, 0], [1, 0], [1, 3.2], [0, 3.2]], 0.52, [-Math.sin(aa), 0, -Math.cos(aa)]);
-    }
-    {   // 帐顶：28 片红白相间的毛毡，缝上是大针脚；檐口一圈金色的扇贝边，每个尖上一颗金球
-      const top = new PlushKit(), tdet = new PlushKit(); canopy(top, tdet, tnt.radius + 0.38, 3.82, 9.2, [stripe[1], stripe[0]], N, { seam: { len: 0.3, gap: 0.3, t: 0.035 }, mid: false });
-      k.merge(top, 0, 0, 0, -0.5 * TAU / N); d.merge(tdet, 0, 0, 0, -0.5 * TAU / N);
-      const cusps = P.valance(k, wool(GOLD), 0, 3.86, 0, tnt.radius + 0.42, N, 0.62, { band: 0.24, a0: 0.5 * TAU / N, pipe: 0xf6e3a1, pipeKit: d, pipeR: 0.035 });
-      for (const q of cusps) k.sphere(wool(GOLD), 0.13, q.x * 1.006, q.y - 0.02, q.z * 1.006, { seg: 7, rings: 5 });
-      k.tube(wool(0xf6e3a1), P.arc(0, 3.9, 0, tnt.radius + 0.43, 0, TAU, 56), 0.08, { straight: true, seg: 6, caps: false });
-      P.ring(d, 0, 3.72, 0, tnt.radius + 0.47, { len: 0.16, gap: 0.14, t: 0.024 });
-    }
-    for (let i = 2; i < N - 1; i += 2) { const a = i * TAU / N; box(k, wool(GOLD), 0.4, 0.4, 0.03, ...at(a, 1.7, tnt.radius + 0.03), 0.02, { ry: a, rz: Math.PI / 4 }); box(k, wool(CORAL), 0.2, 0.2, 0.03, ...at(a, 1.7, tnt.radius + 0.05), 0.02, { ry: a, rz: Math.PI / 4 }); }   // 帐布上的菱形
-    [['poster-circus-1.webp', -2.5, 11.9, 0.34], ['poster-circus-2.webp', 5.3, 12.9, -0.42], ['poster-circus-3.webp', -4.3, 9.6, 0.5]].forEach(([file, x, z, yaw]) => {   // 海报牌：朝着从南边走来的人
-      const fx = Math.sin(yaw), fz = Math.cos(yaw);
-      for (const e of [-1, 1]) box(k, wood, 0.1, 2.5, 0.1, x + e * 0.66 * fz, 1.25, z - e * 0.66 * fx, 0.03);
-      box(k, M('boards', 0x9a6f4c), 1.34, 1.74, 0.07, x, 1.6, z, 0.03, { ry: yaw }); box(k, red, 1.5, 0.14, 0.16, x, 2.56, z, 0.04, { ry: yaw }); puff(k, gold, 0.09, x, 2.72, z);
-      picture(file, 1.2, 1.6, x + fx * 0.05, 1.6, z + fz * 0.05, yaw);
-    });
-    for (const side of [-1, 1]) {   // 门口：两根红柱、束起来的门帘
-      const x = side * 2.02; box(k, wool(RED), 0.44, 4.11, 0.46, x, 2.05, 7.40, 0.10); k.sphere(wool(GOLD), 0.18, x, 3.98, 7.64, { seg: 9, rings: 6 });
-      puff(k, wool(RED), 0.62, x + side * 0.3, 2.6, 7.5, { sx: 0.9, sy: 1.9, sz: 0.4, seg: 12, rings: 8 }); puff(k, wool(0xc9584f), 0.4, x + side * 0.5, 1.1, 7.5, { sx: 0.8, sy: 1.6, sz: 0.4, seg: 12, rings: 8 }); puff(k, wool(GOLD), 0.3, x + side * 0.72, 1.0, 7.56, { sx: 0.5, sy: 1.5, sz: 0.3 });
-      k.tube(wool(GOLD), [[x + side * 0.05, 1.75, 7.72], [x + side * 0.75, 1.75, 7.72]], 0.06, { straight: true, seg: 6 }); k.sphere(wool(GOLD), 0.13, x + side * 0.78, 1.75, 7.74, { seg: 8, rings: 5 });
-      P.stitch(d, [[x + side * 0.02, 3.6, 7.64], [x + side * 0.02, 0.3, 7.64]], { color: GOLD, len: 0.12, gap: 0.1, t: 0.02 });
-    }
-    box(k, wool(RED), 4.4, 0.35, 0.40, 0, 3.87, 7.54, 0.073); sign(copy('马戏团', 'BIG TOP'), 0, 3.74, 7.78, 3.61);
-    P.valanceLine(k, wool(GOLD), [-1.8, 7.76], [1.8, 7.76], 3.3, 6, 0.3, { band: 0.06 });
-    k.cyl(wool(GOLD), 0.09, 0.11, 1.5, 0, 9.8, 0, { seg: 10 }); k.cyl(wool(RED), 0.3, 0.36, 0.2, 0, 9.22, 0, { seg: 14 }); k.sphere(wool(GOLD), 0.2, 0, 10.7, 0, { seg: 10, rings: 7 });   // 顶上的旗杆和旗
-    k.extrude(wool(RED), [[0, 0.34], [0.5, 0.26], [0.95, 0.36], [1.5, 0.24], [1.3, 0], [1.5, -0.2], [0.95, -0.3], [0.5, -0.22], [0, -0.32]], 0.05, new T.Matrix4().makeTranslation(0.08, 10.1, 0));
-    P.stitch(d, [[0.2, 10.1, 0.03], [0.6, 10.14, 0.03], [1.0, 10.06, 0.03], [1.3, 10.02, 0.03]], { color: GOLD, len: 0.09, gap: 0.08, t: 0.02 });
-    for (const [x, z] of [[-9.6, 2.4], [9.6, 2.4]]) {   // 两侧的小帐：一样的红白帐布、金扇贝边、尖顶上一颗金球
-      for (let i = 0; i < 12; i++) { const a = i * TAU / 12, b = (i + 1) * TAU / 12, m = (a + b) / 2, q = t => [x + Math.sin(t) * 1.9, z + Math.cos(t) * 1.9]; const [ax2, az2] = q(a), [bx2, bz2] = q(b);
-        k.quad(stripe[i % 2], [bx2, 0, bz2], [ax2, 0, az2], [ax2, 2.0, az2], [bx2, 2.0, bz2], [[b * 1.9, 0], [a * 1.9, 0], [a * 1.9, 2], [b * 1.9, 2]], 1, [Math.sin(m), 0, Math.cos(m)]); }
-      const top = new PlushKit(), tdet = new PlushKit(); canopy(top, tdet, 2.2, 1.98, 4.2, [stripe[1], stripe[0]], 12, { seam: { len: 0.2, gap: 0.2, t: 0.028 }, mid: false }); k.merge(top, x, 0, z); d.merge(tdet, x, 0, z);
-      P.valance(k, wool(GOLD), x, 2.02, z, 2.22, 12, 0.4, { band: 0.14 }); k.cyl(wool(GOLD), 0.07, 0.09, 0.5, x, 4.4, z, { seg: 8 }); k.sphere(wool(GOLD), 0.15, x, 4.72, z, { seg: 9, rings: 6 });
-    }
-    for (let i = 0; i < 18; i++) { const a = i * TAU / 18, b = (i + 0.5) * TAU / 18; if (Math.abs(Math.atan2(Math.sin(a), Math.cos(a))) < 0.4) continue;   // 外面一圈三角旗
-      const p = at(a, 4.0, tnt.radius + 0.5), q = at((i + 1) * TAU / 18, 4.0, tnt.radius + 0.5), m = at(b, 3.55, tnt.radius + 0.5);
-      k.quad(felt([GOLD, TEAL, CORAL, CREAM][i % 4]), p, q, m, m, undefined, 1, [Math.sin(b), 0, Math.cos(b)]); }
-    // 里面：一圈红白的场沿、锯末地、圆台、看台、从顶上拉下来的灯串
-    k.cyl(wool(0xd9b98a), 3.9, 3.9, 0.03, 0, 0.1, -1.5, { seg: 48 }); P.ring(d, 0, 0.12, -1.5, 3.6, { color: 0x9c7a55, len: 0.14, gap: 0.12, t: 0.02 });
-    for (let i = 0; i < 24; i++) { const a = i * TAU / 24; if (Math.cos(a) > 0.86) continue; box(k, wool(i % 2 ? RED : 0xf1e3c0), 1.06, 0.3, 0.34, Math.sin(a) * 4.0, 0.2, -1.5 + Math.cos(a) * 4.0, 0.08, { ry: a }); }
-    box(k, M('boards', 0x9a6f4c), 3.4, 0.36, 2.4, STAGE.x, 0.22, STAGE.z, 0.06); k.cyl(wool(GOLD), 1.0, 1.08, 0.3, STAGE.x, 0.55, STAGE.z, { seg: 24 }); k.cyl(wool(RED), 0.62, 0.7, 0.36, STAGE.x + 1.2, 0.58, STAGE.z + 0.2, { seg: 18 }); k.cyl(wool(TEAL), 0.62, 0.7, 0.36, STAGE.x - 1.2, 0.58, STAGE.z + 0.2, { seg: 18 });
-    P.star(k, RED, 0.5, STAGE.x, 0.71, STAGE.z, 0, 0.02); for (const [dx, c] of [[0, RED], [1.2, GOLD], [-1.2, GOLD]]) P.ring(d, STAGE.x + dx, dx ? 0.77 : 0.71, STAGE.z + (dx ? 0.2 : 0), dx ? 0.52 : 0.9, { color: dx ? THREAD : c, len: 0.08, gap: 0.07, t: 0.016 });
-    for (let tier = 0; tier < 3; tier++) for (let i = 0; i < 16; i++) { const a = Math.PI * (0.62 + i * 0.76 / 15), r = 5.2 + tier * 0.72; box(k, M('boards', tier % 2 ? 0xb98a66 : 0x9a7250), 1.24 + tier * 0.16, 0.3, 0.7, Math.sin(a) * r, 0.25 + tier * 0.38, -0.6 + Math.cos(a) * r, 0.04, { ry: a }); }
-    for (const [x, z] of [[-1.6, 1.4], [1.6, 1.4]]) { k.cyl(wool(RED), 0.09, 0.1, 8.4, x * 2.2, 4.2, z * 1.5 - 1.5, { seg: 8 }); for (const y of [0.3, 2.8, 5.4]) k.cyl(wool(GOLD), 0.12, 0.12, 0.12, x * 2.2, y, z * 1.5 - 1.5, { seg: 8 }); }   // 两根撑帐子的柱
-    const strings = [0, 1, 2, 3].map(() => new PlushKit()), lamps = strings.map(() => { const m = glow(0xffd884, 2.2); m.userData.noShadow = true; return m; });   // 灯串：分四组，每组一个网格，开演时一组一组地闪
-    for (let j = 0; j < 8; j++) { const a = j * TAU / 8 + 0.2; k.tube(ink, [[0, 8.6, 0], [Math.sin(a) * 3.4, 5.6, Math.cos(a) * 3.4], [Math.sin(a) * 6.9, 3.7, Math.cos(a) * 6.9]], 0.012, { straight: true });
-      for (let t = 1; t <= 4; t++) { const f = t / 4.6, r = 6.9 * f, y = 8.6 - (8.6 - 3.7) * (f * 0.75 + f * f * 0.25); strings[(j + t) % 4].sphere(lamps[(j + t) % 4], 0.09, Math.sin(a) * r, y, Math.cos(a) * r, { seg: 8, rings: 5 }); } }
-    strings.forEach(kit => { const [mesh] = kit.build({ cast: false, name: 'tent-lights' }); root.add(mesh); tentLights.push(mesh); });
-    spot = obj(root, new T.CylinderGeometry(1.5, 1.5, 0.012, 28), new T.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0, depthWrite: false }), STAGE.x, 0.72, STAGE.z);
-    // 锣：台子右前方的架子上
-    box(k, wood, 0.1, 1.5, 0.1, 1.5, 0.75, -2.2, 0.03); box(k, wood, 0.1, 1.5, 0.1, 2.3, 0.75, -2.2, 0.03); box(k, wood, 1.0, 0.1, 0.1, 1.9, 1.5, -2.2, 0.03);
-    gong = part(root, kit => { kit.cyl(gold, 0.34, 0.34, 0.04, 0, -0.42, 0, { seg: 20, rx: Math.PI / 2 }); kit.cyl(felt(0xc98f3a), 0.12, 0.12, 0.05, 0, -0.42, 0, { seg: 12, rx: Math.PI / 2 }); kit.tube(ink, [[-0.2, 0, 0], [-0.2, -0.14, 0]], 0.01, { straight: true }); kit.tube(ink, [[0.2, 0, 0], [0.2, -0.14, 0]], 0.01, { straight: true }); }, 1.9, 1.46, -2.2);
-    // 三位演员：熊、两只兔子
-    const animal = (tone, ears, x, z) => part(root, kit => {
-      const body = wool(tone);
-      puff(kit, body, 0.34, 0, 0.36, 0, { sy: 1.1, seg: 12, rings: 8 }); puff(kit, body, 0.27, 0, 0.86, 0, { seg: 12, rings: 8 }); puff(kit, felt(0xf6efe0), 0.12, 0, 0.8, 0.22); kit.sphere(M.button(INK), 0.03, 0, 0.83, 0.335, { seg: 6, rings: 4 });
-      for (const s of [-1, 1]) { puff(kit, ink, 0.035, s * 0.1, 0.92, 0.23); puff(kit, body, 0.12, s * 0.3, 0.45, 0.05, { sy: 1.5 }); puff(kit, body, 0.13, s * 0.15, 0.08, 0.05, { sy: 0.7 });
-        if (ears === 'long') puff(kit, body, 0.08, s * 0.12, 1.28, 0, { sy: 2.6 }); else puff(kit, body, 0.1, s * 0.2, 1.08, 0); }
-      for (const s of [-1, 1]) kit.sphere(wool(RED), 0.07, s * 0.08, 0.63, 0.25, { seg: 6, rings: 4, sx: 1.4, sz: 0.6 }); kit.sphere(wool(GOLD), 0.035, 0, 0.63, 0.27, { seg: 5, rings: 3 });   // 领结
-    }, x, 0.7, z, true);
-    performers.push(animal(0x9a6a4c, 'round', STAGE.x, STAGE.z), animal(0xf1e6d2, 'long', STAGE.x + 1.2, STAGE.z + 0.2), animal(0xd9b8a8, 'long', STAGE.x - 1.2, STAGE.z + 0.2));
-    performers.forEach((g, i) => { g.userData.home = g.position.clone(); g.userData.i = i; });
-    part(hoop, kit => { kit.tube(gold, Array.from({ length: 21 }, (_, i) => { const a = i * TAU / 20; return [0, 1.5 + Math.sin(a) * 0.6, Math.cos(a) * 0.6]; }), 0.05, { straight: true }); box(kit, wood, 0.08, 0.9, 0.08, 0, 0.45, 0, 0.03); });
-    hoop.visible = false;
-  }
-  const juggle = [0, 1, 2].map(i => { const m = obj(root, new T.SphereGeometry(0.1, 10, 8), raw('felt', [RED, GOLD, TEAL][i]), 0, -5, 0); m.castShadow = false; return m; });
+  // 马戏帐篷（里面是打小丑的场地）在 amusement-view.js 里造：它跟着规则层的小丑战动
+
 
   // 每块两组网格：主体投影，小装饰不投影、记下它的位置好在走远时关掉
   for (const [id, q] of zones) {
@@ -948,22 +871,9 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
         g.visible = down < 1;
       });
     }
-    // 马戏团：开演的时候灯串亮起来、台上打一束光，三位演员按节目动
-    const show = park.running.circus, on = show > 0 ? Math.min(1, show / 1.2, (PARK.circus.time - show) / 1.5) : 0;
-    tentLights.forEach((m, i) => { m.material.emissiveIntensity = 2.2 * (1 + on * (0.9 + 0.7 * Math.sin(t * 5 + i * 1.6))); });
-    spot.material.opacity = on * 0.5; hoop.visible = on > 0 && park.act === 3;
-    performers.forEach(g => {
-      const home = g.userData.home, i = g.userData.i; g.position.copy(home); g.rotation.set(0, 0, 0);
-      if (!(on > 0)) { g.position.y += Math.sin(t * 1.4 + i) * 0.015; return; }
-      if (park.act === 1) { if (i === 0) g.rotation.y = show * 2.2; else g.position.y += Math.abs(Math.sin(show * 3.2 + i)) * 0.35 * on; }   // 熊转圈抛球，兔子打拍子
-      else if (park.act === 2) { const hop = Math.abs(Math.sin(show * 2.6 + i * 1.05)); g.position.y += hop * 0.9 * on; g.rotation.y = Math.sin(show * 1.3 + i) * 0.8; }   // 轮流蹦高
-      else { const phase = ((show * 0.42 + i / 3) % 1), x = home.x - 3.2 + phase * 6.4; g.position.set(STAGE.x + (x - STAGE.x) * on + home.x * (1 - on) * 0, home.y + Math.sin(phase * Math.PI) * 1.3 * on, STAGE.z + 1.4); g.rotation.y = Math.PI / 2; }   // 挨个跳圈
-    });
-    juggle.forEach((m, i) => { if (on > 0 && park.act === 1) { const a = show * 4 + i * TAU / 3; m.position.set(STAGE.x + Math.cos(a) * 0.45, 2.3 + Math.sin(a) * 0.5, STAGE.z + 0.3); } else m.position.y = -5; });
-    gong.rotation.z = show > 0 && show < 2.5 ? Math.sin(show * 22) * 0.25 * (1 - show / 2.5) : 0;
     // 互动点的星星：慢慢转
     for (const m of markers.values()) { m.mesh.rotation.y = clock * 1.4 + m.phase; m.mesh.position.y = 1.32 + Math.sin(clock * 2 + m.phase) * 0.05; }
   }
-  update({ park: { time: 0, carouselAngle: 0, running: {}, boatU: 0, coasterU: 0, wheelAngle: 0, cars: Array.from({ length: PARK.bumpers.cars }, () => ({ x: RINK.x, z: RINK.z, heading: 0, bump: 0 })), door: 0, act: 0 } });
-  return { update };
+  update({ park: { time: 0, carouselAngle: 0, running: {}, boatU: 0, coasterU: 0, wheelAngle: 0, cars: Array.from({ length: PARK.bumpers.cars }, () => ({ x: RINK.x, z: RINK.z, heading: 0, bump: 0 })), door: 0 } });
+  return { update, root };
 }

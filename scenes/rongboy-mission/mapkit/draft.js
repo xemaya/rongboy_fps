@@ -107,13 +107,13 @@ function onePlan({ id, name, theme, rooms: count }, rand) {
   const gunFor = { shielded: 'heavy', heavy: 'needle', archer: 'sewing' };
   inner.forEach((q, i) => { const g = gunFor[spec[q.key].fresh]; if (g) spec[inner[Math.max(0, i - 1)].key].pickups.push(g); delete spec[q.key].fresh; });
   const deep = [...inner].reverse();
-  [deep[0], deep[Math.min(2, deep.length - 1)]].forEach(q => spec[q.key].pickups.push('heart'));
+  [deep[0], deep[Math.min(2, deep.length - 1)]].forEach(q => spec[q.key].pickups.push('potion'));
   for (let i = 0; i < Math.ceil(total / 7); i++) spec[inner[(i * 2 + 1) % inner.length].key].pickups.push('ammo');
   spec[inner[Math.floor(inner.length / 2)].key].pickups.push('yarn'); (spec.Y || spec[entry.key]).pickups.push('yarn');
   // 机关：出生的那间一个（一进来就看得到），僵尸最多的两间各一个；暗格：最靠里的一间藏一颗心，中间的一间藏一个弹药包
   (spec.Y || spec[entry.key]).gadget = true;
   [...inner].filter(q => spec[q.key] !== (spec.Y || spec[entry.key])).sort((a, b) => spec[b.key].zombies.length - spec[a.key].zombies.length).slice(0, 2).forEach(q => { spec[q.key].gadget = true; });
-  spec[deep[0].key].stash = ['heart']; if (inner.length > 2) spec[inner[Math.floor(inner.length / 2)].key].stash = ['ammo'];
+  spec[deep[0].key].stash = ['potion']; if (inner.length > 2) spec[inner[Math.floor(inner.length / 2)].key].stash = ['ammo'];
   const keys = [...(hasYard ? ['Y'] : []), ...order.map(q => q.key)];
   return { id, name: name ?? `${THEMES[theme].name}（草图 ${id}）`, theme, cell: 1.5, layout, doors: doors.map(d => d.join('-')), rooms: Object.fromEntries(keys.map(k => [k, spec[k]])) };
 }

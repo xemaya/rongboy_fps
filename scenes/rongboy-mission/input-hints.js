@@ -1,19 +1,19 @@
 import { t } from './language.js';
 export const KEYBOARD = {
   vertical: ['↑', '↓'], horizontal: ['←', '→'], move: ['WASD'], look: ['方向键'],
-  fire: '空格', switch: 'Q', throw: 'E', grenade:'G', exchange: 'F', reload: 'R',
+  fire: '空格', switch: 'Q', throw: 'E', grenade:'G', exchange: 'F', reload: 'R', potion: 'H',
   pause: 'Esc', confirm: 'Enter', jump: 'Shift', back: 'Esc',
 };
 export const GAMEPAD = {
   vertical: ['↑', '↓'], horizontal: ['←', '→'], move: ['左摇杆'], look: ['右摇杆'],
-  fire: 'R2', switch: 'L1', throw: 'L2', grenade:'十字↓', exchange: '□', reload: 'R1',
+  fire: 'R2', switch: 'L1', throw: 'L2', grenade:'十字↓', exchange: '□', reload: 'R1', potion: '△',
   pause: 'Options', confirm: '✕', jump: '✕', back: '○',
 };
 
 export function keyBadge(key) {
   const badge = document.createElement('kbd');
   badge.className = 'ui-key';
-  if (key === '✕' || key === '○' || key === '□') badge.dataset.shape = 'pad';
+  if (key === '✕' || key === '○' || key === '□' || key === '△') badge.dataset.shape = 'pad';
   badge.textContent = t(key);
   return badge;
 }

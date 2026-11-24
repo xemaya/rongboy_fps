@@ -122,4 +122,4 @@ export const GUNS = { scatter: 6, heavy: 3, stun: 4, sewing: 48, needle: 6 };
 export const OBJECTIVE_ITEMS = ['basket', 'mask', 'egg', 'gem'];
 
 // 拉链暗格里能放的东西：只放补给，不放枪和任务物品（docs/fun-design.md 9.7）。
-export const STASH_ITEMS = ['heart', 'ammo', 'yarn'];
+export const STASH_ITEMS = ['potion', 'ammo', 'yarn'];

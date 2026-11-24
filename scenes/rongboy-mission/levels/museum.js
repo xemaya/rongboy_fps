@@ -36,7 +36,7 @@ export default {
     title: '闭馆之后，<br>把展品找回来。',
     intro: '一楼找黄金面具和恐龙蛋，再从北走廊上楼找蓝宝石。三件展品送回一楼恐龙面前。',
     brief: '一楼埃及厅找面具，自然厅找恐龙蛋。走北走廊上二楼珍宝库取蓝宝石，再把三件展品送回恐龙面前。',
-    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药包在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心 · 受伤少、12 分钟内送回可得三星'],
+    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '弓手：瞄准线变红就换方向 · 炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球', '从背后打 ×2，趁它没发现再 ×2', '门厅里有一把静电枪 · 其余的枪和弹药包在各个展厅', '每拿起一件展品，附近的僵尸会被惊动', '3 颗心，H 喝血瓶回 2 颗 · 受伤少、12 分钟内送回可得三星'],
     start: '走进博物馆',
     hint: '埃及厅的面具、自然厅的恐龙蛋、二楼珍宝库的蓝宝石',
     got: '找到了！',
@@ -211,7 +211,7 @@ export default {
 
   pickups: [
     // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
-    { kind: 'heart', amount: 1, x: -12.37, z: 11.4, stash: { x: -12.37, z: 12, normal: [0, -1] } },   // 纪念品店南墙,
+    { kind: 'potion', x: -12.37, z: 11.4, stash: { x: -12.37, z: 12, normal: [0, -1] } },   // 纪念品店南墙,
     { kind: 'ammo', x: 2.65, z: -3.25, stash: { x: 2.65, z: -3.85, normal: [0, 1] } },              // 中央大厅北墙,
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: 2.75, z: -10.35, stash: { x: 2.15, z: -10.35, normal: [1, 0] } },   // 珍宝馆西墙,
     { kind: 'objective', item: 'mask', name: '黄金面具', x: -11.4, z: 1.0 },
@@ -225,8 +225,8 @@ export default {
     { kind: 'ammo', x: -3.0, z: -11.2 },
     { kind: 'weapon', weapon: 'heavy', amount: 3, x: 13.3, z: -11.3 },
     { kind: 'ammo', x: 5.9, z: -1.2 },
-    { kind: 'heart', amount: 1, x: 0, z: -10.4 },
-    { kind: 'heart', amount: 1, x: -5.0, z: 10.8 },
+    { kind: 'potion', x: 0, z: -10.4 },
+    { kind: 'potion', x: -5.0, z: 10.8 },
   ],
   upper: [{
     rooms: [
@@ -286,7 +286,7 @@ export default {
       { kind:'objective', item:'gem', name:'蓝宝石', x:11.1, z:10 },
       { kind:'ammo', x:-10.8, z:-7 },
       { kind:'weapon', weapon:'needle', amount:5, x:1.95, z:-8.7 },
-      { kind:'heart', amount:1, x:-12.2, z:4.5 },
+      { kind: 'potion', x:-12.2, z:4.5 },
     ],
   }],
 };

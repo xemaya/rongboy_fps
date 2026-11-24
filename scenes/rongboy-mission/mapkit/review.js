@@ -32,7 +32,7 @@ export function reviewMap(def, { bots = true } = {}) {
     return { id: room.id, name: room.name, outdoor: !!room.outdoor, far: f1(far), area: f1(area), free: Math.round(cells.filter(c => c.room === room).length * 0.25 / area * 100),
       tall: boxes.filter(c => coverOf(c.maxY) === 'tall').length, low: boxes.filter(c => coverOf(c.maxY) === 'low').length,
       zombies: zs.length, kinds: tally(zs.map(e => ZOMBIES[e.type].name)).map(([k, n]) => (n > 1 ? `${k}×${n}` : k)), fresh: fresh.map(t => ZOMBIES[t].name),
-      pickups: L.pickups.filter(k => inRoom(k, room)).map(k => (k.kind === 'heart' ? '心' : k.kind === 'objective' ? k.name : k.kind === 'weapon' ? WEAPONS.find(w => w.id === k.weapon).short : k.weapon === 'yarn' ? '毛线团' : '弹药包')) };
+      pickups: L.pickups.filter(k => inRoom(k, room)).map(k => (k.kind === 'potion' ? '血瓶' : k.kind === 'objective' ? k.name : k.kind === 'weapon' ? WEAPONS.find(w => w.id === k.weapon).short : k.weapon === 'yarn' ? '毛线团' : '弹药包')) };
   });
 
   // ---- 动线：每扇门连着哪两间；有没有环
@@ -84,7 +84,7 @@ export function reviewMap(def, { bots = true } = {}) {
   const states = { asleep: L.enemies.filter(e => e.state === 'asleep').length, patrol: L.enemies.filter(e => e.state !== 'asleep' && e.patrol).length };
   states.idle = L.enemies.length - states.asleep - states.patrol;
   const firstLook = L.enemies.filter(e => dist(e, L.player) < 14 && lineOfSight(L, eye(e), eye(L.player)));
-  const supplies = { stashes, hearts: L.pickups.filter(k => k.kind === 'heart').length, ammo: L.pickups.filter(k => k.kind === 'ammo' && !k.weapon).length, yarn: L.pickups.filter(k => k.weapon === 'yarn').length,
+  const supplies = { stashes, potions: L.pickups.filter(k => k.kind === 'potion').length, ammo: L.pickups.filter(k => k.kind === 'ammo' && !k.weapon).length, yarn: L.pickups.filter(k => k.weapon === 'yarn').length,
     guns: L.pickups.filter(k => k.kind === 'weapon').map(k => WEAPONS.find(w => w.id === k.weapon).short) };
   const facts = { size: `${f1(B.maxX - B.minX)} × ${f1(B.maxZ - B.minZ)} 米`, walkable: f1(walkable), rooms: rooms.length, zombies: L.enemies.length, density: f1(L.enemies.length / walkable * 100),
     kinds: tally(L.enemies.map(e => ZOMBIES[e.type].name)).map(([k, n]) => `${k}×${n}`), states, par: L.par, sight: f1(sight.d), firstLook: firstLook.length, nearest: f1(Math.min(Infinity, ...L.enemies.map(e => dist(e, L.player)))) };
@@ -120,7 +120,7 @@ export function reviewMap(def, { bots = true } = {}) {
   }
   if (facts.density > 8) problem(`每 100 平米可走的地面上有 ${facts.density} 只僵尸，学校是 6.3 只：太密。减少僵尸或者把图画大（准则 3.4）`);
   if (facts.density < 3) idea(`每 100 平米可走的地面上只有 ${facts.density} 只僵尸，学校是 6.3 只：会有很长的空路（准则 3.4）`);
-  if (supplies.hearts < 2) idea(`只有 ${supplies.hearts} 颗心：玩家一共 3 颗，一张图放 2 颗左右（准则 3.6）`);
+  if (supplies.potions < 2) idea(`只有 ${supplies.potions} 瓶血瓶：玩家一共 3 颗心、一瓶回 2 颗，一张图放 2 瓶左右（准则 3.6）`);
   if (supplies.ammo < Math.ceil(L.enemies.length / 8)) idea(`只有 ${supplies.ammo} 个弹药包：大约每 8 只僵尸配 1 个，不然特殊枪用两下就只能回到手枪（准则 3.6）`);
   if (!supplies.guns.length) idea('地上一把枪都没有：玩家手里只有手枪和霰弹，没有"换哪把"的选择（准则 3.6）');
   if (played) {
@@ -142,7 +142,7 @@ export function formatReview(r, previous = null) {
   const delta = (now, before) => (before == null || before === now ? '' : `（上次 ${before}）`);
   out.push(`${r.name}（${r.id}）  ${F.size} · 可走 ${F.walkable} 平米 · ${F.rooms} 间 · 标准时间 ${F.par} 秒`);
   out.push(`僵尸 ${F.zombies} 只${delta(F.zombies, P?.zombies)}：${F.kinds.join(' ')} · 睡着 ${F.states.asleep} / 站岗 ${F.states.idle} / 巡逻 ${F.states.patrol} · 每 100 平米 ${F.density} 只${delta(F.density, P?.density)}`);
-  out.push(`补给：心 ${r.supplies.hearts} · 弹药包 ${r.supplies.ammo} · 毛线团 ${r.supplies.yarn} · 枪 ${r.supplies.guns.join('、') || '无'}${r.supplies.stashes ? ` · 其中 ${r.supplies.stashes} 样藏在拉链暗格里` : ''}`);
+  out.push(`补给：血瓶 ${r.supplies.potions} · 弹药包 ${r.supplies.ammo} · 毛线团 ${r.supplies.yarn} · 枪 ${r.supplies.guns.join('、') || '无'}${r.supplies.stashes ? ` · 其中 ${r.supplies.stashes} 样藏在拉链暗格里` : ''}`);
   out.push(`动线：${r.flow.doors} 扇门 · ${r.flow.loops} 个环${delta(r.flow.loops, previous?.flow.loops)} · 屋里最长的直线视野 ${F.sight} 米${delta(F.sight, P?.sight)} · 出生点第一眼看得到 ${F.firstLook} 只，最近的一只在 ${F.nearest} 米外`);
   out.push('', '房间（按从出生点走进去的先后；"可走"扣掉了墙边和家具边站不下人的一圈，空房间也只有六成左右）');
   out.push('  路程  房间          面积  可走  高/矮掩体  僵尸                          新出现        拾取');

@@ -6,11 +6,10 @@ import museum from './museum.js';
 import school from './school.js';
 import cottage from './cottage.js';
 import amusement from './amusement.js';
-import amusementTour from './amusement-tour.js';
 
-// 'amusement-whitebox' 是白盒阶段的旧网址，留着指向同一关
-export const LEVELS = { house, museum, school, cottage, amusement, 'amusement-whitebox': amusement, 'amusement-tour': amusementTour };
+// 'amusement-whitebox'、'amusement-tour' 是合并之前的旧网址（白盒、直道那张"布偶游乐场"、没有敌人的游园），都指向现在这一关
+export const LEVELS = { house, museum, school, cottage, amusement, 'amusement-whitebox': amusement, 'amusement-tour': amusement };
 export const ORDER = ['house', 'museum', 'school', 'cottage'];
 // EXTRAS：也列在选关里、排在四张正式地图后面，但不走"按房间数僵尸"的那套检查，所以不进 ORDER。
-// amusement 是布偶游乐场（四段加小丑首领，规则在 amusement.js）；amusement-tour 是没有敌人的游园。
-export const EXTRAS = ['amusement', 'amusement-tour'];
+// amusement 是布偶游乐园（十站连成一关，最后打小丑；规则在 amusement.js）。
+export const EXTRAS = ['amusement'];

@@ -1,6 +1,6 @@
 # 布偶游乐园：出图交接单
 
-给负责出图的 agent。游乐园（`rongboy-play.html?level=amusement-tour`）的设施正在从方块细化成概念图的样子，并且要能互动。
+给负责出图的 agent。游乐园（`rongboy-play.html?level=amusement`）的设施正在从方块细化成概念图的样子，并且要能互动。
 下面是还缺的图：每一项写了用途、尺寸、文件名和提示词要点。出完按文件名放进对应目录，提交到 `park-assets` 分支，不用改代码。
 
 读这份单子之前先看两张图：

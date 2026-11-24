@@ -72,7 +72,7 @@ export function checkMap(def, { play = true } = {}) {
       else if ((e.state ?? 'alert') === 'alert' && !e.dormant) warn('enemy-alert', `${tag}${ENEMY_TYPES[e.type]?.name ?? e.type} ${at(e)} 一开局就是警觉的：会立刻冲向出生点。正式地图里的僵尸都应该是 asleep 或 idle`);
     }
     for (const k of part.pickups || []) {
-      if (!['weapon', 'ammo', 'heart', 'objective'].includes(k.kind)) err('pickup-kind', `${tag}拾取物 ${at(k)}：kind "${k.kind}" 不存在`);
+      if (!['weapon', 'ammo', 'potion', 'objective'].includes(k.kind)) err('pickup-kind', `${tag}拾取物 ${at(k)}：kind "${k.kind}" 不存在`);
       if (k.weapon && !WEAPONS.some(w => w.id === k.weapon)) err('pickup-weapon', `${tag}拾取物 ${at(k)}：没有叫 "${k.weapon}" 的枪`);
       if (k.kind === 'objective' && k.item && !OBJECTIVE_ITEMS.includes(k.item)) warn('pickup-item', `${tag}任务物品 ${at(k)}：item "${k.item}" 没有对应的模型，会画成毛线篮`);
       if (k.kind === 'objective' && !k.name) err('pickup-name', `${tag}任务物品 ${at(k)} 没有 name`);
@@ -225,7 +225,7 @@ export function checkMap(def, { play = true } = {}) {
     if (z?.answer && !guns.has(z.answer)) warn('no-answer', `图里有${z.name}，但没有${WEAPONS.find(w => w.id === z.answer).name}："打不动"要成对出现（fun-design 3.6）。在它第一次出现的房间之前放一把（pickups 里写 '${z.answer}'）`);
   }
   if (!L.enemies.length && def.mission.type!=='explore') err('empty', '图里没有僵尸');
-  if (L.enemies.length && !L.pickups.some(k => k.kind === 'heart')) warn('no-heart', '图里没有心：玩家只有 3 颗心，一张图至少放 2 颗');
+  if (L.enemies.length && !L.pickups.some(k => k.kind === 'potion')) warn('no-potion', '图里没有血瓶：玩家只有 3 颗心，一张图至少放 2 瓶');
   if (def.mission.type === 'fetch') {
     if (!L.pickups.some(k => k.kind === 'objective')) err('no-objective', '找东西的任务，但图里没有任务物品（pickups 里写 { objective: "名字" }）');
     const X = def.mission.exit;

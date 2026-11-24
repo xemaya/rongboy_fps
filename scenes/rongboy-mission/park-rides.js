@@ -1,5 +1,5 @@
-// 游乐园的规则：走近设施按一个键，设施演一段；走到小径尽头的马戏团、看完一场演出，这一趟就逛完了（docs/park-design.md）。
-// 没有收集、没有进度条。以后往里放战斗时，改成一个设施一个场景：打倒场景里所有敌人、打开开关，才放行去下一个。
+// 游乐园里设施的规则：走近设施按一个键，设施演一段、或者坐上去（docs/park-design.md）。
+// 哪一站办完了什么事、门开不开、小丑怎么打，在 amusement.js；这里只管设施自己。
 // 确定性、不依赖 DOM。画面（park-tour-view.js）只读这里的状态：木马转到哪、车在轨道的哪一点、门开了多少。
 // 三类互动：看（设施演，人站在路上）、坐（摩天轮、过山车、激流勇进：人被带着走）、开（碰碰车：人自己开）。
 import { COASTER, RAPIDS, WHEEL, RINK, STALLS, HAUNT, RAPIDS_DOCK, trackSchedule } from './park-tour-layout.js';
@@ -20,7 +20,6 @@ export const PARK = {
   haunt: { time: 5, show: 8, keep: 11 },   // time：敲门后窗里的幽灵探头多久；show：摇铃后画像上的幽灵出来多久；keep：人离门这么远以后门才关
   wheel: { speed: 0.2, seat: -0.86 },   // seat：坐着的时候眼睛在吊舱挂点下面 0.86 米（舱顶在 0.3 米处、栏杆在 1.07 米处：顶只压住画面上沿，栏杆在下沿）
   bumpers: { time: 30, accel: 12, top: 6, drag: 1.3, radius: 0.55, seat: 1.0, cars: 4, auto: 0.55, thump: 1.4 },   // top：最快每秒 6 米（场子长 10 米，两秒不到从这头冲到那头）；auto：没人开的车用几成油门；thump：撞得比这快才算一下（出声、抖一抖）
-  circus: { time: 18, acts: 3 },   // 一场演出三个节目，挨着演，每个 6 秒
 };
 
 // 在哪按键（都在路上）、提示写什么。kind：look 看 / ride 坐 / drive 开。
@@ -36,16 +35,15 @@ export const SPOTS = [
     reach: 2.05, zh: stall.zh, en: stall.en,
   })),
   { id: 'bumpers', stop: 'bumpers', kind: 'drive', x: 35.4, z: 10.0, zh: '开碰碰车', en: 'Drive a bumper car' },
-  { id: 'circus', stop: 'circus', kind: 'look', x: 0, z: -1.6, zh: '敲锣开演', en: 'Strike the gong' },
 ];
 
 export function createPark() {
   return {
-    time: 0, done: false, riding: null, stall: null,   // done：看完了马戏团的演出，这一趟结束
+    time: 0, riding: null, stall: null,
     watch: false,   // true：过山车只看不坐（系统设了"减少动态效果"的人，准则 3.9）
     // 各设施演到哪了：0 是没在演；大于 0 是已经演了多少秒
-    running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, circus: 0, coaster: 0 },
-    carouselAngle: 0, wheelAngle: 0, coasterU: 0, boatU: 0, act: 0,
+    running: { carousel: 0, rapids: 0, haunt: 0, portraits: 0, coaster: 0 },
+    carouselAngle: 0, wheelAngle: 0, coasterU: 0, boatU: 0,
     door: 0, knocked: false,   // 鬼屋的门开了多少（0–1）；敲过门、门该开着
     // 碰碰车：四辆，在场里自己转悠；玩家上车就接手第 0 辆
     cars: Array.from({ length: PARK.bumpers.cars }, (_, i) => { const a = i * TAU / PARK.bumpers.cars + 0.4; return { x: RINK.x + Math.cos(a) * RINK.rx * 0.55, z: RINK.z + Math.sin(a) * RINK.rz * 0.55, vx: 0, vz: 0, heading: a + Math.PI / 2, bump: 0 }; }),
@@ -147,8 +145,7 @@ export function parkInteract(s) {
   if (prompt.kind === 'ride' || prompt.kind === 'drive') { board(s, id); return true; }
   if (id === 'haunt') { park.knocked = true; park.running.haunt = 1e-6; s.events.push({ type: 'park', what: 'start', id }); return true; }   // 敲门：门开，幽灵要进去摇了铃才出来
   park.running[id] = 1e-6;
-  if (id === 'circus') park.act = 1;
-  s.events.push({ type: 'park', what: 'start', id, act: park.act });
+  s.events.push({ type: 'park', what: 'start', id });
   return true;
 }
 
@@ -209,10 +206,6 @@ export function stepPark(s, dt, input = {}) {
     park.door = clamp(park.door + (park.knocked ? dt / 1.2 : -dt / 1.5), 0, 1);
     if (R.haunt > 0) R.haunt = R.haunt + dt >= H.time ? 0 : R.haunt + dt;
     if (R.portraits > 0) R.portraits = R.portraits + dt >= H.show ? 0 : R.portraits + dt;
-  }
-  if (R.circus > 0) {   // 马戏团：演完一场，这一趟就逛完了
-    R.circus += dt; park.act = Math.min(PARK.circus.acts, 1 + Math.floor(R.circus / (PARK.circus.time / PARK.circus.acts)));
-    if (R.circus >= PARK.circus.time) { R.circus = 0; if (!park.done) { park.done = true; s.events.push({ type: 'park', what: 'complete' }); } }
   }
   if (park.stall) stepStall(s, dt);
   bumperCars(s, dt, input);

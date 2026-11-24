@@ -123,17 +123,17 @@ test('spotlight: everything in its circle of light freezes, unhurt and none the 
 
 test('zipper stash: what is inside cannot be seen or taken until a ball opens the zip; then it lies at the foot of the wall', () => {
   const wall = { id: 'wall', kind: 'cabinet', x: 0, z: -3, w: 8, d: 0.4, h: 2.4 };
-  const heart = { kind: 'heart', amount: 1, x: 2, z: -2.2, stash: { x: 2, z: -2.8 } };
-  const s = arena(null, { furniture: [wall], pickups: [heart] });
-  s.health = 2; s.player.x = 2; s.player.z = -2.2; run(s, 0.3);
-  assert.equal(s.health, 2, 'standing on the spot does not pick up what is still zipped in'); assert.equal(s.pickups[0].hidden, true);
+  const potion = { kind: 'potion', x: 2, z: -2.2, stash: { x: 2, z: -2.8 } };
+  const s = arena(null, { furniture: [wall], pickups: [potion] });
+  s.player.x = 2; s.player.z = -2.2; run(s, 0.3);
+  assert.equal(s.potions, 0, 'standing on the spot does not pick up what is still zipped in'); assert.equal(s.pickups[0].hidden, true);
   s.player.x = -3; s.player.z = 3; shootAt(s, -2, -2.8, 1.1);
   assert.equal(run(s, 1.2).filter(e => e.type === 'stash').length, 0, 'a ball two metres along the wall does not open it');
   s.player.x = 2; shootAt(s, 2, -2.8, 1.1);
   const opened = run(s, 1.2).filter(e => e.type === 'stash');
-  assert.equal(opened.length, 1); assert.deepEqual([opened[0].kind, opened[0].x, opened[0].z], ['heart', 2, -2.2]); assert.equal(s.pickups[0].hidden, false);
+  assert.equal(opened.length, 1); assert.deepEqual([opened[0].kind, opened[0].x, opened[0].z], ['potion', 2, -2.2]); assert.equal(s.pickups[0].hidden, false);
   s.player.z = -2.2; run(s, 0.3);
-  assert.equal(s.health, 3); assert.equal(s.pickups[0].taken, true);
+  assert.equal(s.potions, 1); assert.equal(s.pickups[0].taken, true);
 });
 
 test('a bounce reports what the ball struck, so the scenery can react', () => {

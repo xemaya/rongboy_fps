@@ -13,7 +13,7 @@ import { kidDesk, podium, lockers, easel, paletteTable, labBench, skeletonModel,
 import { woolMaterial } from '../../library/games/rongboy-runtime.js';
 import { createToys } from './toys.js';
 import { createEasterEggProps } from './easter-egg-props.js';
-import { ammoPouch, cottonHeart, displayedWeapon, pickupFabric, yarnBasket } from './pickup-props.js';
+import { ammoPouch, feltPotion, displayedWeapon, pickupFabric, yarnBasket } from './pickup-props.js';
 import { bombProp } from './arsenal.js';
 import { createVapor } from './vapor.js';
 import { createOcclusion } from './occlusion.js';
@@ -42,13 +42,14 @@ function label(text, { width = 512, height = 128, size = 64, ink = '#4d5c47', pa
 }
 
 function pickupModel(k, weapons, variants, fabric) {
-  const g = new T.Group(), heart = k.kind === 'heart', objective = k.kind === 'objective', gun = k.kind === 'weapon';
+  const g = new T.Group(), potion = k.kind === 'potion', objective = k.kind === 'objective', gun = k.kind === 'weapon';
   const index = weapons.findIndex(w => w.id === k.weapon), weapon = weapons[index];
   const body = new T.Group(); g.add(body);
   let labelHeight = .42;
   const add = (geometry, material, x, y, z) => { const m = new T.Mesh(geometry, material); m.position.set(x, y, z); body.add(m); return m; };
-  if (heart) {
-    cottonHeart(body, fabric);
+  if (potion) {
+    feltPotion(body, fabric);
+    labelHeight = .45;
   } else if (objective) {
     const shiny = (c, e = 0) => new T.MeshStandardMaterial({ color: c, roughness: 0.3, emissive: c, emissiveIntensity: e });
     if (k.item === 'mask') {          // 黄金面具
@@ -76,7 +77,7 @@ function pickupModel(k, weapons, variants, fabric) {
     const glow = add(new T.TorusGeometry(0.34, 0.018, 8, 28), new T.MeshStandardMaterial({ color: 0x9fe8ff, emissive: 0x7fd8ff, emissiveIntensity: 2.5 }), 0, -0.2, 0);
     glow.rotation.x = Math.PI / 2;
   }
-  const text = heart ? '♥ +1' : objective ? `★ ${k.name || t('毛线篮')}` : gun ? `★ ${weapon?.name ?? ''}` : weapon ? `${weapon.short} +${k.amount ?? 1}` : t('弹药包');
+  const text = potion ? t('血瓶') : objective ? `★ ${k.name || t('毛线篮')}` : gun ? `★ ${weapon?.name ?? ''}` : weapon ? `${weapon.short} +${k.amount ?? 1}` : t('弹药包');
   const sprite = new T.Sprite(new T.SpriteMaterial({ map: label(text, { width: 384, height: 96, size: 46 }), transparent: true, depthWrite: false }));
   sprite.scale.set(0.72, 0.18, 1); sprite.position.y = labelHeight; g.add(sprite);
   g.position.set(k.x, (k.y ?? 0) + 0.55, k.z);

@@ -344,18 +344,18 @@ function populate(ctx) {
   for (const room of rooms) {
     const inner = innerOf(room, ctx), where = `${room.name}（${room.key}）`, entry = room.entry;
     for (const raw of room.spec.pickups || []) {
-      const spec = typeof raw === 'string' ? (raw === 'ammo' || raw === 'heart' || raw === 'yarn' ? { kind: raw } : { kind: 'weapon', weapon: raw.replace(/^gun:/, '') }) : raw.objective ? { kind: 'objective', name: raw.objective, ...raw } : { ...raw };
+      const spec = typeof raw === 'string' ? (raw === 'ammo' || raw === 'potion' || raw === 'yarn' ? { kind: raw } : { kind: 'weapon', weapon: raw.replace(/^gun:/, '') }) : raw.objective ? { kind: 'objective', name: raw.objective, ...raw } : { ...raw };
       let item;
       if (spec.kind === 'weapon') {
-        if (!(spec.weapon in GUNS)) fail(`${where} 的拾取物 "${spec.weapon}"：能放在地上的枪只有 ${names(GUNS)}；另外可以写 'ammo'（弹药包）、'heart'（心）、'yarn'（毛线团）、{ objective: '名字' }（任务物品）`);
+        if (!(spec.weapon in GUNS)) fail(`${where} 的拾取物 "${spec.weapon}"：能放在地上的枪只有 ${names(GUNS)}；另外可以写 'ammo'（弹药包）、'potion'（血瓶）、'yarn'（毛线团）、{ objective: '名字' }（任务物品）`);
         item = { kind: 'weapon', weapon: spec.weapon, amount: spec.amount ?? GUNS[spec.weapon] };
       } else if (spec.kind === 'ammo') item = { kind: 'ammo' };
       else if (spec.kind === 'yarn') item = { kind: 'ammo', weapon: 'yarn', amount: spec.amount ?? 1 };
-      else if (spec.kind === 'heart') item = { kind: 'heart', amount: 1 };
+      else if (spec.kind === 'potion') item = { kind: 'potion' };
       else if (spec.kind === 'objective') {
         if (spec.item && !OBJECTIVE_ITEMS.includes(spec.item)) fail(`${where} 的任务物品 item "${spec.item}"：只有 ${OBJECTIVE_ITEMS.join('、')} 这几种模型`);
         item = { kind: 'objective', item: spec.item ?? 'basket', name: spec.name };
-      } else fail(`${where} 的拾取物 ${JSON.stringify(raw)} 看不懂：写 'ammo'、'heart'、'yarn'、枪的名字（${names(GUNS)}）或 { objective: '名字' }`);
+      } else fail(`${where} 的拾取物 ${JSON.stringify(raw)} 看不懂：写 'ammo'、'potion'、'yarn'、枪的名字（${names(GUNS)}）或 { objective: '名字' }`);
       let spot = Number.isFinite(spec.x) && Number.isFinite(spec.z) ? { x: spec.x, z: spec.z } : null;
       if (!spot) {
         const dE = p => Math.hypot(p.x - entry.x, p.z - entry.z), apart = p => Math.min(5, ...dropped.map(o => Math.hypot(o.x - p.x, o.z - p.z)));
@@ -375,7 +375,7 @@ function populate(ctx) {
 }
 
 // ---------- 5b. 机关和拉链暗格（docs/fun-design.md 第 9 节）----------
-// 一张图只用一种机关（草图的 gadget，不写就按主题）；房间里写 gadget: true 就在这间放一个，stash: ['heart'] 就在这间的墙上开一个暗格。
+// 一张图只用一种机关（草图的 gadget，不写就按主题）；房间里写 gadget: true 就在这间放一个，stash: ['potion'] 就在这间的墙上开一个暗格。
 function extras(ctx) {
   const { rooms, def, plan, T, house, yard, WT, player } = ctx, kind = plan.gadget ?? T.gadget;
   if (!GADGETS[kind]) fail(`机关 "${kind}" 不存在（现有：${names(GADGETS)}）`);
@@ -399,7 +399,7 @@ function extras(ctx) {
         || fail(`${where} 开不了拉链暗格：找不到一段 0.9 米以上、前面有空地的空墙（要让开门、窗、画和贴墙的家具）。换一间，或者挪开一件贴墙的家具`);
       zips.push(spot);
       def.pictures = def.pictures.filter(p => Math.hypot(p.x - spot.x, p.z - spot.z) > 1.1);
-      def.pickups.push({ ...(raw === 'heart' ? { kind: 'heart', amount: 1 } : raw === 'yarn' ? { kind: 'ammo', weapon: 'yarn', amount: 1 } : { kind: 'ammo' }), x: spot.drop.x, z: spot.drop.z, stash: { x: spot.x, z: spot.z, normal: spot.normal } });
+      def.pickups.push({ ...(raw === 'potion' ? { kind: 'potion' } : raw === 'yarn' ? { kind: 'ammo', weapon: 'yarn', amount: 1 } : { kind: 'ammo' }), x: spot.drop.x, z: spot.drop.z, stash: { x: spot.x, z: spot.z, normal: spot.normal } });
     }
   }
 }
@@ -417,7 +417,7 @@ function texts(plan, def, rooms) {
     intro: fetch ? `${short}里一共 ${n} 只僵尸，不会再多，也不必都打倒。找到${things.join('、')}，带回出发的地方。它们有的睡着，有的在巡逻，还没发现你。`
       : `${short}里一共 ${n} 只僵尸，不会再多。把它们全部击倒就过关。它们有的睡着，有的在巡逻，还没发现你。`,
     how: ['Q 换枪 · E 扔毛线团 · F 换地上的枪 · R 换弹', ...(special.length ? [special.slice(0, 2).join(' · '), ...(special.length > 2 ? [special.slice(2).join(' · ')] : [])] : []), '从背后打 ×2，趁它没发现再 ×2',
-      ...(guns.length ? [guns.slice(0, 3).join(' · ')] : []), `3 颗心 · 受伤少、${minutes} 分钟内${fetch ? '带回' : '清完'}可得三星`],
+      ...(guns.length ? [guns.slice(0, 3).join(' · ')] : []), `3 颗心，H 喝血瓶回 2 颗 · 受伤少、${minutes} 分钟内${fetch ? '带回' : '清完'}可得三星`],
     start: '出发', hint: fetch ? `${things.join('、')}在里面 · 拿到后回到出发的地方` : '它们还没发现你 · 从背后打更省事',
     won: fetch ? '带回来了！' : '清空了！',
     ...(fetch ? { got: '拿到了！', carry: '都齐了 · 回到出发的地方', lostCarrying: '东西到手却没带回来：回去之前先把路上的清掉。' } : {}),

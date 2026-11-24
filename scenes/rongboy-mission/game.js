@@ -12,13 +12,14 @@ import { GADGETS, STASH } from './gadgets.js';
 import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
 import { travelPace, strideTravel } from './locomotion.js';
 import { advanceWaves } from './encounter-waves.js';
-import { constrainTourWalk } from './park-tour-layout.js';
+import { constrainTourWalk, isTourWalkable } from './park-tour-layout.js';
 import { createPark, stepPark } from './park-rides.js';
 
 import { makeAmusement, checkpointPosition, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene } from './amusement.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
+  maxPotions: 3, potionHeal: 0.75,   // 血瓶：捡到先带着（最多 3 瓶），喝一瓶回满血的 75%（3 颗心的图是 2 颗，100 血的图是 75）
   chargeTime: 0.82, maxBalls: 48, ballLife: 5, repeatHitDelay: 0.18, gravity: 0.9,
   // 感知
   hearRadius: 1.5,     // 睡着的僵尸：你走到这么近才会醒
@@ -85,7 +86,8 @@ const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 const length = (x, z) => Math.hypot(x, z);
 const enemyMovementScale = (s,e) => e.tangle > 0 ? TANGLE_SPEED : e.frostSlowUntil > s.time ? .7 : 1;
 
-export function createGame({ level, amusementCheckpoint = 0 } = {}) {
+// carry：从检查点重来时带回来的东西（checkpointCarry 记下的）：身上几瓶血瓶、哪些地上的东西已经捡走了
+export function createGame({ level, amusementCheckpoint = 0, carry = null } = {}) {
   if (!level) throw new Error('createGame 需要一个编译好的关卡');
   const amusement = level.mission?.type === 'amusement' ? makeAmusement(amusementCheckpoint) : null;
   const maxHealth = amusement ? 100 : CONFIG.maxHealth;
@@ -94,14 +96,14 @@ export function createGame({ level, amusementCheckpoint = 0 } = {}) {
     ammo: WEAPONS.map(w => ({ mag: w.mag, reserve: w.reserve })), stowedReload: WEAPONS.map(() => 0), reloading: false, reload: 0, trigger: false,
     // 开局带哪些枪：关卡的 arsenal（武器 id 列表），不写就是最早的三把。其余的要捡。
     owned: WEAPONS.map(w => (level.arsenal || ['single', 'scatter', 'heavy']).includes(w.id)),
-    health: maxHealth, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
+    health: maxHealth, potions: carry?.potions ?? 0, damageTaken: 0, kills: 0, total: 0, shots: 0, hits: 0, bounces: 0, backHits: 0, sneakHits: 0,
     charge: 0, charging: false, cooldown: 0, invul: 0, lob: 0, lobbing: false, lobCooldown: 0, rangedGate: 0, nextId: 1, endIn: null, stars: 0, carrying: false,
     // 取物任务可以有好几件目标：collected 是已经拿到的件数，全部拿到（carrying）才能去出口交差
     collected: 0, objectives: (level.pickups || []).filter(k => k.kind === 'objective').length,
     enemies: [], balls: [], nets: [], tangleFields: [], enemyShots: [], enemyBombs: [], events: [], neutralized: 0, slowUntil: 0, pulledUntil: 0,
     dormant: [],   // 还没出场的（关卡里写了 dormant: true）：任务物品拿齐的那一刻才出现
     // 藏在拉链暗格里的（stash）开局看不见、捡不到，打开拉链才掉出来
-    pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: false, hidden: !!p.stash })),
+    pickups: (level.pickups || []).map((p, i) => ({ ...p, id: i + 1, taken: !!carry?.taken?.includes(i + 1), hidden: !!p.stash })),
     gadgets: (level.gadgets || []).map(g => ({ ...g, used: false, until: 0 })),
     player: { x: level.player.x, y: 0, z: level.player.z, vx: 0, vz: 0, mvx: 0, mvz: 0, jump: 0, jumpV: 0, aimX: 0, aimY: 0, aimZ: -1 },
   };
@@ -189,7 +191,7 @@ function finishReload(s) {
 }
 
 function canShoot(s) {
-  if (s.level.tour || s.phase !== 'playing' || s.reloading || s.amusement?.trap || s.amusement?.fallUntil || amusementCutscene(s)) return false;
+  if (s.park?.stall || s.phase !== 'playing' || s.reloading || s.amusement?.trap || s.amusement?.fallUntil || amusementCutscene(s)) return false;
   if (s.ammo[s.weapon].mag > 0) return true;
   if (!startReload(s)) { s.events.push({ type: 'dry', weapon: WEAPONS[s.weapon].id }); backToPistol(s); }
   return false;
@@ -618,7 +620,7 @@ export function cameraMove(side, forward, yaw) {
 // p.jump 是离地高度（p.y 仍是脚下的地面）；落地、起跳各发一个事件给表现层。
 export function beginJump(s) {
   const p = s.player;
-  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0 || s.amusement?.trap || s.amusement?.fallUntil || (s.amusement?.ride?.started != null && !s.amusement.ride.finished) || amusementCutscene(s)) return false;
+  if (s.phase !== 'playing' || p.jump > 0 || p.jumpV > 0 || s.amusement?.trap || s.amusement?.fallUntil || s.park?.riding || s.park?.stall || amusementCutscene(s)) return false;
   p.jump = 0.001; p.jumpV = 2.6;
   s.events.push({ type: 'hop' });
   return true;
@@ -626,7 +628,7 @@ export function beginJump(s) {
 
 // All attack sources share the same heart/iframe path.
 export function hurtPlayer(s,enemy,source='contact',amount=s.amusement ? (source==='contact'?9:12) : 1){
- if(s.phase!=='playing'||s.invul>0||s.endIn!==null||amusementCutscene(s)||(!s.amusement&&s.total>0&&aliveCount(s)===0))return false;
+ if(s.phase!=='playing'||s.invul>0||s.endIn!==null||amusementCutscene(s)||s.park?.riding||s.park?.stall||(!s.amusement&&s.total>0&&aliveCount(s)===0))return false;
  const dx=s.player.x-enemy.x,dz=s.player.z-enemy.z,n=Math.hypot(dx,dz)||1;
  s.health=Math.max(0,s.health-amount);s.damageTaken++;s.invul=s.amusement ? .78 : CONFIG.invulnerable;if(source!=='contact'){s.player.vx+=dx/n*2;s.player.vz+=dz/n*2;}
  if(source==='contact'&&enemy.type==='crawler')s.slowUntil=Math.max(s.slowUntil,s.time+1.3);
@@ -935,9 +937,9 @@ function collect(s) {
   for (const k of s.pickups) {
     if (k.taken || k.hidden || length(k.x - p.x, k.z - p.z) > CONFIG.pickupRadius || Math.abs((k.y ?? 0) - p.y) > 1) continue;
     let got = null;   // 弹药包：实际补给了哪把枪、多少（界面提示用）
-    if (k.kind === 'heart') {
-      if (s.health >= s.maxHealth) continue;
-      s.health = Math.min(s.maxHealth, s.health + k.amount);
+    if (k.kind === 'potion') {
+      if (s.potions >= CONFIG.maxPotions) continue;   // 带满了：留在地上
+      s.potions++;
     } else if (k.kind === 'ammo') {
       // 弹药包不记种类：补的是手里那把特殊枪（没带特殊枪就先留在地上）。写了 weapon 的是指定给那把枪的；手雷是加一颗。
       const index = k.weapon ? weaponIndex(k.weapon) : secondOf(s);
@@ -973,7 +975,7 @@ function collect(s) {
       }
     }
     k.taken = true;
-    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: got?.weapon ?? k.weapon, amount: got?.amount ?? k.amount, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
+    s.events.push({ type: 'pickup', id: k.id, kind: k.kind, weapon: got?.weapon ?? k.weapon, amount: got?.amount ?? k.amount, potions: s.potions, name: k.name, collected: s.collected, needed: s.objectives, x: k.x, z: k.z, base: k.y ?? 0 });
     if (k.kind === 'objective' && s.carrying) emerge(s);   // 放在"捡到了"之后：它的提示要盖过"拿到了"
   }
 }
@@ -1006,12 +1008,23 @@ export function exchangeWeapon(s) {
   return true;
 }
 
+// 喝一瓶血瓶。满血、没瓶子、过场里按了都不喝，瓶子不消耗。
+export function drinkPotion(s) {
+  if (s.phase !== 'playing' || !s.potions || s.health <= 0 || s.health >= s.maxHealth || (s.amusement && amusementCutscene(s))) return false;
+  const before = s.health;
+  s.potions--; s.health = Math.min(s.maxHealth, s.health + Math.round(s.maxHealth * CONFIG.potionHeal));
+  s.events.push({ type: 'drink', healed: s.health - before, health: s.health, potions: s.potions });
+  return true;
+}
+
+// 检查点记一笔：重来的时候血瓶和地上的东西回到进这一段时的样子（不然能反复捡同一瓶）
+export const checkpointCarry = s => ({ potions: s.potions, taken: s.pickups.filter(k => k.taken).map(k => k.id) });
+
 // 任务：clear = 清空所有僵尸；fetch = 拿到目标物后回到出口区域。
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
   if (s.amusement) return { type:'amusement', alive, total:s.total, done:s.amusement.pickedUp && !(s.amusement.victoryCutsceneUntil > s.time) };
-  if (s.level.tour) return { type: 'explore', alive, total: s.total, done: s.park.done && !s.park.riding };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
@@ -1056,8 +1069,8 @@ export function step(s, dt, input = {}) {
   if (s.reloading) { s.reload -= dt; if (s.reload <= 0) finishReload(s); }
   else if (s.ammo[s.weapon].mag === 0 && s.cooldown <= 0 && !startReload(s)) backToPistol(s);   // 打空自动换弹；彻底没弹药就换回手枪
 
-  // 游乐园：设施往前演；坐在设施上的时候人由座位带着走，不走路
-  if (L.tour && stepPark(s, dt, input)) return;
+  // 游乐园：设施往前演；坐在设施上（或站在摊位前）的时候人由座位带着，不走路。枪、僵尸、毛球照常往下算：过山车上要打靶。
+  const seated = !!L.tour && stepPark(s, dt, input);
   let mx = input.x || 0, mz = input.z || 0;
   const m = length(mx, mz);
   if (m > 1) { mx /= m; mz /= m; }
@@ -1067,15 +1080,15 @@ export function step(s, dt, input = {}) {
   }
   const moveSpeed=CONFIG.playerSpeed*(s.slowUntil>s.time?.62:1);
   const fromX = p.x, fromZ = p.z;
-  const controlled=s.amusement && moveAmusement(s,hurtPlayer);
-  if (L.tour) {
-    // Test the requested displacement at the path and wall together, so wall correction cannot move an idle player.
-    if (m) {
-      const floor = storeyAt(L, p.y);
-      p.x += mx * moveSpeed * dt; p.z += mz * moveSpeed * dt;
-      constrainTourWalk(p, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor, x, z, CONFIG.playerRadius));
-    }
-  } else if (!controlled) {
+  const controlled=seated || (s.amusement && moveAmusement(s,hurtPlayer));
+  if (controlled) { p.vx = p.vz = 0; }
+  else if (L.tour) {
+    // 小径和墙一起验：走不过去就退回这一步之前，站着不动的人不会被墙挤走。挨打被推开的那一下（vx、vz）也算在里面。
+    const floor = storeyAt(L, p.y);
+    p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
+    p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
+    if (p.x !== fromX || p.z !== fromZ) constrainTourWalk(p, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor, x, z, CONFIG.playerRadius));
+  } else {
     p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
     p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
     resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
@@ -1102,6 +1115,9 @@ export function step(s, dt, input = {}) {
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
     resolveBody(storeyAt(L, e.base), e, e.radius);
+    if (L.tour && !isTourWalkable(e.x, e.z, .2)) {   // 游乐园：僵尸和人一样只走小径，不踩草地、不穿设施（被打飞也飞不出去）
+      if (isTourWalkable(e.x, startZ, .2)) e.z = startZ; else if (isTourWalkable(startX, e.z, .2)) e.x = startX; else { e.x = startX; e.z = startZ; }
+    }
     e.base = surfaceY(L, e.x, e.z, e.base); e.y = e.base + e.hop;
     if (strideTravel(e, startX, startZ, wantedX, wantedZ, startHeading, dt)) {
       s.events.push({ type: 'footstep', id: e.id, ...at(e), enemyType: e.type });
@@ -1139,7 +1155,7 @@ export function step(s, dt, input = {}) {
   // 只有已经警觉的僵尸碰到你才会扣心。
   if (s.invul <= 0) for (const e of s.enemies) {
     if (!e.alive || !e.enabled || e.awareness !== 'alert' || e.stun > 0 || e.frozenUntil>s.time || !contactAttack(e) || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
-    if (s.amusement && (p.jump > 0.9 || (s.amusement.ride.started !== null && !s.amusement.ride.finished))) continue;   // 游乐场：人坐在过山车上（躲不了）、或被惊喜盒弹到半空时，地上的僵尸够不着
+    if (seated || (s.amusement && p.jump > 0.9)) continue;   // 游乐园：人坐在设施上、或被惊喜盒弹到半空时，地上的僵尸够不着
     const dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     if (d >= CONFIG.playerRadius + e.radius) continue;
     const n = d || 1;
@@ -1152,7 +1168,7 @@ export function step(s, dt, input = {}) {
     if (!e.alive || !e.enabled || Math.abs(e.base - p.y) > CONFIG.sameLevel) continue;
     let dx = p.x - e.x, dz = p.z - e.z, d = length(dx, dz);
     const r = CONFIG.playerRadius + e.radius;
-    if (d >= r) continue;
+    if (d >= r || seated) continue;
     if (d < 0.001) { dx = 0.001; dz = 0; d = 0.001; }
     const overlap = r - d, nx = dx / d, nz = dz / d;
     p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; if (!(e.frozenUntil>s.time)) { e.x -= nx * overlap * .15; e.z -= nz * overlap * .15; }

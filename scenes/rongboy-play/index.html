@@ -32,6 +32,11 @@ body.park-tour #missionStep { font-weight:650; }
   filter: drop-shadow(0 3px 3px #24190bd4);
 }
 .heart.off { background-image: var(--heart-empty); }
+.potions { position: absolute; display: flex; align-items: center; gap: clamp(2px, .32vw, 7px); left: var(--hud-x); bottom: calc(var(--hud-y) + clamp(33px, 3.25vw, 62px) + 6px); }
+.potions.bar { bottom: calc(var(--hud-y) + 46px); }
+.potions .ui-key { margin-right: 4px; font-size: .78em; }
+.potion { display: block; width: clamp(17px, 1.65vw, 30px); aspect-ratio: 40 / 58; background: var(--potion-full) center / contain no-repeat; filter: drop-shadow(0 2px 2px #24190bd4); }
+.potion.off { background-image: var(--potion-empty); opacity: .55; }
 .ammo-readout {
   display: flex; align-items: center; gap: clamp(8px, 1.15vw, 19px);
   position: absolute; right: var(--hud-x); bottom: var(--hud-y); color: #fff0c9;
@@ -151,9 +156,9 @@ body.danger #hurtFrame.damage{animation:ouch .85s ease-out}
 #cotton i{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(circle at 38% 35%,#fffdf6,#f1e8d4 60%,#d9cdb4);box-shadow:.9vmin -.5vmin 0 -.25vmin #f8f1e0,-.8vmin .6vmin 0 -.3vmin #f3ead6,0 0 .8vmin #fffdf680;will-change:transform,opacity}
 @keyframes heartpop { 25% { scale: 1.22; rotate: -7deg; } }
 @keyframes heartbeat { 50% { scale: 1.12; } }
-.heart.pop { animation: heartpop .42s ease-out; }
+.heart.pop, .potion.pop { animation: heartpop .42s ease-out; }
 body.danger .heart.on { animation: heartbeat 1.1s ease-in-out infinite; }
-.reduced-ui .heart, .reduced-ui.danger #hurtFrame { animation: none; }
+.reduced-ui .heart, .reduced-ui .potion, .reduced-ui.danger #hurtFrame { animation: none; }
 
 body.loading > :not(#loading):not(script){visibility:hidden}
 #loading{position:fixed;inset:0;z-index:100;background:#f3ecd9;display:grid;place-items:center;color:#344b3e;text-align:center;font-family:var(--ui-text)}#loading[hidden]{display:none}#loading h1{font-size:42px;letter-spacing:.13em}#loading h2{font-size:25px;letter-spacing:.12em;font-weight:400}#loading p{font-size:13px;color:#858571}#loading progress{width:min(310px,70vw);height:5px;accent-color:#7b946e;border:0}#loading .spool{width:45px;height:45px;border:2px dashed #99ab82;border-right-color:transparent;border-radius:50%;margin:27px auto;animation:loadturn 1.2s linear infinite;will-change:transform}#loadBack{display:inline-block;margin-top:24px;color:#66765b;font-size:13px}#loadBack[hidden]{display:none}@keyframes loadturn{to{transform:rotate(360deg)}}.menu-back{display:inline-block;color:#5c6b54;margin-top:15px;font-size:13px}@media(prefers-reduced-motion:reduce){#loading .spool{animation:none}}
@@ -325,6 +330,9 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span></div>
   <div class="hearts" id="hearts" role="img" aria-label="3 颗心">
     <span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span>
+  </div>
+  <div class="potions" id="potions" role="img" aria-label="血瓶 0 / 3" hidden>
+    <kbd class="ui-key" id="potionKey">H</kbd><span class="potion off" aria-hidden="true"></span><span class="potion off" aria-hidden="true"></span><span class="potion off" aria-hidden="true"></span>
   </div>
   <div class="ammo-readout">
     <div id="reloadStatus" role="status" hidden><span id="reloadCaption"></span><progress id="reloadProgress" max="1" value="0" aria-label="装填进度"></progress></div>

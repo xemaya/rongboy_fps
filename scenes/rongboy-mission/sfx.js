@@ -115,6 +115,8 @@ export function createArsenalAudio(ctx) {
       tone(0,205,120,.26,.11,'triangle'); tone(.18,146,222,.19,.071,'triangle');
     } else if (kind === 'rumble') {  // 守墓巨像现身：一声越来越沉的低音
       tone(0, 78, 34, 1.5, 0.32); tone(0.25, 52, 28, 1.3, 0.22, 'triangle'); hiss(0, 1.2, 0.12, 180, 'lowpass');
+    } else if (kind === 'drink') {   // 喝血瓶：咕咚两口，再一声往上的亮音
+      tone(0, 330, 250, 0.08, 0.11); tone(0.12, 300, 230, 0.08, 0.11); tone(0.27, 520, 800, 0.2, 0.07, 'triangle');
     } else if (kind === 'bell') {    // 旋转木马的铃：叮——叮
       for (const d of [0, 0.32]) { tone(d, 1568, 1560, 0.6, 0.09); tone(d, 3136, 3120, 0.3, 0.03); }
     } else if (kind === 'gong') {    // 马戏团的锣

@@ -12,7 +12,7 @@ export default {
     eyebrow: '第一关 · 绒仔家（三层楼与花园）',
     title: '上阁楼，<br>把毛线篮拿回来。',
     intro: '僵尸把毛线篮藏进了三楼的藏宝间。整栋楼一共 36 只，不必都打倒：它们有的睡着，有的在巡逻，还没发现你。拿到篮子会惊动整层阁楼，再带着它回到院门。',
-    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心 · 受伤少、8 分钟内带回可得三星'],
+    how: ['Q 换枪 · E 投掷，G 切换炸弹 · F 换地上的枪 · R 换弹', '手里两把：手枪弹药无限，另一把在屋里换着用', '弓手：瞄准线变红就换个方向走，或躲到墙后', '炸弹客：离开红圈 · 持盾者：探照灯炮或蓄力球破防', '从背后打 ×2，趁它没发现再 ×2 · 棉甲要绕后或用毛衣针', '楼梯在门厅尽头 · 3 颗心，H 喝血瓶回 2 颗 · 受伤少、8 分钟内带回可得三星'],
     start: '进入花园',
     hint: '毛线篮在三楼的藏宝间 · 楼梯在门厅尽头',
     brief: '从门厅尽头上楼，到三楼藏宝间拿回毛线篮，再带回院门。途中可以绕过僵尸。',
@@ -167,8 +167,8 @@ export default {
     { kind: 'ammo', x: -2.0, z: -7.6 },
     { kind: 'weapon', weapon: 'heavy', amount: 3, x: 2.2, z: 2.4 },
     { kind: 'ammo', x: 8.3, z: -8.3 },
-    { kind: 'heart', amount: 1, x: -8.3, z: 2.4 },
-    { kind: 'heart', amount: 1, x: 1.0, z: -6.6 },
+    { kind: 'potion', x: -8.3, z: 2.4 },
+    { kind: 'potion', x: 1.0, z: -6.6 },
     { kind: 'weapon', weapon: 'stun', amount: 4, x: -1.4, z: 9.0 },      // 静电枪：就在院门边，开局就能拿
     { kind: 'weapon', weapon: 'sewing', amount: 48, x: 5.6, z: -6.5 },   // 订书机枪：书房，棉甲僵尸睡在旁边
     { kind: 'ammo', weapon: 'yarn', amount: 1, x: -8.3, z: -6.3 },
@@ -254,10 +254,10 @@ export default {
       ],
       pickups: [
         // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
-        { kind: 'heart', amount: 1, x: -5.92, z: -8.4, stash: { x: -5.92, z: -9, normal: [0, 1] } },   // 浴室北墙,
+        { kind: 'potion', x: -5.92, z: -8.4, stash: { x: -5.92, z: -9, normal: [0, 1] } },   // 浴室北墙,
         { kind: 'ammo', x: -2.2, z: 2.4 },
         { kind: 'ammo', x: 8.3, z: -8.3 },
-        { kind: 'heart', amount: 1, x: -2.4, z: -3.9 },
+        { kind: 'potion', x: -2.4, z: -3.9 },
         { kind: 'ammo', x: 2.3, z: 0.9 },
         { kind: 'weapon', weapon: 'needle', amount: 6, x: -8.2, z: -2.3 },   // 毛衣针：主卧
         { kind: 'weapon', weapon: 'stun', amount: 4, x: 0.9, z: 1.2 },
@@ -333,7 +333,7 @@ export default {
         // 拉链暗格：打一下墙上的拉链（stash），里面的东西掉在墙脚（x, z）
         { kind: 'ammo', weapon: 'yarn', amount: 1, x: 8.4, z: -7.67, stash: { x: 9, z: -7.67, normal: [-1, 0] } },   // 缝纫间东墙,
         { kind: 'objective', item: 'basket', name: '毛线篮', x: 7.8, z: 1.9 },
-        { kind: 'heart', amount: 1, x: -2.4, z: 2.3 },
+        { kind: 'potion', x: -2.4, z: 2.3 },
         { kind: 'ammo', x: 8.2, z: -8.3 },
         { kind: 'ammo', x: -7.9, z: 2.4 },
         { kind: 'ammo', x: 3.0, z: -4.4 },
