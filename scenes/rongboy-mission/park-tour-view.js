@@ -8,7 +8,7 @@ import { mulberry32 } from '../../cine-engine/engine/noise.js';
 import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import { TOUR_PATH, TOUR_STOPS, TOUR_BOUNDS, TOUR_MAZE, TOUR_BRIDGE, TOUR_CHANNEL, isTourWalkable,
-  COASTER, RAPIDS, RAPIDS_DOCK, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, GATE } from './park-tour-layout.js';
+  COASTER, RAPIDS, RAPIDS_DOCK, RAPIDS_ROCKS, rapidsRockScale, WHEEL, CAROUSEL, RINK, HAUNT, STALLS, GATE } from './park-tour-layout.js';
 import { PARK, SPOTS } from './park-rides.js';
 import { stallTarget } from './park-stalls.js';
 import { createParkKit, RED, CREAM, TEAL, GOLD, INK, CORAL, NAVY, FOREST, MOSS, PINE, PLUM, PLUM_DARK, THREAD, WOOL_WHITE, TIMBER } from './park-kit.js';
@@ -372,11 +372,7 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     horsesB = part(carousel, (kit, det) => { for (let i = 1; i < c.horses; i += 2) mount(kit, det, i); }, 0, 0, 0, true, anchor);
   }
 
-  // 激流勇进石头山的石头：[x, y, z, 半径]。过山车的支架要躲开它们，所以放在两个设施外面
-  const ROCKS = [[-28.6, 1.3, -3.7, 2.4], [-25.6, 1.4, -4.5, 2.6], [-22.6, 1.3, -3.3, 2.4], [-20.5, 1.2, -0.8, 2.0], [-30.0, 1.0, -0.2, 1.7], [-27.4, 3.3, -3.7, 2.0], [-24.6, 3.6, -3.5, 2.2], [-22.2, 3.2, -2.1, 1.9],
-      [-25.7, 5.5, -3.0, 1.7], [-23.5, 5.5, -2.4, 1.5], [-21.0, 3.4, 0.2, 1.3], [-29.6, 1.0, -1.6, 1.6], [-21.4, 0.8, 1.8, 1.2], [-31.3, 0.74, 0.9, 1.3], [-19.8, 0.5, 4.6, 0.92], [-26.6, 0.8, -6.0, 1.3]];
-  const rockScale = i => [1.05 + (i % 3) * 0.1, 0.84 + (i % 2) * 0.18, 0.94];   // 每块石头压扁、拉长的比例
-  const inRock = (x, z, pad = 0.25) => ROCKS.some(([rx, , rz, r], i) => { const [sx, , sz] = rockScale(i); return ((x - rx) / (r * sx + pad)) ** 2 + ((z - rz) / (r * sz + pad)) ** 2 < 1; });
+  const inRock = (x, z, pad = 0.25) => RAPIDS_ROCKS.some(([rx, , rz, r], i) => { const [sx, , sz] = rapidsRockScale(i); return ((x - rx) / (r * sx + pad)) ** 2 + ((z - rz) / (r * sz + pad)) ** 2 < 1; });
 
   // ====================================================================== 03 激流勇进（docs/park-refs/ref-03-rapids.png）
   use('rapids');
@@ -409,12 +405,12 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     // 石头山：一堆大石头垒起来，水槽最高的那一段从山里穿过去，从东边的山口冲下来。每块石头上两道针脚当石缝
     const greys = [0x9a968c, 0x86837b, 0xaaa69a, 0x7d7a73];
     const boulder = (x, y, z, r, i) => {
-      const [sx, sy, sz] = rockScale(i), turn = i * 1.7;
+      const [sx, sy, sz] = rapidsRockScale(i), turn = i * 1.7;
       k.sphere(wool(greys[i % 4]), r, x, y, z, { seg: 12, rings: 8, sx, sy, sz });
       for (const a of [turn, turn + 2.2]) P.stitch(d, Array.from({ length: 7 }, (_, j) => { const phi = 0.25 + j * 0.2, q = r * 1.006; return [x + q * sx * Math.sin(phi) * Math.cos(a + j * 0.08), y + q * sy * Math.cos(phi), z + q * sz * Math.sin(phi) * Math.sin(a + j * 0.08)]; }), { color: 0xe9e2cf, len: 0.13, gap: 0.11, t: 0.022 });
     };
-    ROCKS.forEach(([x, y, z, r], i) => boulder(x, y, z, r, i));
-    for (const [x, y, z, r] of [[-25.2, 6.6, -3.4, 0.9], [-27.6, 4.9, -4.2, 0.8], [-22.0, 4.7, -2.4, 0.7]]) k.sphere(leaf(0x7f9b52), r, x, y, z, { seg: 8, rings: 5, sy: 0.4 });   // 山顶的苔
+    RAPIDS_ROCKS.forEach(([x, y, z, r], i) => boulder(x, y, z, r, i));
+    for (const [x, y, z, r] of [[-25.7,5.87,-5.05,.85],[-23.5,5.82,-4.65,.68],[-27.4,4.67,-4.8,.72]]) k.sphere(leaf(0x7f9b52), r, x, y, z, { seg: 8, rings: 5, sy: 0.4 });   // 山顶的苔
     P.pine(k, -29.4, -5.4, 1.15, seed++);   // 石头山东北角原来还有一棵松树：过山车加长以后轨道从那里拐过去，树枝会伸进轨道，拿掉了
     P.leafTree(k, -31.6, -3.6, 1.1, seed++, { tone: 1 });
     // 瀑布：山口挂下来几条水，底下一堆白绒球是水花
@@ -521,11 +517,13 @@ export function createParkTour(cine, world, { reduced = false } = {}) {
     const h = stopOf('haunt'), wall = wool(0x93708f), dark = felt(PLUM_DARK), roofA = M('shingle', 0x6e3b58), roofB = M('shingle', 0x84486a), lit = M.glow(0xffc95a, 1.5);
     const timberDark = P.timber(0x6b4a3a), stones = [0x8f8a84, 0x9d98a0, 0x7f7a80], TAN = 0xd9b98c;
     const front = h.z - 3.3, dx = HAUNT.door.x, dz = front;   // 朝北（朝小径）的那一面
-    const mx = h.x - 0.6, x0 = mx - 2.8, x1 = mx + 2.8, z0 = h.z - 3.2, z1 = h.z + 3.2, TH = 0.25, top = 4.6, tx = h.x + 3.35, wx = h.x - 4.5;
+    const { x:mx, z:centerZ, w, d:depth, thickness:TH, height:top, doorHalf } = HAUNT.shell;
+    const x0 = mx - w/2, x1 = mx + w/2, z0 = centerZ - depth/2, z1 = centerZ + depth/2;
+    const tx = h.x + 3.35, wx = h.x - 4.5;
     box(k, wool(0x8f8a84), 9.4, 0.1, 7.0, h.x, 0.05, h.z, 0.04);   // 石头屋基
-    box(k, wall, 5.6, top, TH, mx, top / 2, z1 - TH / 2, 0.04);   // 后墙
-    for (const e of [-1, 1]) box(k, wall, TH, top, 6.4, mx + e * (2.8 - TH / 2), top / 2, h.z, 0.04);   // 两侧的墙
-    box(k, wall, dx - 0.7 - x0, top, TH, (x0 + dx - 0.7) / 2, top / 2, z0 + TH / 2, 0.04); box(k, wall, x1 - dx - 0.7, top, TH, (x1 + dx + 0.7) / 2, top / 2, z0 + TH / 2, 0.04);   // 前墙：门的两边
+    box(k, wall, w, top, TH, mx, top / 2, z1 - TH / 2, 0.04);   // 后墙
+    for (const e of [-1, 1]) box(k, wall, TH, top, depth, mx + e * (w - TH)/2, top / 2, centerZ, 0.04);   // 两侧的墙
+    box(k, wall, dx - doorHalf - x0, top, TH, (x0 + dx - doorHalf)/2, top/2, z0 + TH/2, .04); box(k, wall, x1 - dx - doorHalf, top, TH, (x1 + dx + doorHalf)/2, top/2, z0 + TH/2, .04);   // 前墙：门的两边
     box(k, wall, 1.4, top - 2.4, TH, dx, (top + 2.4) / 2, z0 + TH / 2, 0.04);   // 门上面
     box(k, wall, 2.5, 6.8, 2.7, tx, 3.4, h.z - 1.6, 0.1, { rz: -0.035 });   // 歪一点的塔楼
     box(k, wall, 2.6, 3.4, 3.2, wx, 1.7, h.z + 0.8, 0.1);   // 侧屋

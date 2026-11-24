@@ -9,8 +9,8 @@ import { uiCanvasFont } from './interface-font.js';
 import { copy } from './language.js';
 import {
   TENT_DOOR, TENT, TENT_ZONE, CLOWN, TILES, TILE, GATES, GATE_LIFT_SECONDS, PARK_ZONES,
-  LOCK, VALVE, SWEEP, COASTER_TARGETS, MOTOR, CLOWN_INTRO_SECONDS,
-  tileSwitch, lockPosition, coasterTargetPosition,
+  LOCK, VALVE, SWEEP, COASTER_TARGETS, MOTOR, CLOWN_ENTRANCE,
+  tileSwitch, lockPosition, coasterTargetPosition, amusementCutscene,
 } from './amusement.js';
 import { CAROUSEL, GATE as ARCH } from './park-tour-layout.js';
 import { createParkKit, RED, TEAL, GOLD, INK, CORAL, WOOL_WHITE } from './park-kit.js';
@@ -254,7 +254,15 @@ export function createAmusementView(cine, world) {
       for (let t = 1; t <= 4; t++) { const u = t / 4.6, y = from[1] + (to[1] - from[1]) * u - Math.sin(u * Math.PI) * 0.5; strings[(j + t) % 4].sphere(lamps[(j + t) % 4], 0.09, from[0] + (to[0] - from[0]) * u, y - 0.1, from[2] + (to[2] - from[2]) * u, { seg: 8, rings: 5 }); }
     }
     strings.forEach(kit => { const [mesh] = kit.build({ cast: false, name: 'tent-lights' }); arena.add(mesh); tentLights.push(mesh); });
-    spot = obj(arena, new T.CircleGeometry(2.5, 36), new T.MeshBasicMaterial({ color: 0xfff0c0, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending }), CLOWN.x, 0.125, CLOWN.z); spot.rotation.x = -Math.PI / 2;   // 打在小丑脚下的一圈顶光
+    const pool = document.createElement('canvas'); pool.width = pool.height = 128;
+    const poolContext = pool.getContext('2d'), falloff = poolContext.createRadialGradient(64, 64, 0, 64, 64, 64);
+    falloff.addColorStop(0, '#fff'); falloff.addColorStop(.36, '#fffe');
+    falloff.addColorStop(.7, '#fff6'); falloff.addColorStop(1, '#fff0');
+    poolContext.fillStyle = falloff; poolContext.fillRect(0, 0, 128, 128);
+    const lightPool = new T.MeshBasicMaterial({ color: 0xffd2a0, map: new T.CanvasTexture(pool), transparent: true,
+      opacity: 0, depthWrite: false, blending: T.AdditiveBlending });
+    spot = obj(arena, new T.CircleGeometry(2.65, 36), lightPool, CLOWN.x, .125, CLOWN.z);
+    spot.rotation.x = -Math.PI / 2;
   }
   // 机关地砖：十五块活板。预警时角上竖起一颗布扣（急冻枪打它或打砖面都能冻住），到点往下翻，露出底下的暗坑
   const tileBack = Math.min(...TILES.map(t => t.z)) - TILE / 2, tileFront = Math.max(...TILES.map(t => t.z)) + TILE / 2;
@@ -285,6 +293,10 @@ export function createAmusementView(cine, world) {
   });
 
   // ---------- 嬉笑小丑、他扔出来的三只惊喜盒、烟花、打倒后掉出来的高压马达 ----------
+  // Keep one light in the scene throughout the level so the intro doesn't change the shader's light count.
+  const stageKey = new T.PointLight(0xffd49a, 0, 7, 2);
+  stageKey.position.set(CLOWN.x + .35, 4.65, CLOWN.z + 1.35);
+  cine.scene.add(stageKey);
   const clown = createClown(P, M); arena.add(clown.root);
   const clownFrost = frost(arena, 1.25); clownFrost.scale.set(1, 1.35, 1);
   const eyeRing = obj(arena, new T.RingGeometry(0.74, 0.79, 36), new T.MeshBasicMaterial({ color: 0xffd982, transparent: true, opacity: 0.8, side: T.DoubleSide, depthWrite: false }), 0, CLOWN.maskY, CLOWN.z + 0.94);
@@ -370,14 +382,21 @@ export function createAmusementView(cine, world) {
       t.frost.visible = frozen;
     });
     // 小丑
-    const intro = a.clownIntroUntil > time ? sat((time - a.clownIntroStarted) / CLOWN_INTRO_SECONDS) : null;
+    const cut = amusementCutscene(s);
+    const intro = cut?.kind === 'clown-intro' ? cut.elapsed : null;
+    const stageDarkness = intro === null ? 0 : T.MathUtils.smoothstep(intro, 0, .48) *
+      (1 - T.MathUtils.smoothstep(intro, CLOWN_ENTRANCE.handoff, 4.9));
     const down = c.defeatedAt === null ? 0 : sat((time - c.defeatedAt) / 1.3), frozen = c.frozenUntil > time;
     const casting = !!a.volleys.length || a.boxes.some(b => !b.teaching && time < b.land) || a.fireworks.some(f => time < f.impact);
     clown.pose({ time, pose: c.poseTime, x: c.x, z: c.z, mask: c.mask, flash: c.flash > time, frozen, hidden: !c.entered, intro, casting, down });
     clownFrost.visible = frozen; clownFrost.position.set(c.x, 2.75, c.z + 0.1);
     eyeRing.position.x = c.x; eyeRing.visible = c.entered && !!c.mask && time < a.launchUntil && s.player.jump > 0.52;
-    spot.position.x = c.x; spot.material.opacity = fight * 0.16 + (intro !== null ? 0.2 : 0);
-    tentLights.forEach((m, i) => { m.material.emissiveIntensity = 2.2 * (1 + (fight || won ? 0.9 + 0.7 * Math.sin(time * 5 + i * 1.6) : 0)); });
+    spot.position.x = c.x;
+    const key = intro === null ? 0 : T.MathUtils.smoothstep(intro, CLOWN_ENTRANCE.spot, .9) * stageDarkness;
+    spot.material.opacity = fight * .16 * (1 - stageDarkness) + .34 * key;
+    spot.scale.setScalar(1 + key * .12);
+    stageKey.intensity = 12 * key;
+    tentLights.forEach((m, i) => { m.material.emissiveIntensity = (1 - .89 * stageDarkness) * 2.2 * (1 + (fight || won ? 0.9 + 0.7 * Math.sin(time * 5 + i * 1.6) : 0)); });
     motor.visible = c.defeatedAt !== null && !a.pickedUp;
     motor.rotation.y = time * 1.55; motor.position.y = MOTOR.y + Math.sin(time * 2.4) * 0.06;
     // 机关地砖
@@ -393,7 +412,10 @@ export function createAmusementView(cine, world) {
     // 惊喜盒：从小丑手里抛出来，落稳以后盒顶一圈青色的光，踩上去弹起来
     for (let i = 0; i < boxes.length; i++) {
       const v = boxes[i], b = a.boxes[i];
-      v.g.visible = !!b && !b.used; v.landing.visible = !!b && time < b.land; v.ready.visible = !!b && b.settled && !b.used;
+      const reveal = b?.teaching && intro !== null
+        ? T.MathUtils.smoothstep(intro, CLOWN_ENTRANCE.handoff - .12, 4.65) : 1;
+      v.g.visible = !!b && !b.used && reveal > .02;
+      v.g.scale.setScalar(.74 + .26 * reveal); v.landing.visible = !!b && time < b.land; v.ready.visible = !!b && b.settled && !b.used && reveal > .5;
       if (!b) continue;
       const flight = b.settled ? 1 : sat((time - b.thrown) / (b.land - b.thrown));
       v.g.position.set(c.x + (b.x - c.x) * flight, 2.4 * (1 - flight) + 3.0 * Math.sin(Math.PI * flight), CLOWN.z + (b.z - CLOWN.z) * flight);

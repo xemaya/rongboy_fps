@@ -2,6 +2,7 @@
 // 这里只管他长什么样、每一帧摆成什么姿势。造型准则：一个主导形状（圆），招牌特征放在轮廓上（两侧的红头发、歪着的尖帽）。
 // 命中盒是照这个模型定的：身子连盒子 2.08 宽、到 2.41 高，头在 3.03，面具在脸前 0.64。
 import * as T from 'three';
+import { CLOWN_ENTRANCE } from './amusement.js';
 import { PlushKit } from '../../cine-engine/library/structures/plush.js';
 import { RED, TEAL, GOLD, INK, THREAD, WOOL_WHITE } from './park-kit.js';
 
@@ -34,9 +35,11 @@ export function createClown(P, M) {
     P.stitch(k, [[-0.86, 0.4, 0.607], [0.86, 0.4, 0.607], [0.86, 1.18, 0.607], [-0.86, 1.18, 0.607], [-0.86, 0.4, 0.607]], { len: 0.1, gap: 0.08, t: 0.02 });
     // 摇把：一根轴、一段曲柄、一颗红球
     k.cyl(wool(GOLD), 0.06, 0.06, 0.22, 1.1, 0.85, 0, { seg: 8, rz: Math.PI / 2 });
-    k.tube(wool(GOLD), [[1.2, 0.85, 0], [1.2, 1.12, 0], [1.34, 1.12, 0]], 0.04, { seg: 6, straight: true });
-    k.sphere(wool(RED), 0.1, 1.4, 1.12, 0, { seg: 9, rings: 6 });
   });
+  const crank = add(root, k => {
+    k.tube(wool(GOLD), [[0, 0, 0], [0, .27, 0], [.14, .27, 0]], .04, { seg: 6, straight: true });
+    k.sphere(wool(RED), .1, .2, .27, 0, { seg: 9, rings: 6 });
+  }, 1.2, .85, 0);
   // 盒盖：铰在后沿，往后翻开
   const lid = add(root, k => {
     k.soft(knit(RED), 2.06, 0.13, 1.26, 0, 0.065, 0.63, { r: 0.05 });
@@ -107,39 +110,42 @@ export function createClown(P, M) {
     for (let i = 0; i < 3; i++) P.stitch(k, [[side * (0.38 + i * 0.08), -0.98, 0.285 - Math.abs(i - 1) * 0.03], [side * (0.38 + i * 0.08), -1.16, 0.26 - Math.abs(i - 1) * 0.03]], { color: 0xcbbfa8, len: 0.16, gap: 0.01, t: 0.014 });
   }, side * 0.66, 0.74, 0));
 
-  // 每一帧。q：{ time, pose（小丑自己的时钟，冻住时不走）, x, z, mask, flash, frozen, hidden（还没登场：缩在盒子里）,
-  //   intro（登场过场的进度 0..1 或 null）, casting（正在扔东西）, down（倒下的进度 0..1，没倒是 0） }
+  // intro 是登场后经过的秒数，平时为 null。把弹簧和面具的最终姿势对回战斗命中盒。
   function pose(q) {
     root.position.set(q.x, 0, q.z);
     const t = q.pose, live = q.frozen ? 0 : 1;
-    // 弹出来多少：0 缩在盒子里，1 整个在外面
-    let out = 1, open = 1, rattle = 0, wave = 0;
-    if (q.hidden) { out = 0; open = 0; rattle = 0.4; }
+    let out = q.hidden ? 0 : 1, open = out, rock = 0, turn = 0, wave = 0, flare = 0;
     if (q.intro !== null) {
-      const p = q.intro;
-      rattle = p < 0.36 ? 1 : 0;
-      open = sat((p - 0.36) / 0.08);
-      const u = sat((p - 0.38) / 0.24); out = u <= 0 ? 0 : 1 + Math.exp(-5.5 * u) * Math.sin(u * 15) * -0.42 - Math.exp(-9 * u);   // 弹出来，晃两下才站稳
-      wave = sat((p - 0.62) / 0.12);
+      const time = q.intro, { crank, pop, settle, salute, handoff } = CLOWN_ENTRANCE;
+      const rise = (from, to) => T.MathUtils.smoothstep(time, from, to);
+      const tension = rise(crank, pop - .12) * (1 - rise(pop - .10, pop + .16));
+      turn = rise(crank, pop - .12) * TAU * 2;
+      rock = Math.sin(time * 29) * tension;
+      open = rise(pop, pop + .22) + .09 * (rise(pop + .10, pop + .22) - rise(pop + .22, settle));
+      out = 1.23 * rise(pop + .08, pop + .40) - .30 * rise(pop + .40, settle)
+        + .07 * rise(settle, settle + .27);
+      flare = rise(pop + .16, pop + .37) * (1 - rise(settle - .06, settle + .28));
+      wave = rise(salute - .25, salute + .1) * (1 - rise(handoff - .41, handoff + .12));
+      root.position.y = Math.abs(rock) * .025;
     }
     if (q.down > 0) { const dn = ease(sat(q.down)); out = 1 - dn; open = 1 - ease(sat((q.down - 0.72) / 0.28)) * 0.86; }
-    out = Math.max(0, out);
-    lid.rotation.x = -open * 1.95 + (rattle ? Math.max(0, Math.sin(q.time * 23)) * -0.07 * rattle : 0);
-    root.rotation.z = rattle ? Math.sin(q.time * 31) * 0.012 * rattle : 0;
-    fig.visible = out > 0.03;
-    const bob = live * Math.sin(t * 2.3) * 0.05, squash = q.flash ? 0.05 * Math.sin(q.time * 83) : 0;
-    const rise = (out - 1) * 1.55 + bob;                                   // 腰比站直时低多少
-    spring.scale.y = Math.max(0.12, (0.58 + rise) / 0.62);
-    body.position.y = 1.78 + rise;
-    body.scale.set(1 + squash, (1 - squash) * (0.35 + 0.65 * sat(out * 1.6)), 1 + squash);
-    body.rotation.z = live * Math.sin(t * 1.25) * 0.07 + (q.down > 0 ? ease(sat(q.down)) * 0.5 : 0);
-    body.rotation.x = live * Math.sin(t * 0.9 + 1) * 0.04 + (q.casting ? -0.08 : 0);
-    head.rotation.z = live * Math.sin(t * 1.9 + 0.6) * 0.09 + (q.down > 0 ? ease(sat(q.down)) * 0.6 : 0);
-    head.rotation.y = live * Math.sin(t * 0.7) * 0.16;
+    lid.rotation.x = -open * 1.95 - Math.max(0, rock) * .045;
+    root.rotation.z = rock * .026;
+    crank.rotation.x = turn;
+    fig.visible = out > .055;
+    const bob = live * Math.sin(t * 2.3) * .05, squash = q.flash ? .05 * Math.sin(q.time * 83) : 0;
+    const lift = (out - 1) * 1.55 + bob;
+    spring.scale.y = Math.max(.12, (.58 + lift) / .62);
+    body.position.y = 1.78 + lift;
+    body.scale.set(1 + squash + flare * .025, (1 - squash) * (.35 + .65 * sat(out * 1.6)), 1 + squash);
+    body.rotation.z = live * Math.sin(t * 1.25) * .07 - wave * .09 + (q.down > 0 ? ease(sat(q.down)) * .5 : 0);
+    body.rotation.x = live * Math.sin(t * .9 + 1) * .04 + (q.casting ? -.08 : 0) + .06 * flare;
+    head.rotation.z = live * Math.sin(t * 1.9 + .6) * .09 - wave * .19 + (q.down > 0 ? ease(sat(q.down)) * .6 : 0);
+    head.rotation.y = live * Math.sin(t * .7) * .16 + wave * .12;
     mask.visible = q.mask > 0; crack.visible = q.mask === 1;
     mask.rotation.z = crack.rotation.z = q.mask === 1 ? Math.sin(q.time * 12) * 0.05 : 0;
     arms.forEach((arm, i) => {
-      const side = i ? 1 : -1, up = Math.max(q.casting ? 1 : 0, wave);
+      const side = i ? 1 : -1, up = Math.max(q.casting ? 1 : 0, flare * .76, wave * (i ? 1 : .18));
       arm.rotation.z = side * (0.12 + up * 1.7) + live * Math.sin(t * 2.9 + i * 0.8) * 0.1 + (up ? Math.sin(q.time * 9 + i * 2.2) * 0.22 * up : 0);
       arm.rotation.x = up ? -0.75 * up + Math.sin(q.time * 8 + i * 2) * 0.25 * up : live * Math.sin(t * 1.9 + i) * 0.12;
     });

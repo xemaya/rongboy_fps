@@ -49,8 +49,9 @@ import { t, copy, localizeFields, localizeLevel } from './language.js';
 import { gardenIntroDef, advanceGardenIntro } from './levels/garden-intro.js';
 import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
-import { STALLS } from './park-tour-layout.js';
-import { PARK_ZONES, TENT_ZONE, CLOWN, TENT_DOOR, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
+import { STALLS, isHauntWalkable } from './park-tour-layout.js';
+import { PARK_ZONES, TENT_ZONE, CLOWN, CLOWN_ENTRANCE, CLOWN_INTRO_SECONDS, FIRST_BOX, TENT_DOOR, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
+import { PARK_WAVE_COUNT } from './park-encounters.js';
 import { createAmusementView } from './amusement-view.js';
 import { PARK } from './park-rides.js';
 import { fireStall, stallTarget, STALL_SHOTS } from './park-stalls.js';
@@ -88,7 +89,8 @@ const level = compileLevel(localizeLevel(weaponShowcase ? weaponRange() : challe
 const park = !!level.tour, amusement=level.mission.type==='amusement';   // park：游乐园的大地图（有设施能坐）；amusement：有门、机关和小丑的那套规则。布偶游乐园两样都是
 const missionBriefing = (amusement || level.mission.type === 'fetch') && !challenge;
 const practiceBindingsOnly = garden || challenge?.id === 'dodge-arrows';
-const requestedStage = !crazyGames && amusement && q.get('debug') === '1' ? Math.min(TENT_ZONE,Math.max(0,Number(q.get('checkpoint'))|0)) : 0;
+const previewClownIntro = !crazyGames && amusement && q.get('debug') === '1' && q.get('preview') === 'clown-intro';
+const requestedStage = previewClownIntro ? TENT_ZONE : !crazyGames && amusement && q.get('debug') === '1' ? Math.min(TENT_ZONE,Math.max(0,Number(q.get('checkpoint'))|0)) : 0;
 const TX = level.texts || { short: level.name, eyebrow: level.name, title: level.name, intro: level.mission.title, how: [], start: '进入', won: '全部清空！' };
 const EYE = 1.23, FAR = 30, SH = level.storeyHeight;
 const RANGE_GUNS = WEAPONS.flatMap((w,index) => w.kind === 'grenade' || w.id === 'freeze' ? [] : [index]);
@@ -96,12 +98,13 @@ const HIP_FOV = 65, SCOPE_POWER = WEAPONS.find(w=>w.zoom).zoom;
 // 脚下是露天的花园吗（楼上不算）
 const openAir = (x, y, z) => y < 1 && isOutdoor(level, x, z);
 
-let s = createGame({ level,amusementCheckpoint:requestedStage,reducedMotion:reduced });
+let s = createGame({ level,amusementCheckpoint:requestedStage,bossCheckpoint:previewClownIntro,reducedMotion:reduced });
 let mode = 'loading', ready = false, paused = false, fireInput = null, throwInput = null;
 let actors, bossActors, viewmodel, tourView, amusementView;
 let rideYaw = 0, rideVignette = 0;   // 游乐园：上车那一刻面朝哪、暗角的深浅
 const paint = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 function loadingProgress(value, message) { $('loadingProgress').value = value; $('loadingStatus').textContent = t(message); }
+let clownIntroAngle = { yaw: 0, pitch: 0 };
 const gaze = { kind: null, home: 0, back: false, manual: false, mouse: 0 };   // 小丑战里镜头自己转的那部分俯仰
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, toastPriority = 0, zoom = 0;
@@ -130,8 +133,8 @@ function applyTexts() {
  $('loadingTitle').textContent = TX.short || level.name;
  $('loadBack').href = returnTo;
  $('pauseMenu').textContent = t(returnLabel);
- $('ready-title').textContent = t(cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
- $('ready-brief').textContent = t(amusement ? copy(TX.brief,'WASD to move, arrows to look, Space to fire, Q to switch guns, H to drink a potion. Press F by a ride to use it. At the entrance: freeze the sliding latch, then shatter it with the pistol.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
+ $('ready-title').textContent = t(previewClownIntro ? copy('嬉笑小丑','Giggles') : cottageStudy ? TX.short : missionBriefing ? '出发前' : garden ? '借墙破盾' : practiceType ? ATTACKS[practiceType].name : '准备迎战');
+ $('ready-brief').textContent = t(previewClownIntro ? copy('登场约五秒，按开火键可跳过。','About five seconds. Press fire to skip.') : amusement ? copy(TX.brief,'WASD to move, arrows to look, Space to fire, Q to switch guns, H to drink a potion. Press F by a ride to use it. At the entrance: freeze the sliding latch, then shatter it with the pistol.') : missionBriefing || cottageStudy ? TX.brief || level.mission.title
    : garden ? '蓄满力打盾面，或让毛球从墙上弹回盾后。' : practiceType ? ATTACKS[practiceType].counter : level.mission.title);
  if (cottageStudy) $('missionHud').querySelector('strong').textContent = t(s.wave ? '院子波次' : '院子对照局');
  $('sound').textContent = t(sound ? '声音 开' : '声音 关');
@@ -196,7 +199,7 @@ function applyInputHints() {
     labelAction($(id),L.back,label);
     $(id).firstElementChild.classList.add('pause-action-key');
   }
-  labelAction($('approach'), L.confirm, park ? copy('入园','Enter park') : missionBriefing ? '出发' : garden ? '开始练习' : '开打');
+  labelAction($('approach'), L.confirm, previewClownIntro ? copy('播放登场','Play entrance') : park ? copy('入园','Enter park') : missionBriefing ? '出发' : garden ? '开始练习' : '开打');
   if (!$('nextChapter').hidden) {
     labelAction($('nextChapter'),L.confirm,'下一关');
     $('again').textContent = t('再来一次');
@@ -827,7 +830,7 @@ function amusementEvent(e) {
     'target-lit':['轨道靶点亮！','Coaster target lit!'],
     'balloon-pop':['砰！彩球爆开！','Pop! Confetti burst!'],
     'gate-open':['这一站的灯亮了 · 门开了，沿小径去下一站','This stop is lit · The gate is open'],
-    'clown-start':['嬉笑小丑登场！按开火键可跳过过场','Giggles arrives! Press fire to skip'],
+    'clown-start':['踩落稳的惊喜盒，腾空打面具','Bounce from a settled box to hit the mask'],
     'clown-intro-end':['踩落稳的惊喜盒腾空打面具，或先用急冻枪定住他','Bounce from a box to break the mask, or freeze him first'],
     'mask-block':['要踩惊喜盒弹到空中打面具','Bounce from a box to hit the mask'],
     'mask-hit':['面具裂开一层','One layer of the mask cracked'],
@@ -838,6 +841,35 @@ function amusementEvent(e) {
     'clown-down':[`小丑倒下了 · 靠近舞台中央按 ${ex} 拾取高压马达`,`Giggles is down · Press ${ex} to collect the motor`],
     'motor':['拿到了高压马达 · 全园彩灯亮起！','Motor recovered · The whole park lights up!'],
   };
+  if (e.action==='clown-start' && e.cinematic) {
+    clownIntroAngle = { yaw, pitch };
+    clearHeldInput();
+    return;
+  }
+  if (e.action==='clown-intro-end') {
+    yaw = clownReadyYaw();
+    pitch = CLOWN_READY_PITCH;
+    clearHeldInput();
+  }
+  if (e.action==='clown-spot') { sfx2('clown-stage-light'); return; }
+  if (e.action==='clown-crank') { sfx2('clown-crank'); return; }
+  if (e.action==='clown-pop') {
+    sfx2('jack-pop');
+    burst(e.x, e.z, 15, 1.85, 0xf4c56d, 1.52);
+    burst(e.x, e.z, 11, 1.56, 0xe88477, 1.62);
+    return;
+  }
+  if (e.action==='clown-settle') { sfx2('thump',{strength:.68}); return; }
+  if (e.action==='clown-salute') { sfx2('clown-salute'); return; }
+  if (e.action==='wave-warning') {
+    say(copy(e.wave===0 ? '附近有守卫，准备接战' : '下一波要来了',e.wave===0 ? 'Guards incoming' : 'Next wave incoming'),1.1,1);
+    sfx2('tock',{strength:.72});
+    return;
+  }
+  if (e.action==='wave-start') {
+    say(copy(`第 ${e.wave+1} 波 · ${e.count} 只守卫`,`Wave ${e.wave+1} · ${e.count} guards`),1.5);
+    return;
+  }
   if (e.action==='zone-enter') zoneCarry = { zone: e.zone, ...checkpointCarry(s) };   // 进这一段时身上几瓶血瓶、地上哪些捡过了：从这里重来时照这个摆
   const message=messages[e.action];
   if (message) say(copy(...message),e.action==='clown-start'||e.action==='motor'?3.2:1.85,1);
@@ -851,8 +883,7 @@ function amusementEvent(e) {
   } else if (['mask-break','mask-hit','clown-hit'].includes(e.action)) {
     hitMarkerTime=.19;hitMarkerKind=e.action==='mask-break'?'heavy':'';
     sfx2(e.action==='clown-hit'?'thump':'china');
-  } else if (e.action==='clown-start') sfx2('gong');
-  else if (e.action==='boxes' || e.action==='volley') sfx2('throw');
+  } else if (e.action==='boxes' || e.action==='volley') sfx2('throw');
   else if (e.action==='firework-impact' || e.action==='fall') sfx2('thump');
 }
 
@@ -1126,6 +1157,30 @@ function shotParams(thrown = false) {
   return {origin:{x:m.x,y:m.y,z:m.z},direction:{x:direction.x,y:direction.y,z:direction.z}};
 }
 
+const CLOWN_READY_PITCH = -.045;
+function clownReadyYaw() {
+  return Math.atan2(s.player.x - FIRST_BOX.x, s.player.z - FIRST_BOX.z);
+}
+
+function frameClownEntrance(time) {
+  const p = s.player, { smoothstep, lerp } = T.MathUtils;
+  const mixAngle = (a,b,t) => a + Math.atan2(Math.sin(b-a),Math.cos(b-a)) * t;
+  if (reduced) {
+    camera.position.set(p.x, p.y + EYE, p.z);
+    camera.rotation.set(CLOWN_READY_PITCH, clownReadyYaw(), 0);
+    return;
+  }
+  const back = smoothstep(time, CLOWN_ENTRANCE.handoff, CLOWN_INTRO_SECONDS);
+  const dolly = smoothstep(time, .32, 1.45) * (1 - back);
+  const frame = smoothstep(time, .10, 1.24) * (1 - back);
+  camera.position.set(lerp(p.x, .52, dolly), p.y + EYE + .70 * dolly, p.z - 2.15 * dolly);
+  const dx = camera.position.x - CLOWN.x, dz = camera.position.z - CLOWN.z;
+  const stageYaw = Math.atan2(dx, dz), stagePitch = Math.atan2(2.18 - camera.position.y, Math.hypot(dx, dz));
+  const playerYaw = mixAngle(clownIntroAngle.yaw, clownReadyYaw(), back);
+  const playerPitch = lerp(clownIntroAngle.pitch, CLOWN_READY_PITCH, back);
+  camera.rotation.set(lerp(playerPitch, stagePitch, frame), mixAngle(playerYaw, stageYaw, frame), 0);
+}
+
 function cameraFrame(dt) {
     const cut = amusement && amusementCutscene(s);
     if (cut) {
@@ -1133,10 +1188,7 @@ function cameraFrame(dt) {
       camera.fov = HIP_FOV;
       camera.rotation.order = 'YXZ';
       if (cut.kind === 'clown-intro') {
-        const cx = Math.sin(smooth * Math.PI) * 1.4, cy = 2.0 + Math.sin(smooth * Math.PI) * .6, cz = TENT_DOOR - 2.15 - smooth * 2.4;
-        camera.position.set(cx, cy, cz);
-        camera.lookAt(CLOWN.x, 2.55, CLOWN.z);
-        yaw = 0; pitch = .08;
+        frameClownEntrance(cut.elapsed);
       } else {
         // 通关：镜头在帐篷门外慢慢升到帐顶上空，朝南看着园子里的灯一起亮起来（全程在帐篷外面，不穿帐布；只升不转）
         camera.position.set(Math.sin(smooth * Math.PI * .5) * 2.4, 4.6 + smooth * 8.4, TENT_DOOR + 2.25 - smooth * 5.0);
@@ -1338,15 +1390,18 @@ function amusementObjective() {
   const id=PARK_ZONES[a.zone].id, open=a.opened[a.zone]!==null, next=PARK_ZONES[a.zone+1];
   if (open && next) return copy('门开了 · 沿小径去'+next.name,'The gate is open · On to the '+next.en.toLowerCase());
   const riding=s.park.riding?.id;
+  const combat = copy('清场 · 本站还剩 '+left+' 只', 'Clear the area · '+left+' left');
   if (id==='entrance') return a.lock==='frozen' ? copy(`按 ${sw} 切手枪，趁化冰前击碎门栓`,`Press ${sw} for pistol and shatter the latch`) : copy('用急冻枪冻住拱门上左右滑的门栓','Freeze the latch sliding across the arch');
   if (id==='carousel') {
+    if (a.encounter.index < 0) return copy('沿小径走向木马广场','Follow the path to the carousel');
     if (!a.valveLatched && a.valveUntil<=s.time) return copy(`切急冻枪（${sw}），冻住木马旁漏气的蒸汽阀`,`Switch to the freeze ray (${sw}) and plug the leaking steam valve`);
     if (!a.carousel.used) return copy(`到木马台阶前按 ${ex} 摇铃`,`Press ${ex} at the carousel steps to ring the bell`);
     return a.carousel.until>s.time ? copy('把僵尸引到木马的气浪里 · 剩余 '+left,'Lure zombies into the shockwaves · '+left+' left') : copy('可以再摇一次铃，或直接击倒 · 剩余 '+left,'Ring again or finish them off · '+left+' left');
   }
   if (id==='rapids') {
+    if (a.done.rapids && !riding) return combat;
     if (s.park.watch) return s.park.running.rapids > 0
-      ? copy('木船正漂向码头 · 回来就开门','The raft is on its lap · The gate opens when it returns')
+      ? copy('木船还在跑 · 回站后守卫会出现','The raft is on its lap · Guards arrive when it returns')
       : copy(`到码头按 ${ex} 放船`,`Press ${ex} at the dock to send the raft`);
     return riding==='rapids' ? copy('坐稳了，漂完这一圈','Hold on for the lap') : copy(`到码头按 ${ex} 登船，漂一圈`,`Press ${ex} at the dock and ride a lap`);
   }
@@ -1364,18 +1419,34 @@ function amusementObjective() {
       : copy(`打亮剩下的轨道靶（${lit}/${all}）· 在路上打，或再坐一趟`,`Light the remaining targets (${lit}/${all}) from the path, or ride again`);
     return copy('击倒站台边的僵尸 · 剩余 '+left,'Clear the zombies by the station · '+left+' left');
   }
+  if (id==='haunt' && a.done.portraits) return isHauntWalkable(s.player.x,s.player.z)
+    ? copy('到门廊外迎战守卫','Go back to the porch to face the guards') : combat;
   if (id==='haunt') return s.park.door>.9 ? copy(`进门厅，到小桌前按 ${ex} 摇铃`,`Step inside and press ${ex} at the little table`) : copy(`到鬼屋门口按 ${ex} 敲门`,`Press ${ex} at the haunted house door`);
+  if (id==='wheel' && a.done.wheel && !riding) return combat;
   if (id==='wheel') return riding==='wheel' ? copy('坐稳了，转完这一圈','Hold on for the turn') : copy(`到摩天轮底下按 ${ex} 上吊舱，转一圈`,`Press ${ex} under the wheel and ride a turn`);
+  if (id==='midway' && a.done.stall) return s.park.stall
+    ? copy(`摊位已过 · 按 ${ex} 离开接战`,`Hit counted · Press ${ex} to leave and face the guards`) : combat;
   if (id==='midway') return s.park.stall ? copy('打中一个就算赢','One hit wins') : copy(`挑一个游戏摊按 ${ex}，打中一个就算赢`,`Press ${ex} at any stall; one hit wins`);
+  if (id==='bumpers' && a.done.bumpers && !riding) return combat;
   if (id==='bumpers') return riding==='bumpers' ? copy('开一会儿，想下车就按 '+ex,'Drive a while; press '+ex+' to get out') : copy(`到碰碰车场按 ${ex} 上车`,`Press ${ex} at the bumper cars`);
-  if (id==='mirrors') return copy('穿过镜子迷宫，去马戏帐篷','Through the mirror maze to the big top');
+  if (id==='mirrors') return copy('沿镜廊找守卫 · 本站还剩 '+left+' 只','Find the guards along the mirror maze · '+left+' left');
   if (c.defeatedAt!==null) return copy(`靠近舞台中央按 ${ex} 拾取高压马达`,`Press ${ex} by the motor on stage`);
-  if (!c.entered) return copy('走进马戏帐篷','Enter the big top');
+  if (!c.entered) return left ? copy('清掉前场守卫，再挑战小丑','Clear the guards before facing Giggles') : copy('走进马戏帐篷','Enter the big top');
   if (c.mask) return copy('急冻小丑或直接踩惊喜盒，腾空打碎面具','Freeze Giggles or bounce from a box to break the mask');
   return copy('急冻红圈预警地砖可保命，击败嬉笑小丑','Freeze warning tiles for cover and defeat Giggles');
 }
 function hud() {
-  const active = mode === 'playing' && !paused && !awaitingApproach;
+  const clownCut = amusement ? amusementCutscene(s) : null;
+  const enteringClown = clownCut?.kind === 'clown-intro' && mode === 'playing' && !paused;
+  $('clownEntrance').hidden = !enteringClown;
+  document.body.classList.toggle('clown-entrance', enteringClown);
+  if (enteringClown) {
+    const time = clownCut.elapsed;
+    const shade = T.MathUtils.smoothstep(time, 0, .55) * (1 - T.MathUtils.smoothstep(time, CLOWN_ENTRANCE.handoff, 4.92));
+    $('clownEntrance').style.setProperty('--clown-shade',shade.toFixed(3));
+    textOf('clownSkip',t(inputLabels().fire) + copy(' 跳过',' Skip'));
+  }
+  const active = mode === 'playing' && !paused && !awaitingApproach && !enteringClown;
   const stall = park && active ? s.park.stall : null;
   stallHud(stall);
   $('fightHud').hidden = !active;
@@ -1384,6 +1455,12 @@ function hud() {
     const zone=PARK_ZONES[s.amusement.zone];
     $('missionHud').querySelector('strong').textContent=copy(zone.name,zone.en);
     textOf('missionStep',amusementObjective());
+    const wave = s.amusement.encounter;
+    const showWave = !s.amusement.clown.entered && parkRemaining(s)>0 && (wave.index >= 0 || wave.nextAt !== null);
+    $('parkWaveStep').hidden = !showWave;
+    if (showWave) textOf('parkWaveStep', wave.nextAt !== null
+      ? copy(`第 ${wave.index+2}/${PARK_WAVE_COUNT} 波即将出现`,`Wave ${wave.index+2}/${PARK_WAVE_COUNT} incoming`)
+      : copy(`第 ${wave.index+1}/${PARK_WAVE_COUNT} 波`,`Wave ${wave.index+1}/${PARK_WAVE_COUNT}`));
   } else if (cottageStudy && active) textOf('missionStep', cottageStudyProgress());
   else if (missionBriefing && active) {
     const status = missionStatus(s);
@@ -1475,6 +1552,8 @@ function snapshot() {
     player: { x: s.player.x, y: s.player.y, z: s.player.z, jump: s.player.jump }, floor: floorIndex(level, s.player.y), carrying: s.carrying, yaw, pitch, room: roomAt(storeyAt(level, s.player.y), s.player.x, s.player.z)?.id,
     enemies: s.enemies.map(e => ({ id: e.id, type: e.type, frozenUntil: e.frozenUntil, enabled: e.enabled, reserveOf: e.reserveOf, guardBroken: e.guardBroken, actionAge: e.actionAge, cue: attackCue(e), model: enemyModels.get(e.id)?.nativeVariant || null, x: e.x, y: e.base, z: e.z, stun: e.stun, tangle: e.tangle, hp: e.hp, alive: e.alive, awareness: e.awareness, action: e.action })),
     amusement: amusement ? {zone:s.amusement.zone,lock:s.amusement.lock,opened:s.amusement.opened,valveLatched:s.amusement.valveLatched,valveUntil:s.amusement.valveUntil,mask:s.amusement.clown.mask,bossHp:s.amusement.clown.hp,maskHits:s.amusement.maskHits,iceHits:s.amusement.carousel.iceHits,pickedUp:s.amusement.pickedUp,done:s.amusement.done,lit:s.amusement.lit,targets:s.amusement.targets.map(t=>t.lit),entered:s.amusement.clown.entered} : undefined,
+    cutscene: amusement ? amusementCutscene(s) : null,
+    parkEncounter: amusement ? { ...s.amusement.encounter, remaining:parkRemaining(s) } : undefined,
     park: park ? { riding: s.park.riding?.id ?? null, stall: s.park.stall, door: s.park.door } : undefined,
     level: level.id, enemyBombs: s.enemyBombs.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, landed: b.landed, fuse: b.fuse })), enemyShots: s.enemyShots.map(b => ({ id: b.id, x: b.x, y: b.y, z: b.z, age: b.age })), slowUntil: s.slowUntil, pulledUntil: s.pulledUntil, neutralized: s.neutralized,
     balls: s.balls.length, pickups: s.pickups.filter(k => !k.taken).length, errors,
@@ -1504,13 +1583,16 @@ function start() {
   aimedEnemy = lastWounded = null;
   toastUntil = toastPriority = 0; $('toast').textContent = '';
   for (const k of s.pickups) if (k.kind === 'weapon' && k.weapon !== level.pickups[k.id - 1].weapon) world.refreshPickup({ ...level.pickups[k.id - 1], id: k.id });   // 上一局换过的枪摆回原样
-  const checkpoint=amusement && mode==='result' && s.phase==='lost' ? s.amusement.zone : requestedStage;
+  const retry = amusement && mode==='result' && s.phase==='lost';
+  const checkpoint=retry ? s.amusement.zone : requestedStage;
   if (zoneCarry?.zone !== checkpoint) zoneCarry = null;
-  s = createGame({ level,amusementCheckpoint:checkpoint,carry:zoneCarry,reducedMotion:reduced });
+  const bossCheckpoint = checkpoint === TENT_ZONE && (retry ? s.amusement.clown.entered : previewClownIntro);
+  s = createGame({ level,amusementCheckpoint:checkpoint,bossCheckpoint,carry:zoneCarry,reducedMotion:reduced });
+  if (previewClownIntro && checkpoint === TENT_ZONE && !retry) s.amusement.retry = false;
   amusementView?.update(s);
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;
   if(garden) gardenShieldId=s.enemies.find(e=>e.type==='shielded').id;
-  awaitingApproach = !checkpoint && !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
+  awaitingApproach = (previewClownIntro && !retry) || !checkpoint && !challenge && !intro && (missionBriefing || cottageStudy || garden || trio || finalStudy || menuTrial);
   $('ready-actions').hidden = !awaitingApproach;
   document.body.classList.toggle('practice-ready',awaitingApproach);
   if(finalStudy || menuTrial) for(const e of s.enemies){

@@ -119,6 +119,19 @@ export function createArsenalAudio(ctx) {
       tone(0, 330, 250, 0.08, 0.11); tone(0.12, 300, 230, 0.08, 0.11); tone(0.27, 520, 800, 0.2, 0.07, 'triangle');
     } else if (kind === 'bell') {    // 旋转木马的铃：叮——叮
       for (const d of [0, 0.32]) { tone(d, 1568, 1560, 0.6, 0.09); tone(d, 3136, 3120, 0.3, 0.03); }
+    } else if (kind === 'clown-stage-light') {
+      tone(0, 188, 93, .22, .075, 'triangle');
+      hiss(0, .20, .07, 1400, 'bandpass', 1.3);
+    } else if (kind === 'clown-crank') {
+      for (const [delay, pitch] of [[0, 460], [.20, 520], [.37, 590], [.52, 680], [.65, 780]]) {
+        tone(delay, pitch, pitch * .52, .046, .085, 'triangle');
+        hiss(delay, .027, .067, 2800, 'bandpass', 2.4);
+      }
+    } else if (kind === 'clown-salute') {
+      for (const [delay, pitch] of [[0, 659], [.15, 830], [.28, 698]]) {
+        tone(delay, pitch, pitch * 1.09, .10, .055, 'triangle');
+        tone(delay, pitch * 2, pitch * 2.07, .08, .020);
+      }
     } else if (kind === 'gong') {    // 马戏团的锣
       tone(0, 196, 190, 1.4, 0.22); tone(0, 294, 288, 1.1, 0.1, 'triangle'); tone(0, 588, 570, 0.6, 0.05); hiss(0, 0.5, 0.08, 2600, 'bandpass', 0.6);
     } else if (kind === 'knock') {   // 敲门三下，然后门吱呀一声

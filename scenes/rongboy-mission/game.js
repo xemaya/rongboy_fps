@@ -12,10 +12,10 @@ import { GADGETS, STASH } from './gadgets.js';
 import { createChallengeRun, recordChallengeZap, recordChallengeHit, recordChallengeArrow, challengeOutcome } from './challenge-run.js';
 import { travelPace, strideTravel } from './locomotion.js';
 import { advanceWaves } from './encounter-waves.js';
-import { constrainTourWalk, isTourWalkable } from './park-tour-layout.js';
+import { constrainTourWalk } from './park-tour-layout.js';
 import { createPark, stepPark } from './park-rides.js';
 
-import { makeAmusement, checkpointPosition, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene } from './amusement.js';
+import { makeAmusement, checkpointPosition, TENT_ZONE, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene, parkGateAllows } from './amusement.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -87,9 +87,9 @@ const length = (x, z) => Math.hypot(x, z);
 const enemyMovementScale = (s,e) => e.tangle > 0 ? TANGLE_SPEED : e.frostSlowUntil > s.time ? .7 : 1;
 
 // carry：从检查点重来时带回来的东西（checkpointCarry 记下的）：身上几瓶血瓶、哪些地上的东西已经捡走了
-export function createGame({ level, amusementCheckpoint = 0, carry = null, reducedMotion = false } = {}) {
+export function createGame({ level, amusementCheckpoint = 0, bossCheckpoint = false, carry = null, reducedMotion = false } = {}) {
   if (!level) throw new Error('createGame 需要一个编译好的关卡');
-  const amusement = level.mission?.type === 'amusement' ? makeAmusement(amusementCheckpoint) : null;
+  const amusement = level.mission?.type === 'amusement' ? makeAmusement(amusementCheckpoint, bossCheckpoint) : null;
   const maxHealth = amusement ? 100 : CONFIG.maxHealth;
   const s = {
     phase: 'playing', level, amusement, maxHealth, time: 0, weapon: 0,
@@ -116,23 +116,21 @@ export function createGame({ level, amusementCheckpoint = 0, carry = null, reduc
   if (level.tour) s.park = createPark({ watch: reducedMotion });
   if (amusementCheckpoint && amusement) Object.assign(s.player, checkpointPosition(amusementCheckpoint));
   for (const e of level.enemies || []) {
-    if (amusement && e.zone < amusementCheckpoint) continue;
+    if (amusement && (e.zone < amusementCheckpoint || (bossCheckpoint && e.zone === TENT_ZONE))) continue;
     if (e.dormant) s.dormant.push({ ...e });
-    else spawn(s, amusementCheckpoint && amusement
-      ? { ...e, enabled: e.zone === amusementCheckpoint && !e.parkWave }
-      : e);
+    else spawn(s,e);
   }
   return s;
 }
 
 // state: 'asleep' | 'idle' | 'alert'。patrol 是 [[x,z],...] 巡逻点。
-export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave, zone, parkWave }) {
+export function spawn(s, { type = 'walker', x, z, state = 'alert', heading = 0, patrol = null, floor = 0, enabled = true, reserveOf = null, encounter, wave, zone }) {
   type = type === 'runner' || type === 'weaver' ? 'leaper' : type;
   const roster = ENEMY_TYPES[type] || ENEMY_TYPES.walker, base = floor * s.level.storeyHeight;
   const attic = type === 'boss-warden' && encounter === 'attic';
   const def = attic ? { ...roster, hp: 44, speed: 1.58, resistance: .12, armor: .55 } : roster;
   const e = {
-    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, zone, parkWave, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
+    ...def, type, encounter: attic ? encounter : undefined, enabled, reserveOf, wave, zone, floor, guardBroken: 0, attackCount: 0, exploded: false, id: s.nextId++, x, y: base, base, hop: 0, z, vx: 0, vz: 0, hp: def.hp, maxHp: def.hp, alive: true, heading,
     awareness: state, wake: 0, senseIn: 0, patrol, patrolIndex: 0, patrolWait: 0,
     hit: 0, hitDuration: 0, age: 0, deathAge: 0, fallX: 0, fallZ: 1, chainCooldown: 0, stun: 0, tangle: 0,
     reactionAge: 10, reactionStrength: 0, reactionWeapon: 'single', reactionX: 0, reactionZ: 1, reactionTwist: 0,
@@ -1029,7 +1027,7 @@ export const checkpointCarry = s => ({ potions: s.potions, taken: s.pickups.filt
 export function missionStatus(s) {
   const m = s.level.mission, alive = aliveCount(s);
   if (s.challenge) return { type: 'challenge', alive, total: s.total, done: s.phase === 'won' };
-  if (s.amusement) return { type:'amusement', alive, total:s.total, done:s.amusement.pickedUp && !(s.amusement.victoryCutsceneUntil > s.time) };
+  if (s.amusement) return { type:'amusement', alive:alive + s.dormant.length, total:s.total + s.dormant.length, done:s.amusement.pickedUp && !(s.amusement.victoryCutsceneUntil > s.time) };
   if (m.type === 'fetch') {
     const exit = m.exit, p = s.player;
     const atExit = p.y < 1 && p.x >= exit.minX && p.x <= exit.maxX && p.z >= exit.minZ && p.z <= exit.maxZ;
@@ -1046,6 +1044,19 @@ function finish(s, phase) {
 }
 
 // ---------- 主循环 ----------
+
+function keepParkPosition(s, body, fromX, fromZ, radius) {
+  if (body.x === fromX && body.z === fromZ) return;
+  const floor = storeyAt(s.level, body.base ?? body.y);
+  constrainTourWalk(body, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor,x,z,radius) && parkGateAllows(s,x,z));
+}
+
+function pushParkBody(s, body, radius, nx, nz, amount) {
+  const x = body.x, z = body.z;
+  body.x += nx * amount; body.z += nz * amount;
+  keepParkPosition(s, body, x, z, radius);
+  return (body.x - x) * nx + (body.z - z) * nz;
+}
 
 export function step(s, dt, input = {}) {
   if (s.phase !== 'playing') return;
@@ -1089,17 +1100,16 @@ export function step(s, dt, input = {}) {
   if (controlled) { p.vx = p.vz = 0; }
   else if (L.tour) {
     // 小径和墙一起验：走不过去就退回这一步之前，站着不动的人不会被墙挤走。挨打被推开的那一下（vx、vz）也算在里面。
-    const floor = storeyAt(L, p.y);
     p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
     p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
-    if (p.x !== fromX || p.z !== fromZ) constrainTourWalk(p, fromX, fromZ, s.park.door > .9, (x,z) => freePoint(floor, x, z, CONFIG.playerRadius));
+    keepParkPosition(s,p,fromX,fromZ,CONFIG.playerRadius);
   } else {
     p.x += mx * moveSpeed * dt + p.vx * dt; p.z += mz * moveSpeed * dt + p.vz * dt;
     p.vx *= Math.exp(-10 * dt); p.vz *= Math.exp(-10 * dt);
     resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);
     p.y = surfaceY(L, p.x, p.z, p.y);
   }
-  if (s.amusement) advanceAmusement(s,dt,{hurt:hurtPlayer,damage,volley:clownVolley});
+  if (s.amusement) advanceAmusement(s,dt,{hurt:hurtPlayer,damage,volley:clownVolley,spawn});
   // 连发枪：扳机按着、冷却到了就出一发；弹匣空了交给上面的自动换弹，彻底没弹药就松开扳机
   if (s.trigger && WEAPONS[s.weapon].auto && s.cooldown <= 0 && !s.reloading) {
     if (!fire(s, 0, input.shot || null) && s.ammo[s.weapon].mag === 0 && s.ammo[s.weapon].reserve === 0) s.trigger = false;
@@ -1120,9 +1130,7 @@ export function step(s, dt, input = {}) {
     e.x += e.vx * dt; e.z += e.vz * dt;
     e.vx *= Math.exp(-4.3 * dt); e.vz *= Math.exp(-4.3 * dt);
     resolveBody(storeyAt(L, e.base), e, e.radius);
-    if (L.tour && !isTourWalkable(e.x, e.z, .2)) {   // 游乐园：僵尸和人一样只走小径，不踩草地、不穿设施（被打飞也飞不出去）
-      if (isTourWalkable(e.x, startZ, .2)) e.z = startZ; else if (isTourWalkable(startX, e.z, .2)) e.x = startX; else { e.x = startX; e.z = startZ; }
-    }
+    if (L.tour) keepParkPosition(s,e,startX,startZ,e.radius);
     e.base = surfaceY(L, e.x, e.z, e.base); e.y = e.base + e.hop;
     if (strideTravel(e, startX, startZ, wantedX, wantedZ, startHeading, dt)) {
       s.events.push({ type: 'footstep', id: e.id, ...at(e), enemyType: e.type });
@@ -1139,7 +1147,16 @@ export function step(s, dt, input = {}) {
     if (d >= r) continue;
     if (d < 0.001) { dx = 0.001; dz = 0; d = 0.001; }
     const nx = dx / d, nz = dz / d, over = r - d;
-    a.x -= nx * over * 0.5; b.x += nx * over * 0.5; a.z -= nz * over * 0.5; b.z += nz * over * 0.5;
+    if (L.tour) {
+      const frozenA = a.frozenUntil > s.time, frozenB = b.frozenUntil > s.time;
+      const movedA = frozenA ? 0 : pushParkBody(s,a,a.radius,-nx,-nz,frozenB ? over : over*.5);
+      const movedB = frozenB ? 0 : pushParkBody(s,b,b.radius,nx,nz,Math.max(0,over-movedA));
+      if (!frozenA && over - movedA - movedB > 1e-5)
+        pushParkBody(s,a,a.radius,-nx,-nz,over-movedA-movedB);
+    } else {
+      a.x -= nx * over * .5; b.x += nx * over * .5;
+      a.z -= nz * over * .5; b.z += nz * over * .5;
+    }
     const va = a.vx * nx + a.vz * nz, vb = -(b.vx * nx + b.vz * nz);
     if (va > 2.0 && b.alive && b.chainCooldown <= 0) { damage(s, b, 1, nx, nz, va * 0.75, 'collision'); a.vx *= 0.55; a.vz *= 0.55; }
     else if (vb > 2.0 && a.alive && a.chainCooldown <= 0) { damage(s, a, 1, -nx, -nz, vb * 0.75, 'collision'); b.vx *= 0.55; b.vz *= 0.55; }
@@ -1176,8 +1193,18 @@ export function step(s, dt, input = {}) {
     if (d >= r || seated) continue;
     if (d < 0.001) { dx = 0.001; dz = 0; d = 0.001; }
     const overlap = r - d, nx = dx / d, nz = dz / d;
-    p.x += nx * overlap * 0.85; p.z += nz * overlap * 0.85; if (!(e.frozenUntil>s.time)) { e.x -= nx * overlap * .15; e.z -= nz * overlap * .15; }
-    if (!(e.frozenUntil>s.time)) resolveBody(storeyAt(L, e.base), e, e.radius);
+    const frozen = e.frozenUntil > s.time;
+    if (L.tour) {
+      // If the player is pinned by a wall, move the enemy into the remaining legal space.
+      const moved = pushParkBody(s,p,CONFIG.playerRadius,nx,nz,frozen ? overlap : overlap*.85);
+      if (!frozen) pushParkBody(s,e,e.radius,-nx,-nz,Math.max(0,overlap-moved));
+    } else {
+      p.x += nx * overlap * .85; p.z += nz * overlap * .85;
+      if (!frozen) {
+        e.x -= nx * overlap * .15; e.z -= nz * overlap * .15;
+        resolveBody(storeyAt(L, e.base), e, e.radius);
+      }
+    }
   }
   if (!L.tour) {
     resolveBody(storeyAt(L, p.y), p, CONFIG.playerRadius);

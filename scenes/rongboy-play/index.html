@@ -17,6 +17,7 @@ body.locked #view { cursor: none; }
   border-inline-start: 3px solid #eac17a; border-radius: 8px;
   color: #fff0cd; background: #23392de8; font: 500 clamp(13px, 1.45vw, 17px)/1.4 var(--ui-text);
 }
+#parkWaveStep { display:block; color:#f1ca83; margin-top:4px; font-size:.91em; }
 #missionHud strong { display: block; margin-bottom: 3px; color: #f1ca83; font: 600 .9em var(--ui-title); }
 body:has(#bossHud:not([hidden])) #missionHud { max-width: min(310px, 26vw); }
 body.park-tour #missionHud { width:max-content; min-width:112px; padding:8px 13px; }
@@ -67,6 +68,14 @@ body.park-tour #missionStep { font-weight:650; }
 .track { height: 4px; background: #171d16bd; border-radius: 4px; margin-top: 5px; overflow: hidden; }
 .fill { width: 0; height: 100%; background: #f0c778; transition: width .04s linear; }
 .charge.full .fill { background: #ffde94; }
+#clownEntrance { position: fixed; inset: 0; z-index: 6; pointer-events: none; }
+#clownEntrance::before { content: ""; position: absolute; inset: 0; opacity: var(--clown-shade, 0);
+  background: radial-gradient(ellipse at 50% 47%, transparent 22%, #170b1970 66%, #110915c9 100%);
+  box-shadow: inset 0 2.5dvh #130d17, inset 0 -2.5dvh #130d17; }
+#clownSkip { position: absolute; right: clamp(16px, 3.4vw, 48px); bottom: clamp(24px, 4.5dvh, 58px);
+  padding: .36em .62em; border: 1px solid #fff3d857; border-radius: 8px;
+  background: #251722cf; color: #fff3d8; font: 650 clamp(13px, 1.3vw, 17px)/1.3 var(--ui-text); }
+body.clown-entrance #toast { visibility: hidden; }
 #scopeOverlay { position:fixed; inset:0; z-index:2; pointer-events:none; display:grid; place-items:center; }
 .scope-glass {
   position:relative; width:min(90dvh,86vw); aspect-ratio:1; border-radius:50%;
@@ -327,7 +336,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
 </style></head><body class="loading game-interface"><section id="loading" role="status" aria-live="polite"><div><div class="loadingBrand"><strong>绒仔</strong><span>RONGBOY</span></div><h2 id="loadingTitle">准备出发</h2><p id="loadingStatus">正在打开地图…</p><progress id="loadingProgress" max="100" value="8" aria-label="地图加载进度"></progress><br><a class="ui-return" id="loadBack" href="rongboy-mission.html" hidden>返回选图</a></div></section><canvas id="view" tabindex="0" aria-label="Rongboy 第一人称毛球射击。WASD 或左摇杆移动，方向键或右摇杆转向，空格或 R2 射击，按住蓄力，Q 或 L1 换枪，E 或 L2 投掷，G 或十字键下切换炸弹，F 或 □ 换地上的枪，R 或 R1 换弹，Shift 或 ✕ 跳。"></canvas>
 <div id="fightHud" hidden>
   <div id="playerHealth" hidden role="meter" aria-label="生命" aria-valuemin="0" aria-valuemax="100"><span id="playerHealthValue"></span><i id="playerHealthTrack"><i id="playerHealthFill"></i></i></div>
-  <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span></div>
+  <div id="missionHud" hidden><strong>当前任务</strong><span id="missionStep" role="status"></span><span id="parkWaveStep" hidden></span></div>
   <div class="hearts" id="hearts" role="img" aria-label="3 颗心">
     <span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span><span class="heart on" aria-hidden="true"></span>
   </div>
@@ -343,6 +352,7 @@ body.result #reticle, body.result #toast, body.practice-ready #toast { display: 
   </div>
 </div>
 <div id="challenge-run" hidden><span id="challenge-progress" aria-live="polite"></span><span id="challenge-clock"></span><span id="challenge-window" hidden></span></div>
+<div id="clownEntrance" hidden><span id="clownSkip"></span></div>
 <div id="bossHud" hidden><span id="bossName"></span><span id="bossDetail" hidden></span><div class="boss-track" id="bossTrack" role="meter" aria-label="首领生命值" aria-valuemin="0"><i id="bossFill"></i></div></div>
 <div id="scopeOverlay" hidden aria-hidden="true"><div class="scope-glass"><span>4×</span></div></div>
 <div id="parkTrap" aria-hidden="true"></div><div id="hurtFrame"></div><div id="hurtSide"></div><div id="hurtArc"></div><div id="cotton" aria-hidden="true"></div>
