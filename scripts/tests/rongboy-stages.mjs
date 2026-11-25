@@ -2,12 +2,15 @@
 //   node scripts/tests/rongboy-stages.mjs
 import assert from 'node:assert/strict';
 import { makeMech, mechState, stepMech, mechSlide, hitMech } from '../../scenes/rongboy-mission/mech.js';
-import { GATE_LIFT_SECONDS, gateOnPath, makeStages, gatePassable, stageStart, pastGate, advanceStages } from '../../scenes/rongboy-mission/stages.js';
+import { GATE_LIFT_SECONDS, gateOnPath, makeStages, gatePassable, stageStart, stageYaw, pastGate, advanceStages } from '../../scenes/rongboy-mission/stages.js';
 import { planTrack, closedTrack } from '../../scenes/rongboy-mission/track.js';
 import { costPoints, createCostSweep } from '../../scenes/rongboy-mission/debug-cost.js';
 import { trackReport } from '../track.mjs';
 import { checkMap } from '../../scenes/rongboy-mission/mapkit/check.js';
 import park from '../../scenes/rongboy-mission/levels/amusement.js';
+import { compileLevel } from '../../scenes/rongboy-mission/level.js';
+import { createGame } from '../../scenes/rongboy-mission/game.js';
+import { GATES, TENT_ZONE } from '../../scenes/rongboy-mission/amusement.js';
 
 let checks = 0;
 function test(name, fn) { fn(); checks++; console.log('PASS', name); }
@@ -107,6 +110,19 @@ test('the map check knows path maps: the park passes, and each kind of mistake i
   withoutMidway.enemies = park.enemies.filter(e => e.zone !== 6);
   const idle = checkMap(withoutMidway).warnings.filter(w => w.code !== 'enemy-untested');
   assert.deepEqual(idle.map(w => w.code), ['path-idle'], 'a stop with nothing to do');
+});
+
+test('restarting at a stage faces the way the path goes on, not the way the level began', () => {
+  const south = [{ x: 3, z: 8, tx: 0, tz: 1, width: 3 }];   // this gate is crossed heading +z
+  assert.equal(stageYaw(south, 0), null, 'the first stage keeps the level\'s own heading');
+  const yaw = stageYaw(south, 1); assert.ok(Math.abs(-Math.sin(yaw)) < 1e-9 && Math.abs(-Math.cos(yaw) - 1) < 1e-9, 'forward is (-sin, -cos) of the yaw');
+  // the park: at every stop the gate just passed is straight behind, and the tent faces the stage
+  const level = compileLevel(park);
+  for (let zone = 1; zone <= TENT_ZONE; zone++) {
+    const p = createGame({ level, amusementCheckpoint: zone }).player, gate = GATES[zone - 1];
+    const back = ((gate.x - p.x) * p.aimX + (gate.z - p.z) * p.aimZ) / Math.hypot(gate.x - p.x, gate.z - p.z);
+    assert.ok(back < -0.99, 'stop ' + zone + ': the gate behind is ' + back.toFixed(2) + ' of the way round');
+  }
 });
 
 console.log(`${checks} stage, mechanism, track and cost checks passed`);

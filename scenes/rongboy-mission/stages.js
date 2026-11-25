@@ -30,6 +30,13 @@ export function stageStart(gates, zone, step = 1.3) {
   return gate ? { x: gate.x + gate.tx * step, z: gate.z + gate.tz * step } : null;
 }
 
+// 重来时脸朝哪：顺着路往前（过门的方向）。不给的话人按关卡出发时的朝向站，路拐过弯以后就成了背对着路、脸贴着栅栏。
+// 朝向的约定和画面层一样：0 是朝 -z，前方是 (-sin, -cos)。
+export function stageYaw(gates, zone) {
+  const gate = gates[zone - 1];
+  return gate ? Math.atan2(-gate.tx, -gate.tz) : null;
+}
+
 // (x, z) 在第 i 道门的哪一边：负数是门前（这一段），正数是门后（下一段）
 export const pastGate = (gate, x, z) => (x - gate.x) * gate.tx + (z - gate.z) * gate.tz;
 

@@ -17,26 +17,30 @@ function fuzzMaterial(){
 // Recover growth direction from the narrow root edge of each hair triangle.
 function woolNormals(g,surface=false){if(surface){g.setAttribute('woolNormal',g.getAttribute('normal').clone());return;}const position=g.getAttribute('position'),directions=new Float32Array(position.count*3),points=[new T.Vector3(),new T.Vector3(),new T.Vector3()],direction=new T.Vector3();for(let i=0;i<position.count;i+=3){for(let j=0;j<3;j++)points[j].fromBufferAttribute(position,i+j);const d=[points[0].distanceToSquared(points[1]),points[1].distanceToSquared(points[2]),points[2].distanceToSquared(points[0])];const pair=d.indexOf(Math.min(...d)),a=pair,b=(pair+1)%3,tip=(pair+2)%3;direction.copy(points[tip]).sub(points[a].clone().add(points[b]).multiplyScalar(.5)).normalize();for(let j=0;j<3;j++)direction.toArray(directions,(i+j)*3);}g.setAttribute('woolNormal',new T.BufferAttribute(directions,3));}
 const textureKey=t=>t?[t.source?.uuid||t.uuid,t.mapping,t.channel,t.colorSpace,t.wrapS,t.wrapT,t.minFilter,t.magFilter,...t.repeat.toArray(),...t.offset.toArray(),...t.center.toArray(),t.rotation,t.flipY].join(':'):'-';
-function feltFibreFinish(material){
+// finish（可选，只给近景页面用，见 loadFigurines）：fibre 是纤维明暗留几成（1 = 原样），normal 是法线强度乘几。
+function feltFibreFinish(material,finish){
  if(!material.normalMap)return;
+ const soft=finish&&finish.fibre!==undefined&&finish.fibre!==1?Number(finish.fibre):null;
+ if(finish?.normal!==undefined)material.normalScale.multiplyScalar(finish.normal);
  const prior=material.onBeforeCompile,oldKey=material.customProgramCacheKey(),fiberGain=material.userData.rongboy_felt_finish===2?'.65 + ':'';
+ const fibre=soft===null?fiberGain+'texture2D(normalMap,vNormalMapUv).a':'mix(1.0, '+fiberGain+'texture2D(normalMap,vNormalMapUv).a, '+soft.toFixed(3)+')';
  material.onBeforeCompile=(shader,renderer)=>{
   prior.call(material,shader,renderer);
   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
    #ifdef USE_NORMALMAP
-    diffuseColor.rgb *= ${fiberGain}texture2D(normalMap,vNormalMapUv).a;
+    diffuseColor.rgb *= ${fibre};
    #endif`);
  };
- material.customProgramCacheKey=()=>oldKey+'|rongboy-neutral-fibre-luminance-v7-'+(material.userData.rongboy_felt_finish||0);
+ material.customProgramCacheKey=()=>oldKey+'|rongboy-neutral-fibre-luminance-v7-'+(material.userData.rongboy_felt_finish||0)+(soft===null?'':'|soft-'+soft.toFixed(3));
 }
-export function optimizeFigurine(root,{skin=false}={}){root.updateMatrixWorld(true);const nodes=[];root.traverse(o=>{if(isBatchRoot(o))nodes.push(o);});const canon=new Map();const fuzzMat=fuzzMaterial();
+export function optimizeFigurine(root,{skin=false,finish=null}={}){const tint=finish?.tint||[1,1,1];root.updateMatrixWorld(true);const nodes=[];root.traverse(o=>{if(isBatchRoot(o))nodes.push(o);});const canon=new Map();const fuzzMat=fuzzMaterial();
  for(const part of nodes){const groups=new Map(),hair=[],gearLabels=new Set(part.userData.gearLabels||[]);const inverse=part.matrixWorld.clone().invert();function visit(o,fuzz=false){if(o!==part&&isBatchRoot(o))return;if(o.userData.gear)gearLabels.add(o.userData.gear);fuzz ||=!!o.userData.fuzz||o.name.startsWith('fuzz');if(o.isMesh){let g=fuzz?(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()):o.geometry.clone();if(!fuzz&&!g.index)g.setIndex([...Array(g.attributes.position.count).keys()]);for(const n of Object.keys(g.attributes))if(!['position','normal','uv','color'].includes(n))g.deleteAttribute(n);g.applyMatrix4(new T.Matrix4().multiplyMatrices(inverse,o.matrixWorld));
- if(fuzz){g.deleteAttribute('uv');g.deleteAttribute('tangent');const colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){const n=i/3,c=g.getAttribute('color');colors[i]=o.material.color.r*(c?c.getX(n):1);colors[i+1]=o.material.color.g*(c?c.getY(n):1);colors[i+2]=o.material.color.b*(c?c.getZ(n):1);}g.setAttribute('color',new T.BufferAttribute(colors,3));const surface=o.userData.wool_profile==='curled_surface';woolNormals(g,surface);g.setAttribute('woolSurface',new T.BufferAttribute(new Float32Array(g.attributes.position.count).fill(surface?1:0),1));hair.push(g);}else{const m=o.material,k=[textureKey(m.map),textureKey(m.normalMap),m.normalScale?.toArray().join(','),m.userData.rongboy_felt_finish||0,m.roughness,m.metalness,m.sheen||0,m.sheenRoughness,m.sheenColor?.getHexString(),m.side,m.opacity,m.alphaTest,m.emissive?.getHexString()].join('|');
+ if(fuzz){g.deleteAttribute('uv');g.deleteAttribute('tangent');const colors=new Float32Array(g.attributes.position.count*3);for(let i=0;i<colors.length;i+=3){const n=i/3,c=g.getAttribute('color');colors[i]=Math.min(1,tint[0]*o.material.color.r*(c?c.getX(n):1));colors[i+1]=Math.min(1,tint[1]*o.material.color.g*(c?c.getY(n):1));colors[i+2]=Math.min(1,tint[2]*o.material.color.b*(c?c.getZ(n):1));}g.setAttribute('color',new T.BufferAttribute(colors,3));const surface=o.userData.wool_profile==='curled_surface';woolNormals(g,surface);g.setAttribute('woolSurface',new T.BufferAttribute(new Float32Array(g.attributes.position.count).fill(surface?1:0),1));hair.push(g);}else{const m=o.material,k=[textureKey(m.map),textureKey(m.normalMap),m.normalScale?.toArray().join(','),m.userData.rongboy_felt_finish||0,m.roughness,m.metalness,m.sheen||0,m.sheenRoughness,m.sheenColor?.getHexString(),m.side,m.opacity,m.alphaTest,m.emissive?.getHexString()].join('|');
  // Base colours are exact per vertex. Constant-colour V2 cloth can share a draw call
  // without the coloured UV atlas that made the close-up faces look mottled.
- const existing=g.getAttribute('color'),colors=new Float32Array(g.attributes.position.count*3),base=m.color||new T.Color(0xffffff);
- for(let i=0;i<g.attributes.position.count;i++){colors[i*3]=base.r*(existing?existing.getX(i):1);colors[i*3+1]=base.g*(existing?existing.getY(i):1);colors[i*3+2]=base.b*(existing?existing.getZ(i):1);}g.setAttribute('color',new T.BufferAttribute(colors,3));
- if(!canon.has(k)){const material=m.clone();material.color.setHex(0xffffff);material.vertexColors=true;feltFibreFinish(material);canon.set(k,material);}if(!groups.has(k))groups.set(k,[]);groups.get(k).push(g);}return;}for(const c of o.children)visit(c,fuzz);}visit(part);part.userData.gearLabels=[...gearLabels];
+ const existing=g.getAttribute('color'),colors=new Float32Array(g.attributes.position.count*3),base=m.color||new T.Color(0xffffff),dye=m.normalMap?tint:[1,1,1];   // 只染毛毡；纽扣、鞋底这些硬件不染
+ for(let i=0;i<g.attributes.position.count;i++){colors[i*3]=Math.min(1,dye[0]*base.r*(existing?existing.getX(i):1));colors[i*3+1]=Math.min(1,dye[1]*base.g*(existing?existing.getY(i):1));colors[i*3+2]=Math.min(1,dye[2]*base.b*(existing?existing.getZ(i):1));}g.setAttribute('color',new T.BufferAttribute(colors,3));
+ if(!canon.has(k)){const material=m.clone();material.color.setHex(0xffffff);material.vertexColors=true;feltFibreFinish(material,finish);canon.set(k,material);}if(!groups.has(k))groups.set(k,[]);groups.get(k).push(g);}return;}for(const c of o.children)visit(c,fuzz);}visit(part);part.userData.gearLabels=[...gearLabels];
  const remove=[];function collect(o){if(o!==part&&isBatchRoot(o))return;if(o.isMesh){remove.push(o);return;}for(const c of o.children)collect(c);}collect(part);for(const o of remove)o.removeFromParent();
  for(const [key,gs]of groups){for(const g of gs)g.deleteAttribute('tangent');const g=mergeGeometries(gs,false);if(!g)throw new Error('Native model merge failed');const mesh=new T.Mesh(g,canon.get(key));mesh.castShadow=mesh.receiveShadow=true;part.add(mesh);for(const q of gs)q.dispose();}
  if(hair.length){const g=mergeGeometries(hair,false);const mesh=new T.Mesh(g,fuzzMat);mesh.receiveShadow=true;mesh.castShadow=false;mesh.userData.fuzz=true;part.add(mesh);for(const q of hair)q.dispose();}
@@ -84,13 +88,16 @@ export function repairWalkerRig(root){
 }
 // Native prefab roster; only requested templates are optimized.
 // skin：僵尸并成刚性蒙皮（见 skinFigurine），只给游戏用；主角的第一人称手臂要按部件显隐，不并。
-export async function loadFigurines(data,{skin=false}={}){
+// finish：{ fibre, normal, tint:[r,g,b] }，只作用于僵尸，只给有特写的页面（开场片）用。v7 僵尸的纤维明暗和法线是按
+// 游戏里两三米外、几百像素高调的，底色也偏暗偏黄；怼到脸上、又在室内灯下看，纤维成了一根根硬线，脸像烤焦了。
+// 近景把纤维和法线压软、把毛毡的底色提亮并往绿里带一点。不传就是游戏里的原样。
+export async function loadFigurines(data,{skin=false,finish=null}={}){
  const loader=new GLTFLoader();const [hero,zombies]=await Promise.all([data.scout?loader.parseAsync(decode(data.scout),''):null,loader.parseAsync(decode(data.zombies||data.walker),'')]);
  const templates={},raw=new Map();if(hero)templates.scout=optimizeFigurine(hero.scene);
  if(data.zombies){for(const root of zombies.scene.children)if(root.userData.zombieType)raw.set(root.userData.zombieType,root);if(!raw.size)throw new Error('Expected native zombie prefabs');}
- else templates.walker=repairWalkerRig(optimizeFigurine(zombies.scene));
+ else templates.walker=repairWalkerRig(optimizeFigurine(zombies.scene,{finish}));
  const resolve=kind=>kind==='tank'?'heavy':kind==='runner'||kind==='weaver'?'leaper':kind;
- function template(kind){const id=resolve(kind);if(!templates[id]){const root=raw.get(id);if(!root)throw new Error('Unknown figurine: '+kind);templates[id]=optimizeFigurine(root,{skin});}return templates[id];}
+ function template(kind){const id=resolve(kind);if(!templates[id]){const root=raw.get(id);if(!root)throw new Error('Unknown figurine: '+kind);templates[id]=optimizeFigurine(root,{skin,finish});}return templates[id];}
  return {templates,kinds:[...(hero?['scout']:[]),...(raw.size?raw.keys():['walker'])],prepare(kind){template(kind);},create(kind){
   const id=resolve(kind),source=template(id),model=source.clone(true),world=new T.Group(),tilt=new T.Group();world.add(tilt);tilt.add(model);model.scale.multiplyScalar(ACTOR_SCALE);model.position.y=-.017;
   // 复制出来的蒙皮网格还指着模板的骨头：换成这一只自己的关节（顺序和模板一样）

@@ -279,6 +279,18 @@ test('5 ferris wheel: the balloon with the key hangs in front of the top of the 
   clearZone(s); run(s, 1); through(s, 5);
 });
 
+test('5 ferris wheel: popping the key from the path counts too, and the guards come without a ride', () => {
+  const g = fresh(5), key = BALLOONS.find(b => b.key), keyIndex = BALLOONS.indexOf(key);
+  at(g, 8.1, -25.4); selectWeapon(g, pistol);
+  // 18 米外，球会往下掉：像人一样一枪比一枪抬高一点
+  for (const lift of [0, .3, .6, .9, 1.2, 1.6]) { if (!g.amusement.balloons[keyIndex]) break; shot(g, { ...key, y: key.y + lift }); run(g, 1.6); }
+  assert.equal(g.amusement.balloons[keyIndex], false, 'the key balloon can be hit from the ground');
+  assert.equal(g.park.riding, null); assert.equal(g.amusement.done.wheel, false, 'nobody rode the wheel');
+  run(g, 3);
+  assert.equal(g.amusement.encounter.index, 0, 'the first wave of guards has come');
+  assert.ok(g.enemies.some(e => e.alive && e.zone === 5), 'there is something to clear, as the objective says');
+});
+
 test('6 midway: one hit at any stall wins; walking up to a stall is not enough', () => {
   blocked(s, 6);
   const stall = STALLS.find(k => k.id === 'blocks'), q = spot('stall-blocks'); at(s, q.x, q.z);

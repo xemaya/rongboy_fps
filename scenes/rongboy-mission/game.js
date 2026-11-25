@@ -15,7 +15,7 @@ import { advanceWaves } from './encounter-waves.js';
 import { constrainTourWalk } from './park-tour-layout.js';
 import { createPark, stepPark } from './park-rides.js';
 
-import { makeAmusement, checkpointPosition, TENT_ZONE, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene, parkGateAllows, parkHoleAt } from './amusement.js';
+import { makeAmusement, checkpointPosition, checkpointYaw, TENT_ZONE, advanceAmusement, moveAmusement, amusementContact, hitAmusement, amusementCutscene, parkGateAllows, parkHoleAt } from './amusement.js';
 
 export const CONFIG = {
   playerSpeed: 3.15, playerRadius: 0.30, maxHealth: 3, invulnerable: 1.2,
@@ -114,7 +114,11 @@ export function createGame({ level, amusementCheckpoint = 0, bossCheckpoint = fa
   for (const index of GRENADE_TYPES) if (!s.owned[index]) s.ammo[index] = { mag: 0, reserve: 0 };
   s.grenade = GRENADE_TYPES.find(index => s.owned[index]) ?? GRENADE;
   if (level.tour) s.park = createPark({ watch: reducedMotion });
-  if (amusementCheckpoint && amusement) Object.assign(s.player, checkpointPosition(amusementCheckpoint));
+  if (amusementCheckpoint && amusement) {
+    Object.assign(s.player, checkpointPosition(amusementCheckpoint));
+    const yaw = checkpointYaw(amusementCheckpoint);
+    if (yaw !== null) { s.player.aimX = -Math.sin(yaw); s.player.aimZ = -Math.cos(yaw); }
+  }
   for (const e of level.enemies || []) {
     if (amusement && (e.zone < amusementCheckpoint || (bossCheckpoint && e.zone === TENT_ZONE))) continue;
     if (e.dormant) s.dormant.push({ ...e });

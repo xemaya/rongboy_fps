@@ -51,7 +51,7 @@ import { cottageStudyDef } from './levels/cottage-study.js';
 import { createParkTour } from './park-tour-view.js';
 import { STALLS, TOUR_PATH, isHauntWalkable } from './park-tour-layout.js';
 import { costPoints, createCostSweep, costParts } from './debug-cost.js';
-import { PARK_ZONES, TENT_ZONE, CLOWN, CLOWN_ENTRANCE, CLOWN_INTRO_SECONDS, FIRST_BOX, TENT_DOOR, BALLOONS, FLAG_HITS, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
+import { checkpointYaw, PARK_ZONES, TENT_ZONE, CLOWN, CLOWN_ENTRANCE, CLOWN_INTRO_SECONDS, FIRST_BOX, TENT_DOOR, BALLOONS, FLAG_HITS, amusementPrompt, amusementTargets, useAmusement, parkRemaining, amusementCutscene, skipAmusementCutscene, clownGaze, GAZE } from './amusement.js';
 import { PARK_WAVE_COUNT } from './park-encounters.js';
 import { createAmusementView } from './amusement-view.js';
 import { PARK } from './park-rides.js';
@@ -109,6 +109,7 @@ function loadingProgress(value, message) { $('loadingProgress').value = value; $
 let clownIntroAngle = { yaw: 0, pitch: 0 };
 const gaze = { kind: null, home: 0, back: false, manual: false, mouse: 0 };   // 小丑战里镜头自己转的那部分俯仰
 let yaw = level.player.yaw || 0, pitch = 0, phase = 0, acc = 0, shake = 0, last = performance.now(), frameCount = 0;
+if (amusement && requestedStage) yaw = checkpointYaw(requestedStage) ?? yaw;   // 从某一站开局：脸朝前路
 let recoil = createRecoil(), hitMarkerTime = 0, hitMarkerKind = '', toastUntil = 0, toastPriority = 0, zoom = 0;
 let aimedEnemy = null, lastWounded = null;
 const hasPotions = (level.pickups || []).some(k => k.kind === 'potion');   // 这张图里有血瓶才显示瓶数和按键
@@ -464,6 +465,7 @@ const tellMat = new T.MeshBasicMaterial({ color: 0xe9bf65, transparent: true, op
 let iceGeometry, iceShellMaterial, iceRimMaterial, iceRingGeo, iceRingMat;
 const freezeBeams = [];
 const beamGeo = new T.CylinderGeometry(.032, .052, 1, 8, 1, true);
+const beamFrom = new T.Vector3();
 function spawnFreezeBeam(x0, y0, z0, x1, y1, z1) {
   const from = new T.Vector3(x0, y0, z0), to = new T.Vector3(x1, y1, z1);
   const diff = to.clone().sub(from), len = Math.max(.08, diff.length());
@@ -919,7 +921,12 @@ function processEvents() {
   for (const e of consumeEvents(s)) {
     const near = (r) => Math.hypot(e.x - s.player.x, e.z - s.player.z) < r && Math.abs((e.base ?? s.player.y) - s.player.y) < 2;
     const base = e.base ?? 0;
-    if (e.type==='freeze-beam') { spawnFreezeBeam(e.x0,e.y0,e.z0,e.x1,e.y1,e.z1); continue; }
+    if (e.type==='freeze-beam') {
+      // 射线在规则里从眼睛出发，光柱要从枪口画：照着 e.x0 画的话人就站在这根空心光柱里面，站着开枪整屏糊成一片青白。
+      // 枪是缩小了贴在眼前的，把看得见的枪口沿视线推回真实尺寸的位置，光柱的粗细才对。
+      const from = viewmodel.root.visible ? beamFrom.copy(visibleMuzzle(WEAPONS.findIndex(w => w.id === 'freeze'))).sub(camera.position).multiplyScalar(1/VIEWMODEL_SCALE).add(camera.position) : beamFrom.set(e.x0, e.y0 - .22, e.z0);
+      spawnFreezeBeam(from.x,from.y,from.z,e.x1,e.y1,e.z1); continue;
+    }
     if (e.type==='amusement') { amusementEvent(e); continue; }
     if (e.type==='enemy-frozen') { effects.spark(e,0x9be7ff,.9);sfx2('china');continue; }
     if (e.type === 'park') { parkEvent(e); continue; }
@@ -1651,6 +1658,7 @@ function start() {
   if (zoneCarry?.zone !== checkpoint) zoneCarry = null;
   const bossCheckpoint = checkpoint === TENT_ZONE && (retry ? s.amusement.clown.entered : previewClownIntro);
   s = createGame({ level,amusementCheckpoint:checkpoint,bossCheckpoint,carry:zoneCarry,reducedMotion:reduced });
+  if (amusement && checkpoint) yaw = checkpointYaw(checkpoint) ?? yaw;   // 从这一站重来：脸朝前路，不是朝着关卡出发时的方向
   if (previewClownIntro && checkpoint === TENT_ZONE && !retry) s.amusement.retry = false;
   amusementView?.update(s);
   if(weaponShowcase) for(const index of [...RANGE_GUNS.slice(1),...GRENADE_TYPES]) s.ammo[index].reserve=20;

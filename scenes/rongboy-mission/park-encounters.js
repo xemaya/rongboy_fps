@@ -30,15 +30,17 @@ export function advanceParkEncounter(s, zone, taskDone, spawn) {
   }
   if (s.time < encounter.nextAt) return;
 
-  // Keep each authored lane if possible. A player standing on it gets a farther, empty spot in the same zone.
+  // Keep each authored lane if possible. A player standing on it gets the nearest empty spot in the same zone that is far
+  // enough: the farthest one put two of the mirror maze's first three guards 23 m off at the tent end, where they stuck
+  // on the bends and the wave never finished. Only when nothing is far enough does the farthest spot win.
   const p = s.player, used = [], minimum = next === 0 ? 4.5 : MIN_SPAWN_DISTANCE;
   const distance = point => Math.hypot(p.x - point.x, p.z - point.z);
-  const spare = s.level.enemies.filter(e => e.zone === a.zone).sort((a,b) => distance(b) - distance(a));
+  const spare = s.level.enemies.filter(e => e.zone === a.zone).sort((a,b) => distance(a) - distance(b));
   const unoccupied = point => !used.some(at => Math.hypot(at.x - point.x, at.z - point.z) < 1);
   for (const foe of squad) {
     const at = distance(foe) >= minimum && unoccupied(foe)
       ? foe : spare.find(point => distance(point) >= minimum && unoccupied(point))
-        ?? spare.find(unoccupied) ?? foe;
+        ?? spare.findLast(unoccupied) ?? foe;
     used.push(at);
     spawn(s, { ...foe, x:at.x, z:at.z, heading:Math.atan2(p.x - at.x, p.z - at.z) });
   }

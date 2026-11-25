@@ -7,7 +7,7 @@ import { segmentBox } from './level.js';
 import { TOUR_PATH, TOUR_STOPS, TENT, TENT_DOOR, GATE as ARCH, CAROUSEL as HORSES, RAPIDS, RAPIDS_DOCK, WHEEL, HAUNT } from './park-tour-layout.js';
 import { PARK, parkPrompt, parkInteract, ghostOut } from './park-rides.js';
 import { makeMech, mechState, stepMech, mechSlide, hitMech } from './mech.js';
-import { GATE_LIFT_SECONDS, gateOnPath, makeStages, gatePassable as stagePassable, stageStart, stageAllows, advanceStages } from './stages.js';
+import { GATE_LIFT_SECONDS, gateOnPath, makeStages, gatePassable as stagePassable, stageStart, stageYaw, stageAllows, advanceStages } from './stages.js';
 import { advanceParkEncounter, parkEncounter } from './park-encounters.js';
 
 export { TENT, TENT_DOOR, GATE_LIFT_SECONDS };
@@ -163,6 +163,8 @@ export function skipAmusementCutscene(s) {
 
 // 从第 zone 站重来时人站在哪：上一道门里面一步；帐篷是门里的安全垫
 export const checkpointPosition = zone => zone === TENT_ZONE ? SAFE_PAD : stageStart(GATES, zone);
+// 从这一站重来时的朝向（帐篷里朝着舞台）；第 0 站返回 null，用关卡自己的出发朝向
+export const checkpointYaw = zone => zone === TENT_ZONE ? 0 : stageYaw(GATES, zone);
 
 // 现在按互动键会发生什么：{ id, kind, zh, en }，没有可按的返回 null。设施的提示来自 park-rides.js，这里只多管两件事：
 // 小丑倒下后的马达；木马那一站，蒸汽阀没冻住之前铃摇不动。
@@ -213,7 +215,8 @@ function stationTaskDone(s) {
     case 'rapids': return a.done.rapids && balloonsOf(a, 'rapids') === 0;
     case 'coaster': return a.done.coaster && a.targets.every(t => t.done);
     case 'haunt': return a.ghosts.every(Boolean);
-    case 'wheel': return a.done.wheel && balloonsOf(a, 'wheel') === 0;
+    // 钥匙气球从路上也打得到：打爆就算办完，不再要求坐完一圈（否则提示说"清场"，守卫却永远不出来）。人还在吊舱里时守卫照样等他下来（park-encounters 的 canStart）。
+    case 'wheel': return balloonsOf(a, 'wheel') === 0;
     case 'midway': return a.done.stall;
     case 'bumpers': return a.flagHits >= FLAG_HITS;
     default: return true;

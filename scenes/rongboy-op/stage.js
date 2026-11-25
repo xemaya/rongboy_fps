@@ -14,6 +14,7 @@ import { dressWalker, createWeaponKit } from '../../library/games/rongboy-worksh
 import assetData from '../rongboy-shooter-fps/models-full.js';   // 开场片有特写，用没减面的原件
 import { attachMood, layoutMoods } from './puppet.js';
 
+export const ZOMBIE_CLOSE_UP = { fibre: 0.35, normal: 0.57, tint: [1.3, 1.55, 2.1] };
 export const WEAPON_INDEX = Object.fromEntries(WEAPONS.map((w, i) => [w.id, i]));
 
 // 每张图要的演员：名字 → 兵种（'scout' 是绒仔）
@@ -35,7 +36,8 @@ export async function createStage({ canvas, quality, onError, onProgress = () =>
   const tick = () => new Promise(r => setTimeout(r, 0));
 
   onProgress('手办');
-  const actors = await loadFigurines(assetData);
+  // 僵尸在片子里有特写，用近景的料子：纤维和法线压软，底色提亮（原因见 loadFigurines 的 finish，数值是对着静帧调的）
+  const actors = await loadFigurines(assetData, { finish: ZOMBIE_CLOSE_UP });
   const ballTemplates = projectileModels(WEAPONS, createWoolBall());
   const blobGeo = new T.PlaneGeometry(1, 1);
   const blobMat = (() => {
